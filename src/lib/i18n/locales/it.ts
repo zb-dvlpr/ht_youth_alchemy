@@ -11,6 +11,23 @@ export const messagesIt: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "Manuale HT Alchemy",
     manualTocTitle: "Indice",
+    reminderBellLabel: "Promemoria",
+    remindersTitle: "Promemoria",
+    reminderDueNow: "Da vedere ora",
+    reminderSnoozed: "Posticipati",
+    reminderDismiss: "Ignora",
+    reminderSnooze: "Posticipa",
+    reminderSnooze6Hours: "6 ore",
+    reminderSnooze1Day: "1 giorno",
+    reminderSnooze3Days: "3 giorni",
+    reminderSnooze1Week: "1 settimana",
+    reminderTurnOff: "Disattiva promemoria",
+    reminderOpenModal: "Apri",
+    reminderNoDue: "Nessun promemoria da vedere.",
+    reminderNoSnoozed: "Nessun promemoria posticipato.",
+    remindersDisabledState: "I promemoria sono disattivati.",
+    reminderMissingActionFallback:
+      "Questa azione del promemoria non è ancora disponibile.",
     sidebarCollapseTooltip: "Comprimi barra laterale",
     sidebarExpandTooltip: "Espandi barra laterale",
     supportOnKofi: "Offrimi un caffè",
@@ -146,6 +163,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_6_0_0:
+      "Aggiunto il framework globale dei promemoria con impostazioni, campanella, archiviazione di posticipi/ignora ed export/import.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -381,6 +400,9 @@ export const messagesIt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostra il modal offrimi un caffè",
     settingsGeneral: "Generale",
     settingsGeneralTitle: "Impostazioni generali",
+    settingsReminders: "Promemoria",
+    settingsRemindersTitle: "Promemoria",
+    settingsRemindersEnableLabel: "Attiva promemoria",
     settingsLicense: "Licenza",
     settingsLicenseTitle: "Licenza",
     settingsLicenseBody:

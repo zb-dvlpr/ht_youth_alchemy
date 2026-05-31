@@ -11,6 +11,23 @@ export const messagesSv: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy-manual",
     manualTocTitle: "Innehåll",
+    reminderBellLabel: "Påminnelser",
+    remindersTitle: "Påminnelser",
+    reminderDueNow: "Aktuella",
+    reminderSnoozed: "Snoozade",
+    reminderDismiss: "Avfärda",
+    reminderSnooze: "Snooza",
+    reminderSnooze6Hours: "6 timmar",
+    reminderSnooze1Day: "1 dag",
+    reminderSnooze3Days: "3 dagar",
+    reminderSnooze1Week: "1 vecka",
+    reminderTurnOff: "Stäng av påminnelser",
+    reminderOpenModal: "Öppna",
+    reminderNoDue: "Inga aktuella påminnelser.",
+    reminderNoSnoozed: "Inga snoozade påminnelser.",
+    remindersDisabledState: "Påminnelser är avstängda.",
+    reminderMissingActionFallback:
+      "Den här påminnelseåtgärden är inte tillgänglig än.",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",
@@ -145,6 +162,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_0_0:
+      "Lade till ett globalt påminnelseframework med inställningar, klocka, snooze-/avfärdningslagring och export/import.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -376,6 +395,9 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsReminders: "Påminnelser",
+    settingsRemindersTitle: "Påminnelser",
+    settingsRemindersEnableLabel: "Aktivera påminnelser",
     settingsLicense: "Licens",
     settingsLicenseTitle: "Licens",
     settingsLicenseBody:

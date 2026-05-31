@@ -12,6 +12,23 @@ export const messagesPl: Messages = {
   changelogTitle: "Dziennik zmian",
   manualTitle: "Instrukcja HT Alchemy",
   manualTocTitle: "Spis treści",
+  reminderBellLabel: "Przypomnienia",
+  remindersTitle: "Przypomnienia",
+  reminderDueNow: "Do zrobienia",
+  reminderSnoozed: "Odłożone",
+  reminderDismiss: "Ukryj",
+  reminderSnooze: "Odłóż",
+  reminderSnooze6Hours: "6 godzin",
+  reminderSnooze1Day: "1 dzień",
+  reminderSnooze3Days: "3 dni",
+  reminderSnooze1Week: "1 tydzień",
+  reminderTurnOff: "Wyłącz przypomnienia",
+  reminderOpenModal: "Otwórz",
+  reminderNoDue: "Brak przypomnień do zrobienia.",
+  reminderNoSnoozed: "Brak odłożonych przypomnień.",
+  remindersDisabledState: "Przypomnienia są wyłączone.",
+  reminderMissingActionFallback:
+    "Ta akcja przypomnienia nie jest jeszcze dostępna.",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",
@@ -190,6 +207,9 @@ export const messagesPl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+  settingsReminders: "Przypomnienia",
+  settingsRemindersTitle: "Przypomnienia",
+  settingsRemindersEnableLabel: "Włącz przypomnienia",
   settingsLicense: "Licencja",
   settingsLicenseTitle: "Licencja",
   settingsLicenseBody:
@@ -345,6 +365,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_6_0_0:
+    "Dodano globalny framework przypomnień z ustawieniami, ikoną, odkładaniem/ukrywaniem oraz eksportem/importem.",
   changelog_5_8_0:
     "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:

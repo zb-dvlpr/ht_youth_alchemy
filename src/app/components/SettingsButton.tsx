@@ -81,6 +81,14 @@ import {
   readAppLicenseState,
 } from "@/lib/license";
 import type { LemonSqueezyLicenseDetails } from "@/lib/lemonsqueezyLicense";
+import {
+  exportReminderStorageState,
+  importReminderStorageExport,
+  readReminderStorageState,
+  setRemindersEnabled,
+  subscribeReminderStorageState,
+  type ReminderStorageExport,
+} from "@/lib/reminders/storage";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -91,6 +99,7 @@ type ExportPayload = {
   version: number;
   exportedAt: string;
   entries: Record<string, string>;
+  reminders?: ReminderStorageExport;
 };
 
 const STORAGE_PREFIX = "ya_";
@@ -113,6 +122,7 @@ export default function SettingsButton({
   const [seniorRatingsWipeWarningOpen, setSeniorRatingsWipeWarningOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const [reminderSettingsOpen, setReminderSettingsOpen] = useState(false);
   const [licenseSettingsOpen, setLicenseSettingsOpen] = useState(false);
   const [licenseEntryOpen, setLicenseEntryOpen] = useState(false);
   const [licenseEntryNonce, setLicenseEntryNonce] = useState(0);
@@ -142,6 +152,7 @@ export default function SettingsButton({
   const [chronicleUpdatesHistoryCount, setChronicleUpdatesHistoryCount] =
     useState(10);
   const [enableAppScaling, setEnableAppScaling] = useState(false);
+  const [remindersEnabled, setRemindersEnabledState] = useState(true);
   const [analyticsConsent, setAnalyticsConsent] =
     useState<AnalyticsConsent | null>(null);
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
@@ -200,12 +211,21 @@ export default function SettingsButton({
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     setEnableAppScaling(readGeneralEnableScaling());
+    setRemindersEnabledState(readReminderStorageState().preferences.enabled);
     setAnalyticsConsent(readAnalyticsConsent());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
+  }, []);
+
+  useEffect(() => {
+    const syncReminders = () => {
+      setRemindersEnabledState(readReminderStorageState().preferences.enabled);
+    };
+    syncReminders();
+    return subscribeReminderStorageState(syncReminders);
   }, []);
 
   useEffect(() => {
@@ -349,6 +369,7 @@ export default function SettingsButton({
         version: 1,
         exportedAt: new Date().toISOString(),
         entries,
+        reminders: exportReminderStorageState(),
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: "application/json",
@@ -430,6 +451,9 @@ export default function SettingsButton({
           if (!key.startsWith(STORAGE_PREFIX)) return;
           window.localStorage.setItem(key, value);
         });
+        if (parsed.reminders) {
+          importReminderStorageExport(parsed.reminders);
+        }
       }
       addNotification(messages.settingsImportSuccess);
       window.location.reload();
@@ -593,6 +617,11 @@ export default function SettingsButton({
         })
       );
     }
+  };
+
+  const handleRemindersEnabledToggle = (nextValue: boolean) => {
+    setRemindersEnabledState(nextValue);
+    setRemindersEnabled(nextValue);
   };
 
   const handleAnalyticsConsentChange = (nextConsent: AnalyticsConsent) => {
@@ -788,6 +817,16 @@ export default function SettingsButton({
             }}
           >
             {messages.settingsGeneral}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setReminderSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsReminders}
           </button>
           {premiumLicensingEnabled ? (
             <button
@@ -1241,6 +1280,38 @@ export default function SettingsButton({
         }
         closeOnBackdrop
         onClose={() => setGeneralSettingsOpen(false)}
+      />
+      <Modal
+        open={reminderSettingsOpen}
+        title={messages.settingsRemindersTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <label className={styles.algorithmsToggle}>
+              <span className={styles.algorithmsToggleText}>
+                {messages.settingsRemindersEnableLabel}
+              </span>
+              <input
+                type="checkbox"
+                className={styles.algorithmsToggleInput}
+                checked={remindersEnabled}
+                onChange={(event) =>
+                  handleRemindersEnabledToggle(event.target.checked)
+                }
+              />
+              <span className={styles.algorithmsToggleSwitch} aria-hidden="true" />
+            </label>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setReminderSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        onClose={() => setReminderSettingsOpen(false)}
       />
       {isDev ? (
         <>

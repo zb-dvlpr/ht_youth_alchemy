@@ -11,6 +11,23 @@ export const messagesDe: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy Handbuch",
     manualTocTitle: "Inhaltsverzeichnis",
+    reminderBellLabel: "Erinnerungen",
+    remindersTitle: "Erinnerungen",
+    reminderDueNow: "Jetzt fällig",
+    reminderSnoozed: "Schlummernd",
+    reminderDismiss: "Ausblenden",
+    reminderSnooze: "Schlummern",
+    reminderSnooze6Hours: "6 Stunden",
+    reminderSnooze1Day: "1 Tag",
+    reminderSnooze3Days: "3 Tage",
+    reminderSnooze1Week: "1 Woche",
+    reminderTurnOff: "Erinnerungen ausschalten",
+    reminderOpenModal: "Öffnen",
+    reminderNoDue: "Keine fälligen Erinnerungen.",
+    reminderNoSnoozed: "Keine schlummernden Erinnerungen.",
+    remindersDisabledState: "Erinnerungen sind ausgeschaltet.",
+    reminderMissingActionFallback:
+      "Diese Erinnerungsaktion ist noch nicht verfügbar.",
     sidebarCollapseTooltip: "Seitenleiste einklappen",
     sidebarExpandTooltip: "Seitenleiste ausklappen",
     supportOnKofi: "Kauf mir einen Kaffee",
@@ -146,6 +163,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_6_0_0:
+      "Globales Erinnerungs-Framework mit Einstellungen, Glocke, Schlummer-/Ausblend-Speicher und Export/Import ergänzt.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -376,6 +395,9 @@ export const messagesDe: Messages = {
       "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsReminders: "Erinnerungen",
+    settingsRemindersTitle: "Erinnerungen",
+    settingsRemindersEnableLabel: "Erinnerungen aktivieren",
     settingsLicense: "Lizenz",
     settingsLicenseTitle: "Lizenz",
     settingsLicenseBody:

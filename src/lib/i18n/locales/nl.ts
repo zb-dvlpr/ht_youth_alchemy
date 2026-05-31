@@ -12,6 +12,23 @@ export const messagesNl: Messages = {
   changelogTitle: "Wijzigingslogboek",
   manualTitle: "HT Alchemy-handleiding",
   manualTocTitle: "Inhoudsopgave",
+  reminderBellLabel: "Herinneringen",
+  remindersTitle: "Herinneringen",
+  reminderDueNow: "Nu nodig",
+  reminderSnoozed: "Gesnoozed",
+  reminderDismiss: "Negeren",
+  reminderSnooze: "Snoozen",
+  reminderSnooze6Hours: "6 uur",
+  reminderSnooze1Day: "1 dag",
+  reminderSnooze3Days: "3 dagen",
+  reminderSnooze1Week: "1 week",
+  reminderTurnOff: "Herinneringen uitzetten",
+  reminderOpenModal: "Openen",
+  reminderNoDue: "Geen herinneringen nodig.",
+  reminderNoSnoozed: "Geen gesnoozede herinneringen.",
+  remindersDisabledState: "Herinneringen staan uit.",
+  reminderMissingActionFallback:
+    "Deze herinneringsactie is nog niet beschikbaar.",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",
@@ -190,6 +207,9 @@ export const messagesNl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsReminders: "Herinneringen",
+  settingsRemindersTitle: "Herinneringen",
+  settingsRemindersEnableLabel: "Herinneringen inschakelen",
   settingsLicense: "Licentie",
   settingsLicenseTitle: "Licentie",
   settingsLicenseBody:
@@ -352,6 +372,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_6_0_0:
+    "Globaal herinneringenframework toegevoegd met instellingen, bel, snooze-/negeeropslag en export/import.",
   changelog_5_8_0:
     "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:

@@ -1095,6 +1095,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   position: sticky;
   top: 0;
   z-index: 2147483646;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.shellTopBar > .topBar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.shellTopBar > .reminderBellWrap {
+  flex: 0 0 auto;
+  margin-top: 8px;
 }
 
 .shellContextBar {
@@ -1824,6 +1837,114 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .notificationEmpty {
   font-size: 12px;
   color: #9a8f81;
+}
+
+.reminderBellWrap {
+  position: relative;
+}
+
+.reminderBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+}
+
+.reminderDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 2200;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(640px, calc(100vh - 96px));
+  overflow: auto;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  background: #f7f1e3;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  color: #3f362c;
+}
+
+.reminderDropdownHeader,
+.reminderActionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reminderDropdownHeader {
+  justify-content: space-between;
+}
+
+.reminderDropdownSection {
+  display: grid;
+  gap: 8px;
+}
+
+.reminderDropdownSection h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.reminderDropdownList,
+.reminderModalBody {
+  display: grid;
+  gap: 10px;
+}
+
+.reminderCard {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+}
+
+.reminderCard p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.reminderCardHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.reminderScope {
+  justify-self: start;
+  border-radius: 999px;
+  background: #efe6d6;
+  color: #5b4a38;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reminderCard_info {
+  border-color: #9db7d7;
+}
+
+.reminderCard_warning {
+  border-color: #b45309;
+}
+
+.reminderCard_critical {
+  border-color: #b91c1c;
 }
 
 .connectButton {
@@ -5547,6 +5668,23 @@ html[data-theme="dark"] .autoSelectButton {
 html[data-theme="dark"] .feedbackMenu {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .reminderDropdown {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .reminderCard {
+  background: #1f1a13;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .reminderScope {
+  background: #2f281f;
+  color: #eadfd2;
 }
 
 html[data-theme="dark"] .feedbackLink {

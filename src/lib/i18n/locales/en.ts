@@ -11,6 +11,22 @@ export const messagesEn: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy manual",
     manualTocTitle: "Table of contents",
+    reminderBellLabel: "Reminders",
+    remindersTitle: "Reminders",
+    reminderDueNow: "Due now",
+    reminderSnoozed: "Snoozed",
+    reminderDismiss: "Dismiss",
+    reminderSnooze: "Snooze",
+    reminderSnooze6Hours: "6 hours",
+    reminderSnooze1Day: "1 day",
+    reminderSnooze3Days: "3 days",
+    reminderSnooze1Week: "1 week",
+    reminderTurnOff: "Turn reminders off",
+    reminderOpenModal: "Open",
+    reminderNoDue: "No reminders due.",
+    reminderNoSnoozed: "No snoozed reminders.",
+    remindersDisabledState: "Reminders are turned off.",
+    reminderMissingActionFallback: "This reminder action is not available yet.",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",
@@ -145,6 +161,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_0_0:
+      "Added the global reminder framework with settings, bell, snooze/dismiss storage, and export/import support.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -361,6 +379,9 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsReminders: "Reminders",
+    settingsRemindersTitle: "Reminders",
+    settingsRemindersEnableLabel: "Enable reminders",
     settingsLicense: "License",
     settingsLicenseTitle: "License",
     settingsLicenseBody:

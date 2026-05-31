@@ -11,6 +11,23 @@ export const messagesEs: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "Manual de HT Alchemy",
     manualTocTitle: "Índice",
+    reminderBellLabel: "Recordatorios",
+    remindersTitle: "Recordatorios",
+    reminderDueNow: "Pendientes",
+    reminderSnoozed: "Pospuestos",
+    reminderDismiss: "Descartar",
+    reminderSnooze: "Posponer",
+    reminderSnooze6Hours: "6 horas",
+    reminderSnooze1Day: "1 día",
+    reminderSnooze3Days: "3 días",
+    reminderSnooze1Week: "1 semana",
+    reminderTurnOff: "Desactivar recordatorios",
+    reminderOpenModal: "Abrir",
+    reminderNoDue: "No hay recordatorios pendientes.",
+    reminderNoSnoozed: "No hay recordatorios pospuestos.",
+    remindersDisabledState: "Los recordatorios están desactivados.",
+    reminderMissingActionFallback:
+      "Esta acción de recordatorio aún no está disponible.",
     sidebarCollapseTooltip: "Contraer barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Invítame a un café",
@@ -145,6 +162,8 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_0_0:
+      "Se añadió el framework global de recordatorios con ajustes, campana, almacenamiento de posponer/descartar y exportación/importación.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -378,6 +397,9 @@ export const messagesEs: Messages = {
       "Cuántas diferencias con cambios de refrescos globales se guardan y muestran en el historial de Últimas actualizaciones.",
     settingsGeneral: "General",
     settingsGeneralTitle: "Ajustes generales",
+    settingsReminders: "Recordatorios",
+    settingsRemindersTitle: "Recordatorios",
+    settingsRemindersEnableLabel: "Activar recordatorios",
     settingsLicense: "Licencia",
     settingsLicenseTitle: "Licencia",
     settingsLicenseBody:

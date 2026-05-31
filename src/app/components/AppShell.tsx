@@ -16,6 +16,9 @@ import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
+import ReminderBell from "./reminders/ReminderBell";
+import ReminderBatchModal from "./reminders/ReminderBatchModal";
+import { useNotifications } from "./notifications/NotificationsProvider";
 import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
 import VersionUpdateGate from "./VersionUpdateGate";
@@ -34,6 +37,27 @@ import {
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
 import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
+import {
+  dismissReminder,
+  resolveReminderEvaluation,
+  snoozeReminder,
+} from "@/lib/reminders/engine";
+import {
+  emptyReminderStorageState,
+  readReminderStorageState,
+  setRemindersEnabled,
+  subscribeReminderStorageState,
+  writeReminderStorageState,
+} from "@/lib/reminders/storage";
+import {
+  ALL_REMINDER_RULES,
+  evaluateRegisteredReminderCandidates,
+} from "@/lib/reminders/registry";
+import type {
+  ReminderAction,
+  ReminderDisplayItem,
+} from "@/lib/reminders/types";
+import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
 
 type AppShellProps = {
   messages: Messages;
@@ -136,10 +160,18 @@ export default function AppShell({
   const [buyCoffeePromptState, setBuyCoffeePromptState] =
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
+  const [reminderStorageState, setReminderStorageState] = useState(
+    emptyReminderStorageState
+  );
+  const [reminderBatchItems, setReminderBatchItems] = useState<
+    ReminderDisplayItem[]
+  >([]);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
   const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
+  const surfacedReminderTriggerKeysThisSessionRef = useRef(new Set<string>());
   const mobileLayoutInitializedRef = useRef(false);
+  const { addNotification } = useNotifications();
 
   const persistBuyCoffeePromptState = (nextState: BuyCoffeePromptState) => {
     setBuyCoffeePromptState(nextState);
@@ -221,6 +253,111 @@ export default function AppShell({
       messages.toolYouthOptimization,
     ]
   );
+
+  useEffect(() => {
+    const syncReminderStorage = () => {
+      setReminderStorageState(readReminderStorageState());
+    };
+    syncReminderStorage();
+    return subscribeReminderStorageState(syncReminderStorage);
+  }, []);
+
+  const reminderCandidates = useMemo(
+    () =>
+      reminderStorageState.preferences.enabled
+        ? evaluateRegisteredReminderCandidates({})
+        : [],
+    [reminderStorageState.preferences.enabled]
+  );
+
+  const reminderEvaluation = useMemo(
+    () =>
+      resolveReminderEvaluation({
+        candidates: reminderCandidates,
+        rules: ALL_REMINDER_RULES,
+        state: reminderStorageState,
+        now: Date.now(),
+        surfacedTriggerKeysThisSession:
+          surfacedReminderTriggerKeysThisSessionRef.current,
+      }),
+    [reminderCandidates, reminderStorageState]
+  );
+
+  useEffect(() => {
+    if (!reminderStorageState.preferences.enabled) {
+      setReminderBatchItems([]);
+      return;
+    }
+    if (!reminderEvaluation.newlyDueToSurface.length) return;
+    reminderEvaluation.newlyDueToSurface.forEach((item) => {
+      surfacedReminderTriggerKeysThisSessionRef.current.add(
+        item.candidate.triggerKey
+      );
+    });
+    setReminderBatchItems(reminderEvaluation.due);
+  }, [
+    reminderEvaluation.due,
+    reminderEvaluation.newlyDueToSurface,
+    reminderStorageState.preferences.enabled,
+  ]);
+
+  useEffect(() => {
+    if (!reminderStorageState.preferences.enabled) return;
+    if (
+      JSON.stringify(reminderEvaluation.state) ===
+      JSON.stringify(reminderStorageState)
+    ) {
+      return;
+    }
+    writeReminderStorageState(reminderEvaluation.state);
+  }, [reminderEvaluation.state, reminderStorageState]);
+
+  const handleReminderDismiss = useCallback((item: ReminderDisplayItem) => {
+    const rule = ALL_REMINDER_RULES.find(
+      (entry) => entry.ruleId === item.candidate.ruleId
+    );
+    dismissReminder(item.candidate, readReminderStorageState(), rule);
+    setReminderBatchItems((current) =>
+      current.filter(
+        (entry) => entry.candidate.stableKey !== item.candidate.stableKey
+      )
+    );
+  }, []);
+
+  const handleReminderSnooze = useCallback(
+    (item: ReminderDisplayItem, durationMs: number) => {
+      snoozeReminder(item.candidate, readReminderStorageState(), durationMs);
+      setReminderBatchItems((current) =>
+        current.filter(
+          (entry) => entry.candidate.stableKey !== item.candidate.stableKey
+        )
+      );
+    },
+    []
+  );
+
+  const handleReminderAction = useCallback(
+    (action: ReminderAction) => {
+      if (action.type === "openMatch") {
+        window.open(
+          hattrickMatchUrlWithSourceSystem(
+            action.payload.matchId,
+            action.payload.sourceSystem ?? "Hattrick"
+          ),
+          "_blank",
+          "noopener,noreferrer"
+        );
+        return;
+      }
+      addNotification(messages.reminderMissingActionFallback);
+    },
+    [addNotification, messages.reminderMissingActionFallback]
+  );
+
+  const handleTurnRemindersOff = useCallback(() => {
+    setRemindersEnabled(false);
+    setReminderBatchItems([]);
+  }, []);
 
   const changelogEntries = useMemo(() => getChangelogEntries(messages), [messages]);
   const changelogRows = useMemo(
@@ -965,6 +1102,13 @@ export default function AppShell({
     >
       <div className={styles.shellTopBar} ref={shellTopBarRef}>
         {headerChildren}
+        <ReminderBell
+          messages={messages}
+          enabled={reminderStorageState.preferences.enabled}
+          due={reminderEvaluation.due}
+          snoozed={reminderEvaluation.snoozed}
+          onOpenBatch={() => setReminderBatchItems(reminderEvaluation.due)}
+        />
       </div>
       {!mobileLayoutActive ? (
         <aside
@@ -1215,6 +1359,16 @@ export default function AppShell({
         title={messages.manualTitle}
         tocTitle={messages.manualTocTitle}
         onClose={() => setShowManual(false)}
+      />
+      <ReminderBatchModal
+        open={reminderBatchItems.length > 0}
+        messages={messages}
+        reminders={reminderBatchItems}
+        onClose={() => setReminderBatchItems([])}
+        onDismiss={handleReminderDismiss}
+        onSnooze={handleReminderSnooze}
+        onAction={handleReminderAction}
+        onTurnOff={handleTurnRemindersOff}
       />
       <Modal
         open={showChangelog}

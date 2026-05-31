@@ -11,6 +11,23 @@ export const messagesFr: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "Manuel HT Alchemy",
     manualTocTitle: "Table des matières",
+    reminderBellLabel: "Rappels",
+    remindersTitle: "Rappels",
+    reminderDueNow: "À traiter",
+    reminderSnoozed: "Reportés",
+    reminderDismiss: "Ignorer",
+    reminderSnooze: "Reporter",
+    reminderSnooze6Hours: "6 heures",
+    reminderSnooze1Day: "1 jour",
+    reminderSnooze3Days: "3 jours",
+    reminderSnooze1Week: "1 semaine",
+    reminderTurnOff: "Désactiver les rappels",
+    reminderOpenModal: "Ouvrir",
+    reminderNoDue: "Aucun rappel à traiter.",
+    reminderNoSnoozed: "Aucun rappel reporté.",
+    remindersDisabledState: "Les rappels sont désactivés.",
+    reminderMissingActionFallback:
+      "Cette action de rappel n'est pas encore disponible.",
     sidebarCollapseTooltip: "Réduire la barre latérale",
     sidebarExpandTooltip: "Déployer la barre latérale",
     supportOnKofi: "Offre-moi un café",
@@ -146,6 +163,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_6_0_0:
+      "Ajout du framework global de rappels avec réglages, cloche, stockage des reports/ignorés et export/import.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -381,6 +400,9 @@ export const messagesFr: Messages = {
     settingsDebugBuyCoffeePromptButton: "Afficher la modale offre-moi un café",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
+    settingsReminders: "Rappels",
+    settingsRemindersTitle: "Rappels",
+    settingsRemindersEnableLabel: "Activer les rappels",
     settingsLicense: "Licence",
     settingsLicenseTitle: "Licence",
     settingsLicenseBody:

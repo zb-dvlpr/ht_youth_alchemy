@@ -11,6 +11,23 @@ export const messagesPt: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "Manual do HT Alchemy",
     manualTocTitle: "Índice",
+    reminderBellLabel: "Lembretes",
+    remindersTitle: "Lembretes",
+    reminderDueNow: "Pendentes",
+    reminderSnoozed: "Adiados",
+    reminderDismiss: "Ignorar",
+    reminderSnooze: "Adiar",
+    reminderSnooze6Hours: "6 horas",
+    reminderSnooze1Day: "1 dia",
+    reminderSnooze3Days: "3 dias",
+    reminderSnooze1Week: "1 semana",
+    reminderTurnOff: "Desativar lembretes",
+    reminderOpenModal: "Abrir",
+    reminderNoDue: "Nenhum lembrete pendente.",
+    reminderNoSnoozed: "Nenhum lembrete adiado.",
+    remindersDisabledState: "Os lembretes estão desativados.",
+    reminderMissingActionFallback:
+      "Esta ação de lembrete ainda não está disponível.",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Paga-me um café",
@@ -146,6 +163,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_6_0_0:
+      "Adicionado o framework global de lembretes com definições, sino, armazenamento de adiar/ignorar e exportação/importação.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -379,6 +398,9 @@ export const messagesPt: Messages = {
       "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsReminders: "Lembretes",
+    settingsRemindersTitle: "Lembretes",
+    settingsRemindersEnableLabel: "Ativar lembretes",
     settingsLicense: "Licença",
     settingsLicenseTitle: "Licença",
     settingsLicenseBody:

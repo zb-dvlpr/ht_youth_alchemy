@@ -611,7 +611,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletFanclub:
       "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
-      "Arena: arenanamn, total kapacitet och senaste byggdatum. Klicka pa en rad for fordelning av platser (terrasser/bas/tak/VIP).",
+      "Arena: arenanamn, total kapacitet, senaste belaggning och senaste byggdatum. Klicka pa en rad for fordelning av platser (terrasser/bas/tak/VIP).",
     clubChronicleHelpBulletTransfer:
       "Transfermarknad: spelare pa marknaden och totalt sald/kopt. Klicka pa Pa marknaden for listor (alder i ar+dagar, TSI, utropspris) och pa Sald/Kopt for senaste overgangar (typ, alder vid overgangen, TSI, pris). Lagnamn i detaljmodala fonster ar klickbara.",
     clubChronicleHelpBulletFormations:
@@ -646,6 +646,7 @@ export const messagesSv: Messages = {
     clubChronicleArenaColumnName: "Arenanamn",
     clubChronicleArenaColumnId: "Arena-ID",
     clubChronicleArenaColumnCapacity: "Total kapacitet",
+    clubChronicleArenaColumnLatestOccupancy: "Senaste beläggning",
     clubChronicleArenaColumnRebuiltDate: "Senaste byggdatum",
     clubChronicleArenaConstructionTooltip: "Arenautbyggnad pågår",
     clubChronicleArenaRebuiltDateUnderConstruction: "Byggnation pågår",

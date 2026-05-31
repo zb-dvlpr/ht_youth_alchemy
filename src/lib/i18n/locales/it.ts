@@ -619,7 +619,7 @@ export const messagesIt: Messages = {
     clubChronicleHelpBulletFanclub:
       "Fan club: nome e dimensione. Clicca una riga per vedere precedente/corrente e differenza di dimensione dall ultimo valore cambiato.",
     clubChronicleHelpBulletArena:
-      "Stadio: nome stadio, capacita totale e ultima data di ampliamento. Clicca una riga per la distribuzione posti (tribune/base/coperto/VIP).",
+      "Stadio: nome stadio, capacita totale, ultima occupazione e ultima data di ampliamento. Clicca una riga per la distribuzione posti (tribune/base/coperto/VIP).",
     clubChronicleHelpBulletTransfer:
       "Mercato trasferimenti: giocatori sul mercato e totali vendite/acquisti. Clicca Sul mercato per le inserzioni (eta in anni+giorni, TSI, prezzo richiesto) e Vend./Acq. per gli ultimi trasferimenti (tipo, eta al trasferimento, TSI, prezzo). I nomi squadra nelle modali di dettaglio sono cliccabili.",
     clubChronicleHelpBulletFormations:
@@ -654,6 +654,7 @@ export const messagesIt: Messages = {
     clubChronicleArenaColumnName: "Nome stadio",
     clubChronicleArenaColumnId: "ID stadio",
     clubChronicleArenaColumnCapacity: "Capacità totale",
+    clubChronicleArenaColumnLatestOccupancy: "Ultima occupazione",
     clubChronicleArenaColumnRebuiltDate: "Data ultimo ampliamento",
     clubChronicleArenaConstructionTooltip: "Espansione stadio in corso",
     clubChronicleArenaRebuiltDateUnderConstruction: "Attualmente in costruzione",

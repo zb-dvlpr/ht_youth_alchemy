@@ -583,7 +583,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletFanclub:
       "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
     clubChronicleHelpBulletArena:
-      "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
+      "Arena: arena name, total capacity, latest occupancy, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
       "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
@@ -618,6 +618,7 @@ export const messagesEn: Messages = {
     clubChronicleArenaColumnName: "Arena name",
     clubChronicleArenaColumnId: "Arena ID",
     clubChronicleArenaColumnCapacity: "Total capacity",
+    clubChronicleArenaColumnLatestOccupancy: "Latest occupancy",
     clubChronicleArenaColumnRebuiltDate: "Latest build date",
     clubChronicleArenaConstructionTooltip: "Arena expansion in progress",
     clubChronicleArenaRebuiltDateUnderConstruction: "Currently under construction",

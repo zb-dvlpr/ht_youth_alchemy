@@ -617,7 +617,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletFanclub:
       "Club de fans: nombre y tamano. Haz clic en una fila para ver anterior/actual y la diferencia de tamano desde el ultimo valor cambiado.",
     clubChronicleHelpBulletArena:
-      "Estadio: nombre, capacidad total y ultima fecha de ampliacion. Haz clic en una fila para ver el reparto de asientos (gradas/basico/cubierto/VIP).",
+      "Estadio: nombre, capacidad total, ultima ocupacion y ultima fecha de ampliacion. Haz clic en una fila para ver el reparto de asientos (gradas/basico/cubierto/VIP).",
     clubChronicleHelpBulletTransfer:
       "Mercado de traspasos: jugadores en mercado y totales vendido/comprado. Haz clic en En venta para anuncios (edad en anos+dias, TSI, precio de salida) y en Vend./Comp. para ultimos traspasos (tipo, edad al transferirse, TSI, precio). Los nombres de equipo en modales de detalle son clicables.",
     clubChronicleHelpBulletFormations:
@@ -652,6 +652,7 @@ export const messagesEs: Messages = {
     clubChronicleArenaColumnName: "Nombre del estadio",
     clubChronicleArenaColumnId: "ID de estadio",
     clubChronicleArenaColumnCapacity: "Capacidad total",
+    clubChronicleArenaColumnLatestOccupancy: "Última ocupación",
     clubChronicleArenaColumnRebuiltDate: "Última fecha de ampliación",
     clubChronicleArenaConstructionTooltip: "Ampliación del estadio en curso",
     clubChronicleArenaRebuiltDateUnderConstruction: "Actualmente en construcción",

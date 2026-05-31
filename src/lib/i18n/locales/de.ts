@@ -607,7 +607,7 @@ export const messagesDe: Messages = {
     clubChronicleHelpBulletFanclub:
       "Fanclub: Fanclub-Name und -Groesse. Klick auf eine Zeile zeigt Vorher/Nachher und die Groessendifferenz seit dem letzten geaenderten Wert.",
     clubChronicleHelpBulletArena:
-      "Arena: Arena-Name, Gesamtkapazitaet und letztes Ausbaudatum. Klick auf eine Zeile zeigt die Sitzplatzverteilung (Stehplaetze/Sitzplaetze/Ueberdacht/VIP).",
+      "Arena: Arena-Name, Gesamtkapazitaet, letzte Auslastung und letztes Ausbaudatum. Klick auf eine Zeile zeigt die Sitzplatzverteilung (Stehplaetze/Sitzplaetze/Ueberdacht/VIP).",
     clubChronicleHelpBulletTransfer:
       "Transfermarkt: Spieler auf dem Markt und Verkaeufe/Kaeufe gesamt. Klick auf Auf dem Markt zeigt Angebote (Alter in Jahren+Tagen, TSI, Angebotspreis) und Klick auf Verk./Kauf zeigt letzte Transfers (Typ, Alter beim Transfer, TSI, Preis). Teamnamen in Detailmodals sind klickbar.",
     clubChronicleHelpBulletFormations:
@@ -642,6 +642,7 @@ export const messagesDe: Messages = {
     clubChronicleArenaColumnName: "Arenaname",
     clubChronicleArenaColumnId: "Arena-ID",
     clubChronicleArenaColumnCapacity: "Gesamtkapazität",
+    clubChronicleArenaColumnLatestOccupancy: "Letzte Auslastung",
     clubChronicleArenaColumnRebuiltDate: "Letztes Ausbaudatum",
     clubChronicleArenaConstructionTooltip: "Arenaausbau läuft",
     clubChronicleArenaRebuiltDateUnderConstruction: "Derzeit im Ausbau",

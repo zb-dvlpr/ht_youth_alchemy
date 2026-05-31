@@ -807,6 +807,11 @@ type FanclubDetailsSnapshot = {
 type ArenaSnapshot = {
   arenaName: string | null;
   currentTotalCapacity: number | null;
+  latestOccupancyPct: number | null;
+  latestOccupancySoldTotal: number | null;
+  latestOccupancyMatchId: number | null;
+  latestOccupancyMatchDate: string | null;
+  latestOccupancySourceSystem: string | null;
   rebuiltDate: string | null;
   currentAvailable: boolean | null;
   terraces: number | null;
@@ -7231,6 +7236,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleArenaRebuiltDateUnderConstruction,
     ]
   );
+  const formatArenaOccupancyDisplay = useCallback(
+    (snapshot: ArenaSnapshot | null | undefined) => {
+      const value = snapshot?.latestOccupancyPct;
+      return typeof value === "number" && Number.isFinite(value)
+        ? `${value}%`
+        : null;
+    },
+    []
+  );
 
   const arenaTableColumns = useMemo<
     ChronicleTableColumn<ArenaRow, ArenaSnapshot>[]
@@ -7275,6 +7289,42 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "latestOccupancy",
+        label: messages.clubChronicleArenaColumnLatestOccupancy,
+        getValue: (snapshot: ArenaSnapshot | undefined) =>
+          formatArenaOccupancyDisplay(snapshot),
+        getSortValue: (snapshot: ArenaSnapshot | undefined) =>
+          snapshot?.latestOccupancyPct ?? null,
+        renderCell: (
+          snapshot: ArenaSnapshot | undefined,
+          _row: ArenaRow,
+          fallbackFormat
+        ) => {
+          const pct = snapshot?.latestOccupancyPct;
+          const matchId = snapshot?.latestOccupancyMatchId;
+          const sourceSystem = snapshot?.latestOccupancySourceSystem ?? "Hattrick";
+          if (
+            typeof pct !== "number" ||
+            !Number.isFinite(pct) ||
+            typeof matchId !== "number" ||
+            !Number.isFinite(matchId)
+          ) {
+            return fallbackFormat(null);
+          }
+          return (
+            <a
+              className={styles.chronicleCellButton}
+              href={hattrickMatchUrlWithSourceSystem(matchId, sourceSystem)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {pct}%
+            </a>
+          );
+        },
+      },
+      {
         key: "rebuiltDate",
         label: messages.clubChronicleArenaColumnRebuiltDate,
         getValue: (snapshot: ArenaSnapshot | undefined) =>
@@ -7287,8 +7337,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleColumnTeam,
       messages.clubChronicleArenaColumnName,
       messages.clubChronicleArenaColumnCapacity,
+      messages.clubChronicleArenaColumnLatestOccupancy,
       messages.clubChronicleArenaColumnRebuiltDate,
       messages.clubChronicleArenaConstructionTooltip,
+      formatArenaOccupancyDisplay,
       formatArenaRebuiltDateDisplay,
     ]
   );
@@ -8401,6 +8453,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleArenaColumnName;
       case "arena.capacity":
         return messages.clubChronicleArenaColumnCapacity;
+      case "arena.latestOccupancy":
+        return messages.clubChronicleArenaColumnLatestOccupancy;
       case "arena.rebuiltDate":
         return messages.clubChronicleArenaColumnRebuiltDate;
       case "finance.estimate":
@@ -9269,6 +9323,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               label: messages.clubChronicleArenaColumnCapacity,
               previous: formatValue(previous.currentTotalCapacity),
               current: formatValue(current.currentTotalCapacity),
+            });
+          }
+          const previousOccupancyDisplay =
+            formatArenaOccupancyDisplay(previous);
+          const currentOccupancyDisplay = formatArenaOccupancyDisplay(current);
+          if (previousOccupancyDisplay !== currentOccupancyDisplay) {
+            arenaChanges.push({
+              fieldKey: "arena.latestOccupancy",
+              label: messages.clubChronicleArenaColumnLatestOccupancy,
+              previous: formatValue(previousOccupancyDisplay),
+              current: formatValue(currentOccupancyDisplay),
             });
           }
           const previousRebuiltDateDisplay =
@@ -10204,6 +10269,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           const snapshot: ArenaSnapshot = {
             arenaName: (arenaNode?.ArenaName as string | null | undefined) ?? null,
             currentTotalCapacity: parseNumberNode(currentCapacity.Total),
+            latestOccupancyPct: null,
+            latestOccupancySoldTotal: null,
+            latestOccupancyMatchId: null,
+            latestOccupancyMatchDate: null,
+            latestOccupancySourceSystem: null,
             rebuiltDate: parseStringNode(currentCapacity.RebuiltDate),
             currentAvailable: parseBooleanNode(currentCapacity["@_Available"]),
             terraces: parseNumberNode(currentCapacity.Terraces),
@@ -10227,26 +10297,65 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
     );
 
-    teamsWithArena.forEach((team) => {
-      const arenaId = Number(team.arenaId);
-      const snapshot = arenaById.get(arenaId);
-      if (!snapshot) return;
-      const previous = nextCache.teams[team.teamId]?.arena?.current;
-      nextCache.teams[team.teamId] = {
-        ...nextCache.teams[team.teamId],
-        teamId: team.teamId,
-        teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-        arenaName:
-          snapshot.arenaName ??
-          team.arenaName ??
-          nextCache.teams[team.teamId]?.arenaName ??
-          null,
-        arena: {
-          current: snapshot,
-          previous,
-        },
-      };
-    });
+    const occupancyDetailsCache = new Map<string, ArenaOccupancyMatchDetails | null>();
+    await mapWithConcurrency(
+      teamsWithArena,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        const arenaId = Number(team.arenaId);
+        const baseSnapshot = arenaById.get(arenaId);
+        if (!baseSnapshot) return;
+        const snapshot: ArenaSnapshot = { ...baseSnapshot };
+        const currentTotalCapacity = snapshot.currentTotalCapacity;
+        if (
+          typeof currentTotalCapacity === "number" &&
+          Number.isFinite(currentTotalCapacity) &&
+          currentTotalCapacity > 0
+        ) {
+          const matches = await fetchTeamRecentRelevantMatches(team.teamId, false);
+          const leagueMatches = matches.filter((match) => match.matchType === 1);
+          for (const match of leagueMatches) {
+            const details = await fetchArenaOccupancyMatchDetails(
+              match.matchId,
+              match.sourceSystem,
+              occupancyDetailsCache
+            );
+            if (
+              details?.homeTeamId !== team.teamId ||
+              !details.finishedDate ||
+              typeof details.soldTotal !== "number" ||
+              !Number.isFinite(details.soldTotal) ||
+              details.soldTotal <= 0
+            ) {
+              continue;
+            }
+            snapshot.latestOccupancyPct = Math.round(
+              (details.soldTotal / currentTotalCapacity) * 100
+            );
+            snapshot.latestOccupancySoldTotal = details.soldTotal;
+            snapshot.latestOccupancyMatchId = details.matchId;
+            snapshot.latestOccupancyMatchDate = details.matchDate ?? match.matchDate;
+            snapshot.latestOccupancySourceSystem = details.sourceSystem;
+            break;
+          }
+        }
+        const previous = nextCache.teams[team.teamId]?.arena?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          arenaName:
+            snapshot.arenaName ??
+            team.arenaName ??
+            nextCache.teams[team.teamId]?.arenaName ??
+            null,
+          arena: {
+            current: snapshot,
+            previous,
+          },
+        };
+      }
+    );
   };
 
   const refreshFinanceSnapshots = async (
@@ -11666,6 +11775,16 @@ type Form7LineupSnapshot = {
     manMarkerSubjectPlayerIds: number[];
   };
 
+  type ArenaOccupancyMatchDetails = {
+    matchId: number;
+    sourceSystem: string;
+    matchDate: string | null;
+    finishedDate: string | null;
+    homeTeamId: number | null;
+    awayTeamId: number | null;
+    soldTotal: number | null;
+  };
+
   type ResolvedFormationTacticMatch = {
     match: TeamMatchArchiveEntry;
     isHome: boolean;
@@ -11897,6 +12016,57 @@ type Form7LineupSnapshot = {
           parseMatchDateValue(right.matchDate) - parseMatchDateValue(left.matchDate)
       )
       .slice(0, CHRONICLE_DETAIL_MODAL_MATCH_LIMIT);
+  };
+
+  const fetchArenaOccupancyMatchDetails = async (
+    matchId: number,
+    sourceSystem: string,
+    cache: Map<string, ArenaOccupancyMatchDetails | null>
+  ): Promise<ArenaOccupancyMatchDetails | null> => {
+    const cacheKey = `${matchId}:${sourceSystem}`;
+    if (cache.has(cacheKey)) return cache.get(cacheKey) ?? null;
+    try {
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Match?: {
+              MatchDate?: unknown;
+              FinishedDate?: unknown;
+              Arena?: RawNode;
+              HomeTeam?: RawNode;
+              AwayTeam?: RawNode;
+            };
+          };
+        };
+      }>(
+        `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
+          sourceSystem
+        )}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok) {
+        cache.set(cacheKey, null);
+        return null;
+      }
+      const match = payload?.data?.HattrickData?.Match;
+      const home = (match?.HomeTeam ?? {}) as RawNode;
+      const away = (match?.AwayTeam ?? {}) as RawNode;
+      const details: ArenaOccupancyMatchDetails = {
+        matchId,
+        sourceSystem,
+        matchDate: parseStringNode(match?.MatchDate),
+        finishedDate: parseStringNode(match?.FinishedDate),
+        homeTeamId: parseNumber(home?.HomeTeamID),
+        awayTeamId: parseNumber(away?.AwayTeamID),
+        soldTotal: parseNumberNode(match?.Arena?.SoldTotal),
+      };
+      cache.set(cacheKey, details);
+      return details;
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) throw error;
+      cache.set(cacheKey, null);
+      return null;
+    }
   };
 
   const fetchMatchFormationTacticDetails = async (
@@ -13892,6 +14062,11 @@ type Form7LineupSnapshot = {
       const snapshot = cached?.arena?.current ?? {
         arenaName: cached?.arenaName ?? null,
         currentTotalCapacity: null,
+        latestOccupancyPct: null,
+        latestOccupancySoldTotal: null,
+        latestOccupancyMatchId: null,
+        latestOccupancyMatchDate: null,
+        latestOccupancySourceSystem: null,
         rebuiltDate: null,
         currentAvailable: null,
         terraces: null,
@@ -16543,7 +16718,7 @@ type Form7LineupSnapshot = {
       ({
         "--cc-columns": arenaTableColumns.length,
         "--cc-template":
-          "minmax(150px, 1.2fr) minmax(180px, 1.4fr) minmax(120px, 0.9fr) minmax(150px, 1fr)",
+          "minmax(150px, 1.2fr) minmax(180px, 1.4fr) minmax(120px, 0.9fr) minmax(130px, 0.9fr) minmax(150px, 1fr)",
       }) as CSSProperties,
     [arenaTableColumns.length]
   );

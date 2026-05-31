@@ -496,6 +496,7 @@ export type Messages = {
   clubChronicleArenaColumnName: string;
   clubChronicleArenaColumnId: string;
   clubChronicleArenaColumnCapacity: string;
+  clubChronicleArenaColumnLatestOccupancy: string;
   clubChronicleArenaColumnRebuiltDate: string;
   clubChronicleArenaConstructionTooltip: string;
   clubChronicleArenaRebuiltDateUnderConstruction: string;

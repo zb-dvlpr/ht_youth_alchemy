@@ -29,6 +29,12 @@ export const messagesNl: Messages = {
   remindersDisabledState: "Herinneringen staan uit.",
   reminderMissingActionFallback:
     "Deze herinneringsactie is nog niet beschikbaar.",
+  reminderSeniorInjuryTitle: "Senior speler geblesseerd",
+  reminderSeniorInjuryBody:
+    "{{playerName}} is {{weeks}} weken geblesseerd. Overweeg een vervanger te zoeken.",
+  reminderActionFindSimilarPlayers: "Vergelijkbare spelers vinden",
+  reminderSeniorInjuryActionUnavailable:
+    "Kon Vergelijkbare spelers vinden niet openen voor deze herinnering.",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",

@@ -44,6 +44,12 @@ import {
   SENIOR_SETTINGS_EVENT,
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
+import {
+  SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+  SENIOR_REMINDER_CONTEXT_EVENT,
+  type SeniorFindSimilarPlayersEventDetail,
+  type SeniorReminderContextEventDetail,
+} from "@/lib/reminders/senior";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { useSupporterStatus } from "./SupporterStatusProvider";
@@ -3751,6 +3757,8 @@ export default function SeniorDashboard({
   const seniorTeamHydratingRef = useRef(false);
   const seniorTeamHydrationKeyRef = useRef<string | null>(null);
   const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
+  const pendingFindSimilarReminderRef =
+    useRef<SeniorFindSimilarPlayersEventDetail | null>(null);
 
   const selectedPlayer =
     selectedId !== null
@@ -4567,6 +4575,19 @@ export default function SeniorDashboard({
     () => new Map(players.map((player) => [player.PlayerID, player])),
     [players]
   );
+  useEffect(() => {
+    const detail: SeniorReminderContextEventDetail = {
+      context: {
+        messages,
+        teamId: resolvedSeniorTeamId,
+        players,
+        detailsCache,
+      },
+    };
+    window.dispatchEvent(
+      new CustomEvent(SENIOR_REMINDER_CONTEXT_EVENT, { detail })
+    );
+  }, [detailsCache, messages, players, resolvedSeniorTeamId]);
   const resolvedExtraTimeTrainingType =
     extraTimeMatrixTrainingTypeManual && extraTimeMatrixTrainingType !== null
       ? extraTimeMatrixTrainingType
@@ -10699,7 +10720,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const openTransferSearchForPlayer = async (player: SeniorPlayer) => {
     trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
-    if (!hasRequiredScopes) return;
+    if (!hasRequiredScopes) return false;
     const detail = await ensureDetails(player.PlayerID);
     const editedSourceDetails =
       effectiveSelectedPlayerSimulationState.dirty &&
@@ -10720,6 +10741,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       sourcePlayer: player,
       sourceDetails,
     });
+    return true;
   };
 
   const updateTransferSearchSkillFilter = useCallback((
@@ -11784,6 +11806,64 @@ const refreshDetailsForPlayers = async (
       addNotification(`${messages.notificationTeamSwitched} ${teamName}`);
     }
   };
+
+  const openFindSimilarPlayersFromReminder = useCallback(
+    async (detail: SeniorFindSimilarPlayersEventDetail) => {
+      const player = playersById.get(detail.playerId);
+      if (!player) return false;
+      if (detail.teamId && resolvedSeniorTeamId !== detail.teamId) return false;
+      setSelectedId(player.PlayerID);
+      return openTransferSearchForPlayer(player);
+    },
+    [openTransferSearchForPlayer, playersById, resolvedSeniorTeamId]
+  );
+
+  useEffect(() => {
+    const handleFindSimilarPlayersReminder = (event: Event) => {
+      const detail = (event as CustomEvent<SeniorFindSimilarPlayersEventDetail>)
+        .detail;
+      if (!detail || !Number.isFinite(detail.playerId)) return;
+      if (detail.teamId && resolvedSeniorTeamId !== detail.teamId) {
+        pendingFindSimilarReminderRef.current = detail;
+        handleSeniorTeamChange(detail.teamId);
+        return;
+      }
+      void openFindSimilarPlayersFromReminder(detail).then((opened) => {
+        detail.onHandled?.(opened);
+      });
+    };
+    window.addEventListener(
+      SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+      handleFindSimilarPlayersReminder
+    );
+    return () => {
+      window.removeEventListener(
+        SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+        handleFindSimilarPlayersReminder
+      );
+    };
+  }, [
+    handleSeniorTeamChange,
+    openFindSimilarPlayersFromReminder,
+    resolvedSeniorTeamId,
+  ]);
+
+  useEffect(() => {
+    const pending = pendingFindSimilarReminderRef.current;
+    if (!pending) return;
+    if (pending.teamId && resolvedSeniorTeamId !== pending.teamId) return;
+    if (!playersById.has(pending.playerId)) {
+      if (players.length > 0) {
+        pendingFindSimilarReminderRef.current = null;
+        pending.onHandled?.(false);
+      }
+      return;
+    }
+    pendingFindSimilarReminderRef.current = null;
+    void openFindSimilarPlayersFromReminder(pending).then((opened) => {
+      pending.onHandled?.(opened);
+    });
+  }, [openFindSimilarPlayersFromReminder, players.length, playersById, resolvedSeniorTeamId]);
 
   const ensureRequiredScopes = async () => {
     try {

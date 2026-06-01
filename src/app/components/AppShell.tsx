@@ -52,13 +52,26 @@ import {
 } from "@/lib/reminders/storage";
 import {
   ALL_REMINDER_RULES,
+  evaluateRegisteredReminderEpisodes,
   evaluateRegisteredReminderCandidates,
+  type GlobalReminderContext,
 } from "@/lib/reminders/registry";
 import type {
   ReminderAction,
   ReminderDisplayItem,
 } from "@/lib/reminders/types";
-import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
+import {
+  hattrickMatchUrlWithSourceSystem,
+} from "@/lib/hattrick/urls";
+import {
+  SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+  SENIOR_REMINDER_CONTEXT_EVENT,
+  type SeniorFindSimilarPlayersEventDetail,
+  type SeniorReminderContext,
+  type SeniorReminderContextEventDetail,
+  type SeniorReminderPlayer,
+  type SeniorReminderTeamContext,
+} from "@/lib/reminders/senior";
 
 type AppShellProps = {
   messages: Messages;
@@ -66,6 +79,13 @@ type AppShellProps = {
   globalHeader: ReactNode;
   children: ReactNode;
   seniorTool: ReactNode;
+  initialSeniorTeams?: Array<{
+    teamId: number;
+    teamName: string;
+    leagueId?: number | null;
+    teamGender: "male" | "female" | null;
+  }>;
+  initialSeniorTeamId?: number | null;
   mobileLauncherUtility?: ReactNode;
 };
 
@@ -110,6 +130,7 @@ const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
 const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
 const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
+const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 
 type MobileNavSegment = {
   id: string;
@@ -127,12 +148,25 @@ const parseBuyCoffeePromptSource = (
     : "unknown";
 };
 
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const resolveSeniorDashboardDataStorageKey = (
+  teamId: number | null,
+  multiTeamEnabled: boolean
+) =>
+  multiTeamEnabled && typeof teamId === "number" && teamId > 0
+    ? `${SENIOR_DASHBOARD_DATA_STORAGE_KEY}_${teamId}`
+    : SENIOR_DASHBOARD_DATA_STORAGE_KEY;
+
 export default function AppShell({
   messages,
   appVersion,
   globalHeader,
   children,
   seniorTool,
+  initialSeniorTeams = [],
+  initialSeniorTeamId = null,
   mobileLauncherUtility,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -167,10 +201,13 @@ export default function AppShell({
   const [reminderBatchItems, setReminderBatchItems] = useState<
     ReminderDisplayItem[]
   >([]);
+  const [seniorReminderContext, setSeniorReminderContext] =
+    useState<SeniorReminderContext | null>(null);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
   const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
   const surfacedReminderTriggerKeysThisSessionRef = useRef(new Set<string>());
+  const seniorCachedReminderContextSignatureRef = useRef<string | null>(null);
   const mobileLayoutInitializedRef = useRef(false);
   const { addNotification } = useNotifications();
 
@@ -263,12 +300,119 @@ export default function AppShell({
     return subscribeReminderStorageState(syncReminderStorage);
   }, []);
 
+  const initialSeniorTeamsSignature = useMemo(
+    () =>
+      JSON.stringify(
+        initialSeniorTeams.map((team) => ({
+          teamId: team.teamId,
+        }))
+      ),
+    [initialSeniorTeams]
+  );
+  const initialSeniorReminderTeamIds = useMemo(() => {
+    const parsed = JSON.parse(initialSeniorTeamsSignature) as Array<{
+      teamId?: unknown;
+    }>;
+    const teamIds = parsed
+      .map((team) => team.teamId)
+      .filter((teamId): teamId is number => typeof teamId === "number");
+    return teamIds.length ? teamIds : [initialSeniorTeamId ?? 0];
+  }, [initialSeniorTeamId, initialSeniorTeamsSignature]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const multiTeamEnabled = initialSeniorReminderTeamIds.length > 1;
+    const teamContexts: SeniorReminderTeamContext[] = initialSeniorReminderTeamIds.flatMap((sourceTeamId) => {
+      const teamId =
+        typeof sourceTeamId === "number" && sourceTeamId > 0
+          ? sourceTeamId
+          : initialSeniorTeamId;
+      const key = resolveSeniorDashboardDataStorageKey(
+        multiTeamEnabled ? teamId : null,
+        multiTeamEnabled
+      );
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw) as unknown;
+        if (!isObject(parsed)) return [];
+        const players = Array.isArray(parsed.players)
+          ? (parsed.players as SeniorReminderPlayer[])
+          : [];
+        const detailsCache = isObject(parsed.detailsCache)
+          ? (parsed.detailsCache as SeniorReminderTeamContext["detailsCache"])
+          : {};
+        return [
+          {
+            teamId,
+            players,
+            detailsCache,
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
+    if (!teamContexts.length) return;
+    const signature = JSON.stringify(
+      teamContexts.map((teamContext) => ({
+        teamId: teamContext.teamId,
+        players: teamContext.players.map((player) => [
+          player.PlayerID,
+          player.InjuryLevel ?? null,
+        ]),
+        detailKeys: Object.keys(teamContext.detailsCache).sort(),
+      }))
+    );
+    if (seniorCachedReminderContextSignatureRef.current === signature) return;
+    seniorCachedReminderContextSignatureRef.current = signature;
+    setSeniorReminderContext({
+      messages,
+      teamContexts,
+      teamId: null,
+      players: [],
+      detailsCache: {},
+    });
+  }, [initialSeniorReminderTeamIds, initialSeniorTeamId, messages]);
+
+  useEffect(() => {
+    const handleSeniorReminderContext = (event: Event) => {
+      const detail = (event as CustomEvent<SeniorReminderContextEventDetail>).detail;
+      setSeniorReminderContext(detail?.context ?? null);
+    };
+    window.addEventListener(
+      SENIOR_REMINDER_CONTEXT_EVENT,
+      handleSeniorReminderContext
+    );
+    return () => {
+      window.removeEventListener(
+        SENIOR_REMINDER_CONTEXT_EVENT,
+        handleSeniorReminderContext
+      );
+    };
+  }, []);
+
+  const reminderContext = useMemo<GlobalReminderContext>(
+    () => ({
+      senior: seniorReminderContext ?? undefined,
+    }),
+    [seniorReminderContext]
+  );
+
   const reminderCandidates = useMemo(
     () =>
       reminderStorageState.preferences.enabled
-        ? evaluateRegisteredReminderCandidates({})
+        ? evaluateRegisteredReminderCandidates(reminderContext)
         : [],
-    [reminderStorageState.preferences.enabled]
+    [reminderContext, reminderStorageState.preferences.enabled]
+  );
+
+  const activeReminderEpisodes = useMemo(
+    () =>
+      reminderStorageState.preferences.enabled
+        ? evaluateRegisteredReminderEpisodes(reminderContext)
+        : [],
+    [reminderContext, reminderStorageState.preferences.enabled]
   );
 
   const reminderEvaluation = useMemo(
@@ -280,8 +424,9 @@ export default function AppShell({
         now: Date.now(),
         surfacedTriggerKeysThisSession:
           surfacedReminderTriggerKeysThisSessionRef.current,
+        activeEpisodes: activeReminderEpisodes,
       }),
-    [reminderCandidates, reminderStorageState]
+    [activeReminderEpisodes, reminderCandidates, reminderStorageState]
   );
 
   useEffect(() => {
@@ -338,7 +483,7 @@ export default function AppShell({
   );
 
   const handleReminderAction = useCallback(
-    (action: ReminderAction) => {
+    (action: ReminderAction, item: ReminderDisplayItem) => {
       if (action.type === "openMatch") {
         window.open(
           hattrickMatchUrlWithSourceSystem(
@@ -350,9 +495,51 @@ export default function AppShell({
         );
         return;
       }
+      if (action.type === "senior.openFindSimilarPlayers") {
+        const playerId = Number(action.payload.playerId);
+        const teamId =
+          typeof action.payload.teamId === "number"
+            ? action.payload.teamId
+            : null;
+        if (!Number.isFinite(playerId)) {
+          addNotification(messages.reminderSeniorInjuryActionUnavailable);
+          return;
+        }
+        setActiveTool("senior");
+        const detail: SeniorFindSimilarPlayersEventDetail = {
+          teamId,
+          playerId,
+          onHandled: (opened) => {
+            if (!opened) {
+              addNotification(messages.reminderSeniorInjuryActionUnavailable);
+              return;
+            }
+            const rule = ALL_REMINDER_RULES.find(
+              (entry) => entry.ruleId === item.candidate.ruleId
+            );
+            dismissReminder(item.candidate, readReminderStorageState(), rule);
+            setReminderBatchItems((current) =>
+              current.filter(
+                (entry) =>
+                  entry.candidate.stableKey !== item.candidate.stableKey
+              )
+            );
+          },
+        };
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT, { detail })
+          );
+        }, 0);
+        return;
+      }
       addNotification(messages.reminderMissingActionFallback);
     },
-    [addNotification, messages.reminderMissingActionFallback]
+    [
+      addNotification,
+      messages.reminderMissingActionFallback,
+      messages.reminderSeniorInjuryActionUnavailable,
+    ]
   );
 
   const handleTurnRemindersOff = useCallback(() => {

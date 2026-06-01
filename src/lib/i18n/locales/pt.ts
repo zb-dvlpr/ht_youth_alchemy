@@ -28,6 +28,12 @@ export const messagesPt: Messages = {
     remindersDisabledState: "Os lembretes estão desativados.",
     reminderMissingActionFallback:
       "Esta ação de lembrete ainda não está disponível.",
+    reminderSeniorInjuryTitle: "Jogador sénior lesionado",
+    reminderSeniorInjuryBody:
+      "{{playerName}} está lesionado por {{weeks}} semanas. Considera procurar um substituto.",
+    reminderActionFindSimilarPlayers: "Encontrar jogadores semelhantes",
+    reminderSeniorInjuryActionUnavailable:
+      "Não foi possível abrir Encontrar jogadores semelhantes para este lembrete.",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Paga-me um café",

@@ -28,6 +28,12 @@ export const messagesIt: Messages = {
     remindersDisabledState: "I promemoria sono disattivati.",
     reminderMissingActionFallback:
       "Questa azione del promemoria non è ancora disponibile.",
+    reminderSeniorInjuryTitle: "Giocatore senior infortunato",
+    reminderSeniorInjuryBody:
+      "{{playerName}} è infortunato per {{weeks}} settimane. Valuta di cercare un sostituto.",
+    reminderActionFindSimilarPlayers: "Trova giocatori simili",
+    reminderSeniorInjuryActionUnavailable:
+      "Impossibile aprire Trova giocatori simili per questo promemoria.",
     sidebarCollapseTooltip: "Comprimi barra laterale",
     sidebarExpandTooltip: "Espandi barra laterale",
     supportOnKofi: "Offrimi un caffè",

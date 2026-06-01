@@ -28,6 +28,12 @@ export const messagesEs: Messages = {
     remindersDisabledState: "Los recordatorios están desactivados.",
     reminderMissingActionFallback:
       "Esta acción de recordatorio aún no está disponible.",
+    reminderSeniorInjuryTitle: "Jugador senior lesionado",
+    reminderSeniorInjuryBody:
+      "{{playerName}} está lesionado durante {{weeks}} semanas. Considera buscar un reemplazo.",
+    reminderActionFindSimilarPlayers: "Encontrar jugadores similares",
+    reminderSeniorInjuryActionUnavailable:
+      "No se pudo abrir Encontrar jugadores similares para este recordatorio.",
     sidebarCollapseTooltip: "Contraer barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Invítame a un café",

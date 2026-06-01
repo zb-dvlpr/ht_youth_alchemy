@@ -1,5 +1,6 @@
 import styles from "../../page.module.css";
 import type { Messages } from "@/lib/i18n";
+import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import {
   REMINDER_SNOOZE_OPTIONS_MS,
   type ReminderAction,
@@ -30,6 +31,34 @@ type ReminderCardProps = {
   readonly?: boolean;
 };
 
+const renderReminderBody = (item: ReminderDisplayItem, messages: Messages) => {
+  const { candidate } = item;
+  if (candidate.ruleId !== "senior.player.injury.gte2w") return candidate.body;
+  const playerId = Number(candidate.payload?.playerId);
+  const playerName =
+    typeof candidate.payload?.playerName === "string"
+      ? candidate.payload.playerName
+      : "";
+  const injuryWeeks = Number(candidate.payload?.injuryWeeks);
+  if (!Number.isFinite(playerId) || !playerName || !Number.isFinite(injuryWeeks)) {
+    return candidate.body;
+  }
+  const template = messages.reminderSeniorInjuryBody.replace(
+    "{{weeks}}",
+    String(injuryWeeks)
+  );
+  const [before, after] = template.split("{{playerName}}");
+  return (
+    <>
+      {before}
+      <a href={hattrickPlayerUrl(playerId)} target="_blank" rel="noreferrer">
+        {playerName}
+      </a>
+      {after}
+    </>
+  );
+};
+
 export default function ReminderCard({
   item,
   messages,
@@ -47,7 +76,7 @@ export default function ReminderCard({
         <span className={styles.reminderScope}>{candidate.scope}</span>
         <strong>{candidate.title}</strong>
       </div>
-      <p>{candidate.body}</p>
+      <p>{renderReminderBody(item, messages)}</p>
       {candidate.actions?.length ? (
         <div className={styles.reminderActionRow}>
           {candidate.actions.map((action, index) => (

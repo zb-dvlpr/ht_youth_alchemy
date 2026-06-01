@@ -29,6 +29,12 @@ export const messagesPl: Messages = {
   remindersDisabledState: "Przypomnienia są wyłączone.",
   reminderMissingActionFallback:
     "Ta akcja przypomnienia nie jest jeszcze dostępna.",
+  reminderSeniorInjuryTitle: "Senior kontuzjowany",
+  reminderSeniorInjuryBody:
+    "{{playerName}} ma kontuzję na {{weeks}} tygodnie. Rozważ poszukanie zastępcy.",
+  reminderActionFindSimilarPlayers: "Znajdź podobnych graczy",
+  reminderSeniorInjuryActionUnavailable:
+    "Nie udało się otworzyć funkcji Znajdź podobnych graczy dla tego przypomnienia.",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",

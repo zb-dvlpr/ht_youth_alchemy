@@ -9,6 +9,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { resolveInjuryStatus } from "@/lib/injuries";
 import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
@@ -274,23 +275,22 @@ const toSubscript = (value: number) =>
     .join("");
 
 const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
-  if (injuryLevelRaw === null) return null;
-  const isBruised = injuryLevelRaw === 0 || (injuryLevelRaw > 0 && injuryLevelRaw < 1);
-  const injuryWeeks = injuryLevelRaw >= 1 ? Math.ceil(injuryLevelRaw) : null;
-  const label = isBruised
+  const status = resolveInjuryStatus(injuryLevelRaw);
+  if (!status.isKnown) return null;
+  const label = status.isBruised
     ? messages.seniorListInjuryBruised
-    : injuryWeeks !== null
-    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+    : status.injuryWeeks !== null
+    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(status.injuryWeeks))
     : messages.clubChronicleInjuryHealthy;
-  const display = isBruised
+  const display = status.isBruised
     ? "🩹"
-    : injuryWeeks !== null
-    ? `✚${toSubscript(injuryWeeks)}`
+    : status.injuryWeeks !== null
+    ? `✚${toSubscript(status.injuryWeeks)}`
     : messages.clubChronicleInjuryHealthy;
   return {
     label,
     display,
-    isHealthy: !isBruised && injuryWeeks === null,
+    isHealthy: status.isHealthy,
   };
 };
 

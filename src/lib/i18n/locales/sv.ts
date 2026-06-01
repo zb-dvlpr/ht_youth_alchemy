@@ -28,6 +28,12 @@ export const messagesSv: Messages = {
     remindersDisabledState: "Påminnelser är avstängda.",
     reminderMissingActionFallback:
       "Den här påminnelseåtgärden är inte tillgänglig än.",
+    reminderSeniorInjuryTitle: "Senior spelare skadad",
+    reminderSeniorInjuryBody:
+      "{{playerName}} är skadad i {{weeks}} veckor. Överväg att leta efter en ersättare.",
+    reminderActionFindSimilarPlayers: "Hitta liknande spelare",
+    reminderSeniorInjuryActionUnavailable:
+      "Kunde inte öppna Hitta liknande spelare för den här påminnelsen.",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",

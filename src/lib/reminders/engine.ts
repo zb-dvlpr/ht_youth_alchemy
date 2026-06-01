@@ -34,6 +34,7 @@ const isValidExpiry = (expiry: ReminderSuppressionExpiry | undefined) => {
   if (expiry.type === "never") {
     return typeof expiry.reason === "string" && expiry.reason.trim().length > 0;
   }
+  if (expiry.type === "candidateDuration") return true;
   return false;
 };
 
@@ -43,6 +44,19 @@ const isSuppressionExpired = (
   now: number
 ) => {
   if (!record.dismissedAt) return false;
+  if (typeof record.suppressionExpiresAt === "number") {
+    if (
+      expiry.type === "candidateDuration" &&
+      record.activeEpisodeKey &&
+      !(
+        typeof record.lastEpisodeClearedAt === "number" &&
+        record.lastEpisodeClearedAt > record.dismissedAt
+      )
+    ) {
+      return false;
+    }
+    return now >= record.suppressionExpiresAt;
+  }
   if (expiry.type === "fixedDuration") {
     return now >= record.dismissedAt + expiry.durationMs;
   }
@@ -85,6 +99,15 @@ export const validateReminderCandidate = (
   }
   if (!candidate.entityType || !candidate.entityId) {
     throw new Error(`Reminder candidate ${candidate.stableKey} needs an entity.`);
+  }
+  if (
+    candidate.dismissalExpiryDurationMs !== undefined &&
+    (!Number.isFinite(candidate.dismissalExpiryDurationMs) ||
+      candidate.dismissalExpiryDurationMs <= 0)
+  ) {
+    throw new Error(
+      `Reminder candidate ${candidate.stableKey} has an invalid dismissal expiry duration.`
+    );
   }
 };
 
@@ -148,6 +171,8 @@ const updateActiveRecord = (
   lastEpisodeActiveAt: now,
   lastEpisodeClearedAt:
     record.activeEpisodeKey === candidate.episodeKey
+      ? record.lastEpisodeClearedAt
+      : record.activeEpisodeKey === null
       ? record.lastEpisodeClearedAt
       : null,
 });
@@ -215,6 +240,8 @@ export const resolveReminderEvaluation = ({
         lastEpisodeClearedAt:
           record.activeEpisodeKey === activeEpisodeKey
             ? record.lastEpisodeClearedAt
+            : record.activeEpisodeKey === null
+            ? record.lastEpisodeClearedAt
             : null,
       };
       return;
@@ -276,7 +303,9 @@ export const dismissReminder = (
   validateReminderRule(rule);
   const current = state.records[candidate.stableKey] ?? createRecord(candidate, now);
   const suppressionExpiresAt =
-    rule.suppressionExpiry.type === "fixedDuration"
+    typeof candidate.dismissalExpiryDurationMs === "number"
+      ? now + candidate.dismissalExpiryDurationMs
+      : rule.suppressionExpiry.type === "fixedDuration"
       ? now + rule.suppressionExpiry.durationMs
       : null;
   const next = {

@@ -39,6 +39,10 @@ export type Messages = {
   reminderNoSnoozed: string;
   remindersDisabledState: string;
   reminderMissingActionFallback: string;
+  reminderSeniorInjuryTitle: string;
+  reminderSeniorInjuryBody: string;
+  reminderActionFindSimilarPlayers: string;
+  reminderSeniorInjuryActionUnavailable: string;
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   supportOnKofi: string;

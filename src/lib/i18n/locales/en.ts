@@ -27,6 +27,12 @@ export const messagesEn: Messages = {
     reminderNoSnoozed: "No snoozed reminders.",
     remindersDisabledState: "Reminders are turned off.",
     reminderMissingActionFallback: "This reminder action is not available yet.",
+    reminderSeniorInjuryTitle: "Senior player injured",
+    reminderSeniorInjuryBody:
+      "{{playerName}} is injured for {{weeks}} weeks. Consider looking for a replacement.",
+    reminderActionFindSimilarPlayers: "Find similar players",
+    reminderSeniorInjuryActionUnavailable:
+      "Could not open Find similar players for this reminder.",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",

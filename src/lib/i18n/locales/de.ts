@@ -28,6 +28,12 @@ export const messagesDe: Messages = {
     remindersDisabledState: "Erinnerungen sind ausgeschaltet.",
     reminderMissingActionFallback:
       "Diese Erinnerungsaktion ist noch nicht verfügbar.",
+    reminderSeniorInjuryTitle: "Seniorenspieler verletzt",
+    reminderSeniorInjuryBody:
+      "{{playerName}} ist für {{weeks}} Wochen verletzt. Erwäge, nach Ersatz zu suchen.",
+    reminderActionFindSimilarPlayers: "Ähnliche Spieler finden",
+    reminderSeniorInjuryActionUnavailable:
+      "Ähnliche Spieler konnten für diese Erinnerung nicht geöffnet werden.",
     sidebarCollapseTooltip: "Seitenleiste einklappen",
     sidebarExpandTooltip: "Seitenleiste ausklappen",
     supportOnKofi: "Kauf mir einen Kaffee",

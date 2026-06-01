@@ -14,6 +14,9 @@ export type ReminderSuppressionExpiry =
   | {
       type: "never";
       reason: string;
+    }
+  | {
+      type: "candidateDuration";
     };
 
 export type ReminderAction =
@@ -52,6 +55,7 @@ export type ReminderCandidate = {
   title: string;
   body: string;
   payload?: Record<string, unknown>;
+  dismissalExpiryDurationMs?: number;
   actions?: ReminderAction[];
 };
 
@@ -61,6 +65,9 @@ export type ReminderRule<Context = unknown> = {
   scope: ReminderScope;
   suppressionExpiry: ReminderSuppressionExpiry;
   evaluate: (context: Context) => ReminderCandidate[];
+  evaluateActiveEpisodes?: (
+    context: Context
+  ) => Array<{ stableKey: string; episodeKey: string }>;
 };
 
 export type ReminderPreferences = {

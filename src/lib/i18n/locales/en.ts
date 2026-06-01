@@ -33,6 +33,21 @@ export const messagesEn: Messages = {
     reminderActionFindSimilarPlayers: "Find similar players",
     reminderSeniorInjuryActionUnavailable:
       "Could not open Find similar players for this reminder.",
+    reminderSeniorMatchLineupMissingTitle:
+      "No orders set for upcoming senior match",
+    reminderYouthMatchLineupMissingTitle:
+      "No orders set for upcoming youth match",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} starts in {{timeRemaining}} and has no orders set.",
+    reminderActionSetOrders: "Set orders",
+    reminderMatchLineupMissingActionUnavailable:
+      "Could not focus the tool for this reminder.",
+    reminderYouthPromotionTitle: "Youth player can be promoted soon",
+    reminderYouthPromotionBody:
+      "{{playerName}} can be promoted in {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "View player in Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Could not open this youth player in Hattrick.",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",

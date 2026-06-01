@@ -43,6 +43,15 @@ export type Messages = {
   reminderSeniorInjuryBody: string;
   reminderActionFindSimilarPlayers: string;
   reminderSeniorInjuryActionUnavailable: string;
+  reminderSeniorMatchLineupMissingTitle: string;
+  reminderYouthMatchLineupMissingTitle: string;
+  reminderMatchLineupMissingBody: string;
+  reminderActionSetOrders: string;
+  reminderMatchLineupMissingActionUnavailable: string;
+  reminderYouthPromotionTitle: string;
+  reminderYouthPromotionBody: string;
+  reminderActionViewPlayerInHattrick: string;
+  reminderYouthPromotionActionUnavailable: string;
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   supportOnKofi: string;

@@ -16,6 +16,18 @@ import {
   hattrickMatchUrlWithSourceSystem,
   hattrickYouthMatchUrl,
 } from "@/lib/hattrick/urls";
+import {
+  filterVisibleMatches,
+  hasExistingOrders,
+  normalizeMatches,
+  resolveMatchSourceSystem,
+  type MatchLike,
+} from "@/lib/matches/visibility";
+import {
+  MATCH_REMINDER_CONTEXT_EVENT,
+  type MatchReminderContextEventDetail,
+  type MatchReminderScope,
+} from "@/lib/reminders/matches";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -24,7 +36,7 @@ export type MatchTeam = {
   AwayTeamID?: number;
 };
 
-export type Match = {
+export type Match = MatchLike & {
   MatchID: number;
   MatchDate?: string;
   Status?: string;
@@ -184,14 +196,7 @@ type UpcomingMatchesYouthAnalyticsFeature =
   | UpcomingMatchesYouthSubmittedLineupFeature
   | "lineup_manual_submitted";
 
-const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
-const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const EXTRA_TIME_ALLOWED_MATCH_TYPES = new Set<number>([2, 3, 5, 9]);
-
-function normalizeMatches(input?: Match[] | Match): Match[] {
-  if (!input) return [];
-  return Array.isArray(input) ? input : [input];
-}
 
 function formatMatchDate(dateString: string | undefined, unknownDate: string) {
   return formatChppDateTime(dateString) ?? unknownDate;
@@ -203,30 +208,6 @@ function sortByDate(matches: Match[]) {
     const bTime = parseChppDate(b.MatchDate)?.getTime() ?? 0;
     return aTime - bTime;
   });
-}
-
-function resolveMatchSourceSystem(
-  match: Match | undefined,
-  fallbackSourceSystem: string
-): string {
-  const explicitSource =
-    match && typeof match.SourceSystem === "string" && match.SourceSystem.trim().length > 0
-      ? match.SourceSystem.trim()
-      : null;
-  if (explicitSource) return explicitSource;
-  const matchType = Number(match?.MatchType);
-  if (Number.isFinite(matchType) && TOURNAMENT_MATCH_TYPES.has(matchType)) {
-    return "htointegrated";
-  }
-  return fallbackSourceSystem;
-}
-
-function hasExistingOrders(match: Match | undefined): boolean {
-  return (
-    match?.OrdersGiven === "true" ||
-    match?.OrdersGiven === "True" ||
-    match?.OrdersGiven === true
-  );
 }
 
 function resolveOpponentTeam(
@@ -1108,18 +1089,39 @@ export default function UpcomingMatches({
     [assignments, behaviors, captainId, tacticType, penaltyKickerIds, setPiecesId]
   );
 
-  const allMatches = normalizeMatches(
-    response.data?.HattrickData?.MatchList?.Match ??
-      response.data?.HattrickData?.Team?.MatchList?.Match
+  const allMatches = useMemo(
+    () =>
+      normalizeMatches(
+        response.data?.HattrickData?.MatchList?.Match ??
+          response.data?.HattrickData?.Team?.MatchList?.Match
+      ),
+    [
+      response.data?.HattrickData?.MatchList?.Match,
+      response.data?.HattrickData?.Team?.MatchList?.Match,
+    ]
   );
   const allowAllMatchTypes = onIncludeTournamentMatchesChange
     ? includeTournamentMatches
     : true;
-  const visibleMatches = allMatches.filter((match) => {
-    if (allowAllMatchTypes) return true;
-    const matchType = Number(match.MatchType);
-    return Number.isFinite(matchType) && DEFAULT_ALLOWED_MATCH_TYPES.has(matchType);
-  });
+  const visibleMatches = useMemo(
+    () => filterVisibleMatches(allMatches, allowAllMatchTypes),
+    [allMatches, allowAllMatchTypes]
+  );
+
+  useEffect(() => {
+    const scope: MatchReminderScope =
+      sourceSystem === "Youth" ? "youth" : "senior";
+    const detail: MatchReminderContextEventDetail = {
+      scope,
+      messages,
+      teamId: typeof teamId === "number" && Number.isFinite(teamId) ? teamId : null,
+      visibleMatches,
+      fallbackSourceSystem: sourceSystem,
+    };
+    window.dispatchEvent(
+      new CustomEvent(MATCH_REMINDER_CONTEXT_EVENT, { detail })
+    );
+  }, [messages, sourceSystem, teamId, visibleMatches]);
 
   useEffect(() => {
     if (

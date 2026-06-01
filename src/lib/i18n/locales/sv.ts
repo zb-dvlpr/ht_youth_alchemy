@@ -34,6 +34,21 @@ export const messagesSv: Messages = {
     reminderActionFindSimilarPlayers: "Hitta liknande spelare",
     reminderSeniorInjuryActionUnavailable:
       "Kunde inte öppna Hitta liknande spelare för den här påminnelsen.",
+    reminderSeniorMatchLineupMissingTitle:
+      "Inga order satta för kommande seniormatch",
+    reminderYouthMatchLineupMissingTitle:
+      "Inga order satta för kommande ungdomsmatch",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} börjar om {{timeRemaining}} och har inga order satta.",
+    reminderActionSetOrders: "Sätt order",
+    reminderMatchLineupMissingActionUnavailable:
+      "Kunde inte fokusera verktyget för den här påminnelsen.",
+    reminderYouthPromotionTitle: "Ungdomsspelare kan flyttas upp snart",
+    reminderYouthPromotionBody:
+      "{{playerName}} kan flyttas upp om {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "Visa spelaren i Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Kunde inte öppna den här ungdomsspelaren i Hattrick.",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",

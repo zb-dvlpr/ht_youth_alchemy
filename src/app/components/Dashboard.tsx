@@ -117,6 +117,10 @@ import {
   hattrickTeamUrl,
   hattrickYouthMatchUrl,
 } from "@/lib/hattrick/urls";
+import {
+  YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT,
+  type YouthPromotionReminderContextEventDetail,
+} from "@/lib/reminders/youthPromotion";
 import { setDragGhost } from "@/lib/drag";
 import {
   getMissingChppPermissions,
@@ -1554,6 +1558,27 @@ export default function Dashboard({
     if (!teamId || !youthTeamId) return undefined;
     return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
   }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
+  useEffect(() => {
+    const detailsById: YouthPromotionReminderContextEventDetail["detailsById"] =
+      {};
+    Object.entries(cache).forEach(([playerId, entry]) => {
+      const id = Number(playerId);
+      if (!Number.isFinite(id)) return;
+      const resolved = resolveDetails(entry.data);
+      detailsById[id] = resolved
+        ? { CanBePromotedIn: resolved.CanBePromotedIn }
+        : null;
+    });
+    const detail: YouthPromotionReminderContextEventDetail = {
+      messages,
+      youthTeamId: resolvedYouthTeamId,
+      players: playerList,
+      detailsById,
+    };
+    window.dispatchEvent(
+      new CustomEvent(YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT, { detail })
+    );
+  }, [cache, messages, playerList, resolvedYouthTeamId]);
   useEffect(() => {
     const directLeagueId = activeYouthTeamOption?.teamLeagueId ?? null;
     if (directLeagueId !== null) {

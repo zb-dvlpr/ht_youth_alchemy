@@ -34,6 +34,21 @@ export const messagesIt: Messages = {
     reminderActionFindSimilarPlayers: "Trova giocatori simili",
     reminderSeniorInjuryActionUnavailable:
       "Impossibile aprire Trova giocatori simili per questo promemoria.",
+    reminderSeniorMatchLineupMissingTitle:
+      "Nessun ordine impostato per la prossima partita senior",
+    reminderYouthMatchLineupMissingTitle:
+      "Nessun ordine impostato per la prossima partita giovanile",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} inizia tra {{timeRemaining}} e non ha ordini impostati.",
+    reminderActionSetOrders: "Imposta ordini",
+    reminderMatchLineupMissingActionUnavailable:
+      "Impossibile aprire lo strumento per questo promemoria.",
+    reminderYouthPromotionTitle: "Giocatore giovanile presto promuovibile",
+    reminderYouthPromotionBody:
+      "{{playerName}} potrà essere promosso tra {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "Vedi giocatore in Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Impossibile aprire questo giocatore giovanile in Hattrick.",
     sidebarCollapseTooltip: "Comprimi barra laterale",
     sidebarExpandTooltip: "Espandi barra laterale",
     supportOnKofi: "Offrimi un caffè",

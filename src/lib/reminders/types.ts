@@ -21,6 +21,25 @@ export type ReminderSuppressionExpiry =
 
 export type ReminderAction =
   | {
+      type: "openExternalUrl";
+      label: string;
+      payload: {
+        url: string;
+        playerId?: number;
+        youthTeamId?: number;
+      };
+    }
+  | {
+      type: "app.focusTool";
+      label: string;
+      payload: {
+        tool: "senior" | "youth" | "chronicle";
+        teamId?: number | string | null;
+        matchId?: number;
+        sourceSystem?: string;
+      };
+    }
+  | {
       type: "senior.openFindSimilarPlayers";
       label: string;
       payload: { teamId?: number; playerId: number };
@@ -56,6 +75,7 @@ export type ReminderCandidate = {
   body: string;
   payload?: Record<string, unknown>;
   dismissalExpiryDurationMs?: number;
+  expiresAt?: number;
   actions?: ReminderAction[];
 };
 

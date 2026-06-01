@@ -434,6 +434,8 @@ export default async function Home() {
               }
               initialSeniorTeams={seniorTeams}
               initialSeniorTeamId={defaultSeniorTeamId}
+              initialYouthTeams={youthTeams}
+              initialYouthTeamId={defaultYouthTeamId}
             >
               <Dashboard
                 players={players}

@@ -35,6 +35,21 @@ export const messagesPl: Messages = {
   reminderActionFindSimilarPlayers: "Znajdź podobnych graczy",
   reminderSeniorInjuryActionUnavailable:
     "Nie udało się otworzyć funkcji Znajdź podobnych graczy dla tego przypomnienia.",
+  reminderSeniorMatchLineupMissingTitle:
+    "Brak rozkazów dla nadchodzącego meczu seniorów",
+  reminderYouthMatchLineupMissingTitle:
+    "Brak rozkazów dla nadchodzącego meczu juniorów",
+  reminderMatchLineupMissingBody:
+    "{{matchName}} zaczyna się za {{timeRemaining}} i nie ma ustawionych rozkazów.",
+  reminderActionSetOrders: "Ustaw rozkazy",
+  reminderMatchLineupMissingActionUnavailable:
+    "Nie udało się przełączyć na narzędzie dla tego przypomnienia.",
+  reminderYouthPromotionTitle: "Junior może wkrótce awansować",
+  reminderYouthPromotionBody:
+    "{{playerName}} może awansować za {{timeRemaining}}.",
+  reminderActionViewPlayerInHattrick: "Zobacz gracza w Hattrick",
+  reminderYouthPromotionActionUnavailable:
+    "Nie udało się otworzyć tego juniora w Hattrick.",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",

@@ -1,6 +1,11 @@
 import styles from "../../page.module.css";
 import type { Messages } from "@/lib/i18n";
-import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
+import {
+  hattrickMatchUrlWithSourceSystem,
+  hattrickPlayerUrl,
+  hattrickYouthMatchUrl,
+  hattrickYouthPlayerUrl,
+} from "@/lib/hattrick/urls";
 import {
   REMINDER_SNOOZE_OPTIONS_MS,
   type ReminderAction,
@@ -59,6 +64,97 @@ const renderReminderBody = (item: ReminderDisplayItem, messages: Messages) => {
   );
 };
 
+const renderMatchReminderBody = (
+  item: ReminderDisplayItem,
+  messages: Messages
+) => {
+  const { candidate } = item;
+  if (
+    candidate.ruleId !== "senior.match.lineupMissingWithin48h" &&
+    candidate.ruleId !== "youth.match.lineupMissingWithin48h"
+  ) {
+    return null;
+  }
+  const scope = candidate.payload?.scope;
+  const matchId = Number(candidate.payload?.matchId);
+  const teamId = Number(candidate.payload?.teamId);
+  const sourceSystem =
+    typeof candidate.payload?.sourceSystem === "string"
+      ? candidate.payload.sourceSystem
+      : "Hattrick";
+  const matchName =
+    typeof candidate.payload?.matchName === "string"
+      ? candidate.payload.matchName
+      : "";
+  const timeRemaining =
+    typeof candidate.payload?.timeRemaining === "string"
+      ? candidate.payload.timeRemaining
+      : "";
+  if (
+    (scope !== "senior" && scope !== "youth") ||
+    !Number.isFinite(matchId) ||
+    !Number.isFinite(teamId) ||
+    !matchName ||
+    !timeRemaining
+  ) {
+    return candidate.body;
+  }
+  const href =
+    scope === "youth"
+      ? hattrickYouthMatchUrl(matchId, teamId, teamId)
+      : hattrickMatchUrlWithSourceSystem(matchId, sourceSystem);
+  const template = messages.reminderMatchLineupMissingBody.replace(
+    "{{timeRemaining}}",
+    timeRemaining
+  );
+  const [before, after] = template.split("{{matchName}}");
+  return (
+    <>
+      {before}
+      <a href={href} target="_blank" rel="noreferrer">
+        {matchName}
+      </a>
+      {after}
+    </>
+  );
+};
+
+const renderYouthPromotionReminderBody = (
+  item: ReminderDisplayItem,
+  messages: Messages
+) => {
+  const { candidate } = item;
+  if (candidate.ruleId !== "youth.player.canBePromoted.within48h") {
+    return null;
+  }
+  const playerId = Number(candidate.payload?.playerId);
+  const playerName =
+    typeof candidate.payload?.playerName === "string"
+      ? candidate.payload.playerName
+      : "";
+  const timeRemaining =
+    typeof candidate.payload?.timeRemaining === "string"
+      ? candidate.payload.timeRemaining
+      : "";
+  if (!Number.isFinite(playerId) || !playerName || !timeRemaining) {
+    return candidate.body;
+  }
+  const template = messages.reminderYouthPromotionBody.replace(
+    "{{timeRemaining}}",
+    timeRemaining
+  );
+  const [before, after] = template.split("{{playerName}}");
+  return (
+    <>
+      {before}
+      <a href={hattrickYouthPlayerUrl(playerId)} target="_blank" rel="noreferrer">
+        {playerName}
+      </a>
+      {after}
+    </>
+  );
+};
+
 export default function ReminderCard({
   item,
   messages,
@@ -76,7 +172,11 @@ export default function ReminderCard({
         <span className={styles.reminderScope}>{candidate.scope}</span>
         <strong>{candidate.title}</strong>
       </div>
-      <p>{renderReminderBody(item, messages)}</p>
+      <p>
+        {renderYouthPromotionReminderBody(item, messages) ??
+          renderMatchReminderBody(item, messages) ??
+          renderReminderBody(item, messages)}
+      </p>
       {candidate.actions?.length ? (
         <div className={styles.reminderActionRow}>
           {candidate.actions.map((action, index) => (

@@ -4,30 +4,55 @@ import {
   SENIOR_PLAYER_INJURY_GTE2W_RULE,
   type SeniorReminderContext,
 } from "./senior";
+import {
+  createMissingLineupWithin48hRule,
+  type MatchReminderContext,
+} from "./matches";
+import {
+  YOUTH_PLAYER_PROMOTION_WITHIN48H_RULE,
+  type YouthPromotionReminderContext,
+} from "./youthPromotion";
 
-export type YouthReminderContext = unknown;
+export type YouthReminderContext = MatchReminderContext | undefined;
 export type ClubChronicleReminderContext = unknown;
 export type SharedReminderContext = unknown;
 
 export type GlobalReminderContext = {
   senior?: SeniorReminderContext;
+  seniorMatches?: MatchReminderContext;
   youth?: YouthReminderContext;
+  youthPromotion?: YouthPromotionReminderContext;
   clubChronicle?: ClubChronicleReminderContext;
   shared?: SharedReminderContext;
 };
 
-export const SENIOR_REMINDER_RULES: ReminderRule<
+export const SENIOR_INJURY_REMINDER_RULES: ReminderRule<
   SeniorReminderContext | undefined
 >[] = [
   SENIOR_PLAYER_INJURY_GTE2W_RULE,
 ];
-export const YOUTH_REMINDER_RULES: ReminderRule<YouthReminderContext>[] = [];
+export const SENIOR_MATCH_REMINDER_RULES: ReminderRule<
+  MatchReminderContext | undefined
+>[] = [
+  createMissingLineupWithin48hRule("senior"),
+];
+export const SENIOR_REMINDER_RULES: ReminderRule[] = [
+  ...(SENIOR_INJURY_REMINDER_RULES as ReminderRule[]),
+  ...(SENIOR_MATCH_REMINDER_RULES as ReminderRule[]),
+];
+export const YOUTH_REMINDER_RULES: ReminderRule<YouthReminderContext>[] = [
+  createMissingLineupWithin48hRule("youth"),
+];
+export const YOUTH_PROMOTION_REMINDER_RULES: ReminderRule<
+  YouthPromotionReminderContext | undefined
+>[] = [YOUTH_PLAYER_PROMOTION_WITHIN48H_RULE];
 export const CLUB_CHRONICLE_REMINDER_RULES: ReminderRule<ClubChronicleReminderContext>[] = [];
 export const SHARED_REMINDER_RULES: ReminderRule<SharedReminderContext>[] = [];
 
 export const ALL_REMINDER_RULES: ReminderRule[] = [
   ...(SENIOR_REMINDER_RULES as ReminderRule[]),
   ...(YOUTH_REMINDER_RULES as ReminderRule[]),
+  ...(YOUTH_PROMOTION_REMINDER_RULES as ReminderRule[]),
   ...(CLUB_CHRONICLE_REMINDER_RULES as ReminderRule[]),
   ...(SHARED_REMINDER_RULES as ReminderRule[]),
 ];
@@ -35,8 +60,13 @@ export const ALL_REMINDER_RULES: ReminderRule[] = [
 export const evaluateRegisteredReminderCandidates = (
   context: GlobalReminderContext
 ): ReminderCandidate[] => [
-  ...evaluateReminderRules(SENIOR_REMINDER_RULES, context.senior),
+  ...evaluateReminderRules(SENIOR_INJURY_REMINDER_RULES, context.senior),
+  ...evaluateReminderRules(SENIOR_MATCH_REMINDER_RULES, context.seniorMatches),
   ...evaluateReminderRules(YOUTH_REMINDER_RULES, context.youth),
+  ...evaluateReminderRules(
+    YOUTH_PROMOTION_REMINDER_RULES,
+    context.youthPromotion
+  ),
   ...evaluateReminderRules(
     CLUB_CHRONICLE_REMINDER_RULES,
     context.clubChronicle
@@ -52,6 +82,9 @@ export const evaluateRegisteredReminderEpisodes = (
   ),
   ...YOUTH_REMINDER_RULES.flatMap(
     (rule) => rule.evaluateActiveEpisodes?.(context.youth) ?? []
+  ),
+  ...YOUTH_PROMOTION_REMINDER_RULES.flatMap(
+    (rule) => rule.evaluateActiveEpisodes?.(context.youthPromotion) ?? []
   ),
   ...CLUB_CHRONICLE_REMINDER_RULES.flatMap(
     (rule) => rule.evaluateActiveEpisodes?.(context.clubChronicle) ?? []

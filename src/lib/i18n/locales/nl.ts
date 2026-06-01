@@ -35,6 +35,21 @@ export const messagesNl: Messages = {
   reminderActionFindSimilarPlayers: "Vergelijkbare spelers vinden",
   reminderSeniorInjuryActionUnavailable:
     "Kon Vergelijkbare spelers vinden niet openen voor deze herinnering.",
+  reminderSeniorMatchLineupMissingTitle:
+    "Geen orders ingesteld voor komende seniorenwedstrijd",
+  reminderYouthMatchLineupMissingTitle:
+    "Geen orders ingesteld voor komende jeugdwedstrijd",
+  reminderMatchLineupMissingBody:
+    "{{matchName}} begint over {{timeRemaining}} en heeft geen orders ingesteld.",
+  reminderActionSetOrders: "Orders instellen",
+  reminderMatchLineupMissingActionUnavailable:
+    "Kon het hulpmiddel voor deze herinnering niet focussen.",
+  reminderYouthPromotionTitle: "Jeugdspeler kan binnenkort promoveren",
+  reminderYouthPromotionBody:
+    "{{playerName}} kan over {{timeRemaining}} promoveren.",
+  reminderActionViewPlayerInHattrick: "Speler bekijken in Hattrick",
+  reminderYouthPromotionActionUnavailable:
+    "Kon deze jeugdspeler niet openen in Hattrick.",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",

@@ -109,6 +109,12 @@ export const validateReminderCandidate = (
       `Reminder candidate ${candidate.stableKey} has an invalid dismissal expiry duration.`
     );
   }
+  if (
+    candidate.expiresAt !== undefined &&
+    (!Number.isFinite(candidate.expiresAt) || candidate.expiresAt <= 0)
+  ) {
+    throw new Error(`Reminder candidate ${candidate.stableKey} has an invalid expiry.`);
+  }
 };
 
 export const evaluateReminderRules = <Context>(
@@ -259,7 +265,12 @@ export const resolveReminderEvaluation = ({
   const snoozed: ReminderDisplayItem[] = [];
   const newlyDueToSurface: ReminderDisplayItem[] = [];
 
-  candidates.forEach((candidate) => {
+  candidates
+    .filter(
+      (candidate) =>
+        candidate.expiresAt === undefined || candidate.expiresAt > now
+    )
+    .forEach((candidate) => {
     const rule = ruleById.get(candidate.ruleId);
     const existing = records[candidate.stableKey];
     const baseRecord =

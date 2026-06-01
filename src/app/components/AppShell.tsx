@@ -72,6 +72,18 @@ import {
   type SeniorReminderPlayer,
   type SeniorReminderTeamContext,
 } from "@/lib/reminders/senior";
+import {
+  MATCH_REMINDER_CONTEXT_EVENT,
+  type MatchReminderContext,
+  type MatchReminderContextEventDetail,
+} from "@/lib/reminders/matches";
+import {
+  YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT,
+  type YouthPromotionReminderContext,
+  type YouthPromotionReminderContextEventDetail,
+  type YouthPromotionReminderDetails,
+  type YouthPromotionReminderPlayer,
+} from "@/lib/reminders/youthPromotion";
 
 type AppShellProps = {
   messages: Messages;
@@ -86,6 +98,11 @@ type AppShellProps = {
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
+  initialYouthTeams?: Array<{
+    youthTeamId: number;
+    youthTeamName: string;
+  }>;
+  initialYouthTeamId?: number | null;
   mobileLauncherUtility?: ReactNode;
 };
 
@@ -131,6 +148,7 @@ const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
 const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const YOUTH_DASHBOARD_STATE_STORAGE_KEY = "ya_dashboard_state_v2";
 
 type MobileNavSegment = {
   id: string;
@@ -159,6 +177,33 @@ const resolveSeniorDashboardDataStorageKey = (
     ? `${SENIOR_DASHBOARD_DATA_STORAGE_KEY}_${teamId}`
     : SENIOR_DASHBOARD_DATA_STORAGE_KEY;
 
+const resolveYouthDashboardStateStorageKey = (
+  youthTeamId: number | null,
+  multiTeamEnabled: boolean
+) =>
+  multiTeamEnabled && typeof youthTeamId === "number" && youthTeamId > 0
+    ? `${YOUTH_DASHBOARD_STATE_STORAGE_KEY}_${youthTeamId}`
+    : YOUTH_DASHBOARD_STATE_STORAGE_KEY;
+
+const resolveCachedYouthPromotionDetails = (
+  entry: unknown
+): YouthPromotionReminderDetails | null => {
+  if (!isObject(entry) || !isObject(entry.data)) return null;
+  const data = entry.data;
+  const hattrickData = isObject(data.HattrickData) ? data.HattrickData : null;
+  const youthPlayer =
+    hattrickData && isObject(hattrickData.YouthPlayer)
+      ? hattrickData.YouthPlayer
+      : null;
+  const source = youthPlayer ?? data;
+  return {
+    CanBePromotedIn:
+      typeof source.CanBePromotedIn === "number"
+        ? source.CanBePromotedIn
+        : undefined,
+  };
+};
+
 export default function AppShell({
   messages,
   appVersion,
@@ -167,6 +212,8 @@ export default function AppShell({
   seniorTool,
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
+  initialYouthTeams = [],
+  initialYouthTeamId = null,
   mobileLauncherUtility,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -203,11 +250,20 @@ export default function AppShell({
   >([]);
   const [seniorReminderContext, setSeniorReminderContext] =
     useState<SeniorReminderContext | null>(null);
+  const [seniorMatchReminderContext, setSeniorMatchReminderContext] =
+    useState<MatchReminderContext | null>(null);
+  const [youthMatchReminderContext, setYouthMatchReminderContext] =
+    useState<MatchReminderContext | null>(null);
+  const [youthPromotionReminderContext, setYouthPromotionReminderContext] =
+    useState<YouthPromotionReminderContext | null>(null);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
   const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
   const surfacedReminderTriggerKeysThisSessionRef = useRef(new Set<string>());
   const seniorCachedReminderContextSignatureRef = useRef<string | null>(null);
+  const youthCachedPromotionReminderContextSignatureRef = useRef<string | null>(
+    null
+  );
   const mobileLayoutInitializedRef = useRef(false);
   const { addNotification } = useNotifications();
 
@@ -318,6 +374,24 @@ export default function AppShell({
       .filter((teamId): teamId is number => typeof teamId === "number");
     return teamIds.length ? teamIds : [initialSeniorTeamId ?? 0];
   }, [initialSeniorTeamId, initialSeniorTeamsSignature]);
+  const initialYouthTeamsSignature = useMemo(
+    () =>
+      JSON.stringify(
+        initialYouthTeams.map((team) => ({
+          youthTeamId: team.youthTeamId,
+        }))
+      ),
+    [initialYouthTeams]
+  );
+  const initialYouthReminderTeamIds = useMemo(() => {
+    const parsed = JSON.parse(initialYouthTeamsSignature) as Array<{
+      youthTeamId?: unknown;
+    }>;
+    const teamIds = parsed
+      .map((team) => team.youthTeamId)
+      .filter((teamId): teamId is number => typeof teamId === "number");
+    return teamIds.length ? teamIds : [initialYouthTeamId ?? 0];
+  }, [initialYouthTeamId, initialYouthTeamsSignature]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -376,6 +450,72 @@ export default function AppShell({
   }, [initialSeniorReminderTeamIds, initialSeniorTeamId, messages]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const multiTeamEnabled = initialYouthReminderTeamIds.length > 1;
+    const contexts = initialYouthReminderTeamIds.flatMap((sourceYouthTeamId) => {
+      const youthTeamId =
+        typeof sourceYouthTeamId === "number" && sourceYouthTeamId > 0
+          ? sourceYouthTeamId
+          : initialYouthTeamId;
+      const key = resolveYouthDashboardStateStorageKey(
+        multiTeamEnabled ? youthTeamId : null,
+        multiTeamEnabled
+      );
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw) as unknown;
+        if (!isObject(parsed)) return [];
+        const players = Array.isArray(parsed.playerList)
+          ? (parsed.playerList as YouthPromotionReminderPlayer[])
+          : [];
+        const detailsById: Record<
+          number,
+          YouthPromotionReminderDetails | null | undefined
+        > = {};
+        if (isObject(parsed.cache)) {
+          Object.entries(parsed.cache).forEach(([playerId, entry]) => {
+            const id = Number(playerId);
+            if (!Number.isFinite(id)) return;
+            detailsById[id] = resolveCachedYouthPromotionDetails(entry);
+          });
+        }
+        return [
+          {
+            youthTeamId,
+            players,
+            detailsById,
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
+    if (!contexts.length) return;
+    const signature = JSON.stringify(
+      contexts.map((context) => ({
+        youthTeamId: context.youthTeamId,
+        players: context.players.map((player) => [
+          player.YouthPlayerID,
+          player.CanBePromotedIn ?? null,
+        ]),
+        detailKeys: Object.keys(context.detailsById).sort(),
+      }))
+    );
+    if (youthCachedPromotionReminderContextSignatureRef.current === signature) {
+      return;
+    }
+    youthCachedPromotionReminderContextSignatureRef.current = signature;
+    setYouthPromotionReminderContext({
+      messages,
+      teamContexts: contexts,
+      youthTeamId: null,
+      players: [],
+      detailsById: {},
+    });
+  }, [initialYouthReminderTeamIds, initialYouthTeamId, messages]);
+
+  useEffect(() => {
     const handleSeniorReminderContext = (event: Event) => {
       const detail = (event as CustomEvent<SeniorReminderContextEventDetail>).detail;
       setSeniorReminderContext(detail?.context ?? null);
@@ -392,11 +532,61 @@ export default function AppShell({
     };
   }, []);
 
+  useEffect(() => {
+    const handleYouthPromotionReminderContext = (event: Event) => {
+      const detail = (
+        event as CustomEvent<YouthPromotionReminderContextEventDetail>
+      ).detail;
+      setYouthPromotionReminderContext(detail ?? null);
+    };
+    window.addEventListener(
+      YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT,
+      handleYouthPromotionReminderContext
+    );
+    return () => {
+      window.removeEventListener(
+        YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT,
+        handleYouthPromotionReminderContext
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleMatchReminderContext = (event: Event) => {
+      const detail = (event as CustomEvent<MatchReminderContextEventDetail>)
+        .detail;
+      if (!detail) return;
+      if (detail.scope === "senior") {
+        setSeniorMatchReminderContext(detail);
+      } else if (detail.scope === "youth") {
+        setYouthMatchReminderContext(detail);
+      }
+    };
+    window.addEventListener(
+      MATCH_REMINDER_CONTEXT_EVENT,
+      handleMatchReminderContext
+    );
+    return () => {
+      window.removeEventListener(
+        MATCH_REMINDER_CONTEXT_EVENT,
+        handleMatchReminderContext
+      );
+    };
+  }, []);
+
   const reminderContext = useMemo<GlobalReminderContext>(
     () => ({
       senior: seniorReminderContext ?? undefined,
+      seniorMatches: seniorMatchReminderContext ?? undefined,
+      youth: youthMatchReminderContext ?? undefined,
+      youthPromotion: youthPromotionReminderContext ?? undefined,
     }),
-    [seniorReminderContext]
+    [
+      seniorMatchReminderContext,
+      seniorReminderContext,
+      youthMatchReminderContext,
+      youthPromotionReminderContext,
+    ]
   );
 
   const reminderCandidates = useMemo(
@@ -533,12 +723,50 @@ export default function AppShell({
         }, 0);
         return;
       }
+      if (action.type === "app.focusTool") {
+        const targetTool = action.payload.tool;
+        if (targetTool !== "senior" && targetTool !== "youth") {
+          addNotification(messages.reminderMatchLineupMissingActionUnavailable);
+          return;
+        }
+        const rule = ALL_REMINDER_RULES.find(
+          (entry) => entry.ruleId === item.candidate.ruleId
+        );
+        dismissReminder(item.candidate, readReminderStorageState(), rule);
+        setReminderBatchItems((current) =>
+          current.filter(
+            (entry) => entry.candidate.stableKey !== item.candidate.stableKey
+          )
+        );
+        setActiveTool(targetTool);
+        return;
+      }
+      if (action.type === "openExternalUrl") {
+        const url = action.payload.url;
+        if (!url) {
+          addNotification(messages.reminderYouthPromotionActionUnavailable);
+          return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+        const rule = ALL_REMINDER_RULES.find(
+          (entry) => entry.ruleId === item.candidate.ruleId
+        );
+        dismissReminder(item.candidate, readReminderStorageState(), rule);
+        setReminderBatchItems((current) =>
+          current.filter(
+            (entry) => entry.candidate.stableKey !== item.candidate.stableKey
+          )
+        );
+        return;
+      }
       addNotification(messages.reminderMissingActionFallback);
     },
     [
       addNotification,
       messages.reminderMissingActionFallback,
+      messages.reminderMatchLineupMissingActionUnavailable,
       messages.reminderSeniorInjuryActionUnavailable,
+      messages.reminderYouthPromotionActionUnavailable,
     ]
   );
 

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styles from "../../page.module.css";
 import type { Messages } from "@/lib/i18n";
 import {
@@ -7,25 +8,25 @@ import {
   hattrickYouthPlayerUrl,
 } from "@/lib/hattrick/urls";
 import {
-  REMINDER_SNOOZE_OPTIONS_MS,
+  REMINDER_DEFAULT_SNOOZE_MS,
+  REMINDER_SNOOZE_DAY_OPTIONS,
   type ReminderAction,
   type ReminderDisplayItem,
 } from "@/lib/reminders/types";
 
-const formatSnoozeDuration = (messages: Messages, durationMs: number) => {
-  switch (durationMs) {
-    case 6 * 60 * 60 * 1000:
-      return messages.reminderSnooze6Hours;
-    case 24 * 60 * 60 * 1000:
-      return messages.reminderSnooze1Day;
-    case 3 * 24 * 60 * 60 * 1000:
-      return messages.reminderSnooze3Days;
-    case 7 * 24 * 60 * 60 * 1000:
-      return messages.reminderSnooze1Week;
-    default:
-      return messages.reminderSnooze1Day;
-  }
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const normalizeSnoozeDays = (durationMs: number | undefined) => {
+  if (!Number.isFinite(durationMs) || !durationMs) return 1;
+  const dayCount = Math.round(durationMs / DAY_MS);
+  return Math.min(5, Math.max(1, dayCount));
 };
+
+const formatSnoozeDayOption = (messages: Messages, days: number) =>
+  (days === 1
+    ? messages.remindersSnoozeDurationDay
+    : messages.remindersSnoozeDurationDays
+  ).replace("{{count}}", String(days));
 
 type ReminderCardProps = {
   item: ReminderDisplayItem;
@@ -36,6 +37,7 @@ type ReminderCardProps = {
   readonly?: boolean;
   showActions?: boolean;
   showDismissControls?: boolean;
+  defaultSnoozeDurationMs?: number;
   meta?: string;
 };
 
@@ -167,9 +169,13 @@ export default function ReminderCard({
   readonly = false,
   showActions = true,
   showDismissControls = !readonly,
+  defaultSnoozeDurationMs = REMINDER_DEFAULT_SNOOZE_MS,
   meta,
 }: ReminderCardProps) {
   const { candidate } = item;
+  const [selectedSnoozeDays, setSelectedSnoozeDays] = useState(() =>
+    normalizeSnoozeDays(defaultSnoozeDurationMs)
+  );
   return (
     <article
       className={`${styles.reminderCard} ${styles[`reminderCard_${candidate.severity}`]}`}
@@ -207,16 +213,35 @@ export default function ReminderCard({
           >
             {messages.reminderDismiss}
           </button>
-          {REMINDER_SNOOZE_OPTIONS_MS.map((durationMs) => (
+          <div className={styles.reminderSnoozeControl}>
+            <label
+              className={styles.reminderSnoozeLabel}
+              htmlFor={`snooze-${candidate.stableKey}`}
+            >
+              {messages.remindersSnoozeForLabel}
+            </label>
+            <select
+              id={`snooze-${candidate.stableKey}`}
+              className={styles.reminderSnoozeSelect}
+              value={selectedSnoozeDays}
+              onChange={(event) =>
+                setSelectedSnoozeDays(Number(event.target.value))
+              }
+            >
+              {REMINDER_SNOOZE_DAY_OPTIONS.map((days) => (
+                <option key={days} value={days}>
+                  {formatSnoozeDayOption(messages, days)}
+                </option>
+              ))}
+            </select>
             <button
-              key={durationMs}
               type="button"
               className={styles.confirmSubmit}
-              onClick={() => onSnooze?.(item, durationMs)}
+              onClick={() => onSnooze?.(item, selectedSnoozeDays * DAY_MS)}
             >
-              {messages.reminderSnooze} {formatSnoozeDuration(messages, durationMs)}
+              {messages.remindersSnoozeButtonLabel}
             </button>
-          ))}
+          </div>
         </div>
       ) : null}
     </article>

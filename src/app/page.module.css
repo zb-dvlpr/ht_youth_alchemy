@@ -1883,6 +1883,29 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   flex-wrap: wrap;
 }
 
+.reminderSnoozeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reminderSnoozeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4a37;
+}
+
+.reminderSnoozeSelect {
+  border: 1px solid #c8b8a3;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #3f362c;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 28px 6px 10px;
+}
+
 .reminderDropdownHeader {
   justify-content: space-between;
 }

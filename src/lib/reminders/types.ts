@@ -165,9 +165,4 @@ export type ReminderEvaluationResult = {
 
 export const REMINDER_STORAGE_VERSION = 1;
 export const REMINDER_DEFAULT_SNOOZE_MS = 24 * 60 * 60 * 1000;
-export const REMINDER_SNOOZE_OPTIONS_MS = [
-  6 * 60 * 60 * 1000,
-  REMINDER_DEFAULT_SNOOZE_MS,
-  3 * REMINDER_DEFAULT_SNOOZE_MS,
-  7 * REMINDER_DEFAULT_SNOOZE_MS,
-] as const;
+export const REMINDER_SNOOZE_DAY_OPTIONS = [1, 2, 3, 4, 5] as const;

@@ -1,5 +1,6 @@
 import {
   REMINDER_DEFAULT_SNOOZE_MS,
+  REMINDER_SNOOZE_DAY_OPTIONS,
   REMINDER_STORAGE_VERSION,
   type DismissedReminderHistoryEntry,
   type ReminderAction,
@@ -51,6 +52,18 @@ const isReminderScope = (
   value === "clubChronicle" ||
   value === "shared";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const normalizeReminderSnoozeDurationMs = (value: unknown) => {
+  if (!isFiniteNumber(value) || value <= 0) return REMINDER_DEFAULT_SNOOZE_MS;
+  const dayCount = Math.round(value / DAY_MS);
+  const clampedDays = Math.min(
+    REMINDER_SNOOZE_DAY_OPTIONS[REMINDER_SNOOZE_DAY_OPTIONS.length - 1],
+    Math.max(REMINDER_SNOOZE_DAY_OPTIONS[0], dayCount)
+  );
+  return clampedDays * DAY_MS;
+};
+
 const compactDismissedReminderHistory = (
   history: DismissedReminderHistoryEntry[]
 ): DismissedReminderHistoryEntry[] =>
@@ -76,7 +89,8 @@ export const sanitizeReminderPreferences = (
   const defaultSnoozeDurationMsByRuleId: Record<string, number> = {};
   Object.entries(rawDefaults).forEach(([ruleId, duration]) => {
     if (ruleId && isFiniteNumber(duration) && duration > 0) {
-      defaultSnoozeDurationMsByRuleId[ruleId] = duration;
+      defaultSnoozeDurationMsByRuleId[ruleId] =
+        normalizeReminderSnoozeDurationMs(duration);
     }
   });
   return {
@@ -424,7 +438,7 @@ export const setDefaultReminderSnoozeDuration = (
     defaultSnoozeDurationMsByRuleId: {
       ...preferences.defaultSnoozeDurationMsByRuleId,
       [ruleId]: Number.isFinite(durationMs) && durationMs > 0
-        ? durationMs
+        ? normalizeReminderSnoozeDurationMs(durationMs)
         : REMINDER_DEFAULT_SNOOZE_MS,
     },
   }));

@@ -1846,6 +1846,9 @@ export default function AppShell({
         onSnooze={handleReminderSnooze}
         onAction={handleReminderAction}
         onTurnOff={handleTurnRemindersOff}
+        defaultSnoozeDurationMsByRuleId={
+          reminderStorageState.preferences.defaultSnoozeDurationMsByRuleId
+        }
       />
       <Modal
         open={showChangelog}

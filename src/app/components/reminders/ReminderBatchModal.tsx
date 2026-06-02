@@ -13,6 +13,7 @@ type ReminderBatchModalProps = {
   onSnooze: (item: ReminderDisplayItem, durationMs: number) => void;
   onAction: (action: ReminderAction, item: ReminderDisplayItem) => void;
   onTurnOff: () => void;
+  defaultSnoozeDurationMsByRuleId?: Record<string, number>;
 };
 
 export default function ReminderBatchModal({
@@ -24,6 +25,7 @@ export default function ReminderBatchModal({
   onSnooze,
   onAction,
   onTurnOff,
+  defaultSnoozeDurationMsByRuleId = {},
 }: ReminderBatchModalProps) {
   return (
     <Modal
@@ -41,6 +43,9 @@ export default function ReminderBatchModal({
                 onDismiss={onDismiss}
                 onSnooze={onSnooze}
                 onAction={onAction}
+                defaultSnoozeDurationMs={
+                  defaultSnoozeDurationMsByRuleId[item.candidate.ruleId]
+                }
               />
             ))
           ) : (

@@ -120,6 +120,7 @@ export type ReminderStorageState = {
   version: 1;
   preferences: ReminderPreferences;
   records: Record<string, ReminderSuppressionRecord>;
+  dismissedHistory: DismissedReminderHistoryEntry[];
 };
 
 export type ReminderStorageExport = {
@@ -128,12 +129,28 @@ export type ReminderStorageExport = {
   reminders: {
     preferences: ReminderPreferences;
     records: Record<string, ReminderSuppressionRecord>;
+    dismissedHistory?: DismissedReminderHistoryEntry[];
   };
 };
 
 export type ReminderDisplayItem = {
   candidate: ReminderCandidate;
   record: ReminderSuppressionRecord;
+};
+
+export type DismissedReminderHistoryEntry = {
+  stableKey: string;
+  triggerKey: string;
+  episodeKey: string;
+  ruleId: string;
+  ruleVersion: number;
+  scope: ReminderScope;
+  dismissedAt: number;
+  dismissedBy: "dismiss" | "action";
+  title: string;
+  bodyText: string;
+  payload?: Record<string, unknown>;
+  actions?: ReminderAction[];
 };
 
 export type ReminderEvaluationResult = {

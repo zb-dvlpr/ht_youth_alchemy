@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../../page.module.css";
 import type { Messages } from "@/lib/i18n";
-import type { ReminderDisplayItem } from "@/lib/reminders/types";
+import { formatDateTime } from "@/lib/datetime";
+import type {
+  DismissedReminderHistoryEntry,
+  ReminderAction,
+  ReminderDisplayItem,
+} from "@/lib/reminders/types";
 import ReminderCard from "./ReminderCard";
 import Tooltip from "../Tooltip";
 
@@ -10,16 +15,60 @@ type ReminderBellProps = {
   enabled: boolean;
   due: ReminderDisplayItem[];
   snoozed: ReminderDisplayItem[];
+  dismissed: DismissedReminderHistoryEntry[];
   onOpenBatch: () => void;
+  onDismissedAction?: (
+    action: ReminderAction,
+    item: ReminderDisplayItem
+  ) => void;
   buttonClassName?: string;
 };
+
+const dismissedHistoryEntryToDisplayItem = (
+  entry: DismissedReminderHistoryEntry
+): ReminderDisplayItem => ({
+  candidate: {
+    stableKey: entry.stableKey,
+    triggerKey: entry.triggerKey,
+    episodeKey: entry.episodeKey,
+    ruleId: entry.ruleId,
+    ruleVersion: entry.ruleVersion,
+    scope: entry.scope,
+    entityType: "dismissedReminder",
+    entityId: entry.stableKey,
+    severity: "info",
+    title: entry.title,
+    body: entry.bodyText,
+    payload: entry.payload,
+    actions: entry.actions,
+  },
+  record: {
+    stableKey: entry.stableKey,
+    ruleId: entry.ruleId,
+    ruleVersion: entry.ruleVersion,
+    scope: entry.scope,
+    entityType: "dismissedReminder",
+    entityId: entry.stableKey,
+    dismissedAt: entry.dismissedAt,
+    activeEpisodeKey: null,
+    lastEpisodeKey: entry.episodeKey,
+    firstSeenAt: entry.dismissedAt,
+    lastSeenAt: entry.dismissedAt,
+    lastTriggeredAt: entry.dismissedAt,
+    lastEpisodeActiveAt: entry.dismissedAt,
+    lastEpisodeClearedAt: null,
+    suppressionExpiresAt: null,
+  },
+});
 
 export default function ReminderBell({
   messages,
   enabled,
   due,
   snoozed,
+  dismissed,
   onOpenBatch,
+  onDismissedAction,
   buttonClassName,
 }: ReminderBellProps) {
   const [open, setOpen] = useState(false);
@@ -106,6 +155,35 @@ export default function ReminderBell({
                   </div>
                 ) : (
                   <p className={styles.muted}>{messages.reminderNoSnoozed}</p>
+                )}
+              </section>
+              <section className={styles.reminderDropdownSection}>
+                <h3>{messages.remindersDismissedSectionTitle}</h3>
+                {dismissed.length ? (
+                  <div className={styles.reminderDropdownList}>
+                    {dismissed.map((entry) => {
+                      const item = dismissedHistoryEntryToDisplayItem(entry);
+                      return (
+                        <ReminderCard
+                          key={`${entry.stableKey}-${entry.dismissedAt}`}
+                          item={item}
+                          messages={messages}
+                          readonly
+                          showActions
+                          showDismissControls={false}
+                          meta={messages.remindersDismissedAtLabel.replace(
+                            "{{time}}",
+                            formatDateTime(entry.dismissedAt)
+                          )}
+                          onAction={onDismissedAction}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className={styles.muted}>
+                    {messages.remindersNoDismissed}
+                  </p>
                 )}
               </section>
             </>

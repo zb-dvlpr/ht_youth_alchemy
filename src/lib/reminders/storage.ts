@@ -1,6 +1,8 @@
 import {
   REMINDER_DEFAULT_SNOOZE_MS,
   REMINDER_STORAGE_VERSION,
+  type DismissedReminderHistoryEntry,
+  type ReminderAction,
   type ReminderPreferences,
   type ReminderStorageExport,
   type ReminderStorageState,
@@ -49,6 +51,7 @@ export const emptyReminderStorageState = (): ReminderStorageState => ({
   version: REMINDER_STORAGE_VERSION,
   preferences: { ...DEFAULT_REMINDER_PREFERENCES },
   records: {},
+  dismissedHistory: [],
 });
 
 export const sanitizeReminderPreferences = (
@@ -131,6 +134,166 @@ export const sanitizeReminderRecord = (
   };
 };
 
+const sanitizeReminderAction = (value: unknown): ReminderAction | null => {
+  if (!isObject(value) || typeof value.label !== "string") return null;
+  if (value.type === "openExternalUrl") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (!payload || typeof payload.url !== "string") return null;
+    return {
+      type: "openExternalUrl",
+      label: value.label,
+      payload: {
+        url: payload.url,
+        playerId: isOptionalNumber(payload.playerId)
+          ? payload.playerId
+          : undefined,
+        youthTeamId: isOptionalNumber(payload.youthTeamId)
+          ? payload.youthTeamId
+          : undefined,
+      },
+    };
+  }
+  if (value.type === "app.focusTool") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (
+      !payload ||
+      (payload.tool !== "senior" &&
+        payload.tool !== "youth" &&
+        payload.tool !== "chronicle")
+    ) {
+      return null;
+    }
+    return {
+      type: "app.focusTool",
+      label: value.label,
+      payload: {
+        tool: payload.tool,
+        teamId: isOptionalTeamId(payload.teamId) ? payload.teamId : undefined,
+        matchId: isOptionalNumber(payload.matchId)
+          ? payload.matchId
+          : undefined,
+        sourceSystem:
+          typeof payload.sourceSystem === "string"
+            ? payload.sourceSystem
+            : undefined,
+      },
+    };
+  }
+  if (value.type === "senior.openFindSimilarPlayers") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (!payload || !isFiniteNumber(payload.playerId)) return null;
+    return {
+      type: "senior.openFindSimilarPlayers",
+      label: value.label,
+      payload: {
+        playerId: payload.playerId,
+        teamId: isOptionalNumber(payload.teamId) ? payload.teamId : undefined,
+      },
+    };
+  }
+  if (value.type === "youth.openPlayer") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (!payload || !isFiniteNumber(payload.playerId)) return null;
+    return {
+      type: "youth.openPlayer",
+      label: value.label,
+      payload: {
+        playerId: payload.playerId,
+        teamId: isOptionalNumber(payload.teamId) ? payload.teamId : undefined,
+      },
+    };
+  }
+  if (value.type === "clubChronicle.openArenaPanel") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (!payload || !isFiniteNumber(payload.teamId)) return null;
+    return {
+      type: "clubChronicle.openArenaPanel",
+      label: value.label,
+      payload: { teamId: payload.teamId },
+    };
+  }
+  if (value.type === "openMatch") {
+    const payload = isObject(value.payload) ? value.payload : null;
+    if (!payload || !isFiniteNumber(payload.matchId)) return null;
+    return {
+      type: "openMatch",
+      label: value.label,
+      payload: {
+        matchId: payload.matchId,
+        sourceSystem:
+          typeof payload.sourceSystem === "string"
+            ? payload.sourceSystem
+            : undefined,
+      },
+    };
+  }
+  return null;
+};
+
+const sanitizeDismissedReminderHistoryEntry = (
+  value: unknown
+): DismissedReminderHistoryEntry | null => {
+  if (!isObject(value)) return null;
+  if (
+    typeof value.stableKey !== "string" ||
+    !value.stableKey ||
+    typeof value.triggerKey !== "string" ||
+    !value.triggerKey ||
+    typeof value.episodeKey !== "string" ||
+    !value.episodeKey ||
+    typeof value.ruleId !== "string" ||
+    !value.ruleId ||
+    !isFiniteNumber(value.ruleVersion) ||
+    !isReminderScope(value.scope) ||
+    !isFiniteNumber(value.dismissedAt) ||
+    (value.dismissedBy !== "dismiss" && value.dismissedBy !== "action") ||
+    typeof value.title !== "string" ||
+    typeof value.bodyText !== "string"
+  ) {
+    return null;
+  }
+  const actions = Array.isArray(value.actions)
+    ? value.actions.flatMap((action) => {
+        const sanitized = sanitizeReminderAction(action);
+        return sanitized ? [sanitized] : [];
+      })
+    : undefined;
+  return {
+    stableKey: value.stableKey,
+    triggerKey: value.triggerKey,
+    episodeKey: value.episodeKey,
+    ruleId: value.ruleId,
+    ruleVersion: value.ruleVersion,
+    scope: value.scope,
+    dismissedAt: value.dismissedAt,
+    dismissedBy: value.dismissedBy,
+    title: value.title,
+    bodyText: value.bodyText,
+    payload: isObject(value.payload) ? value.payload : undefined,
+    actions: actions?.length ? actions : undefined,
+  };
+};
+
+export const sanitizeDismissedReminderHistory = (
+  value: unknown
+): DismissedReminderHistoryEntry[] => {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  return value
+    .flatMap((entry) => {
+      const sanitized = sanitizeDismissedReminderHistoryEntry(entry);
+      return sanitized ? [sanitized] : [];
+    })
+    .sort((left, right) => right.dismissedAt - left.dismissedAt)
+    .filter((entry) => {
+      const key = `${entry.stableKey}:${entry.triggerKey}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 10);
+};
+
 export const sanitizeReminderStorageState = (
   value: unknown
 ): ReminderStorageState => {
@@ -150,6 +313,7 @@ export const sanitizeReminderStorageState = (
     version: REMINDER_STORAGE_VERSION,
     preferences: sanitizeReminderPreferences(value.preferences),
     records,
+    dismissedHistory: sanitizeDismissedReminderHistory(value.dismissedHistory),
   };
 };
 
@@ -226,6 +390,7 @@ export const exportReminderStorageState = (
   reminders: {
     preferences: state.preferences,
     records: state.records,
+    dismissedHistory: state.dismissedHistory,
   },
 });
 
@@ -238,6 +403,7 @@ export const importReminderStorageExport = (
     version: REMINDER_STORAGE_VERSION,
     preferences: value.reminders.preferences,
     records: value.reminders.records,
+    dismissedHistory: value.reminders.dismissedHistory,
   });
   writeReminderStorageState(state);
   return state;

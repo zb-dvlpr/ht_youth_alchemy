@@ -34,6 +34,9 @@ type ReminderCardProps = {
   onSnooze?: (item: ReminderDisplayItem, durationMs: number) => void;
   onAction?: (action: ReminderAction, item: ReminderDisplayItem) => void;
   readonly?: boolean;
+  showActions?: boolean;
+  showDismissControls?: boolean;
+  meta?: string;
 };
 
 const renderReminderBody = (item: ReminderDisplayItem, messages: Messages) => {
@@ -162,6 +165,9 @@ export default function ReminderCard({
   onSnooze,
   onAction,
   readonly = false,
+  showActions = true,
+  showDismissControls = !readonly,
+  meta,
 }: ReminderCardProps) {
   const { candidate } = item;
   return (
@@ -172,12 +178,13 @@ export default function ReminderCard({
         <span className={styles.reminderScope}>{candidate.scope}</span>
         <strong>{candidate.title}</strong>
       </div>
+      {meta ? <span className={styles.muted}>{meta}</span> : null}
       <p>
         {renderYouthPromotionReminderBody(item, messages) ??
           renderMatchReminderBody(item, messages) ??
           renderReminderBody(item, messages)}
       </p>
-      {candidate.actions?.length ? (
+      {showActions && candidate.actions?.length ? (
         <div className={styles.reminderActionRow}>
           {candidate.actions.map((action, index) => (
             <button
@@ -191,7 +198,7 @@ export default function ReminderCard({
           ))}
         </div>
       ) : null}
-      {!readonly ? (
+      {showDismissControls ? (
         <div className={styles.reminderActionRow}>
           <button
             type="button"

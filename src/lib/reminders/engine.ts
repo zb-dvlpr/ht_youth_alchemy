@@ -1,5 +1,6 @@
 import {
   REMINDER_DEFAULT_SNOOZE_MS,
+  type DismissedReminderHistoryEntry,
   type ReminderCandidate,
   type ReminderDisplayItem,
   type ReminderEvaluationResult,
@@ -22,6 +23,8 @@ const VALID_SCOPES: ReminderScope[] = [
   "clubChronicle",
   "shared",
 ];
+
+const DISMISSED_HISTORY_LIMIT = 10;
 
 const isValidExpiry = (expiry: ReminderSuppressionExpiry | undefined) => {
   if (!expiry) return false;
@@ -199,6 +202,36 @@ const suppressRecordIfExpired = (
   };
 };
 
+const createDismissedHistoryEntry = (
+  candidate: ReminderCandidate,
+  dismissedAt: number,
+  dismissedBy: DismissedReminderHistoryEntry["dismissedBy"]
+): DismissedReminderHistoryEntry => ({
+  stableKey: candidate.stableKey,
+  triggerKey: candidate.triggerKey,
+  episodeKey: candidate.episodeKey,
+  ruleId: candidate.ruleId,
+  ruleVersion: candidate.ruleVersion,
+  scope: candidate.scope,
+  dismissedAt,
+  dismissedBy,
+  title: candidate.title,
+  bodyText: candidate.body,
+  payload: candidate.payload,
+  actions: candidate.actions,
+});
+
+const appendDismissedHistoryEntry = (
+  history: DismissedReminderHistoryEntry[],
+  entry: DismissedReminderHistoryEntry
+) => [
+  entry,
+  ...history.filter(
+    (item) =>
+      item.stableKey !== entry.stableKey && item.triggerKey !== entry.triggerKey
+  ),
+].slice(0, DISMISSED_HISTORY_LIMIT);
+
 export const resolveReminderEvaluation = ({
   candidates,
   rules,
@@ -308,7 +341,8 @@ export const dismissReminder = (
   candidate: ReminderCandidate,
   state: ReminderStorageState,
   rule: ReminderRule | undefined,
-  now = Date.now()
+  now = Date.now(),
+  dismissedBy: DismissedReminderHistoryEntry["dismissedBy"] = "dismiss"
 ): ReminderStorageState => {
   if (!rule) return state;
   validateReminderRule(rule);
@@ -321,6 +355,10 @@ export const dismissReminder = (
       : null;
   const next = {
     ...state,
+    dismissedHistory: appendDismissedHistoryEntry(
+      state.dismissedHistory,
+      createDismissedHistoryEntry(candidate, now, dismissedBy)
+    ),
     records: {
       ...state.records,
       [candidate.stableKey]: {

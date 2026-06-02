@@ -33,6 +33,9 @@ export type Messages = {
   reminderSnooze1Day: string;
   reminderSnooze3Days: string;
   reminderSnooze1Week: string;
+  remindersDismissedSectionTitle: string;
+  remindersNoDismissed: string;
+  remindersDismissedAtLabel: string;
   reminderTurnOff: string;
   reminderOpenModal: string;
   reminderNoDue: string;

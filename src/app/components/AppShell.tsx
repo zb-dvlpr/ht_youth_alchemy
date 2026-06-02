@@ -673,7 +673,30 @@ export default function AppShell({
   );
 
   const handleReminderAction = useCallback(
-    (action: ReminderAction, item: ReminderDisplayItem) => {
+    (
+      action: ReminderAction,
+      item: ReminderDisplayItem,
+      options: { recordDismissal?: boolean } = {}
+    ) => {
+      const recordDismissal = options.recordDismissal ?? true;
+      const dismissActionReminder = () => {
+        if (!recordDismissal) return;
+        const rule = ALL_REMINDER_RULES.find(
+          (entry) => entry.ruleId === item.candidate.ruleId
+        );
+        dismissReminder(
+          item.candidate,
+          readReminderStorageState(),
+          rule,
+          Date.now(),
+          "action"
+        );
+        setReminderBatchItems((current) =>
+          current.filter(
+            (entry) => entry.candidate.stableKey !== item.candidate.stableKey
+          )
+        );
+      };
       if (action.type === "openMatch") {
         window.open(
           hattrickMatchUrlWithSourceSystem(
@@ -683,6 +706,7 @@ export default function AppShell({
           "_blank",
           "noopener,noreferrer"
         );
+        dismissActionReminder();
         return;
       }
       if (action.type === "senior.openFindSimilarPlayers") {
@@ -704,16 +728,7 @@ export default function AppShell({
               addNotification(messages.reminderSeniorInjuryActionUnavailable);
               return;
             }
-            const rule = ALL_REMINDER_RULES.find(
-              (entry) => entry.ruleId === item.candidate.ruleId
-            );
-            dismissReminder(item.candidate, readReminderStorageState(), rule);
-            setReminderBatchItems((current) =>
-              current.filter(
-                (entry) =>
-                  entry.candidate.stableKey !== item.candidate.stableKey
-              )
-            );
+            dismissActionReminder();
           },
         };
         window.setTimeout(() => {
@@ -729,15 +744,7 @@ export default function AppShell({
           addNotification(messages.reminderMatchLineupMissingActionUnavailable);
           return;
         }
-        const rule = ALL_REMINDER_RULES.find(
-          (entry) => entry.ruleId === item.candidate.ruleId
-        );
-        dismissReminder(item.candidate, readReminderStorageState(), rule);
-        setReminderBatchItems((current) =>
-          current.filter(
-            (entry) => entry.candidate.stableKey !== item.candidate.stableKey
-          )
-        );
+        dismissActionReminder();
         setActiveTool(targetTool);
         return;
       }
@@ -748,15 +755,7 @@ export default function AppShell({
           return;
         }
         window.open(url, "_blank", "noopener,noreferrer");
-        const rule = ALL_REMINDER_RULES.find(
-          (entry) => entry.ruleId === item.candidate.ruleId
-        );
-        dismissReminder(item.candidate, readReminderStorageState(), rule);
-        setReminderBatchItems((current) =>
-          current.filter(
-            (entry) => entry.candidate.stableKey !== item.candidate.stableKey
-          )
-        );
+        dismissActionReminder();
         return;
       }
       addNotification(messages.reminderMissingActionFallback);
@@ -782,13 +781,19 @@ export default function AppShell({
         enabled={reminderStorageState.preferences.enabled}
         due={reminderEvaluation.due}
         snoozed={reminderEvaluation.snoozed}
+        dismissed={reminderStorageState.dismissedHistory}
         onOpenBatch={() => setReminderBatchItems(reminderEvaluation.due)}
+        onDismissedAction={(action, item) =>
+          handleReminderAction(action, item, { recordDismissal: false })
+        }
       />
     ),
     [
+      handleReminderAction,
       messages,
       reminderEvaluation.due,
       reminderEvaluation.snoozed,
+      reminderStorageState.dismissedHistory,
       reminderStorageState.preferences.enabled,
     ]
   );

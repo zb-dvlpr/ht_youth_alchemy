@@ -118,6 +118,15 @@ export const validateReminderCandidate = (
   ) {
     throw new Error(`Reminder candidate ${candidate.stableKey} has an invalid expiry.`);
   }
+  if (
+    candidate.expiresAtFromFirstSeenMs !== undefined &&
+    (!Number.isFinite(candidate.expiresAtFromFirstSeenMs) ||
+      candidate.expiresAtFromFirstSeenMs <= 0)
+  ) {
+    throw new Error(
+      `Reminder candidate ${candidate.stableKey} has an invalid first-seen expiry.`
+    );
+  }
 };
 
 export const evaluateReminderRules = <Context>(
@@ -165,26 +174,29 @@ const updateActiveRecord = (
   record: ReminderSuppressionRecord,
   candidate: ReminderCandidate,
   now: number
-): ReminderSuppressionRecord => ({
-  ...record,
-  ruleId: candidate.ruleId,
-  ruleVersion: candidate.ruleVersion,
-  scope: candidate.scope,
-  teamId: candidate.teamId,
-  entityType: candidate.entityType,
-  entityId: candidate.entityId,
-  activeEpisodeKey: candidate.episodeKey,
-  lastEpisodeKey: candidate.episodeKey,
-  lastSeenAt: now,
-  lastTriggeredAt: now,
-  lastEpisodeActiveAt: now,
-  lastEpisodeClearedAt:
-    record.activeEpisodeKey === candidate.episodeKey
-      ? record.lastEpisodeClearedAt
-      : record.activeEpisodeKey === null
-      ? record.lastEpisodeClearedAt
-      : null,
-});
+): ReminderSuppressionRecord => {
+  const sameEpisode = record.activeEpisodeKey === candidate.episodeKey;
+  return {
+    ...record,
+    ruleId: candidate.ruleId,
+    ruleVersion: candidate.ruleVersion,
+    scope: candidate.scope,
+    teamId: candidate.teamId,
+    entityType: candidate.entityType,
+    entityId: candidate.entityId,
+    activeEpisodeKey: candidate.episodeKey,
+    lastEpisodeKey: candidate.episodeKey,
+    lastSeenAt: sameEpisode ? record.lastSeenAt : now,
+    lastTriggeredAt: sameEpisode ? record.lastTriggeredAt : now,
+    lastEpisodeActiveAt: sameEpisode ? record.lastEpisodeActiveAt : now,
+    lastEpisodeClearedAt:
+      record.activeEpisodeKey === candidate.episodeKey
+        ? record.lastEpisodeClearedAt
+        : record.activeEpisodeKey === null
+        ? record.lastEpisodeClearedAt
+        : null,
+  };
+};
 
 const suppressRecordIfExpired = (
   record: ReminderSuppressionRecord,
@@ -271,11 +283,12 @@ export const resolveReminderEvaluation = ({
   Object.entries(records).forEach(([key, record]) => {
     const activeEpisodeKey = activeEpisodeByStableKey.get(key);
     if (activeEpisodeKey) {
+      const sameEpisode = record.activeEpisodeKey === activeEpisodeKey;
       records[key] = {
         ...record,
         activeEpisodeKey,
         lastEpisodeKey: activeEpisodeKey,
-        lastEpisodeActiveAt: now,
+        lastEpisodeActiveAt: sameEpisode ? record.lastEpisodeActiveAt : now,
         lastEpisodeClearedAt:
           record.activeEpisodeKey === activeEpisodeKey
             ? record.lastEpisodeClearedAt
@@ -310,8 +323,19 @@ export const resolveReminderEvaluation = ({
       existing && existing.ruleVersion === candidate.ruleVersion
         ? updateActiveRecord(existing, candidate, now)
         : createRecord(candidate, now);
-    const record = suppressRecordIfExpired(baseRecord, rule, now);
+    const episodeAwareBaseRecord =
+      typeof candidate.expiresAtFromFirstSeenMs === "number" &&
+      existing?.lastEpisodeKey !== candidate.episodeKey
+        ? { ...baseRecord, firstSeenAt: now }
+        : baseRecord;
+    const record = suppressRecordIfExpired(episodeAwareBaseRecord, rule, now);
     records[candidate.stableKey] = record;
+
+    const firstSeenExpiresAt =
+      typeof candidate.expiresAtFromFirstSeenMs === "number"
+        ? record.firstSeenAt + candidate.expiresAtFromFirstSeenMs
+        : null;
+    if (firstSeenExpiresAt !== null && firstSeenExpiresAt <= now) return;
 
     const dismissed = Boolean(record.dismissedAt);
     const isSnoozed =

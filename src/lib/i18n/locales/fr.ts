@@ -52,6 +52,14 @@ export const messagesFr: Messages = {
     reminderActionViewPlayerInHattrick: "Voir le joueur dans Hattrick",
     reminderYouthPromotionActionUnavailable:
       "Impossible d'ouvrir ce jeune joueur dans Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "L'utilisation du stade est élevée",
+    reminderClubChronicleArenaOccupancyBody:
+      "Ton stade était rempli à {{occupancyPct}}% lors du dernier match de ligue à domicile. Pense à l'agrandir.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "Ton stade était rempli à {{occupancyPct}}% lors du dernier match de ligue à domicile ({{soldTotal}} sièges vendus sur {{capacity}}). Pense à l'agrandir.",
+    reminderActionExpandArena: "Agrandir le stade",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Impossible d'ouvrir la page du stade dans Hattrick.",
     sidebarCollapseTooltip: "Réduire la barre latérale",
     sidebarExpandTooltip: "Déployer la barre latérale",
     supportOnKofi: "Offre-moi un café",

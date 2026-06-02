@@ -12,9 +12,12 @@ import {
   YOUTH_PLAYER_PROMOTION_WITHIN48H_RULE,
   type YouthPromotionReminderContext,
 } from "./youthPromotion";
+import {
+  CLUB_CHRONICLE_OWN_ARENA_OCCUPANCY_GTE90_RULE,
+  type ClubChronicleReminderContext,
+} from "./clubChronicle";
 
 export type YouthReminderContext = MatchReminderContext | undefined;
-export type ClubChronicleReminderContext = unknown;
 export type SharedReminderContext = unknown;
 
 export type GlobalReminderContext = {
@@ -46,7 +49,9 @@ export const YOUTH_REMINDER_RULES: ReminderRule<YouthReminderContext>[] = [
 export const YOUTH_PROMOTION_REMINDER_RULES: ReminderRule<
   YouthPromotionReminderContext | undefined
 >[] = [YOUTH_PLAYER_PROMOTION_WITHIN48H_RULE];
-export const CLUB_CHRONICLE_REMINDER_RULES: ReminderRule<ClubChronicleReminderContext>[] = [];
+export const CLUB_CHRONICLE_REMINDER_RULES: ReminderRule<
+  ClubChronicleReminderContext | undefined
+>[] = [CLUB_CHRONICLE_OWN_ARENA_OCCUPANCY_GTE90_RULE];
 export const SHARED_REMINDER_RULES: ReminderRule<SharedReminderContext>[] = [];
 
 export const ALL_REMINDER_RULES: ReminderRule[] = [

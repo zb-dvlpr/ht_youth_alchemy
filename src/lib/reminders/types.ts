@@ -27,6 +27,8 @@ export type ReminderAction =
         url: string;
         playerId?: number;
         youthTeamId?: number;
+        teamId?: number;
+        arenaId?: number;
       };
     }
   | {
@@ -76,6 +78,7 @@ export type ReminderCandidate = {
   payload?: Record<string, unknown>;
   dismissalExpiryDurationMs?: number;
   expiresAt?: number;
+  expiresAtFromFirstSeenMs?: number;
   actions?: ReminderAction[];
 };
 

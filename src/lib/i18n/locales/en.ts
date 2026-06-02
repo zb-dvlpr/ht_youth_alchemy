@@ -51,6 +51,14 @@ export const messagesEn: Messages = {
     reminderActionViewPlayerInHattrick: "View player in Hattrick",
     reminderYouthPromotionActionUnavailable:
       "Could not open this youth player in Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "Arena usage is high",
+    reminderClubChronicleArenaOccupancyBody:
+      "Your arena was {{occupancyPct}}% full in the latest home league match. Consider expanding it.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "Your arena was {{occupancyPct}}% full in the latest home league match ({{soldTotal}} of {{capacity}} seats sold). Consider expanding it.",
+    reminderActionExpandArena: "Expand arena",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Could not open the arena page in Hattrick.",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",

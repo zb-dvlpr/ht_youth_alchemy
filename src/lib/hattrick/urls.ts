@@ -46,6 +46,9 @@ export const hattrickTeamPlayersUrl = (teamId: number | string) =>
 export const hattrickTeamTransfersUrl = (teamId: number | string) =>
   buildGotoUrl(`/Club/Transfers/transfersTeam.aspx?teamId=${teamId}`);
 
+export const hattrickStadiumUrl = (stadiumId: number | string) =>
+  buildGotoUrl(`/Club/Stadium/?stadiumId=${stadiumId}`);
+
 export const hattrickSeriesUrl = (
   leagueLevelUnitId: number | string,
   teamId: number | string

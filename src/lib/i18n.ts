@@ -55,6 +55,11 @@ export type Messages = {
   reminderYouthPromotionBody: string;
   reminderActionViewPlayerInHattrick: string;
   reminderYouthPromotionActionUnavailable: string;
+  reminderClubChronicleArenaOccupancyTitle: string;
+  reminderClubChronicleArenaOccupancyBody: string;
+  reminderClubChronicleArenaOccupancyBodyWithSoldTotal: string;
+  reminderActionExpandArena: string;
+  reminderClubChronicleArenaOccupancyActionUnavailable: string;
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   supportOnKofi: string;

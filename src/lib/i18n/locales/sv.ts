@@ -52,6 +52,14 @@ export const messagesSv: Messages = {
     reminderActionViewPlayerInHattrick: "Visa spelaren i Hattrick",
     reminderYouthPromotionActionUnavailable:
       "Kunde inte öppna den här ungdomsspelaren i Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "Arenaanvändningen är hög",
+    reminderClubChronicleArenaOccupancyBody:
+      "Din arena var {{occupancyPct}}% full i den senaste hemmaligamatchen. Överväg att bygga ut den.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "Din arena var {{occupancyPct}}% full i den senaste hemmaligamatchen ({{soldTotal}} av {{capacity}} platser sålda). Överväg att bygga ut den.",
+    reminderActionExpandArena: "Bygg ut arena",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Kunde inte öppna arenasidan i Hattrick.",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",

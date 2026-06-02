@@ -38,6 +38,7 @@ import {
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
 import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
+import { runStartupStorageHousekeeping } from "@/lib/storageHousekeeping";
 import {
   dismissReminder,
   resolveReminderEvaluation,
@@ -84,6 +85,11 @@ import {
   type YouthPromotionReminderDetails,
   type YouthPromotionReminderPlayer,
 } from "@/lib/reminders/youthPromotion";
+import {
+  CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT,
+  type ClubChronicleReminderContext,
+  type ClubChronicleReminderContextEventDetail,
+} from "@/lib/reminders/clubChronicle";
 
 type AppShellProps = {
   messages: Messages;
@@ -256,6 +262,8 @@ export default function AppShell({
     useState<MatchReminderContext | null>(null);
   const [youthPromotionReminderContext, setYouthPromotionReminderContext] =
     useState<YouthPromotionReminderContext | null>(null);
+  const [clubChronicleReminderContext, setClubChronicleReminderContext] =
+    useState<ClubChronicleReminderContext | null>(null);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
   const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
@@ -349,8 +357,17 @@ export default function AppShell({
   );
 
   useEffect(() => {
+    runStartupStorageHousekeeping();
+  }, []);
+
+  useEffect(() => {
     const syncReminderStorage = () => {
-      setReminderStorageState(readReminderStorageState());
+      const nextState = readReminderStorageState();
+      setReminderStorageState((current) =>
+        JSON.stringify(current) === JSON.stringify(nextState)
+          ? current
+          : nextState
+      );
     };
     syncReminderStorage();
     return subscribeReminderStorageState(syncReminderStorage);
@@ -574,14 +591,35 @@ export default function AppShell({
     };
   }, []);
 
+  useEffect(() => {
+    const handleClubChronicleReminderContext = (event: Event) => {
+      const detail = (
+        event as CustomEvent<ClubChronicleReminderContextEventDetail>
+      ).detail;
+      setClubChronicleReminderContext(detail ?? null);
+    };
+    window.addEventListener(
+      CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT,
+      handleClubChronicleReminderContext
+    );
+    return () => {
+      window.removeEventListener(
+        CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT,
+        handleClubChronicleReminderContext
+      );
+    };
+  }, []);
+
   const reminderContext = useMemo<GlobalReminderContext>(
     () => ({
       senior: seniorReminderContext ?? undefined,
       seniorMatches: seniorMatchReminderContext ?? undefined,
       youth: youthMatchReminderContext ?? undefined,
       youthPromotion: youthPromotionReminderContext ?? undefined,
+      clubChronicle: clubChronicleReminderContext ?? undefined,
     }),
     [
+      clubChronicleReminderContext,
       seniorMatchReminderContext,
       seniorReminderContext,
       youthMatchReminderContext,
@@ -751,7 +789,12 @@ export default function AppShell({
       if (action.type === "openExternalUrl") {
         const url = action.payload.url;
         if (!url) {
-          addNotification(messages.reminderYouthPromotionActionUnavailable);
+          addNotification(
+            item.candidate.ruleId ===
+              "clubChronicle.ownArena.occupancy.gte90"
+              ? messages.reminderClubChronicleArenaOccupancyActionUnavailable
+              : messages.reminderYouthPromotionActionUnavailable
+          );
           return;
         }
         window.open(url, "_blank", "noopener,noreferrer");
@@ -764,6 +807,7 @@ export default function AppShell({
       addNotification,
       messages.reminderMissingActionFallback,
       messages.reminderMatchLineupMissingActionUnavailable,
+      messages.reminderClubChronicleArenaOccupancyActionUnavailable,
       messages.reminderSeniorInjuryActionUnavailable,
       messages.reminderYouthPromotionActionUnavailable,
     ]

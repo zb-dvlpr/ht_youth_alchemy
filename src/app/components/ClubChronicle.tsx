@@ -51,6 +51,11 @@ import {
   hattrickTeamPlayersUrl,
   hattrickTeamTransfersUrl,
 } from "@/lib/hattrick/urls";
+import { isArenaUnderConstruction } from "@/lib/clubChronicleArena";
+import {
+  CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT,
+  type ClubChronicleReminderContextEventDetail,
+} from "@/lib/reminders/clubChronicle";
 import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   ChppAuthRequiredError,
@@ -5934,6 +5939,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [chronicleCache]);
 
   useEffect(() => {
+    const ownSeniorTeamIds = new Set(
+      supportedTeams
+        .filter((team) => team.isOwnSeniorTeam)
+        .map((team) => team.teamId)
+    );
+    const teams: ClubChronicleReminderContextEventDetail["teams"] =
+      supportedTeams
+        .filter((team) => ownSeniorTeamIds.has(team.teamId))
+        .map((team) => {
+          const cached = chronicleCache.teams[team.teamId];
+          return {
+            teamId: team.teamId,
+            teamName: team.teamName ?? cached?.teamName ?? null,
+            arenaId: cached?.arenaId ?? null,
+            arenaName: cached?.arenaName ?? null,
+            isOwnSeniorTeam: true,
+            arena: cached?.arena ?? null,
+          };
+        });
+    window.dispatchEvent(
+      new CustomEvent(CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT, {
+        detail: { messages, teams },
+      })
+    );
+  }, [chronicleCache, messages, supportedTeams]);
+
+  useEffect(() => {
     const normalized = [
       ...panelOrder.filter((id) => PANEL_IDS.includes(id as typeof PANEL_IDS[number])),
       ...PANEL_IDS.filter((id) => !panelOrder.includes(id)),
@@ -7270,7 +7302,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           _row: ArenaRow,
           formatValue
         ) => {
-          const isUnderConstruction = snapshot?.expandedAvailable === true;
+          const isUnderConstruction = isArenaUnderConstruction(snapshot);
           return (
             <span className={styles.chronicleArenaCapacityCell}>
               <span>{formatValue(snapshot?.currentTotalCapacity ?? null)}</span>

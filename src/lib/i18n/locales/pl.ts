@@ -53,6 +53,14 @@ export const messagesPl: Messages = {
   reminderActionViewPlayerInHattrick: "Zobacz gracza w Hattrick",
   reminderYouthPromotionActionUnavailable:
     "Nie udało się otworzyć tego juniora w Hattrick.",
+  reminderClubChronicleArenaOccupancyTitle: "Wykorzystanie stadionu jest wysokie",
+  reminderClubChronicleArenaOccupancyBody:
+    "Twój stadion był zapełniony w {{occupancyPct}}% w ostatnim domowym meczu ligowym. Rozważ rozbudowę.",
+  reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+    "Twój stadion był zapełniony w {{occupancyPct}}% w ostatnim domowym meczu ligowym (sprzedano {{soldTotal}} z {{capacity}} miejsc). Rozważ rozbudowę.",
+  reminderActionExpandArena: "Rozbuduj stadion",
+  reminderClubChronicleArenaOccupancyActionUnavailable:
+    "Nie udało się otworzyć strony stadionu w Hattrick.",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",

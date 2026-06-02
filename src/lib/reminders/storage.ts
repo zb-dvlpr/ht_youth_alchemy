@@ -8,6 +8,10 @@ import {
   type ReminderStorageState,
   type ReminderSuppressionRecord,
 } from "./types";
+import {
+  isQuotaExceededError,
+  runStorageHousekeeping,
+} from "@/lib/storageHousekeeping";
 
 export type { ReminderStorageExport } from "./types";
 
@@ -46,6 +50,14 @@ const isReminderScope = (
   value === "youth" ||
   value === "clubChronicle" ||
   value === "shared";
+
+const compactDismissedReminderHistory = (
+  history: DismissedReminderHistoryEntry[]
+): DismissedReminderHistoryEntry[] =>
+  history.map((entry) => ({
+    ...entry,
+    payload: undefined,
+  }));
 
 export const emptyReminderStorageState = (): ReminderStorageState => ({
   version: REMINDER_STORAGE_VERSION,
@@ -149,6 +161,10 @@ const sanitizeReminderAction = (value: unknown): ReminderAction | null => {
           : undefined,
         youthTeamId: isOptionalNumber(payload.youthTeamId)
           ? payload.youthTeamId
+          : undefined,
+        teamId: isOptionalNumber(payload.teamId) ? payload.teamId : undefined,
+        arenaId: isOptionalNumber(payload.arenaId)
+          ? payload.arenaId
           : undefined,
       },
     };
@@ -331,8 +347,39 @@ export const readReminderStorageState = (): ReminderStorageState => {
 export const writeReminderStorageState = (state: ReminderStorageState): void => {
   if (typeof window === "undefined") return;
   const sanitized = sanitizeReminderStorageState(state);
-  window.localStorage.setItem(REMINDER_STORAGE_KEY, JSON.stringify(sanitized));
-  window.dispatchEvent(new Event(REMINDER_STORAGE_EVENT));
+  try {
+    window.localStorage.setItem(REMINDER_STORAGE_KEY, JSON.stringify(sanitized));
+    window.dispatchEvent(new Event(REMINDER_STORAGE_EVENT));
+    return;
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Could not write reminder storage state.", error);
+      }
+      return;
+    }
+    runStorageHousekeeping();
+    try {
+      const compactState = {
+        ...sanitized,
+        dismissedHistory: compactDismissedReminderHistory(
+          sanitized.dismissedHistory
+        ),
+      };
+      window.localStorage.setItem(
+        REMINDER_STORAGE_KEY,
+        JSON.stringify(compactState)
+      );
+      window.dispatchEvent(new Event(REMINDER_STORAGE_EVENT));
+    } catch (retryError) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          "Could not write reminder storage state after housekeeping.",
+          retryError
+        );
+      }
+    }
+  }
 };
 
 export const subscribeReminderStorageState = (

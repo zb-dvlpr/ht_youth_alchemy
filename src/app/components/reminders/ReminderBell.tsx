@@ -66,7 +66,7 @@ export default function ReminderBell({
   enabled,
   due,
   snoozed,
-  dismissed,
+  dismissed = [],
   onOpenBatch,
   onDismissedAction,
   buttonClassName,

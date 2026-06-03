@@ -6944,6 +6944,19 @@ export default function Dashboard({
             </div>
           ) : null}
         </div>
+        <Tooltip
+          content={messages.youthTrainingChppLimitTooltip}
+          openOnClick
+          preferred="bottom"
+        >
+          <button
+            type="button"
+            className={styles.trainingInfoButton}
+            aria-label={messages.youthTrainingChppLimitInfoLabel}
+          >
+            ⓘ
+          </button>
+        </Tooltip>
       </div>
       <div className={styles.trainingRow}>
         <span className={styles.trainingLabel}>

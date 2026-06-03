@@ -6692,6 +6692,19 @@ html[data-theme="dark"] .trainingSelectTrigger::after {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%23f3ede4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }
 
+html[data-theme="dark"] .trainingInfoButton {
+  border-color: transparent;
+  background: transparent;
+  color: #c8d8ba;
+}
+
+html[data-theme="dark"] .trainingInfoButton:hover,
+html[data-theme="dark"] .trainingInfoButton:focus-visible {
+  border-color: rgba(200, 216, 186, 0.22);
+  background: rgba(236, 243, 227, 0.1);
+  color: #ecf3e3;
+}
+
 html[data-theme="dark"] .trainingSelectOptionActive {
   border-color: rgba(255, 255, 255, 0.2);
   background: #2a241d;
@@ -7741,6 +7754,35 @@ html[data-theme="dark"] .spinner {
 .trainingSelectTrigger:focus {
   outline: 2px solid rgba(233, 213, 182, 0.65);
   outline-offset: 1px;
+}
+
+.trainingInfoButton {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f6d4e;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.trainingInfoButton:hover,
+.trainingInfoButton:focus-visible {
+  border-color: rgba(95, 109, 78, 0.22);
+  background: rgba(236, 243, 227, 0.54);
+  color: #244d2b;
+}
+
+.trainingInfoButton:focus-visible {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 2px;
 }
 
 .trainingSelectMenu {
@@ -10836,6 +10878,22 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 .fieldTopLeftOverlay .trainingSelectTrigger:hover {
   background: rgba(228, 237, 217, 0.95);
   border-color: rgba(176, 197, 164, 1);
+}
+
+.fieldTopLeftOverlay .trainingInfoButton {
+  width: 20px;
+  height: 20px;
+  border-color: transparent;
+  background: transparent;
+  color: rgba(208, 223, 193, 0.82);
+  font-size: 17px;
+}
+
+.fieldTopLeftOverlay .trainingInfoButton:hover,
+.fieldTopLeftOverlay .trainingInfoButton:focus-visible {
+  border-color: rgba(208, 223, 193, 0.68);
+  background: rgba(236, 243, 227, 0.28);
+  color: #ecf3e3;
 }
 
 .fieldTopLeftOverlay .trainingSelectMenu {

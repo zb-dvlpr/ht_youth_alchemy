@@ -1228,6 +1228,9 @@ export const messagesNl: Messages = {
   trainingRegimenLabel: "Trainingsregime",
   trainingSetButtonLabel: "Instellen",
   trainingSetButtonTooltip: "Instellen als nieuw trainingsregime",
+  youthTrainingChppLimitInfoLabel: "CHPP-beperking voor jeugdtraining",
+  youthTrainingChppLimitTooltip:
+    "CHPP staat niet toe om jeugdtrainingsregimes uit Hattrick te importeren of in Hattrick in te stellen. Als je dit wilt wijzigen, dien dan een functieverzoek in bij Hattrick.",
   primaryTrainingLabel: "Primair",
   secondaryTrainingLabel: "Secundair",
   trainingUnset: "—",

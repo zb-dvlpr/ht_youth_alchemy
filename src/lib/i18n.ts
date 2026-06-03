@@ -1201,6 +1201,8 @@ export type Messages = {
   trainingRegimenLabel: string;
   trainingSetButtonLabel: string;
   trainingSetButtonTooltip: string;
+  youthTrainingChppLimitInfoLabel: string;
+  youthTrainingChppLimitTooltip: string;
   primaryTrainingLabel: string;
   secondaryTrainingLabel: string;
   trainingUnset: string;

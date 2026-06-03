@@ -185,25 +185,27 @@ export default function ReminderCard({
         <strong>{candidate.title}</strong>
       </div>
       {meta ? <span className={styles.muted}>{meta}</span> : null}
-      <p>
-        {renderYouthPromotionReminderBody(item, messages) ??
-          renderMatchReminderBody(item, messages) ??
-          renderReminderBody(item, messages)}
-      </p>
-      {showActions && candidate.actions?.length ? (
-        <div className={styles.reminderPrimaryActions}>
-          {candidate.actions.map((action, index) => (
-            <button
-              key={`${action.type}-${index}`}
-              type="button"
-              className={styles.settingsActionButton}
-              onClick={() => onAction?.(action, item)}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div className={styles.reminderContentRow}>
+        <p className={styles.reminderBody}>
+          {renderYouthPromotionReminderBody(item, messages) ??
+            renderMatchReminderBody(item, messages) ??
+            renderReminderBody(item, messages)}
+        </p>
+        {showActions && candidate.actions?.length ? (
+          <div className={styles.reminderPrimaryActions}>
+            {candidate.actions.map((action, index) => (
+              <button
+                key={`${action.type}-${index}`}
+                type="button"
+                className={styles.settingsActionButton}
+                onClick={() => onAction?.(action, item)}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
       {showDismissControls ? (
         <div className={styles.reminderManagementControls}>
           <div className={styles.reminderSnoozeControl}>

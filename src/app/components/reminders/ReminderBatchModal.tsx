@@ -31,6 +31,7 @@ export default function ReminderBatchModal({
     <Modal
       open={open}
       title={messages.remindersTitle}
+      className={styles.remindersModal}
       movable={false}
       body={
         <div className={styles.reminderModalBody}>

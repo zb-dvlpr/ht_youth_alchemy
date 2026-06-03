@@ -1881,24 +1881,29 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .reminderPrimaryActions {
-  margin-top: 2px;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-self: end;
 }
 
 .reminderManagementControls {
   margin-top: 4px;
   padding-top: 8px;
   border-top: 1px solid rgba(91, 74, 55, 0.18);
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: nowrap;
 }
 
 .reminderSnoozeControl {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .reminderSnoozeLabel {
@@ -1919,10 +1924,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .reminderDismissButton {
   margin-left: auto;
+  white-space: nowrap;
 }
 
 .reminderDropdownHeader {
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .reminderDropdownSection {
@@ -1941,6 +1948,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 10px;
 }
 
+.confirmCard.remindersModal {
+  width: min(720px, calc(100vw - 32px));
+}
+
 .reminderCard {
   display: grid;
   gap: 8px;
@@ -1949,12 +1960,21 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   border: 1px solid #d8cbb6;
   background: #fff;
   color: #3f362c;
+  container-type: inline-size;
 }
 
-.reminderCard p {
+.reminderBody {
   margin: 0;
   font-size: 13px;
   line-height: 1.45;
+  min-width: 0;
+}
+
+.reminderContentRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: 12px;
 }
 
 .reminderCardHeader {
@@ -1982,6 +2002,31 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .reminderCard_critical {
   border-color: #b91c1c;
+}
+
+@container (max-width: 520px) {
+  .reminderContentRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reminderPrimaryActions {
+    justify-self: start;
+  }
+
+  .reminderManagementControls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reminderSnoozeControl {
+    flex-wrap: wrap;
+  }
+
+  .reminderDismissButton {
+    align-self: flex-end;
+    margin-left: 0;
+  }
 }
 
 .connectButton {

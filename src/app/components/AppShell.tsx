@@ -73,6 +73,7 @@ import {
   type SeniorReminderPlayer,
   type SeniorReminderTeamContext,
 } from "@/lib/reminders/senior";
+import { updateSeniorSalaryBaseline } from "@/lib/reminders/seniorSalaryBaseline";
 import {
   MATCH_REMINDER_CONTEXT_EVENT,
   type MatchReminderContext,
@@ -413,37 +414,60 @@ export default function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const multiTeamEnabled = initialSeniorReminderTeamIds.length > 1;
-    const teamContexts: SeniorReminderTeamContext[] = initialSeniorReminderTeamIds.flatMap((sourceTeamId) => {
-      const teamId =
-        typeof sourceTeamId === "number" && sourceTeamId > 0
-          ? sourceTeamId
-          : initialSeniorTeamId;
-      const key = resolveSeniorDashboardDataStorageKey(
-        multiTeamEnabled ? teamId : null,
-        multiTeamEnabled
-      );
-      try {
-        const raw = window.localStorage.getItem(key);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw) as unknown;
-        if (!isObject(parsed)) return [];
-        const players = Array.isArray(parsed.players)
-          ? (parsed.players as SeniorReminderPlayer[])
-          : [];
-        const detailsCache = isObject(parsed.detailsCache)
-          ? (parsed.detailsCache as SeniorReminderTeamContext["detailsCache"])
-          : {};
-        return [
-          {
+    const teamContexts: SeniorReminderTeamContext[] =
+      initialSeniorReminderTeamIds.flatMap((sourceTeamId) => {
+        const teamId =
+          typeof sourceTeamId === "number" && sourceTeamId > 0
+            ? sourceTeamId
+            : initialSeniorTeamId;
+        const key = resolveSeniorDashboardDataStorageKey(
+          multiTeamEnabled ? teamId : null,
+          multiTeamEnabled
+        );
+        try {
+          const raw = window.localStorage.getItem(key);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw) as unknown;
+          if (!isObject(parsed)) return [];
+          const players = Array.isArray(parsed.players)
+            ? (parsed.players as SeniorReminderPlayer[])
+            : [];
+          const detailsCache = isObject(parsed.detailsCache)
+            ? (parsed.detailsCache as SeniorReminderTeamContext["detailsCache"])
+            : {};
+          const salaryIncreaseEvents = updateSeniorSalaryBaseline({
             teamId,
-            players,
-            detailsCache,
-          },
-        ];
-      } catch {
-        return [];
-      }
-    });
+            players: players.map((player) => {
+              const detailsSalary = detailsCache[player.PlayerID]?.data?.Salary;
+              return {
+                playerId: player.PlayerID,
+                playerName:
+                  [player.FirstName, player.NickName, player.LastName]
+                    .filter((part): part is string => Boolean(part && part.trim()))
+                    .join(" ")
+                    .trim() || String(player.PlayerID),
+                salarySek:
+                  typeof detailsSalary === "number"
+                    ? detailsSalary
+                    : typeof player.Salary === "number"
+                      ? player.Salary
+                      : null,
+              };
+            }),
+            createReminderEvents: reminderStorageState.preferences.enabled,
+          });
+          return [
+            {
+              teamId,
+              players,
+              detailsCache,
+              salaryIncreaseEvents,
+            },
+          ];
+        } catch {
+          return [];
+        }
+      });
     if (!teamContexts.length) return;
     const signature = JSON.stringify(
       teamContexts.map((teamContext) => ({
@@ -451,8 +475,14 @@ export default function AppShell({
         players: teamContext.players.map((player) => [
           player.PlayerID,
           player.InjuryLevel ?? null,
+          (player as SeniorReminderPlayer & { Salary?: number }).Salary ?? null,
         ]),
         detailKeys: Object.keys(teamContext.detailsCache).sort(),
+        salaryEvents: (teamContext.salaryIncreaseEvents ?? []).map((event) => [
+          event.playerId,
+          event.previousSalarySek,
+          event.currentSalarySek,
+        ]),
       }))
     );
     if (seniorCachedReminderContextSignatureRef.current === signature) return;
@@ -464,7 +494,12 @@ export default function AppShell({
       players: [],
       detailsCache: {},
     });
-  }, [initialSeniorReminderTeamIds, initialSeniorTeamId, messages]);
+  }, [
+    initialSeniorReminderTeamIds,
+    initialSeniorTeamId,
+    messages,
+    reminderStorageState.preferences.enabled,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -793,6 +828,9 @@ export default function AppShell({
             item.candidate.ruleId ===
               "clubChronicle.ownArena.occupancy.gte90"
               ? messages.reminderClubChronicleArenaOccupancyActionUnavailable
+              : item.candidate.ruleId ===
+                  "senior.player.salaryIncrease.gt100kSek"
+                ? messages.reminderSeniorSalaryIncreaseActionUnavailable
               : messages.reminderYouthPromotionActionUnavailable
           );
           return;
@@ -809,6 +847,7 @@ export default function AppShell({
       messages.reminderMatchLineupMissingActionUnavailable,
       messages.reminderClubChronicleArenaOccupancyActionUnavailable,
       messages.reminderSeniorInjuryActionUnavailable,
+      messages.reminderSeniorSalaryIncreaseActionUnavailable,
       messages.reminderYouthPromotionActionUnavailable,
     ]
   );

@@ -50,6 +50,11 @@ import {
   type SeniorFindSimilarPlayersEventDetail,
   type SeniorReminderContextEventDetail,
 } from "@/lib/reminders/senior";
+import {
+  updateSeniorSalaryBaseline,
+  type SeniorSalaryIncreaseEvent,
+} from "@/lib/reminders/seniorSalaryBaseline";
+import { readReminderStorageState } from "@/lib/reminders/storage";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { useSupporterStatus } from "./SupporterStatusProvider";
@@ -3759,6 +3764,9 @@ export default function SeniorDashboard({
   const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
   const pendingFindSimilarReminderRef =
     useRef<SeniorFindSimilarPlayersEventDetail | null>(null);
+  const [salaryIncreaseReminderEvents, setSalaryIncreaseReminderEvents] = useState<
+    SeniorSalaryIncreaseEvent[]
+  >([]);
 
   const selectedPlayer =
     selectedId !== null
@@ -4074,6 +4082,21 @@ export default function SeniorDashboard({
     const detailsSalary = detailsById.get(player.PlayerID)?.Salary;
     return typeof detailsSalary === "number" ? detailsSalary : player.Salary ?? null;
   };
+
+  useEffect(() => {
+    if (!resolvedSeniorTeamId || !players.length) return;
+    const remindersEnabled = readReminderStorageState().preferences.enabled;
+    const events = updateSeniorSalaryBaseline({
+      teamId: resolvedSeniorTeamId,
+      players: players.map((player) => ({
+        playerId: player.PlayerID,
+        playerName: formatPlayerName(player),
+        salarySek: salaryValueForPlayer(player),
+      })),
+      createReminderEvents: remindersEnabled,
+    });
+    setSalaryIncreaseReminderEvents(events);
+  }, [detailsById, players, resolvedSeniorTeamId]);
 
   const seniorTransferListingForDetails = useCallback(
     (details: SeniorPlayerDetails | null | undefined): SeniorTransferListing | null => {
@@ -4582,12 +4605,19 @@ export default function SeniorDashboard({
         teamId: resolvedSeniorTeamId,
         players,
         detailsCache,
+        salaryIncreaseEvents: salaryIncreaseReminderEvents,
       },
     };
     window.dispatchEvent(
       new CustomEvent(SENIOR_REMINDER_CONTEXT_EVENT, { detail })
     );
-  }, [detailsCache, messages, players, resolvedSeniorTeamId]);
+  }, [
+    detailsCache,
+    messages,
+    players,
+    resolvedSeniorTeamId,
+    salaryIncreaseReminderEvents,
+  ]);
   const resolvedExtraTimeTrainingType =
     extraTimeMatrixTrainingTypeManual && extraTimeMatrixTrainingType !== null
       ? extraTimeMatrixTrainingType

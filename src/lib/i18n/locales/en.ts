@@ -40,6 +40,12 @@ export const messagesEn: Messages = {
     reminderActionFindSimilarPlayers: "Find similar players",
     reminderSeniorInjuryActionUnavailable:
       "Could not open Find similar players for this reminder.",
+    reminderSeniorSalaryIncreaseTitle: "Player salary significantly increased",
+    reminderSeniorSalaryIncreaseBody:
+      "{{playerName}}’s salary increased from {{previousSalary}} to {{currentSalary}}. Do you want to sell the player?",
+    reminderActionSellPlayer: "Sell player",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Could not open this player in Hattrick.",
     reminderSeniorMatchLineupMissingTitle:
       "No orders set for upcoming senior match",
     reminderYouthMatchLineupMissingTitle:

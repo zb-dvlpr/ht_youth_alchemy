@@ -50,6 +50,10 @@ export type Messages = {
   reminderSeniorInjuryBody: string;
   reminderActionFindSimilarPlayers: string;
   reminderSeniorInjuryActionUnavailable: string;
+  reminderSeniorSalaryIncreaseTitle: string;
+  reminderSeniorSalaryIncreaseBody: string;
+  reminderActionSellPlayer: string;
+  reminderSeniorSalaryIncreaseActionUnavailable: string;
   reminderSeniorMatchLineupMissingTitle: string;
   reminderYouthMatchLineupMissingTitle: string;
   reminderMatchLineupMissingBody: string;

@@ -43,12 +43,48 @@ type ReminderCardProps = {
 
 const renderReminderBody = (item: ReminderDisplayItem, messages: Messages) => {
   const { candidate } = item;
-  if (candidate.ruleId !== "senior.player.injury.gte2w") return candidate.body;
+  if (
+    candidate.ruleId !== "senior.player.injury.gte2w" &&
+    candidate.ruleId !== "senior.player.salaryIncrease.gt100kSek"
+  ) {
+    return candidate.body;
+  }
   const playerId = Number(candidate.payload?.playerId);
   const playerName =
     typeof candidate.payload?.playerName === "string"
       ? candidate.payload.playerName
       : "";
+  if (candidate.ruleId === "senior.player.salaryIncrease.gt100kSek") {
+    const previousSalary =
+      typeof candidate.payload?.previousSalary === "string"
+        ? candidate.payload.previousSalary
+        : "";
+    const currentSalary =
+      typeof candidate.payload?.currentSalary === "string"
+        ? candidate.payload.currentSalary
+        : "";
+    if (
+      !Number.isFinite(playerId) ||
+      !playerName ||
+      !previousSalary ||
+      !currentSalary
+    ) {
+      return candidate.body;
+    }
+    const template = messages.reminderSeniorSalaryIncreaseBody
+      .replace("{{previousSalary}}", previousSalary)
+      .replace("{{currentSalary}}", currentSalary);
+    const [before, after] = template.split("{{playerName}}");
+    return (
+      <>
+        {before}
+        <a href={hattrickPlayerUrl(playerId)} target="_blank" rel="noreferrer">
+          {playerName}
+        </a>
+        {after}
+      </>
+    );
+  }
   const injuryWeeks = Number(candidate.payload?.injuryWeeks);
   if (!Number.isFinite(playerId) || !playerName || !Number.isFinite(injuryWeeks)) {
     return candidate.body;

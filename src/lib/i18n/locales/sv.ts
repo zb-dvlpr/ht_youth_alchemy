@@ -41,6 +41,12 @@ export const messagesSv: Messages = {
     reminderActionFindSimilarPlayers: "Hitta liknande spelare",
     reminderSeniorInjuryActionUnavailable:
       "Kunde inte öppna Hitta liknande spelare för den här påminnelsen.",
+    reminderSeniorSalaryIncreaseTitle: "Spelarens lön ökade kraftigt",
+    reminderSeniorSalaryIncreaseBody:
+      "{{playerName}}s lön ökade från {{previousSalary}} till {{currentSalary}}. Vill du sälja spelaren?",
+    reminderActionSellPlayer: "Sälj spelare",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Kunde inte öppna den här spelaren i Hattrick.",
     reminderSeniorMatchLineupMissingTitle:
       "Inga order satta för kommande seniormatch",
     reminderYouthMatchLineupMissingTitle:

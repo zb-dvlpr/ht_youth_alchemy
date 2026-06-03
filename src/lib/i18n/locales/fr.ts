@@ -40,7 +40,13 @@ export const messagesFr: Messages = {
       "{{playerName}} est blessé pour {{weeks}} semaines. Pense à chercher un remplaçant.",
     reminderActionFindSimilarPlayers: "Trouver des joueurs similaires",
     reminderSeniorInjuryActionUnavailable:
-      "Impossible d'ouvrir Trouver des joueurs similaires pour ce rappel.",
+      "Impossible d’ouvrir Trouver des joueurs similaires pour ce rappel.",
+    reminderSeniorSalaryIncreaseTitle: "Le salaire du joueur a fortement augmenté",
+    reminderSeniorSalaryIncreaseBody:
+      "Le salaire de {{playerName}} est passé de {{previousSalary}} à {{currentSalary}}. Voulez-vous vendre le joueur ?",
+    reminderActionSellPlayer: "Vendre le joueur",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Impossible d’ouvrir ce joueur dans Hattrick.",
     reminderSeniorMatchLineupMissingTitle:
       "Aucun ordre défini pour le prochain match senior",
     reminderYouthMatchLineupMissingTitle:

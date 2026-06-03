@@ -42,6 +42,12 @@ export const messagesNl: Messages = {
   reminderActionFindSimilarPlayers: "Vergelijkbare spelers vinden",
   reminderSeniorInjuryActionUnavailable:
     "Kon Vergelijkbare spelers vinden niet openen voor deze herinnering.",
+  reminderSeniorSalaryIncreaseTitle: "Spelersalaris sterk gestegen",
+  reminderSeniorSalaryIncreaseBody:
+    "Het salaris van {{playerName}} is gestegen van {{previousSalary}} naar {{currentSalary}}. Wil je de speler verkopen?",
+  reminderActionSellPlayer: "Speler verkopen",
+  reminderSeniorSalaryIncreaseActionUnavailable:
+    "Kon deze speler niet openen in Hattrick.",
   reminderSeniorMatchLineupMissingTitle:
     "Geen orders ingesteld voor komende seniorenwedstrijd",
   reminderYouthMatchLineupMissingTitle:

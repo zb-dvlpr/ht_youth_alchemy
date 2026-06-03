@@ -42,6 +42,12 @@ export const messagesPl: Messages = {
   reminderActionFindSimilarPlayers: "Znajdź podobnych graczy",
   reminderSeniorInjuryActionUnavailable:
     "Nie udało się otworzyć funkcji Znajdź podobnych graczy dla tego przypomnienia.",
+  reminderSeniorSalaryIncreaseTitle: "Pensja zawodnika znacząco wzrosła",
+  reminderSeniorSalaryIncreaseBody:
+    "Pensja zawodnika {{playerName}} wzrosła z {{previousSalary}} do {{currentSalary}}. Czy chcesz sprzedać tego zawodnika?",
+  reminderActionSellPlayer: "Sprzedaj zawodnika",
+  reminderSeniorSalaryIncreaseActionUnavailable:
+    "Nie udało się otworzyć tego zawodnika w Hattricku.",
   reminderSeniorMatchLineupMissingTitle:
     "Brak rozkazów dla nadchodzącego meczu seniorów",
   reminderYouthMatchLineupMissingTitle:

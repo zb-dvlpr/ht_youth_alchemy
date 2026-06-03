@@ -1,6 +1,7 @@
 import type { ReminderCandidate, ReminderRule } from "./types";
 import { evaluateReminderRules } from "./engine";
 import {
+  SENIOR_PLAYER_SALARY_INCREASE_RULE,
   SENIOR_PLAYER_INJURY_GTE2W_RULE,
   type SeniorReminderContext,
 } from "./senior";
@@ -34,6 +35,11 @@ export const SENIOR_INJURY_REMINDER_RULES: ReminderRule<
 >[] = [
   SENIOR_PLAYER_INJURY_GTE2W_RULE,
 ];
+export const SENIOR_SALARY_REMINDER_RULES: ReminderRule<
+  SeniorReminderContext | undefined
+>[] = [
+  SENIOR_PLAYER_SALARY_INCREASE_RULE,
+];
 export const SENIOR_MATCH_REMINDER_RULES: ReminderRule<
   MatchReminderContext | undefined
 >[] = [
@@ -41,6 +47,7 @@ export const SENIOR_MATCH_REMINDER_RULES: ReminderRule<
 ];
 export const SENIOR_REMINDER_RULES: ReminderRule[] = [
   ...(SENIOR_INJURY_REMINDER_RULES as ReminderRule[]),
+  ...(SENIOR_SALARY_REMINDER_RULES as ReminderRule[]),
   ...(SENIOR_MATCH_REMINDER_RULES as ReminderRule[]),
 ];
 export const YOUTH_REMINDER_RULES: ReminderRule<YouthReminderContext>[] = [
@@ -66,6 +73,7 @@ export const evaluateRegisteredReminderCandidates = (
   context: GlobalReminderContext
 ): ReminderCandidate[] => [
   ...evaluateReminderRules(SENIOR_INJURY_REMINDER_RULES, context.senior),
+  ...evaluateReminderRules(SENIOR_SALARY_REMINDER_RULES, context.senior),
   ...evaluateReminderRules(SENIOR_MATCH_REMINDER_RULES, context.seniorMatches),
   ...evaluateReminderRules(YOUTH_REMINDER_RULES, context.youth),
   ...evaluateReminderRules(

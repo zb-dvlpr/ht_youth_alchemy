@@ -662,6 +662,7 @@ const TRAINING_SKILL_SECTIONS: Array<{
 ];
 const DEFAULT_PRIMARY_TRAINING: TrainingSkillKey = "keeper";
 const DEFAULT_SECONDARY_TRAINING: TrainingSkillKey = "defending";
+const TRAINING_UNSET_LABEL = "-";
 const TRAINING_SKILL_VALUE_KEYS: Record<
   TrainingSkillKey,
   { current: string; max: string }
@@ -697,6 +698,14 @@ const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
 const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
+
+const parsePersistedTraining = (
+  value: string | null,
+  fallback: TrainingSkillKey
+): TrainingSkillKey | null => {
+  if (value === null) return null;
+  return isTrainingSkill(value) ? value : fallback;
+};
 
 const toBaseTrainingSkill = (value: TrainingSkillKey): SkillKey =>
   TRAINING_BASE_SKILL_MAP[value];
@@ -1137,10 +1146,10 @@ export default function Dashboard({
     useState<number | null>(null);
   const [revealSecondaryTargetMenuOpen, setRevealSecondaryTargetMenuOpen] =
     useState(false);
-  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey>(
+  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | null>(
     DEFAULT_PRIMARY_TRAINING
   );
-  const [secondaryTraining, setSecondaryTraining] = useState<TrainingSkillKey>(
+  const [secondaryTraining, setSecondaryTraining] = useState<TrainingSkillKey | null>(
     DEFAULT_SECONDARY_TRAINING
   );
   const [optimizerDebug, setOptimizerDebug] = useState<OptimizerDebug | null>(
@@ -2328,8 +2337,8 @@ export default function Dashboard({
         behaviors?: LineupBehaviors;
         selectedId?: number | null;
         starPlayerId?: number | null;
-        primaryTraining?: string;
-        secondaryTraining?: string;
+        primaryTraining?: string | null;
+        secondaryTraining?: string | null;
         tacticType?: number;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
@@ -2402,15 +2411,14 @@ export default function Dashboard({
       }
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
-          isTrainingSkill(parsed.primaryTraining)
-            ? parsed.primaryTraining
-            : DEFAULT_PRIMARY_TRAINING
+          parsePersistedTraining(parsed.primaryTraining, DEFAULT_PRIMARY_TRAINING)
         );
       if (parsed.secondaryTraining !== undefined)
         setSecondaryTraining(
-          isTrainingSkill(parsed.secondaryTraining)
-            ? parsed.secondaryTraining
-            : DEFAULT_SECONDARY_TRAINING
+          parsePersistedTraining(
+            parsed.secondaryTraining,
+            DEFAULT_SECONDARY_TRAINING
+          )
         );
       if (parsed.tacticType !== undefined && Number.isFinite(parsed.tacticType)) {
         setTacticType(parsed.tacticType);
@@ -6280,6 +6288,9 @@ export default function Dashboard({
     setAssignments(nextAssignments);
     setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
+    setPrimaryTraining(null);
+    setSecondaryTraining(null);
+    setAutoSelectionApplied(false);
   };
 
   const handleBehaviorChange = (slotId: string, behavior: number) => {
@@ -6348,6 +6359,7 @@ export default function Dashboard({
 
   useEffect(() => {
     if (starPlayerId || primaryTraining || secondaryTraining) return;
+    if (primaryTraining === null || secondaryTraining === null) return;
     if (!autoSelection) return;
     setStarPlayerId(autoSelection.starPlayerId);
     setPrimaryTraining(autoSelection.primarySkill);
@@ -6459,6 +6471,9 @@ export default function Dashboard({
         return messages.trainingWingerWingerAttackers;
       case "passing_defenders_midfielders":
         return messages.trainingPassingDefendersMidfielders;
+      case null:
+      case "":
+        return TRAINING_UNSET_LABEL;
       default:
         return messages.unknownShort;
     }

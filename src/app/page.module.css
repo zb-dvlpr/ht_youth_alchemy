@@ -1876,11 +1876,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .reminderDropdownHeader,
-.reminderActionRow {
+.reminderPrimaryActions,
+.reminderManagementControls {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.reminderPrimaryActions {
+  margin-top: 2px;
+}
+
+.reminderManagementControls {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(91, 74, 55, 0.18);
 }
 
 .reminderSnoozeControl {
@@ -1904,6 +1915,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-size: 12px;
   font-weight: 600;
   padding: 6px 28px 6px 10px;
+}
+
+.reminderDismissButton {
+  margin-left: auto;
 }
 
 .reminderDropdownHeader {
@@ -5707,6 +5722,10 @@ html[data-theme="dark"] .reminderCard {
 html[data-theme="dark"] .reminderScope {
   background: #2f281f;
   color: #eadfd2;
+}
+
+html[data-theme="dark"] .reminderManagementControls {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 html[data-theme="dark"] .feedbackLink {

@@ -191,7 +191,7 @@ export default function ReminderCard({
           renderReminderBody(item, messages)}
       </p>
       {showActions && candidate.actions?.length ? (
-        <div className={styles.reminderActionRow}>
+        <div className={styles.reminderPrimaryActions}>
           {candidate.actions.map((action, index) => (
             <button
               key={`${action.type}-${index}`}
@@ -205,14 +205,7 @@ export default function ReminderCard({
         </div>
       ) : null}
       {showDismissControls ? (
-        <div className={styles.reminderActionRow}>
-          <button
-            type="button"
-            className={styles.confirmCancel}
-            onClick={() => onDismiss?.(item)}
-          >
-            {messages.reminderDismiss}
-          </button>
+        <div className={styles.reminderManagementControls}>
           <div className={styles.reminderSnoozeControl}>
             <label
               className={styles.reminderSnoozeLabel}
@@ -242,6 +235,13 @@ export default function ReminderCard({
               {messages.remindersSnoozeButtonLabel}
             </button>
           </div>
+          <button
+            type="button"
+            className={`${styles.confirmCancel} ${styles.reminderDismissButton}`}
+            onClick={() => onDismiss?.(item)}
+          >
+            {messages.reminderDismiss}
+          </button>
         </div>
       ) : null}
     </article>

@@ -194,6 +194,7 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileNavHeader {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px;
   min-width: 0;
   position: sticky;
@@ -219,6 +220,7 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  grid-column: 1;
   min-width: 0;
 }
 
@@ -238,9 +240,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
+  grid-column: 1;
   width: 100%;
   min-width: 0;
   padding: 2px 0 0;
+  overflow: visible;
+}
+
+.mobileNavActions {
+  display: inline-flex;
+  align-items: start;
+  justify-content: flex-end;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 48px;
   overflow: visible;
 }
 
@@ -5498,13 +5511,21 @@ html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
     overflow: visible;
   }
 
-  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap > span {
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap {
+    justify-content: flex-end;
+    min-width: 48px;
+    overflow: visible;
+  }
+
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap > span,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap > span {
     display: inline-flex;
     flex: 0 0 auto;
     overflow: visible;
   }
 
-  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .feedbackButton {
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .feedbackButton,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .feedbackButton {
     position: relative;
     flex: 0 0 auto;
     width: 48px;
@@ -5520,7 +5541,8 @@ html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   }
 
-  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .reminderBadge {
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .reminderBadge,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .reminderBadge {
     top: -6px;
     right: -6px;
   }

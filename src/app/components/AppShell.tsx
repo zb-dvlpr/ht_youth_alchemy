@@ -1568,6 +1568,7 @@ export default function AppShell({
           );
         })}
       </div>
+      <div className={styles.mobileNavActions}>{reminderBell}</div>
     </div>
   ) : null;
 

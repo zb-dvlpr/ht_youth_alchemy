@@ -900,9 +900,9 @@ export const messagesFr: Messages = {
     clubChronicleTsiPlayerColumn: "Joueur",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Poste joue",
-    clubChronicleMainSkillEstimationColumn: "Estimation competence principale*",
+    clubChronicleMainSkillEstimationColumn: "Estimation competence principale¹",
     clubChronicleMainSkillEstimationFootnote:
-      "* L'estimation de competence principale est seulement approximative.",
+      "¹ L'estimation de competence principale est seulement approximative.",
     clubChronicleMainSkillEstimationTooOld: "Joueur trop vieux",
     clubChronicleForm7RatingColumn: "Note forme 7",
     clubChronicleManMarkerColumn: "MM?",

@@ -4722,7 +4722,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleDetailTableScroll {
+  scrollbar-width: none;
   scrollbar-gutter: stable;
+}
+
+.chronicleDetailTableScroll::-webkit-scrollbar {
+  height: 0;
 }
 
 .chronicleDetailFloatingScrollbar {

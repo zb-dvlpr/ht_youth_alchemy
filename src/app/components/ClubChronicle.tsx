@@ -15730,6 +15730,9 @@ type Form7LineupSnapshot = {
       })),
     [selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey, selectedWagesTeam]
   );
+  const wagesDetailsHasForeignWageBonus = wagesPlayerRows.some(
+    (row) => row.wageIncludesForeignBonus === true
+  );
   const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
     () =>
       (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => {
@@ -16222,13 +16225,13 @@ type Form7LineupSnapshot = {
         getValue: (snapshot) =>
           snapshot
             ? `${formatChppCurrencyFromSek(snapshot.salarySek) ?? messages.unknownShort}${
-                snapshot.wageIncludesForeignBonus ? "*" : ""
+                snapshot.wageIncludesForeignBonus ? "²" : ""
               }`
             : null,
         getSortValue: (snapshot) => snapshot?.salarySek ?? null,
         renderCell: (snapshot) =>
           `${formatChppCurrencyFromSek(snapshot?.salarySek ?? null) ?? messages.unknownShort}${
-            snapshot?.wageIncludesForeignBonus ? "*" : ""
+            snapshot?.wageIncludesForeignBonus ? "²" : ""
           }`,
       },
       {
@@ -18725,6 +18728,11 @@ type Form7LineupSnapshot = {
                     onSort={handleTsiDetailsSort}
                   />
                 </div>
+                <div className={styles.chronicleLegend}>
+                  <span className={styles.chronicleLegendText}>
+                    {messages.clubChronicleMainSkillEstimationFootnote}
+                  </span>
+                </div>
                 {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
                 {renderChronicleDetailModalMatchCountNote(
                   selectedTsiTeam.detailModalMatchSampleSize,
@@ -18775,12 +18783,19 @@ type Form7LineupSnapshot = {
                     onSort={handleWagesDetailsSort}
                   />
                 </div>
-                {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
                 <div className={styles.chronicleLegend}>
                   <span className={styles.chronicleLegendText}>
-                    * {messages.seniorWageForeignExtraNote}
+                    {messages.clubChronicleMainSkillEstimationFootnote}
                   </span>
                 </div>
+                {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
+                {wagesDetailsHasForeignWageBonus ? (
+                  <div className={styles.chronicleLegend}>
+                    <span className={styles.chronicleLegendText}>
+                      ² {messages.seniorWageForeignExtraNote}
+                    </span>
+                  </div>
+                ) : null}
                 {renderChronicleDetailModalMatchCountNote(
                   selectedWagesTeam.detailModalMatchSampleSize,
                   "wages",
@@ -21737,11 +21752,13 @@ type Form7LineupSnapshot = {
                     </span>
                   </div>
                   {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
-                  <div className={styles.chronicleLegend}>
-                    <span className={styles.chronicleLegendText}>
-                      * {messages.seniorWageForeignExtraNote}
-                    </span>
-                  </div>
+                  {wagesDetailsHasForeignWageBonus ? (
+                    <div className={styles.chronicleLegend}>
+                      <span className={styles.chronicleLegendText}>
+                        ² {messages.seniorWageForeignExtraNote}
+                      </span>
+                    </div>
+                  ) : null}
                   {renderChronicleDetailModalMatchCountNote(
                     selectedWagesTeam.detailModalMatchSampleSize,
                     "wages",

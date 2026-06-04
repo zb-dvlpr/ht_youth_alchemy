@@ -933,9 +933,9 @@ export const messagesNl: Messages = {
   clubChronicleTeamAttitudeDetailsDisclaimer:
     "Afgeleide instelling is een heuristische schatting op basis van afwijkingen in middenveldrating. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
-  clubChronicleMainSkillEstimationColumn: "Schatting hoofdskill*",
+  clubChronicleMainSkillEstimationColumn: "Schatting hoofdskill¹",
   clubChronicleMainSkillEstimationFootnote:
-    "* De schatting van de hoofdskill is alleen een grove schatting.",
+    "¹ De schatting van de hoofdskill is alleen een grove schatting.",
   clubChronicleMainSkillEstimationTooOld: "Speler te oud",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleManMarkerColumn: "MM?",

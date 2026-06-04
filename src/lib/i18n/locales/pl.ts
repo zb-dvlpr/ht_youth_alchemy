@@ -926,9 +926,9 @@ export const messagesPl: Messages = {
   clubChronicleTeamAttitudeDetailsDisclaimer:
     "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach ratingu pomocy. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
-  clubChronicleMainSkillEstimationColumn: "Szac. glownej umiejetnosci*",
+  clubChronicleMainSkillEstimationColumn: "Szac. glownej umiejetnosci¹",
   clubChronicleMainSkillEstimationFootnote:
-    "* Szacowanie glownej umiejetnosci jest tylko przyblizone.",
+    "¹ Szacowanie glownej umiejetnosci jest tylko przyblizone.",
   clubChronicleMainSkillEstimationTooOld: "Zawodnik zbyt stary",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleManMarkerColumn: "MM?",

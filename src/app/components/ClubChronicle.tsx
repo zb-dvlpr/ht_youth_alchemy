@@ -82,6 +82,7 @@ import {
   PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
   resolveChronicleDominantPlayingPosition,
 } from "@/lib/clubChronicle/mainSkillEstimation";
+import { needsChronicleDetailPlayingPositionCoverageBackfill } from "@/lib/clubChronicle/detailModalDerivedData";
 import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import {
   matchRoleIdToPositionKey,
@@ -1490,7 +1491,7 @@ const COMPETITIVE_MATCH_TYPES = new Set([1, 2, 3, 7]);
 const TEAM_ATTITUDE_MATCH_TYPES = new Set([1]);
 const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
 const CHRONICLE_DETAIL_MODAL_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
-const CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION = 2;
+const CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION = 3;
 const ONGOING_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
 const ONGOING_TOURNAMENT_MATCH_TYPES = new Set([50, 51, 62]);
 const POSSIBLE_FORMATIONS = new Set([
@@ -11780,14 +11781,25 @@ type Form7LineupSnapshot = {
   const teamSnapshotNeedsDetailModalDataBackfill = useCallback(
     (team: TsiRow | WagesRow | null | undefined) => {
       if (!team?.snapshot?.players || team.snapshot.players.length === 0) return false;
-      return (
-        typeof team.detailModalMatchSampleSize !== "number" ||
-        team.detailModalMatchSampleSize <= 0 ||
-        !Array.isArray(team.detailModalAnalyzedMatches) ||
-        team.detailModalAnalyzedMatches.length !== team.detailModalMatchSampleSize ||
+      const analyzedMatches = team.detailModalAnalyzedMatches;
+      if (typeof team.detailModalMatchSampleSize !== "number") return true;
+      if (team.detailModalMatchSampleSize <= 0) return true;
+      if (!Array.isArray(analyzedMatches)) return true;
+      if (analyzedMatches.length !== team.detailModalMatchSampleSize) return true;
+      if (
         team.detailModalDerivedDataVersion !==
-          CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION
-      );
+        CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION
+      ) {
+        return true;
+      }
+      const analyzedMatchesCount = analyzedMatches.length;
+
+      return needsChronicleDetailPlayingPositionCoverageBackfill({
+        currentPlayers: team.snapshot.players,
+        analyzedMatchesCount,
+        playingPositionByPlayerId: team.playingPositionByPlayerId,
+        form7RatingsByPlayerId: team.form7RatingsByPlayerId,
+      });
     },
     []
   );

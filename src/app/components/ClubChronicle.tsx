@@ -376,6 +376,7 @@ type TsiSnapshot = {
     experience: number | null;
     leadership: number | null;
     loyalty: number | null;
+    motherClubBonus?: boolean | null;
     tsi: number;
   }[];
   fetchedAt: number;
@@ -442,6 +443,7 @@ type TsiPlayerRow = {
   experience: number | null;
   leadership: number | null;
   loyalty: number | null;
+  motherClubBonus?: boolean | null;
   tsi: number;
   salarySek: number | null;
   wageIncludesForeignBonus?: boolean | null;
@@ -471,6 +473,7 @@ type WagesSnapshot = {
     experience: number | null;
     leadership: number | null;
     loyalty: number | null;
+    motherClubBonus?: boolean | null;
     salarySek: number;
   }[];
   fetchedAt: number;
@@ -736,6 +739,7 @@ type WagesPlayerRow = {
   experience: number | null;
   leadership: number | null;
   loyalty: number | null;
+  motherClubBonus?: boolean | null;
   salarySek: number;
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
@@ -9106,6 +9110,56 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return nextMap;
   }, []);
 
+  const resolveSeniorMotherClubBonusByPlayerId = useCallback(() => {
+    if (typeof window === "undefined") return new Map<number, boolean | null>();
+    const nextMap = new Map<number, boolean | null>();
+    try {
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (
+          !key ||
+          (key !== SENIOR_DASHBOARD_DATA_STORAGE_KEY &&
+            !key.startsWith(`${SENIOR_DASHBOARD_DATA_STORAGE_KEY}_`))
+        ) {
+          continue;
+        }
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw) as {
+          detailsCache?: Record<
+            string,
+            {
+              data?: {
+                MotherClubBonus?: unknown;
+                TrainerData?: {
+                  MotherClubBonus?: unknown;
+                };
+              };
+            }
+          >;
+        };
+        const detailsCache =
+          parsed.detailsCache && typeof parsed.detailsCache === "object"
+            ? parsed.detailsCache
+            : null;
+        if (!detailsCache) continue;
+        Object.entries(detailsCache).forEach(([playerIdKey, entry]) => {
+          const playerId = Number(playerIdKey);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          const motherClubBonus = parseBooleanNode(
+            entry?.data?.TrainerData?.MotherClubBonus ?? entry?.data?.MotherClubBonus
+          );
+          if (motherClubBonus !== null) {
+            nextMap.set(playerId, motherClubBonus);
+          }
+        });
+      }
+    } catch {
+      // ignore storage parse errors
+    }
+    return nextMap;
+  }, []);
+
   const parseBooleanNode = (value: unknown): boolean | null => {
     if (value === null || value === undefined || value === "") return null;
     if (typeof value === "boolean") return value;
@@ -10565,6 +10619,7 @@ type TeamPlayerSnapshot = {
   experience: number | null;
   leadership: number | null;
   loyalty: number | null;
+  motherClubBonus?: boolean | null;
   tsi: number;
   salarySek: number;
 };
@@ -10584,7 +10639,11 @@ type Form7LineupSnapshot = {
 
   const fetchPlayerOriginDetails = async (
     playerId: number
-  ): Promise<{ nativeLeagueId: number | null; wageIncludesForeignBonus: boolean | null }> => {
+  ): Promise<{
+    nativeLeagueId: number | null;
+    wageIncludesForeignBonus: boolean | null;
+    motherClubBonus: boolean | null;
+  }> => {
     try {
       const { response, payload } = await fetchChppJson<{
         data?: {
@@ -10597,11 +10656,19 @@ type Form7LineupSnapshot = {
         cache: "no-store",
       });
       if (!response.ok || payload?.error) {
-        return { nativeLeagueId: null, wageIncludesForeignBonus: null };
+        return {
+          nativeLeagueId: null,
+          wageIncludesForeignBonus: null,
+          motherClubBonus: null,
+        };
       }
       const player = payload?.data?.HattrickData?.Player;
       const nativeLeagueId = parseNumberNode(player?.NativeLeagueID);
       const explicitIsAbroad = parseBooleanNode(player?.IsAbroad);
+      const trainerData = player?.TrainerData as RawNode | undefined;
+      const motherClubBonus = parseBooleanNode(
+        trainerData?.MotherClubBonus ?? player?.MotherClubBonus
+      );
       const owningLeagueId = parseNumberNode((player?.OwningTeam as RawNode | undefined)?.LeagueID);
       const wageIncludesForeignBonus =
         explicitIsAbroad !== null
@@ -10614,10 +10681,14 @@ type Form7LineupSnapshot = {
               owningLeagueId > 0
             ? nativeLeagueId !== owningLeagueId
             : null;
-      return { nativeLeagueId, wageIncludesForeignBonus };
+      return { nativeLeagueId, wageIncludesForeignBonus, motherClubBonus };
     } catch (error) {
       if (isChppAuthRequiredError(error)) throw error;
-      return { nativeLeagueId: null, wageIncludesForeignBonus: null };
+      return {
+        nativeLeagueId: null,
+        wageIncludesForeignBonus: null,
+        motherClubBonus: null,
+      };
     }
   };
 
@@ -10631,6 +10702,7 @@ type Form7LineupSnapshot = {
     const leagueOriginFlags = await resolveLeagueOriginFlags();
     const seniorNativeLeagueByPlayerId = resolveSeniorNativeLeagueIds();
     const seniorForeignWageBonusByPlayerId = resolveSeniorForeignWageBonusByPlayerId();
+    const seniorMotherClubBonusByPlayerId = resolveSeniorMotherClubBonusByPlayerId();
     const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
@@ -10658,6 +10730,7 @@ type Form7LineupSnapshot = {
       options?.nextCache?.teams[teamId]?.nativeLeagueIdByPlayerId ?? {};
     const nativeLeagueIdByPlayerId = new Map<number, number>();
     const wageIncludesForeignBonusByPlayerId = new Map<number, boolean>();
+    const motherClubBonusByPlayerId = new Map<number, boolean>();
     Object.entries(existingNativeLeagueIds).forEach(([playerIdKey, leagueId]) => {
       const playerId = Number(playerIdKey);
       if (
@@ -10687,6 +10760,18 @@ type Form7LineupSnapshot = {
       if (typeof seniorForeignWageBonus === "boolean") {
         wageIncludesForeignBonusByPlayerId.set(playerId, seniorForeignWageBonus);
       }
+      const directMotherClubBonus = parseBooleanNode(
+        (player?.TrainerData as RawNode | undefined)?.MotherClubBonus ??
+          player?.MotherClubBonus
+      );
+      if (directMotherClubBonus !== null) {
+        motherClubBonusByPlayerId.set(playerId, directMotherClubBonus);
+        return;
+      }
+      const seniorMotherClubBonus = seniorMotherClubBonusByPlayerId.get(playerId);
+      if (typeof seniorMotherClubBonus === "boolean") {
+        motherClubBonusByPlayerId.set(playerId, seniorMotherClubBonus);
+      }
     });
     if (options?.ensureNativeLeagueIds) {
       const missingPlayerIds = playerList
@@ -10707,7 +10792,7 @@ type Form7LineupSnapshot = {
           })
         );
         fetchedOriginDetails.forEach(
-          ({ playerId, nativeLeagueId, wageIncludesForeignBonus }) => {
+          ({ playerId, nativeLeagueId, wageIncludesForeignBonus, motherClubBonus }) => {
           if (
             typeof nativeLeagueId === "number" &&
             Number.isFinite(nativeLeagueId) &&
@@ -10717,6 +10802,9 @@ type Form7LineupSnapshot = {
           }
             if (typeof wageIncludesForeignBonus === "boolean") {
               wageIncludesForeignBonusByPlayerId.set(playerId, wageIncludesForeignBonus);
+            }
+            if (typeof motherClubBonus === "boolean") {
+              motherClubBonusByPlayerId.set(playerId, motherClubBonus);
             }
           }
         );
@@ -10749,6 +10837,7 @@ type Form7LineupSnapshot = {
         originCountryName: originInfo?.countryName ?? null,
         wageIncludesForeignBonus:
           wageIncludesForeignBonusByPlayerId.get(playerId) ?? false,
+        motherClubBonus: motherClubBonusByPlayerId.get(playerId) ?? false,
         playerNumber: parseNumberNode(player?.PlayerNumber),
         age: parseNumberNode(player?.Age),
         ageDays: parseNumberNode(player?.AgeDays),
@@ -11148,6 +11237,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | Pick<
           TsiPlayerRow,
@@ -11158,6 +11248,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | null
       | undefined
@@ -11172,7 +11263,7 @@ type Form7LineupSnapshot = {
       value: calculateEffectiveSkill({
         rawSkill: estimation.level,
         loyalty: snapshot?.loyalty,
-        motherClubBonus: false,
+        motherClubBonus: snapshot?.motherClubBonus === true,
         form: snapshot?.form,
       }),
     };
@@ -11189,6 +11280,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | Pick<
           TsiPlayerRow,
@@ -11199,6 +11291,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | null
       | undefined
@@ -11225,6 +11318,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | Pick<
           TsiPlayerRow,
@@ -11235,6 +11329,7 @@ type Form7LineupSnapshot = {
           | "playingPositions"
           | "form"
           | "loyalty"
+          | "motherClubBonus"
         >
       | null
       | undefined
@@ -11706,6 +11801,7 @@ type Form7LineupSnapshot = {
       experience: player.experience,
       leadership: player.leadership,
       loyalty: player.loyalty,
+      motherClubBonus: player.motherClubBonus ?? false,
       tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
     }));
     const tsiValues = normalizedPlayers
@@ -11739,6 +11835,7 @@ type Form7LineupSnapshot = {
       experience: player.experience,
       leadership: player.leadership,
       loyalty: player.loyalty,
+      motherClubBonus: player.motherClubBonus ?? false,
       salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
     }));
     const wages = normalizedPlayers
@@ -11773,6 +11870,16 @@ type Form7LineupSnapshot = {
       if (!team?.snapshot?.players || team.snapshot.players.length === 0) return false;
       return team.snapshot.players.some(
         (player) => typeof player.wageIncludesForeignBonus !== "boolean"
+      );
+    },
+    []
+  );
+
+  const snapshotNeedsMotherClubBonusBackfill = useCallback(
+    (team: TsiRow | WagesRow | null | undefined) => {
+      if (!team?.snapshot?.players || team.snapshot.players.length === 0) return false;
+      return team.snapshot.players.some(
+        (player) => typeof player.motherClubBonus !== "boolean"
       );
     },
     []
@@ -14900,6 +15007,7 @@ type Form7LineupSnapshot = {
     if (!tsiDetailsOpen || !selectedTsiTeam) return;
     if (
       !teamSnapshotNeedsOriginBackfill(selectedTsiTeam) &&
+      !snapshotNeedsMotherClubBonusBackfill(selectedTsiTeam) &&
       !teamSnapshotNeedsDetailModalDataBackfill(selectedTsiTeam)
     ) {
       return;
@@ -14908,6 +15016,7 @@ type Form7LineupSnapshot = {
   }, [
     backfillChronicleDetailOriginCoverage,
     selectedTsiTeam,
+    snapshotNeedsMotherClubBonusBackfill,
     teamSnapshotNeedsDetailModalDataBackfill,
     teamSnapshotNeedsOriginBackfill,
     tsiDetailsOpen,
@@ -14917,6 +15026,7 @@ type Form7LineupSnapshot = {
     if (
       !teamSnapshotNeedsOriginBackfill(selectedWagesTeam) &&
       !wagesSnapshotNeedsForeignWageBackfill(selectedWagesTeam) &&
+      !snapshotNeedsMotherClubBonusBackfill(selectedWagesTeam) &&
       !teamSnapshotNeedsDetailModalDataBackfill(selectedWagesTeam)
     ) {
       return;
@@ -14925,6 +15035,7 @@ type Form7LineupSnapshot = {
   }, [
     backfillChronicleDetailOriginCoverage,
     selectedWagesTeam,
+    snapshotNeedsMotherClubBonusBackfill,
     teamSnapshotNeedsDetailModalDataBackfill,
     teamSnapshotNeedsOriginBackfill,
     wagesSnapshotNeedsForeignWageBackfill,
@@ -15842,6 +15953,8 @@ type Form7LineupSnapshot = {
           ...row,
           salarySek: wagesPlayer?.salarySek ?? null,
           wageIncludesForeignBonus: wagesPlayer?.wageIncludesForeignBonus ?? null,
+          motherClubBonus:
+            row.motherClubBonus ?? wagesPlayer?.motherClubBonus ?? false,
           playerNumber: index + 1,
           form7Ratings:
             selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
@@ -15883,6 +15996,20 @@ type Form7LineupSnapshot = {
       </label>
     </Tooltip>
   );
+
+  const renderChronicleMotherClubBonusIndicator = (
+    motherClubBonus: boolean | null | undefined
+  ) =>
+    motherClubBonus === true ? (
+      <Tooltip content={messages.motherClubBonusTooltip}>
+        <span
+          className={styles.seniorMotherClubHeart}
+          aria-label={messages.motherClubBonusTooltip}
+        >
+          ❤
+        </span>
+      </Tooltip>
+    ) : null;
 
   const transferListedColumns = useMemo<
     ChronicleTableColumn<TransferListedPlayer, TransferListedPlayer>[]
@@ -16069,6 +16196,7 @@ type Form7LineupSnapshot = {
                   </span>
                 </Tooltip>
               ) : null}
+              {renderChronicleMotherClubBonusIndicator(snapshot?.motherClubBonus)}
               {cardStatus ? (
                 <span
                   className={styles.playerCardStatusInline}
@@ -16237,6 +16365,7 @@ type Form7LineupSnapshot = {
       messages.specialtyHeadSpecialist,
       messages.specialtyResilient,
       messages.specialtySupport,
+      renderChronicleMotherClubBonusIndicator,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
       resolveForm7PositionShortLabel,
@@ -16317,6 +16446,7 @@ type Form7LineupSnapshot = {
                   </span>
                 </Tooltip>
               ) : null}
+              {renderChronicleMotherClubBonusIndicator(snapshot?.motherClubBonus)}
               {cardStatus ? (
                 <span
                   className={styles.playerCardStatusInline}
@@ -16495,6 +16625,7 @@ type Form7LineupSnapshot = {
       messages.specialtyHeadSpecialist,
       messages.specialtyResilient,
       messages.specialtySupport,
+      renderChronicleMotherClubBonusIndicator,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
       resolveForm7PositionShortLabel,

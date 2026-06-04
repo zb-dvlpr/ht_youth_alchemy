@@ -82,6 +82,7 @@ import {
   PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
   resolveChronicleDominantPlayingPosition,
 } from "@/lib/clubChronicle/mainSkillEstimation";
+import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import {
   matchRoleIdToPositionKey,
   normalizeMatchRoleId,
@@ -1009,7 +1010,7 @@ const ChronicleTable = <Row, Snapshot>({
           return (
             <span
               key={headerKey}
-              className={styles.chronicleTableHeaderItem}
+              className={`${styles.chronicleTableHeaderItem}${column.headerAccessory ? ` ${styles.chronicleTableHeaderItemWithAccessory}` : ""}`}
               data-label={column.label}
             >
               <button
@@ -1032,7 +1033,7 @@ const ChronicleTable = <Row, Snapshot>({
         return (
           <span
             key={headerKey}
-            className={styles.chronicleTableHeaderItem}
+            className={`${styles.chronicleTableHeaderItem}${column.headerAccessory ? ` ${styles.chronicleTableHeaderItemWithAccessory}` : ""}`}
             data-label={column.label}
           >
             <span>{headerLabel}</span>
@@ -3785,6 +3786,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [detailModalMatchesDebugKind, setDetailModalMatchesDebugKind] = useState<
     "tsi" | "wages" | null
   >(null);
+  const [
+    showChronicleEffectiveMainSkillEstimation,
+    setShowChronicleEffectiveMainSkillEstimation,
+  ] = useState(false);
   const [lastLoginDetailsOpen, setLastLoginDetailsOpen] = useState(false);
   const [selectedLastLoginTeamId, setSelectedLastLoginTeamId] = useState<
     number | null
@@ -11098,11 +11103,19 @@ type Form7LineupSnapshot = {
     snapshot:
       | Pick<
           WagesPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
         >
       | Pick<
           TsiPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
         >
       | null
       | undefined
@@ -11115,42 +11128,118 @@ type Form7LineupSnapshot = {
       playingPositions: snapshot?.playingPositions,
     });
 
-  const formatChronicleMainSkillEstimation = (
+  const formatChronicleEffectiveMainSkillValue = (value: number) => {
+    if (!Number.isFinite(value)) return messages.unknownShort;
+    if (Number.isInteger(value)) return String(value);
+    const rounded = Math.round((value + Number.EPSILON) * 10) / 10;
+    if (Number.isInteger(rounded)) return String(rounded);
+    return rounded.toFixed(1);
+  };
+
+  const resolveChronicleMainSkillDisplayLevel = (
     snapshot:
       | Pick<
           WagesPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
         >
       | Pick<
           TsiPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
         >
       | null
       | undefined
   ) => {
     const estimation = resolveChronicleMainSkillEstimation(snapshot);
+    if (estimation.kind !== "estimated") return { estimation, value: null };
+    if (!showChronicleEffectiveMainSkillEstimation) {
+      return { estimation, value: estimation.level };
+    }
+    return {
+      estimation,
+      value: calculateEffectiveSkill({
+        rawSkill: estimation.level,
+        loyalty: snapshot?.loyalty,
+        motherClubBonus: false,
+        form: snapshot?.form,
+      }),
+    };
+  };
+
+  const formatChronicleMainSkillEstimation = (
+    snapshot:
+      | Pick<
+          WagesPlayerRow,
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
+        >
+      | Pick<
+          TsiPlayerRow,
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
+        >
+      | null
+      | undefined
+  ) => {
+    const { estimation, value } = resolveChronicleMainSkillDisplayLevel(snapshot);
     if (estimation.kind === "tooOld") {
       return messages.clubChronicleMainSkillEstimationTooOld;
     }
-    if (estimation.kind !== "estimated") return messages.unknownShort;
-    return `${estimation.level} (${estimation.mainSkill})`;
+    if (estimation.kind !== "estimated" || value === null) return messages.unknownShort;
+    const levelLabel = showChronicleEffectiveMainSkillEstimation
+      ? formatChronicleEffectiveMainSkillValue(value)
+      : String(value);
+    return `${levelLabel} (${estimation.mainSkill})`;
   };
 
   const resolveChronicleMainSkillEstimationSortValue = (
     snapshot:
       | Pick<
           WagesPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
         >
       | Pick<
           TsiPlayerRow,
-          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+          | "salarySek"
+          | "age"
+          | "specialty"
+          | "wageIncludesForeignBonus"
+          | "playingPositions"
+          | "form"
+          | "loyalty"
         >
       | null
       | undefined
   ) => {
-    const estimation = resolveChronicleMainSkillEstimation(snapshot);
-    if (estimation.kind === "estimated") return estimation.level;
+    const { estimation, value } = resolveChronicleMainSkillDisplayLevel(snapshot);
+    if (estimation.kind === "estimated") return value ?? 1001;
     if (estimation.kind === "tooOld") return 1000;
     return 1001;
   };
@@ -15761,6 +15850,28 @@ type Form7LineupSnapshot = {
     ]
   );
 
+  const chronicleMainSkillEffectiveToggle = (
+    <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
+      <label className={styles.chronicleMainSkillHeaderToggle}>
+        <input
+          type="checkbox"
+          className={styles.chronicleMainSkillHeaderToggleInput}
+          checked={showChronicleEffectiveMainSkillEstimation}
+          onChange={(event) =>
+            setShowChronicleEffectiveMainSkillEstimation(event.target.checked)
+          }
+        />
+        <span
+          className={styles.chronicleMainSkillHeaderToggleTrack}
+          aria-hidden="true"
+        />
+        <span className={styles.chronicleMainSkillHeaderToggleLabel}>
+          {messages.seniorSkillsMatrixBonusToggleLabel}
+        </span>
+      </label>
+    </Tooltip>
+  );
+
   const transferListedColumns = useMemo<
     ChronicleTableColumn<TransferListedPlayer, TransferListedPlayer>[]
   >(
@@ -15987,6 +16098,7 @@ type Form7LineupSnapshot = {
       {
         key: "mainSkillEstimation",
         label: messages.clubChronicleMainSkillEstimationColumn,
+        headerAccessory: chronicleMainSkillEffectiveToggle,
         getValue: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
         getSortValue: (snapshot) =>
           resolveChronicleMainSkillEstimationSortValue(snapshot),
@@ -16089,6 +16201,7 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayingPositionColumn,
       messages.clubChronicleMainSkillEstimationColumn,
       messages.clubChronicleMainSkillEstimationTooOld,
+      chronicleMainSkillEffectiveToggle,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleManMarkerColumn,
@@ -16243,6 +16356,7 @@ type Form7LineupSnapshot = {
       {
         key: "mainSkillEstimation",
         label: messages.clubChronicleMainSkillEstimationColumn,
+        headerAccessory: chronicleMainSkillEffectiveToggle,
         getValue: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
         getSortValue: (snapshot) =>
           resolveChronicleMainSkillEstimationSortValue(snapshot),
@@ -16345,6 +16459,7 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayingPositionColumn,
       messages.clubChronicleMainSkillEstimationColumn,
       messages.clubChronicleMainSkillEstimationTooOld,
+      chronicleMainSkillEffectiveToggle,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleManMarkerColumn,

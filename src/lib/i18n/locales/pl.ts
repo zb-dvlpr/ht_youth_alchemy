@@ -75,6 +75,20 @@ export const messagesPl: Messages = {
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",
   settingsDebugBuyCoffeePromptButton: "Pokaż modal postaw mi kawę",
+  settingsDebugStorageButton: "Pamięć",
+  settingsDebugStorageTitle: "Diagnostyka pamięci",
+  settingsDebugStorageLoading: "Odczytywanie diagnostyki pamięci...",
+  settingsDebugStorageOriginEstimateLabel: "Szacowana pamięć origin",
+  settingsDebugStorageOriginUnavailable:
+    "Szacowana pamięć origin niedostępna",
+  settingsDebugStorageLocalStorageApproxLabel:
+    "Przybliżone użycie localStorage",
+  settingsDebugStorageBreakdownKeyColumn: "Klucz",
+  settingsDebugStorageBreakdownUsageColumn: "Przybliżone użycie",
+  settingsDebugStorageNoLocalStorageKeys:
+    "Nie znaleziono kluczy localStorage.",
+  settingsDebugStorageRefreshButton: "Odśwież",
+  settingsDebugStorageError: "Nie udało się odczytać diagnostyki pamięci.",
   buyCoffeePromptTitle: "☕ Dzięki, że tu jesteś",
   buyCoffeePromptLead: "🙏 Jestem naprawdę wdzięczny, że korzystasz z HT Alchemy.",
   buyCoffeePromptBody:
@@ -310,6 +324,21 @@ export const messagesPl: Messages = {
   settingsGeneralImportAllLabel: "Importuj wszystkie ustawienia",
   settingsGeneralImportAllHint:
     "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
+  settingsStorageManagementButton: "Zarządzanie pamięcią",
+  settingsStorageManagementTitle: "Zarządzanie pamięcią",
+  settingsStorageManagementTotalUsed: "Użyta pamięć: {{size}}",
+  settingsStorageManagementKeyColumn: "Klucz",
+  settingsStorageManagementUsageColumn: "Użycie",
+  settingsStorageManagementActionColumn: "Akcja",
+  settingsStorageManagementWipeButton: "Wyczyść",
+  settingsStorageManagementNoKeys: "Nie znaleziono kluczy localStorage.",
+  settingsStorageManagementWipeConfirmTitle: "Wyczyścić klucz pamięci?",
+  settingsStorageManagementWipeConfirmBody:
+    'Zamierzasz wyczyścić "{{key}}" z pamięci lokalnej. Po wyczyszczeniu nie można tego cofnąć. Dane aplikacji, ustawienia, pamięć podręczna lub stan zapisane pod tym kluczem mogą zostać utracone.',
+  settingsStorageManagementWipeSuccess: "Wyczyszczono klucz pamięci: {{key}}",
+  settingsStorageManagementWipeError:
+    "Nie udało się wyczyścić klucza pamięci: {{key}}",
+  settingsStorageManagementReadError: "Nie udało się odczytać localStorage.",
   settingsMachineLearningTitle: "Uczenie maszynowe",
   settingsMachineLearningBody:
     "Migawki seniorów są uczone automatycznie z odświeżeń seniorów i szczegółów wyników rynku transferowego.",

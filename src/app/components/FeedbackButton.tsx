@@ -7,6 +7,7 @@ import type { FeedbackManagerIdentity } from "@/lib/hattrick/managerIdentity";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import { collectFeedbackStorageMetadata } from "@/lib/storageDiagnostics";
 
 type FeedbackButtonProps = {
   messages: Messages;
@@ -104,6 +105,7 @@ export default function FeedbackButton({
     setSubmitting(true);
     setErrorMessage(null);
     try {
+      const storage = collectFeedbackStorageMetadata();
       const response = await fetch("/api/github/issue", {
         method: "POST",
         headers: {
@@ -123,6 +125,7 @@ export default function FeedbackButton({
           appVersion,
           managerUserId: initialManagerIdentity?.userId,
           managerLoginname: initialManagerIdentity?.loginname,
+          storage,
         }),
       });
       const payload = (await response.json().catch(() => null)) as

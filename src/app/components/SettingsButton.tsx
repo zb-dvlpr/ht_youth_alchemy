@@ -89,6 +89,12 @@ import {
   subscribeReminderStorageState,
   type ReminderStorageExport,
 } from "@/lib/reminders/storage";
+import {
+  collectLocalStorageDiagnostics,
+  collectStorageDiagnostics,
+  type LocalStorageDiagnostics,
+  type StorageDiagnostics,
+} from "@/lib/storageDiagnostics";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -142,6 +148,20 @@ export default function SettingsButton({
   const [chronicleQrImportWarningOpen, setChronicleQrImportWarningOpen] =
     useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
+  const [storageDiagnosticsOpen, setStorageDiagnosticsOpen] = useState(false);
+  const [storageDiagnosticsLoading, setStorageDiagnosticsLoading] =
+    useState(false);
+  const [storageDiagnostics, setStorageDiagnostics] =
+    useState<StorageDiagnostics | null>(null);
+  const [storageManagementOpen, setStorageManagementOpen] = useState(false);
+  const [storageManagementLoading, setStorageManagementLoading] =
+    useState(false);
+  const [storageManagement, setStorageManagement] =
+    useState<LocalStorageDiagnostics | null>(null);
+  const [pendingStorageWipeKey, setPendingStorageWipeKey] = useState<string | null>(
+    null
+  );
+  const [storageWipePending, setStorageWipePending] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessDays, setStalenessDays] = useState(1);
@@ -722,6 +742,79 @@ export default function SettingsButton({
     });
   };
 
+  const refreshStorageDiagnostics = async () => {
+    if (!isDev) return;
+    setStorageDiagnosticsLoading(true);
+    try {
+      setStorageDiagnostics(await collectStorageDiagnostics());
+    } catch {
+      setStorageDiagnostics({
+        originUsageBytes: null,
+        originQuotaBytes: null,
+        originUsageFormatted: null,
+        originQuotaFormatted: null,
+        originUsagePct: null,
+        localStorageBytes: null,
+        localStorageFormatted: null,
+        localStorageKeys: [],
+        error: messages.settingsDebugStorageError,
+      });
+    } finally {
+      setStorageDiagnosticsLoading(false);
+    }
+  };
+
+  const handleOpenStorageDiagnostics = () => {
+    if (!isDev) return;
+    setDebugSettingsOpen(false);
+    setStorageDiagnosticsOpen(true);
+    setStorageDiagnostics(null);
+    void refreshStorageDiagnostics();
+  };
+
+  const refreshStorageManagement = () => {
+    setStorageManagementLoading(true);
+    try {
+      setStorageManagement(collectLocalStorageDiagnostics());
+    } catch {
+      setStorageManagement({
+        localStorageBytes: null,
+        localStorageFormatted: null,
+        localStorageKeys: [],
+        error: messages.settingsStorageManagementReadError,
+      });
+    } finally {
+      setStorageManagementLoading(false);
+    }
+  };
+
+  const handleOpenStorageManagement = () => {
+    setGeneralSettingsOpen(false);
+    setStorageManagementOpen(true);
+    setStorageManagement(null);
+    refreshStorageManagement();
+  };
+
+  const handleConfirmStorageWipe = () => {
+    const key = pendingStorageWipeKey;
+    if (!key || typeof window === "undefined") return;
+    setStorageWipePending(true);
+    try {
+      window.localStorage.removeItem(key);
+      setPendingStorageWipeKey(null);
+      refreshStorageManagement();
+      addNotification(
+        messages.settingsStorageManagementWipeSuccess.replace("{{key}}", key)
+      );
+    } catch {
+      addNotification(
+        messages.settingsStorageManagementWipeError.replace("{{key}}", key)
+      );
+    } finally {
+      setStorageWipePending(false);
+    }
+  };
+
   const handleOpenLicenseEntry = () => {
     setLicenseSettingsOpen(false);
     setLicenseEntryNonce((prev) => prev + 1);
@@ -1267,6 +1360,13 @@ export default function SettingsButton({
                 {messages.settingsGeneralImportAllLabel}
               </button>
             </Tooltip>
+            <button
+              type="button"
+              className={styles.settingsActionButton}
+              onClick={handleOpenStorageManagement}
+            >
+              {messages.settingsStorageManagementButton}
+            </button>
           </div>
         }
         actions={
@@ -1280,6 +1380,132 @@ export default function SettingsButton({
         }
         closeOnBackdrop
         onClose={() => setGeneralSettingsOpen(false)}
+      />
+      <Modal
+        open={storageManagementOpen}
+        title={messages.settingsStorageManagementTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            {storageManagementLoading ? (
+              <p className={styles.muted}>
+                {messages.settingsDebugStorageLoading}
+              </p>
+            ) : null}
+            {storageManagement ? (
+              <>
+                <section className={styles.storageDiagnosticsSection}>
+                  <p className={styles.storageDiagnosticsValue}>
+                    {messages.settingsStorageManagementTotalUsed.replace(
+                      "{{size}}",
+                      storageManagement.localStorageFormatted ??
+                        messages.unknownShort
+                    )}
+                  </p>
+                  {storageManagement.error ? (
+                    <p className={styles.errorText}>
+                      {messages.settingsStorageManagementReadError}
+                    </p>
+                  ) : null}
+                </section>
+                {storageManagement.localStorageKeys.length > 0 ? (
+                  <div className={styles.storageDiagnosticsTableWrap}>
+                    <table className={styles.storageDiagnosticsTable}>
+                      <thead>
+                        <tr>
+                          <th>{messages.settingsStorageManagementKeyColumn}</th>
+                          <th>{messages.settingsStorageManagementUsageColumn}</th>
+                          <th>{messages.settingsStorageManagementActionColumn}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {storageManagement.localStorageKeys.map((row) => (
+                          <tr key={row.key}>
+                            <td title={row.key}>{row.key}</td>
+                            <td>{row.formatted}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className={styles.settingsDangerButton}
+                                onClick={() => setPendingStorageWipeKey(row.key)}
+                                aria-label={`${messages.settingsStorageManagementWipeButton}: ${row.key}`}
+                              >
+                                {messages.settingsStorageManagementWipeButton}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : storageManagement.localStorageBytes !== null ? (
+                  <p className={styles.muted}>
+                    {messages.settingsStorageManagementNoKeys}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setStorageManagementOpen(false)}
+            >
+              {messages.closeLabel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={refreshStorageManagement}
+              disabled={storageManagementLoading}
+            >
+              {messages.settingsDebugStorageRefreshButton}
+            </button>
+          </>
+        }
+        closeOnBackdrop
+        onClose={() => setStorageManagementOpen(false)}
+      />
+      <Modal
+        open={pendingStorageWipeKey !== null}
+        title={messages.settingsStorageManagementWipeConfirmTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>
+              {messages.settingsStorageManagementWipeConfirmBody.replace(
+                "{{key}}",
+                pendingStorageWipeKey ?? ""
+              )}
+            </p>
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingStorageWipeKey(null)}
+              disabled={storageWipePending}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.settingsDangerButton}
+              onClick={handleConfirmStorageWipe}
+              disabled={storageWipePending}
+            >
+              {messages.settingsStorageManagementWipeButton}
+            </button>
+          </>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          if (storageWipePending) return;
+          setPendingStorageWipeKey(null);
+        }}
       />
       <Modal
         open={reminderSettingsOpen}
@@ -1656,6 +1882,13 @@ export default function SettingsButton({
             >
               {messages.settingsDebugBuyCoffeePromptButton}
             </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleOpenStorageDiagnostics}
+            >
+              {messages.settingsDebugStorageButton}
+            </button>
           </div>
         }
         actions={
@@ -1670,6 +1903,110 @@ export default function SettingsButton({
         closeOnBackdrop
         onClose={() => setDebugSettingsOpen(false)}
       />
+      {isDev ? (
+        <Modal
+          open={storageDiagnosticsOpen}
+          title={messages.settingsDebugStorageTitle}
+          body={
+            <div className={styles.settingsModalBody}>
+              {storageDiagnosticsLoading ? (
+                <p className={styles.muted}>
+                  {messages.settingsDebugStorageLoading}
+                </p>
+              ) : null}
+              {storageDiagnostics ? (
+                <>
+                  <section className={styles.storageDiagnosticsSection}>
+                    <h3 className={styles.storageDiagnosticsHeading}>
+                      {messages.settingsDebugStorageOriginEstimateLabel}
+                    </h3>
+                    {storageDiagnostics.originUsageFormatted &&
+                    storageDiagnostics.originQuotaFormatted ? (
+                      <p className={styles.storageDiagnosticsValue}>
+                        {storageDiagnostics.originUsageFormatted} /{" "}
+                        {storageDiagnostics.originQuotaFormatted} (
+                        {storageDiagnostics.originUsagePct !== null
+                          ? `${storageDiagnostics.originUsagePct.toFixed(1)}%`
+                          : messages.unknownShort}
+                        )
+                      </p>
+                    ) : (
+                      <p className={styles.muted}>
+                        {messages.settingsDebugStorageOriginUnavailable}
+                      </p>
+                    )}
+                  </section>
+                  <section className={styles.storageDiagnosticsSection}>
+                    <h3 className={styles.storageDiagnosticsHeading}>
+                      {messages.settingsDebugStorageLocalStorageApproxLabel}
+                    </h3>
+                    <p className={styles.storageDiagnosticsValue}>
+                      {storageDiagnostics.localStorageFormatted ??
+                        messages.unknownShort}
+                    </p>
+                    {storageDiagnostics.error ? (
+                      <p className={styles.errorText}>
+                        {messages.settingsDebugStorageError}
+                      </p>
+                    ) : null}
+                    {storageDiagnostics.localStorageKeys.length > 0 ? (
+                      <div className={styles.storageDiagnosticsTableWrap}>
+                        <table className={styles.storageDiagnosticsTable}>
+                          <thead>
+                            <tr>
+                              <th>
+                                {messages.settingsDebugStorageBreakdownKeyColumn}
+                              </th>
+                              <th>
+                                {
+                                  messages.settingsDebugStorageBreakdownUsageColumn
+                                }
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {storageDiagnostics.localStorageKeys.map((row) => (
+                              <tr key={row.key}>
+                                <td title={row.key}>{row.key}</td>
+                                <td>{row.formatted}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : storageDiagnostics.localStorageBytes !== null ? (
+                      <p className={styles.muted}>
+                        {messages.settingsDebugStorageNoLocalStorageKeys}
+                      </p>
+                    ) : null}
+                  </section>
+                </>
+              ) : null}
+            </div>
+          }
+          actions={
+            <>
+              <button
+                type="button"
+                className={styles.confirmCancel}
+                onClick={() => setStorageDiagnosticsOpen(false)}
+              >
+                {messages.closeLabel}
+              </button>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => void refreshStorageDiagnostics()}
+                disabled={storageDiagnosticsLoading}
+              >
+                {messages.settingsDebugStorageRefreshButton}
+              </button>
+            </>
+          }
+          closeOnBackdrop
+          onClose={() => setStorageDiagnosticsOpen(false)}
+        />
+      ) : null}
       <input
         ref={fileInputRef}
         type="file"

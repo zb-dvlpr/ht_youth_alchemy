@@ -506,6 +506,23 @@ export const messagesIt: Messages = {
     settingsGeneralEnableScalingLabel: "Abilita scalatura app",
     settingsGeneralEnableScalingTooltip:
       "Quando attiva, l app si scala per adattarsi al viewport e ridurre lo scorrimento. Quando disattiva, l app usa dimensione normale e può scorrere.",
+    settingsStorageManagementButton: "Gestione archiviazione",
+    settingsStorageManagementTitle: "Gestione archiviazione",
+    settingsStorageManagementTotalUsed: "Archiviazione usata: {{size}}",
+    settingsStorageManagementKeyColumn: "Chiave",
+    settingsStorageManagementUsageColumn: "Uso",
+    settingsStorageManagementActionColumn: "Azione",
+    settingsStorageManagementWipeButton: "Cancella",
+    settingsStorageManagementNoKeys: "Nessuna chiave localStorage trovata.",
+    settingsStorageManagementWipeConfirmTitle:
+      "Cancellare la chiave di archiviazione?",
+    settingsStorageManagementWipeConfirmBody:
+      'Stai per cancellare "{{key}}" dall archiviazione locale. Una volta cancellata, l azione non puo essere annullata. Dati, impostazioni, cache o stato dell app salvati sotto questa chiave potrebbero andare persi.',
+    settingsStorageManagementWipeSuccess:
+      "Chiave di archiviazione cancellata: {{key}}",
+    settingsStorageManagementWipeError:
+      "Impossibile cancellare la chiave di archiviazione: {{key}}",
+    settingsStorageManagementReadError: "Impossibile leggere localStorage.",
     settingsMachineLearningTitle: "Apprendimento automatico",
     settingsMachineLearningBody:
       "Gli snapshot dei giocatori senior vengono appresi automaticamente dagli aggiornamenti senior e dai dettagli dei risultati di mercato.",
@@ -595,6 +612,21 @@ export const messagesIt: Messages = {
     settingsDebugDisableScalingLabel: "Mostra aggiornamenti fittizi",
     settingsDebugRandomNewMarkersLabel: "Mostra marker NEW casuali",
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
+    settingsDebugStorageButton: "Archiviazione",
+    settingsDebugStorageTitle: "Diagnostica archiviazione",
+    settingsDebugStorageLoading: "Lettura diagnostica archiviazione...",
+    settingsDebugStorageOriginEstimateLabel: "Archiviazione origine stimata",
+    settingsDebugStorageOriginUnavailable:
+      "Archiviazione origine stimata non disponibile",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Uso approssimativo di localStorage",
+    settingsDebugStorageBreakdownKeyColumn: "Chiave",
+    settingsDebugStorageBreakdownUsageColumn: "Uso appross.",
+    settingsDebugStorageNoLocalStorageKeys:
+      "Nessuna chiave localStorage trovata.",
+    settingsDebugStorageRefreshButton: "Aggiorna",
+    settingsDebugStorageError:
+      "Impossibile leggere la diagnostica archiviazione.",
     clubChronicleLeaguePanelTitle: "Prestazione in lega e coppa",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
     clubChronicleNoTeams:

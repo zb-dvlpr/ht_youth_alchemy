@@ -502,6 +502,21 @@ export const messagesSv: Messages = {
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",
     settingsGeneralEnableScalingTooltip:
       "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
+    settingsStorageManagementButton: "Lagringshantering",
+    settingsStorageManagementTitle: "Lagringshantering",
+    settingsStorageManagementTotalUsed: "Anvand lagring: {{size}}",
+    settingsStorageManagementKeyColumn: "Nyckel",
+    settingsStorageManagementUsageColumn: "Anvandning",
+    settingsStorageManagementActionColumn: "Atgard",
+    settingsStorageManagementWipeButton: "Rensa",
+    settingsStorageManagementNoKeys: "Inga localStorage-nycklar hittades.",
+    settingsStorageManagementWipeConfirmTitle: "Rensa lagringsnyckel?",
+    settingsStorageManagementWipeConfirmBody:
+      'Du ar pa vag att rensa "{{key}}" fran lokal lagring. Nar den har rensats kan detta inte angas. Appdata, installningar, cache eller status som lagras under nyckeln kan ga forlorade.',
+    settingsStorageManagementWipeSuccess: "Lagringsnyckel rensad: {{key}}",
+    settingsStorageManagementWipeError:
+      "Kunde inte rensa lagringsnyckel: {{key}}",
+    settingsStorageManagementReadError: "Kunde inte lasa localStorage.",
     settingsMachineLearningTitle: "Maskininlärning",
     settingsMachineLearningBody:
       "Senior-spelarsnapshots lärs in automatiskt från senioruppdateringar och detaljer i transfermarknadsresultat.",
@@ -591,6 +606,20 @@ export const messagesSv: Messages = {
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
+    settingsDebugStorageButton: "Lagring",
+    settingsDebugStorageTitle: "Lagringsdiagnostik",
+    settingsDebugStorageLoading: "Laser lagringsdiagnostik...",
+    settingsDebugStorageOriginEstimateLabel: "Uppskattad ursprungslagring",
+    settingsDebugStorageOriginUnavailable:
+      "Uppskattad ursprungslagring ar inte tillganglig",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Ungefarlig localStorage-anvandning",
+    settingsDebugStorageBreakdownKeyColumn: "Nyckel",
+    settingsDebugStorageBreakdownUsageColumn: "Ungefarlig anvandning",
+    settingsDebugStorageNoLocalStorageKeys:
+      "Inga localStorage-nycklar hittades.",
+    settingsDebugStorageRefreshButton: "Uppdatera",
+    settingsDebugStorageError: "Kunde inte lasa lagringsdiagnostik.",
     clubChronicleLeaguePanelTitle: "Ligaprestanda och cup",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams:

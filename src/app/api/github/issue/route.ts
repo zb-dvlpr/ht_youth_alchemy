@@ -12,6 +12,7 @@ import {
 import { hattrickComposeMailUrl } from "@/lib/hattrick/urls";
 import { fetchChppXml, getChppAuth } from "@/lib/chpp/server";
 import { getMessages, type Locale } from "@/lib/i18n";
+import type { FeedbackStorageMetadata } from "@/lib/storageDiagnostics";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,7 @@ type FeedbackIssueRequest = {
   appVersion?: string;
   managerUserId?: string;
   managerLoginname?: string;
+  storage?: FeedbackStorageMetadata;
 };
 
 const MAX_TITLE_LENGTH = 140;
@@ -49,6 +51,41 @@ const sanitizeText = (
 
 const renderMarkdownSection = (label: string, value: string | null) =>
   value ? `## ${label}\n\n${value}` : null;
+
+const escapeInlineCode = (value: string) => value.replace(/`/g, "\\`");
+
+const renderStorageMetadata = (storage: FeedbackStorageMetadata | undefined) => {
+  if (!storage) return null;
+  const lines = [
+    "- Storage:",
+    `  - localStorage total: ${
+      storage.localStorageTotalFormatted ??
+      (typeof storage.localStorageTotalBytes === "number"
+        ? `${storage.localStorageTotalBytes} B`
+        : "unknown")
+    }`,
+  ];
+  if (storage.error) {
+    lines.push(`  - Error: ${sanitizeText(storage.error, 500) ?? "unknown"}`);
+  }
+  if (Array.isArray(storage.localStorageKeys)) {
+    for (const row of storage.localStorageKeys) {
+      if (!row || typeof row.key !== "string") continue;
+      const bytes =
+        typeof row.bytes === "number" && Number.isFinite(row.bytes)
+          ? row.bytes
+          : null;
+      const formatted =
+        typeof row.formatted === "string" && row.formatted.trim()
+          ? row.formatted.trim().slice(0, 64)
+          : bytes !== null
+            ? `${bytes} B`
+            : "unknown";
+      lines.push(`  - \`${escapeInlineCode(row.key.slice(0, 240))}\`: ${formatted}`);
+    }
+  }
+  return lines.join("\n");
+};
 
 const normalizeLocale = (value: unknown): Locale | undefined => {
   if (
@@ -118,6 +155,7 @@ const buildIssueBody = (
     `- Locale: ${payload.locale ?? "unknown"}`,
     `- Submitted at: ${new Date().toISOString()}`,
     `- User agent: ${request.headers.get("user-agent") ?? "unknown"}`,
+    renderStorageMetadata(payload.storage),
   ].join("\n");
 
   return [...sections.filter(Boolean), "## Metadata\n\n" + metadata].join("\n\n");

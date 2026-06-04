@@ -506,6 +506,21 @@ export const messagesFr: Messages = {
     settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",
     settingsGeneralEnableScalingTooltip:
       "Si activé, l app est mise à l échelle pour s adapter au viewport et réduire le défilement. Si désactivé, l app reste à taille normale et peut défiler.",
+    settingsStorageManagementButton: "Gestion du stockage",
+    settingsStorageManagementTitle: "Gestion du stockage",
+    settingsStorageManagementTotalUsed: "Stockage utilisé : {{size}}",
+    settingsStorageManagementKeyColumn: "Cle",
+    settingsStorageManagementUsageColumn: "Utilisation",
+    settingsStorageManagementActionColumn: "Action",
+    settingsStorageManagementWipeButton: "Effacer",
+    settingsStorageManagementNoKeys: "Aucune cle localStorage trouvee.",
+    settingsStorageManagementWipeConfirmTitle: "Effacer la cle de stockage ?",
+    settingsStorageManagementWipeConfirmBody:
+      'Vous allez effacer "{{key}}" du stockage local. Une fois effacee, cette action ne peut pas etre annulee. Les donnees, parametres, caches ou etats stockes sous cette cle peuvent etre perdus.',
+    settingsStorageManagementWipeSuccess: "Cle de stockage effacee : {{key}}",
+    settingsStorageManagementWipeError:
+      "Impossible d effacer la cle de stockage : {{key}}",
+    settingsStorageManagementReadError: "Impossible de lire localStorage.",
     settingsMachineLearningTitle: "Apprentissage automatique",
     settingsMachineLearningBody:
       "Les instantanés de joueurs seniors sont appris automatiquement depuis les actualisations seniors et les détails des résultats du marché.",
@@ -595,6 +610,19 @@ export const messagesFr: Messages = {
     settingsDebugDisableScalingLabel: "Afficher des dernières mises à jour fictives",
     settingsDebugRandomNewMarkersLabel: "Afficher des marqueurs NEW aléatoires",
     settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
+    settingsDebugStorageButton: "Stockage",
+    settingsDebugStorageTitle: "Diagnostic du stockage",
+    settingsDebugStorageLoading: "Lecture du diagnostic du stockage...",
+    settingsDebugStorageOriginEstimateLabel: "Stockage d'origine estime",
+    settingsDebugStorageOriginUnavailable:
+      "Stockage d'origine estime indisponible",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Utilisation approx. de localStorage",
+    settingsDebugStorageBreakdownKeyColumn: "Cle",
+    settingsDebugStorageBreakdownUsageColumn: "Utilisation approx.",
+    settingsDebugStorageNoLocalStorageKeys: "Aucune cle localStorage trouvee.",
+    settingsDebugStorageRefreshButton: "Actualiser",
+    settingsDebugStorageError: "Impossible de lire le diagnostic du stockage.",
     clubChronicleLeaguePanelTitle: "Performance en ligue et coupe",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
     clubChronicleNoTeams:

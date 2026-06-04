@@ -1705,6 +1705,81 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #3f362c;
 }
 
+.storageDiagnosticsSection {
+  display: grid;
+  gap: 6px;
+}
+
+.storageDiagnosticsHeading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+.storageDiagnosticsValue {
+  margin: 0;
+  color: #5d5246;
+  font-size: 14px;
+}
+
+.storageDiagnosticsTableWrap {
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  border: 1px solid #e0d6c6;
+  border-radius: 10px;
+  background: #f7f2ea;
+}
+
+.storageDiagnosticsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.storageDiagnosticsTable th,
+.storageDiagnosticsTable td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #e0d6c6;
+  text-align: left;
+  vertical-align: top;
+}
+
+.storageDiagnosticsTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f4efe6;
+  color: #6a5f50;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.storageDiagnosticsTable td:first-child {
+  max-width: 380px;
+  overflow-wrap: anywhere;
+  color: #3f362c;
+}
+
+.storageDiagnosticsTable td:nth-child(2),
+.storageDiagnosticsTable th:nth-child(2) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.storageDiagnosticsTable td:last-child,
+.storageDiagnosticsTable th:last-child {
+  width: 110px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.storageDiagnosticsTable .settingsDangerButton {
+  justify-self: end;
+}
+
 .confirmCard.feedbackModal {
   width: min(760px, 94vw);
 }
@@ -6000,6 +6075,30 @@ html[data-theme="dark"] .settingsInfoGrid span {
 
 html[data-theme="dark"] .settingsInfoGrid strong {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .storageDiagnosticsHeading,
+html[data-theme="dark"] .storageDiagnosticsTable td:first-child {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .storageDiagnosticsValue {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTableWrap {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #1f1a13;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTable th {
+  background: #26211c;
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTable th,
+html[data-theme="dark"] .storageDiagnosticsTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
 

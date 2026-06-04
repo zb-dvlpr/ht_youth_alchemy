@@ -504,6 +504,22 @@ export const messagesEs: Messages = {
     settingsGeneralEnableScalingLabel: "Activar escalado de la app",
     settingsGeneralEnableScalingTooltip:
       "Si está activado, la app se escala para ajustarse al viewport y reducir el desplazamiento. Si está desactivado, la app usa tamaño normal y puede desplazarse.",
+    settingsStorageManagementButton: "Gestionar almacenamiento",
+    settingsStorageManagementTitle: "Gestionar almacenamiento",
+    settingsStorageManagementTotalUsed: "Almacenamiento usado: {{size}}",
+    settingsStorageManagementKeyColumn: "Clave",
+    settingsStorageManagementUsageColumn: "Uso",
+    settingsStorageManagementActionColumn: "Accion",
+    settingsStorageManagementWipeButton: "Borrar",
+    settingsStorageManagementNoKeys: "No se encontraron claves localStorage.",
+    settingsStorageManagementWipeConfirmTitle: "¿Borrar clave de almacenamiento?",
+    settingsStorageManagementWipeConfirmBody:
+      'Estas a punto de borrar "{{key}}" del almacenamiento local. Una vez borrada, esta accion no se puede deshacer. Pueden perderse datos, ajustes, cache o estado de la app almacenados bajo esta clave.',
+    settingsStorageManagementWipeSuccess:
+      "Clave de almacenamiento borrada: {{key}}",
+    settingsStorageManagementWipeError:
+      "No se pudo borrar la clave de almacenamiento: {{key}}",
+    settingsStorageManagementReadError: "No se pudo leer localStorage.",
     settingsMachineLearningTitle: "Aprendizaje automático",
     settingsMachineLearningBody:
       "Las instantáneas de jugadores senior se aprenden automáticamente desde refrescos senior y detalles de resultados del mercado.",
@@ -593,6 +609,21 @@ export const messagesEs: Messages = {
     settingsDebugDisableScalingLabel: "Mostrar actualizaciones ficticias",
     settingsDebugRandomNewMarkersLabel: "Mostrar marcadores NEW aleatorios",
     settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatorios",
+    settingsDebugStorageButton: "Almacenamiento",
+    settingsDebugStorageTitle: "Diagnostico de almacenamiento",
+    settingsDebugStorageLoading: "Leyendo diagnostico de almacenamiento...",
+    settingsDebugStorageOriginEstimateLabel: "Almacenamiento de origen estimado",
+    settingsDebugStorageOriginUnavailable:
+      "Almacenamiento de origen estimado no disponible",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Uso aprox. de localStorage",
+    settingsDebugStorageBreakdownKeyColumn: "Clave",
+    settingsDebugStorageBreakdownUsageColumn: "Uso aprox.",
+    settingsDebugStorageNoLocalStorageKeys:
+      "No se encontraron claves de localStorage.",
+    settingsDebugStorageRefreshButton: "Actualizar",
+    settingsDebugStorageError:
+      "No se pudo leer el diagnostico de almacenamiento.",
     clubChronicleLeaguePanelTitle: "Rendimiento en liga y copa",
     clubChronicleLeaguePanelEmpty: "Aún no hay datos de liga.",
     clubChronicleNoTeams:

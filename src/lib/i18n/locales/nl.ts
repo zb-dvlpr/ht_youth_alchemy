@@ -75,6 +75,20 @@ export const messagesNl: Messages = {
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",
   settingsDebugBuyCoffeePromptButton: "Toon koop-een-koffie-voor-me-modal",
+  settingsDebugStorageButton: "Opslag",
+  settingsDebugStorageTitle: "Opslagdiagnostiek",
+  settingsDebugStorageLoading: "Opslagdiagnostiek lezen...",
+  settingsDebugStorageOriginEstimateLabel: "Geschatte origin-opslag",
+  settingsDebugStorageOriginUnavailable:
+    "Geschatte origin-opslag niet beschikbaar",
+  settingsDebugStorageLocalStorageApproxLabel:
+    "Geschat localStorage-gebruik",
+  settingsDebugStorageBreakdownKeyColumn: "Sleutel",
+  settingsDebugStorageBreakdownUsageColumn: "Geschat gebruik",
+  settingsDebugStorageNoLocalStorageKeys:
+    "Geen localStorage-sleutels gevonden.",
+  settingsDebugStorageRefreshButton: "Vernieuwen",
+  settingsDebugStorageError: "Kon opslagdiagnostiek niet lezen.",
   buyCoffeePromptTitle: "☕ Fijn dat je hier bent",
   buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Alchemy gebruikt.",
   buyCoffeePromptBody:
@@ -310,6 +324,21 @@ export const messagesNl: Messages = {
   settingsGeneralImportAllLabel: "Alle instellingen importeren",
   settingsGeneralImportAllHint:
     "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
+  settingsStorageManagementButton: "Opslagbeheer",
+  settingsStorageManagementTitle: "Opslagbeheer",
+  settingsStorageManagementTotalUsed: "Gebruikte opslag: {{size}}",
+  settingsStorageManagementKeyColumn: "Sleutel",
+  settingsStorageManagementUsageColumn: "Gebruik",
+  settingsStorageManagementActionColumn: "Actie",
+  settingsStorageManagementWipeButton: "Wissen",
+  settingsStorageManagementNoKeys: "Geen localStorage-sleutels gevonden.",
+  settingsStorageManagementWipeConfirmTitle: "Opslagsleutel wissen?",
+  settingsStorageManagementWipeConfirmBody:
+    'Je staat op het punt "{{key}}" uit lokale opslag te wissen. Na wissen kan dit niet ongedaan worden gemaakt. Appgegevens, instellingen, cache of status onder deze sleutel kunnen verloren gaan.',
+  settingsStorageManagementWipeSuccess: "Opslagsleutel gewist: {{key}}",
+  settingsStorageManagementWipeError:
+    "Kon opslagsleutel niet wissen: {{key}}",
+  settingsStorageManagementReadError: "Kon localStorage niet lezen.",
   settingsMachineLearningTitle: "Machine learning",
   settingsMachineLearningBody:
     "Senior-spelerssnapshots worden automatisch geleerd uit seniorverversingen en details van transfermarktresultaten.",

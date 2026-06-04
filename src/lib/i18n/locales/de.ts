@@ -499,7 +499,36 @@ export const messagesDe: Messages = {
     settingsGeneralImportAllHint:
       "Importiert eine zuvor exportierte JSON-Sicherung und ersetzt die aktuellen lokalen App-Einstellungen und Cache-Zustände.",
     settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
+    settingsStorageManagementButton: "Speicherverwaltung",
+    settingsStorageManagementTitle: "Speicherverwaltung",
+    settingsStorageManagementTotalUsed: "Genutzter Speicher: {{size}}",
+    settingsStorageManagementKeyColumn: "Schluessel",
+    settingsStorageManagementUsageColumn: "Nutzung",
+    settingsStorageManagementActionColumn: "Aktion",
+    settingsStorageManagementWipeButton: "Loeschen",
+    settingsStorageManagementNoKeys: "Keine localStorage-Schluessel gefunden.",
+    settingsStorageManagementWipeConfirmTitle: "Speicherschluessel loeschen?",
+    settingsStorageManagementWipeConfirmBody:
+      'Du bist dabei, "{{key}}" aus dem lokalen Speicher zu loeschen. Nach dem Loeschen kann dies nicht rueckgaengig gemacht werden. App-Daten, Einstellungen, Cache oder Status unter diesem Schluessel koennen verloren gehen.',
+    settingsStorageManagementWipeSuccess: "Speicherschluessel geloescht: {{key}}",
+    settingsStorageManagementWipeError:
+      "Speicherschluessel konnte nicht geloescht werden: {{key}}",
+    settingsStorageManagementReadError: "localStorage konnte nicht gelesen werden.",
     settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
+    settingsDebugStorageButton: "Speicher",
+    settingsDebugStorageTitle: "Speicherdiagnose",
+    settingsDebugStorageLoading: "Speicherdiagnose wird gelesen...",
+    settingsDebugStorageOriginEstimateLabel: "Geschaetzter Ursprungsspeicher",
+    settingsDebugStorageOriginUnavailable:
+      "Geschaetzter Ursprungsspeicher nicht verfuegbar",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Ungefaehre localStorage-Nutzung",
+    settingsDebugStorageBreakdownKeyColumn: "Schluessel",
+    settingsDebugStorageBreakdownUsageColumn: "Ungefaehre Nutzung",
+    settingsDebugStorageNoLocalStorageKeys:
+      "Keine localStorage-Schluessel gefunden.",
+    settingsDebugStorageRefreshButton: "Aktualisieren",
+    settingsDebugStorageError: "Speicherdiagnose konnte nicht gelesen werden.",
     settingsGeneralEnableScalingTooltip:
       "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
     settingsMachineLearningTitle: "Maschinelles Lernen",

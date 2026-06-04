@@ -78,6 +78,11 @@ import {
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
 import {
+  estimateChronicleMainSkillFromWage,
+  PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
+  resolveChronicleDominantPlayingPosition,
+} from "@/lib/clubChronicle/mainSkillEstimation";
+import {
   matchRoleIdToPositionKey,
   normalizeMatchRoleId,
   positionLabelShortByRoleId,
@@ -389,62 +394,13 @@ type PlayingPositionEntry = {
   minutes: number;
 };
 
-const PLAYING_POSITION_SORT_BUCKET_NO_VALUE = 4;
-
-const resolvePlayingPositionRoleSortBucket = (
-  roleId: number | null | undefined
-) => {
-  const positionKey = matchRoleIdToPositionKey(roleId);
-  switch (positionKey) {
-    case "KP":
-      return 0;
-    case "WB":
-    case "CD":
-      return 1;
-    case "W":
-    case "IM":
-      return 2;
-    case "F":
-      return 3;
-    default:
-      return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
-  }
-};
-
 const resolvePlayingPositionSortBucket = (
   entries: PlayingPositionEntry[] | null | undefined
 ): number => {
-  if (!entries || entries.length === 0) {
-    return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
-  }
-
-  return entries.reduce<{
-    bucket: number;
-    minutes: number;
-    roleId: number;
-  }>(
-    (best, entry) => {
-      const minutes = entry.minutes;
-      const roleId = normalizeMatchRoleId(entry.roleId);
-      if (!roleId || !Number.isFinite(minutes) || minutes <= 0) return best;
-      const bucket = resolvePlayingPositionRoleSortBucket(roleId);
-      if (bucket === PLAYING_POSITION_SORT_BUCKET_NO_VALUE) return best;
-      if (
-        minutes > best.minutes ||
-        (minutes === best.minutes &&
-          (bucket < best.bucket ||
-            (bucket === best.bucket && roleId < best.roleId)))
-      ) {
-        return { bucket, minutes, roleId };
-      }
-      return best;
-    },
-    {
-      bucket: PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
-      minutes: -1,
-      roleId: Number.POSITIVE_INFINITY,
-    }
-  ).bucket;
+  return (
+    resolveChronicleDominantPlayingPosition(entries)?.sortBucket ??
+    PLAYING_POSITION_SORT_BUCKET_NO_VALUE
+  );
 };
 
 type TsiData = {
@@ -485,6 +441,8 @@ type TsiPlayerRow = {
   leadership: number | null;
   loyalty: number | null;
   tsi: number;
+  salarySek: number | null;
+  wageIncludesForeignBonus?: boolean | null;
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
   usedAsManMarker: boolean;
@@ -1166,6 +1124,106 @@ const ChronicleTable = <Row, Snapshot>({
     })}
   </div>
 );
+
+const ChronicleDetailHorizontalScroll = ({
+  children,
+  refreshKey,
+}: {
+  children: ReactNode;
+  refreshKey: string;
+}) => {
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+  const floatingScrollRef = useRef<HTMLDivElement | null>(null);
+  const syncingScrollRef = useRef(false);
+  const [scrollMetrics, setScrollMetrics] = useState({
+    hasOverflow: false,
+    scrollWidth: 0,
+  });
+
+  const updateScrollMetrics = useCallback(() => {
+    const tableScroll = tableScrollRef.current;
+    const floatingScroll = floatingScrollRef.current;
+    if (!tableScroll) return;
+    const scrollWidth = tableScroll.scrollWidth;
+    const clientWidth = tableScroll.clientWidth;
+    const hasOverflow = scrollWidth > clientWidth + 1;
+    setScrollMetrics((current) =>
+      current.hasOverflow === hasOverflow && current.scrollWidth === scrollWidth
+        ? current
+        : { hasOverflow, scrollWidth }
+    );
+    if (floatingScroll) {
+      floatingScroll.scrollLeft = tableScroll.scrollLeft;
+    }
+  }, []);
+
+  useEffect(() => {
+    updateScrollMetrics();
+    const tableScroll = tableScrollRef.current;
+    if (!tableScroll) return;
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateScrollMetrics);
+    resizeObserver?.observe(tableScroll);
+    if (tableScroll.firstElementChild) {
+      resizeObserver?.observe(tableScroll.firstElementChild);
+    }
+    window.addEventListener("resize", updateScrollMetrics);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateScrollMetrics);
+    };
+  }, [refreshKey, updateScrollMetrics]);
+
+  useEffect(() => {
+    if (tableScrollRef.current && floatingScrollRef.current) {
+      floatingScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
+    }
+  }, [scrollMetrics.hasOverflow]);
+
+  const syncScroll = (
+    source: HTMLDivElement | null,
+    target: HTMLDivElement | null
+  ) => {
+    if (!source || !target || syncingScrollRef.current) return;
+    syncingScrollRef.current = true;
+    target.scrollLeft = source.scrollLeft;
+    window.requestAnimationFrame(() => {
+      syncingScrollRef.current = false;
+    });
+  };
+
+  return (
+    <div className={styles.chronicleDetailTableScrollHost}>
+      <div
+        ref={tableScrollRef}
+        className={`${styles.chronicleTransferHistoryTableWrap} ${styles.chronicleDetailTableScroll}`}
+        onScroll={() =>
+          syncScroll(tableScrollRef.current, floatingScrollRef.current)
+        }
+      >
+        {children}
+      </div>
+      {scrollMetrics.hasOverflow ? (
+        <div
+          ref={floatingScrollRef}
+          className={styles.chronicleDetailFloatingScrollbar}
+          onScroll={() =>
+            syncScroll(floatingScrollRef.current, tableScrollRef.current)
+          }
+        >
+          <div
+            className={styles.chronicleDetailFloatingScrollbarSpacer}
+            style={{ width: scrollMetrics.scrollWidth }}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 const ChroniclePanel = ({
   title,
@@ -11036,6 +11094,70 @@ type Form7LineupSnapshot = {
       .join(", ");
   };
 
+  const resolveChronicleMainSkillEstimation = (
+    snapshot:
+      | Pick<
+          WagesPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | Pick<
+          TsiPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | null
+      | undefined
+  ) =>
+    estimateChronicleMainSkillFromWage({
+      salarySek: snapshot?.salarySek,
+      ageYears: snapshot?.age,
+      specialty: snapshot?.specialty,
+      wageIncludesForeignBonus: snapshot?.wageIncludesForeignBonus,
+      playingPositions: snapshot?.playingPositions,
+    });
+
+  const formatChronicleMainSkillEstimation = (
+    snapshot:
+      | Pick<
+          WagesPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | Pick<
+          TsiPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | null
+      | undefined
+  ) => {
+    const estimation = resolveChronicleMainSkillEstimation(snapshot);
+    if (estimation.kind === "tooOld") {
+      return messages.clubChronicleMainSkillEstimationTooOld;
+    }
+    if (estimation.kind !== "estimated") return messages.unknownShort;
+    const positionLabel =
+      positionLabelShortByRoleId(estimation.dominantRoleId, messages) ??
+      estimation.dominantPositionKey;
+    return `${estimation.level} (${positionLabel})`;
+  };
+
+  const resolveChronicleMainSkillEstimationSortValue = (
+    snapshot:
+      | Pick<
+          WagesPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | Pick<
+          TsiPlayerRow,
+          "salarySek" | "age" | "specialty" | "wageIncludesForeignBonus" | "playingPositions"
+        >
+      | null
+      | undefined
+  ) => {
+    const estimation = resolveChronicleMainSkillEstimation(snapshot);
+    if (estimation.kind === "estimated") return estimation.level;
+    if (estimation.kind === "tooOld") return 1000;
+    return 1001;
+  };
+
   const allowedPositionKeysByLikelyTrainingKey: Record<
     LikelyTrainingKey,
     PositionKey[]
@@ -14656,6 +14778,12 @@ type Form7LineupSnapshot = {
   const selectedWagesTeam = selectedWagesTeamId
     ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
     : null;
+  const selectedTsiWagesPlayersById = useMemo(() => {
+    const players = selectedTsiTeam
+      ? chronicleCache.teams[selectedTsiTeam.teamId]?.wages?.current?.players ?? []
+      : [];
+    return new Map(players.map((player) => [player.playerId, player]));
+  }, [chronicleCache.teams, selectedTsiTeam]);
   const selectedTsiLikelyTrainingSnapshot = selectedTsiTeam
     ? chronicleCache.teams[selectedTsiTeam.teamId]?.formationsTactics?.current ?? null
     : null;
@@ -15604,23 +15732,33 @@ type Form7LineupSnapshot = {
   );
   const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
     () =>
-      (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => ({
-        teamId: selectedTsiTeam?.teamId ?? 0,
-        ...row,
-        playerNumber: index + 1,
-        form7Ratings:
-          selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
-        playingPositions:
-          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
-        usedAsManMarker:
-          selectedTsiTeam?.manMarkerByPlayerId?.[row.playerId] === true,
-        isLikelyTrainee: isLikelyTraineeForChronicleDetail(
-          row.age,
-          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
-          selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey
-        ),
-      })),
-    [selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey, selectedTsiTeam]
+      (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => {
+        const wagesPlayer = selectedTsiWagesPlayersById.get(row.playerId);
+        const playingPositions =
+          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [];
+        return {
+          teamId: selectedTsiTeam?.teamId ?? 0,
+          ...row,
+          salarySek: wagesPlayer?.salarySek ?? null,
+          wageIncludesForeignBonus: wagesPlayer?.wageIncludesForeignBonus ?? null,
+          playerNumber: index + 1,
+          form7Ratings:
+            selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
+          playingPositions,
+          usedAsManMarker:
+            selectedTsiTeam?.manMarkerByPlayerId?.[row.playerId] === true,
+          isLikelyTrainee: isLikelyTraineeForChronicleDetail(
+            row.age,
+            playingPositions,
+            selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey
+          ),
+        };
+      }),
+    [
+      selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey,
+      selectedTsiTeam,
+      selectedTsiWagesPlayersById,
+    ]
   );
 
   const transferListedColumns = useMemo<
@@ -15847,6 +15985,14 @@ type Form7LineupSnapshot = {
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
       {
+        key: "mainSkillEstimation",
+        label: messages.clubChronicleMainSkillEstimationColumn,
+        getValue: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
+        getSortValue: (snapshot) =>
+          resolveChronicleMainSkillEstimationSortValue(snapshot),
+        renderCell: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
+      },
+      {
         key: "form7Rating",
         label: messages.clubChronicleForm7RatingColumn,
         headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
@@ -15941,6 +16087,8 @@ type Form7LineupSnapshot = {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleTsiValueColumn,
       messages.clubChroniclePlayingPositionColumn,
+      messages.clubChronicleMainSkillEstimationColumn,
+      messages.clubChronicleMainSkillEstimationTooOld,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleManMarkerColumn,
@@ -15951,6 +16099,8 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
       formatPlayingPositionEntries,
+      formatChronicleMainSkillEstimation,
+      resolveChronicleMainSkillEstimationSortValue,
       formatAgeWithDays,
       messages.unknownShort,
       messages.specialtyLabel,
@@ -16091,6 +16241,14 @@ type Form7LineupSnapshot = {
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
       {
+        key: "mainSkillEstimation",
+        label: messages.clubChronicleMainSkillEstimationColumn,
+        getValue: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
+        getSortValue: (snapshot) =>
+          resolveChronicleMainSkillEstimationSortValue(snapshot),
+        renderCell: (snapshot) => formatChronicleMainSkillEstimation(snapshot),
+      },
+      {
         key: "form7Rating",
         label: messages.clubChronicleForm7RatingColumn,
         headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
@@ -16185,6 +16343,8 @@ type Form7LineupSnapshot = {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleWagesValueColumn,
       messages.clubChroniclePlayingPositionColumn,
+      messages.clubChronicleMainSkillEstimationColumn,
+      messages.clubChronicleMainSkillEstimationTooOld,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleManMarkerColumn,
@@ -16195,6 +16355,8 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
       formatPlayingPositionEntries,
+      formatChronicleMainSkillEstimation,
+      resolveChronicleMainSkillEstimationSortValue,
       formatAgeWithDays,
       messages.unknownShort,
       messages.specialtyLabel,
@@ -21450,7 +21612,9 @@ type Form7LineupSnapshot = {
                       {messages.mobileChronicleLandscapeHint}
                     </span>
                   ) : null}
-                  <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleDetailHorizontalScroll
+                    refreshKey={`tsi:${tsiDetailsOpen}:${tsiPlayerColumns.length}:${sortedTsiPlayerRows.length}`}
+                  >
                     <ChronicleTable
                       columns={tsiPlayerColumns}
                       rows={sortedTsiPlayerRows}
@@ -21464,9 +21628,9 @@ type Form7LineupSnapshot = {
                         {
                           "--cc-columns": tsiPlayerColumns.length,
                           "--cc-template-desktop":
-                            "60px 164px 82px 94px 168px 150px 56px 68px 74px 66px 82px 78px",
+                            "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
                           "--cc-template-mobile":
-                            "44px 118px 64px 76px 134px 122px 46px 56px 62px 54px 66px 62px",
+                            "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
                           "--cc-freeze-second-left-desktop": "60px",
                           "--cc-freeze-second-left-mobile": "44px",
                         } as CSSProperties
@@ -21481,6 +21645,11 @@ type Form7LineupSnapshot = {
                         handleNoDivulgoDismiss((row as { teamId: number }).teamId)
                       }
                     />
+                  </ChronicleDetailHorizontalScroll>
+                  <div className={styles.chronicleLegend}>
+                    <span className={styles.chronicleLegendText}>
+                      {messages.clubChronicleMainSkillEstimationFootnote}
+                    </span>
                   </div>
                   {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
                   {renderChronicleDetailModalMatchCountNote(
@@ -21528,7 +21697,9 @@ type Form7LineupSnapshot = {
                       {messages.mobileChronicleLandscapeHint}
                     </span>
                   ) : null}
-                  <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleDetailHorizontalScroll
+                    refreshKey={`wages:${wagesDetailsOpen}:${wagesPlayerColumns.length}:${sortedWagesPlayerRows.length}`}
+                  >
                     <ChronicleTable
                       columns={wagesPlayerColumns}
                       rows={sortedWagesPlayerRows}
@@ -21542,9 +21713,9 @@ type Form7LineupSnapshot = {
                         {
                           "--cc-columns": wagesPlayerColumns.length,
                           "--cc-template-desktop":
-                            "60px 164px 82px 102px 168px 150px 56px 68px 74px 66px 82px 78px",
+                            "60px 164px 82px 102px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
                           "--cc-template-mobile":
-                            "44px 118px 64px 84px 134px 122px 46px 56px 62px 54px 66px 62px",
+                            "44px 118px 64px 84px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
                           "--cc-freeze-second-left-desktop": "60px",
                           "--cc-freeze-second-left-mobile": "44px",
                         } as CSSProperties
@@ -21559,6 +21730,11 @@ type Form7LineupSnapshot = {
                         handleNoDivulgoDismiss((row as { teamId: number }).teamId)
                       }
                     />
+                  </ChronicleDetailHorizontalScroll>
+                  <div className={styles.chronicleLegend}>
+                    <span className={styles.chronicleLegendText}>
+                      {messages.clubChronicleMainSkillEstimationFootnote}
+                    </span>
                   </div>
                   {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
                   <div className={styles.chronicleLegend}>

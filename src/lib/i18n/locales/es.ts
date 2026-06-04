@@ -898,6 +898,10 @@ export const messagesEs: Messages = {
     clubChronicleTsiPlayerColumn: "Jugador",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Pos. jug.",
+    clubChronicleMainSkillEstimationColumn: "Estimacion de habilidad principal*",
+    clubChronicleMainSkillEstimationFootnote:
+      "* La estimacion de habilidad principal es solo aproximada.",
+    clubChronicleMainSkillEstimationTooOld: "Jugador demasiado viejo",
     clubChronicleForm7RatingColumn: "Valoracion forma 7",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:

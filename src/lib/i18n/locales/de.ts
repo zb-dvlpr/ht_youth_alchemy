@@ -888,6 +888,10 @@ export const messagesDe: Messages = {
     clubChronicleTsiPlayerColumn: "Spieler",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Spielpos.",
+    clubChronicleMainSkillEstimationColumn: "Hauptskill-Schaetzung*",
+    clubChronicleMainSkillEstimationFootnote:
+      "* Die Hauptskill-Schaetzung ist nur eine grobe Schaetzung.",
+    clubChronicleMainSkillEstimationTooOld: "Spieler zu alt",
     clubChronicleForm7RatingColumn: "Form-7-Bewertung",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:

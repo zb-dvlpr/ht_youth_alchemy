@@ -892,6 +892,10 @@ export const messagesSv: Messages = {
     clubChronicleTsiPlayerColumn: "Spelare",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Spelpos.",
+    clubChronicleMainSkillEstimationColumn: "Uppskattning av huvudfardighet*",
+    clubChronicleMainSkillEstimationFootnote:
+      "* Uppskattningen av huvudfardighet ar bara grov.",
+    clubChronicleMainSkillEstimationTooOld: "Spelaren ar for gammal",
     clubChronicleForm7RatingColumn: "Form-7-betyg",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:

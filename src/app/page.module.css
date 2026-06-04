@@ -4000,10 +4000,35 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   );
   gap: 1px;
   padding: 8px 4px 6px;
+  align-items: stretch;
+  line-height: 1.15;
 }
 
 .chronicleTsiWagesDetailTable .chronicleTableHeader > span {
   padding: 0 1px 0 0;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderItem {
+  align-items: center;
+  white-space: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderButton {
+  white-space: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderButton > span:not(.chronicleTableSortIcon) {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableSortIcon {
+  flex: 0 0 auto;
 }
 
 .chronicleTableFreezeFirstColumn .chronicleTableHeader > span:first-child {
@@ -4687,6 +4712,37 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.chronicleDetailTableScrollHost {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 14px;
+}
+
+.chronicleDetailTableScroll {
+  scrollbar-gutter: stable;
+}
+
+.chronicleDetailFloatingScrollbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 18;
+  width: 100%;
+  height: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: linear-gradient(
+    to bottom,
+    rgba(244, 239, 230, 0),
+    #f4efe6 35%,
+    #f4efe6
+  );
+}
+
+.chronicleDetailFloatingScrollbarSpacer {
+  height: 1px;
 }
 
 .chronicleTransferListedTableWrap .chronicleTableCell {
@@ -6178,6 +6234,15 @@ html[data-theme="dark"] .chronicleTableHeader {
   background: #26211c;
   border-bottom-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .chronicleDetailFloatingScrollbar {
+  background: linear-gradient(
+    to bottom,
+    rgba(38, 33, 28, 0),
+    #26211c 35%,
+    #26211c
+  );
 }
 
 html[data-theme="dark"] .chronicleTableCell {

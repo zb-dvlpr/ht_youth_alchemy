@@ -1068,9 +1068,9 @@ export const messagesIt: Messages = {
     detailsTabLabel: "Dettagli giocatore",
     skillsMatrixTabLabel: "Matrice abilità",
     ratingsMatrixTabLabel: "Matrice valutazioni",
-    seniorSkillsMatrixBonusToggleLabel: "Applica bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Abilita effettiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Attiva o disattiva i valori con bonus effettivo nella matrice abilita senior (bonus squadra madre o lealta).",
+      "Attiva per mostrare l abilita effettiva che tiene conto di lealta, bonus squadra madre e forma.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N indica un valore aggiornato o rivelato per la prima volta dall ultimo aggiornamento.",

@@ -1022,9 +1022,9 @@ export const messagesEn: Messages = {
     detailsTabLabel: "Player details",
     skillsMatrixTabLabel: "Skills matrix",
     ratingsMatrixTabLabel: "Ratings matrix",
-    seniorSkillsMatrixBonusToggleLabel: "Apply bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Effective skill",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Toggle effective skill bonus values in the senior skills matrix (mother club or loyalty bonus).",
+      "Turn on to display effective skill which takes into account loyalty, mother club bonus and form",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
     scoutImportantSkillTooltip: "Top-3 skill",

@@ -1064,9 +1064,9 @@ export const messagesEs: Messages = {
     detailsTabLabel: "Detalles del jugador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de calificaciones",
-    seniorSkillsMatrixBonusToggleLabel: "Aplicar bono",
+    seniorSkillsMatrixBonusToggleLabel: "Habilidad efectiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Activa o desactiva los valores con bono efectivo en la matriz de habilidades senior (bono de club de origen o lealtad).",
+      "Activa para mostrar la habilidad efectiva que tiene en cuenta lealtad, bono de club de origen y forma.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca un valor actualizado o revelado por primera vez desde la ultima actualizacion.",

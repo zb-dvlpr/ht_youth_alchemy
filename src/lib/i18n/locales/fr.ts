@@ -1063,9 +1063,9 @@ export const messagesFr: Messages = {
     detailsTabLabel: "Détails du joueur",
     skillsMatrixTabLabel: "Matrice des compétences",
     ratingsMatrixTabLabel: "Matrice des notes",
-    seniorSkillsMatrixBonusToggleLabel: "Appliquer bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Competence effective",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Active ou desactive les valeurs avec bonus effectif dans la matrice des competences senior (bonus club d origine ou loyaute).",
+      "Activez pour afficher la competence effective qui tient compte de la loyaute, du bonus club d origine et de la forme.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N indique une valeur mise a jour ou nouvellement revelee depuis la derniere actualisation.",
     scoutImportantSkillTooltip: "Compétence top 3",

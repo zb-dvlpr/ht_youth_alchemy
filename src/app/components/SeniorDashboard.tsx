@@ -111,6 +111,7 @@ import {
   calculatePsicoTsiMetrics,
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
+import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -469,7 +470,6 @@ const SKILL_KEYS = [
   "ScorerSkill",
   "SetPiecesSkill",
 ] as const;
-const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const LEAGUE_QUALI_MATCH_TYPES = new Set<number>([1, 2]);
@@ -1834,33 +1834,22 @@ const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) =
     );
 };
 
-const computeSeniorSkillBonus = (
-  baseSkill: number | null,
-  details: SeniorPlayerDetails | null
-) => {
-  if (baseSkill === null) return null;
-  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
-  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
-  if (details?.MotherClubBonus) {
-    return Math.min(1.5, remaining);
-  }
-  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
-  return Math.min(Math.max(0, loyaltyRaw) / 20, remaining);
-};
-
 const computeSeniorEffectiveSkill = (
   baseSkill: number | null,
+  player: SeniorPlayer | null,
   details: SeniorPlayerDetails | null
 ) => {
-  if (baseSkill === null) return null;
-  const bonus = computeSeniorSkillBonus(baseSkill, details);
-  if (bonus === null) return null;
-  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
+  return calculateEffectiveSkill({
+    rawSkill: baseSkill,
+    loyalty: details?.Loyalty,
+    motherClubBonus: details?.MotherClubBonus,
+    form: details?.Form ?? player?.Form,
+  });
 };
 
 // NEW/N detection must always be based on raw skill values from CHPP data only.
-// Effective skill bonus layers (mother club / loyalty) are display-only and must
-// never contribute to change detection.
+// Effective skill adjustments are display-only and must never contribute to
+// change detection.
 const parseBaseSkillForNDetection = (value: unknown): number | null => parseSkill(value);
 
 const SUBSCRIPT_DIGITS: Record<string, string> = {
@@ -4645,7 +4634,7 @@ export default function SeniorDashboard({
           details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
         );
         return showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(baseSkill, details)
+          ? computeSeniorEffectiveSkill(baseSkill, player, details)
           : baseSkill;
       };
       const leftValue =
@@ -4729,7 +4718,7 @@ export default function SeniorDashboard({
           details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
         );
         return showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(baseSkill, details)
+          ? computeSeniorEffectiveSkill(baseSkill, player, details)
           : baseSkill;
       };
       const leftValue =

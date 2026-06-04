@@ -538,9 +538,9 @@ export const messagesNl: Messages = {
   detailsTabLabel: "Details",
   skillsMatrixTabLabel: "Vaardighedenmatrix",
   ratingsMatrixTabLabel: "Beoordelingsmatrix",
-  seniorSkillsMatrixBonusToggleLabel: "Bonus toepassen",
+  seniorSkillsMatrixBonusToggleLabel: "Effectieve vaardigheid",
   seniorSkillsMatrixBonusToggleTooltip:
-    "Schakel effectieve bonuswaarden in de senior vaardighedenmatrix in of uit (moederclub- of loyaliteitsbonus).",
+    "Zet aan om effectieve vaardigheid te tonen die rekening houdt met loyaliteit, moederclubbonus en vorm.",
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:

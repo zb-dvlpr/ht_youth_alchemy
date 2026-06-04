@@ -1056,9 +1056,9 @@ export const messagesSv: Messages = {
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
     ratingsMatrixTabLabel: "Betygsmatris",
-    seniorSkillsMatrixBonusToggleLabel: "Anvand bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Effektiv fardighet",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Slår av eller pa effektiva bonusvarden i seniorernas fardighetsmatris (moderklubbs- eller lojalitetsbonus).",
+      "Sla pa for att visa effektiv fardighet som tar hansyn till lojalitet, moderklubbsbonus och form.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",

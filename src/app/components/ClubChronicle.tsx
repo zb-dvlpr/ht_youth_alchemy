@@ -11133,10 +11133,7 @@ type Form7LineupSnapshot = {
       return messages.clubChronicleMainSkillEstimationTooOld;
     }
     if (estimation.kind !== "estimated") return messages.unknownShort;
-    const positionLabel =
-      positionLabelShortByRoleId(estimation.dominantRoleId, messages) ??
-      estimation.dominantPositionKey;
-    return `${estimation.level} (${positionLabel})`;
+    return `${estimation.level} (${estimation.mainSkill})`;
   };
 
   const resolveChronicleMainSkillEstimationSortValue = (

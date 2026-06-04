@@ -1052,9 +1052,9 @@ export const messagesDe: Messages = {
     detailsTabLabel: "Spielerdetails",
     skillsMatrixTabLabel: "Fähigkeitsmatrix",
     ratingsMatrixTabLabel: "Bewertungsmatrix",
-    seniorSkillsMatrixBonusToggleLabel: "Bonus anwenden",
+    seniorSkillsMatrixBonusToggleLabel: "Effektive Faehigkeit",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Schaltet effektive Faehigkeitsboni in der Senior-Faehigkeitsmatrix ein oder aus (Muttervereins- oder Loyalitaetsbonus).",
+      "Aktivieren, um effektive Faehigkeit anzuzeigen, die Loyalitaet, Muttervereinsbonus und Form beruecksichtigt.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N markiert einen seit der letzten Aktualisierung geänderten oder neu aufgedeckten Wert.",
     scoutImportantSkillTooltip: "Top-3-Fähigkeit",

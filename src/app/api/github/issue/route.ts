@@ -34,6 +34,9 @@ type FeedbackIssueRequest = {
   managerUserId?: string;
   managerLoginname?: string;
   storage?: FeedbackStorageMetadata;
+  metadata?: {
+    storage?: FeedbackStorageMetadata;
+  };
 };
 
 const MAX_TITLE_LENGTH = 140;
@@ -155,7 +158,7 @@ const buildIssueBody = (
     `- Locale: ${payload.locale ?? "unknown"}`,
     `- Submitted at: ${new Date().toISOString()}`,
     `- User agent: ${request.headers.get("user-agent") ?? "unknown"}`,
-    renderStorageMetadata(payload.storage),
+    renderStorageMetadata(payload.metadata?.storage ?? payload.storage),
   ].join("\n");
 
   return [...sections.filter(Boolean), "## Metadata\n\n" + metadata].join("\n\n");

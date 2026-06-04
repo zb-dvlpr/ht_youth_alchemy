@@ -124,7 +124,9 @@ export default function MobileManualButton({
           appVersion,
           managerUserId: initialManagerIdentity?.userId,
           managerLoginname: initialManagerIdentity?.loginname,
-          storage,
+          metadata: {
+            storage,
+          },
         }),
       });
       const payload = (await response.json().catch(() => null)) as

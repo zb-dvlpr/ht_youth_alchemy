@@ -235,6 +235,44 @@ const mainSkillByPositionKey: Partial<
 const hasSpecialty = (specialty: number | null | undefined): boolean =>
   typeof specialty === "number" && Number.isFinite(specialty) && specialty > 0;
 
+function estimateLevelFromWageMinimums(
+  baseWageEur: number,
+  wageMinimums: readonly (readonly [number, number])[]
+): number | null {
+  if (!Number.isFinite(baseWageEur)) return null;
+
+  if (wageMinimums.length === 0) return null;
+
+  const first = wageMinimums[0];
+  if (!first || baseWageEur < first[1]) return null;
+
+  for (let index = 0; index < wageMinimums.length; index += 1) {
+    const current = wageMinimums[index];
+    if (!current) continue;
+
+    const [level, minimumWageEur] = current;
+    const next = wageMinimums[index + 1];
+
+    if (!next) {
+      return level;
+    }
+
+    const [nextLevel, nextMinimumWageEur] = next;
+
+    if (baseWageEur >= minimumWageEur && baseWageEur < nextMinimumWageEur) {
+      const wageSpan = nextMinimumWageEur - minimumWageEur;
+      if (wageSpan <= 0) return level;
+
+      const fraction = (baseWageEur - minimumWageEur) / wageSpan;
+      const interpolated = level + (nextLevel - level) * fraction;
+
+      return Math.round((interpolated + Number.EPSILON) * 10) / 10;
+    }
+  }
+
+  return null;
+}
+
 export function estimateChronicleMainSkillFromWage(input: {
   salarySek: number | null | undefined;
   ageYears: number | null | undefined;
@@ -275,12 +313,7 @@ export function estimateChronicleMainSkillFromWage(input: {
   }
 
   const wageMinimums = MAIN_SKILL_WAGE_MINIMUMS_EUR[mainSkill];
-  let estimatedLevel: number | null = null;
-  for (const [level, minimumWageEur] of wageMinimums) {
-    if (baseWageEur >= minimumWageEur) {
-      estimatedLevel = level;
-    }
-  }
+  const estimatedLevel = estimateLevelFromWageMinimums(baseWageEur, wageMinimums);
 
   if (estimatedLevel === null) return { kind: "unavailable" };
 

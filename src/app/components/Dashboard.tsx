@@ -117,6 +117,10 @@ import {
   hattrickTeamUrl,
   hattrickYouthMatchUrl,
 } from "@/lib/hattrick/urls";
+import {
+  YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT,
+  type YouthPromotionReminderContextEventDetail,
+} from "@/lib/reminders/youthPromotion";
 import { setDragGhost } from "@/lib/drag";
 import {
   getMissingChppPermissions,
@@ -658,6 +662,7 @@ const TRAINING_SKILL_SECTIONS: Array<{
 ];
 const DEFAULT_PRIMARY_TRAINING: TrainingSkillKey = "keeper";
 const DEFAULT_SECONDARY_TRAINING: TrainingSkillKey = "defending";
+const TRAINING_UNSET_LABEL = "-";
 const TRAINING_SKILL_VALUE_KEYS: Record<
   TrainingSkillKey,
   { current: string; max: string }
@@ -693,6 +698,14 @@ const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
 const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
+
+const parsePersistedTraining = (
+  value: string | null,
+  fallback: TrainingSkillKey
+): TrainingSkillKey | null => {
+  if (value === null) return null;
+  return isTrainingSkill(value) ? value : fallback;
+};
 
 const toBaseTrainingSkill = (value: TrainingSkillKey): SkillKey =>
   TRAINING_BASE_SKILL_MAP[value];
@@ -1133,10 +1146,10 @@ export default function Dashboard({
     useState<number | null>(null);
   const [revealSecondaryTargetMenuOpen, setRevealSecondaryTargetMenuOpen] =
     useState(false);
-  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey>(
+  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | null>(
     DEFAULT_PRIMARY_TRAINING
   );
-  const [secondaryTraining, setSecondaryTraining] = useState<TrainingSkillKey>(
+  const [secondaryTraining, setSecondaryTraining] = useState<TrainingSkillKey | null>(
     DEFAULT_SECONDARY_TRAINING
   );
   const [optimizerDebug, setOptimizerDebug] = useState<OptimizerDebug | null>(
@@ -1554,6 +1567,27 @@ export default function Dashboard({
     if (!teamId || !youthTeamId) return undefined;
     return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
   }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
+  useEffect(() => {
+    const detailsById: YouthPromotionReminderContextEventDetail["detailsById"] =
+      {};
+    Object.entries(cache).forEach(([playerId, entry]) => {
+      const id = Number(playerId);
+      if (!Number.isFinite(id)) return;
+      const resolved = resolveDetails(entry.data);
+      detailsById[id] = resolved
+        ? { CanBePromotedIn: resolved.CanBePromotedIn }
+        : null;
+    });
+    const detail: YouthPromotionReminderContextEventDetail = {
+      messages,
+      youthTeamId: resolvedYouthTeamId,
+      players: playerList,
+      detailsById,
+    };
+    window.dispatchEvent(
+      new CustomEvent(YOUTH_PROMOTION_REMINDER_CONTEXT_EVENT, { detail })
+    );
+  }, [cache, messages, playerList, resolvedYouthTeamId]);
   useEffect(() => {
     const directLeagueId = activeYouthTeamOption?.teamLeagueId ?? null;
     if (directLeagueId !== null) {
@@ -2303,8 +2337,8 @@ export default function Dashboard({
         behaviors?: LineupBehaviors;
         selectedId?: number | null;
         starPlayerId?: number | null;
-        primaryTraining?: string;
-        secondaryTraining?: string;
+        primaryTraining?: string | null;
+        secondaryTraining?: string | null;
         tacticType?: number;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
@@ -2377,15 +2411,14 @@ export default function Dashboard({
       }
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
-          isTrainingSkill(parsed.primaryTraining)
-            ? parsed.primaryTraining
-            : DEFAULT_PRIMARY_TRAINING
+          parsePersistedTraining(parsed.primaryTraining, DEFAULT_PRIMARY_TRAINING)
         );
       if (parsed.secondaryTraining !== undefined)
         setSecondaryTraining(
-          isTrainingSkill(parsed.secondaryTraining)
-            ? parsed.secondaryTraining
-            : DEFAULT_SECONDARY_TRAINING
+          parsePersistedTraining(
+            parsed.secondaryTraining,
+            DEFAULT_SECONDARY_TRAINING
+          )
         );
       if (parsed.tacticType !== undefined && Number.isFinite(parsed.tacticType)) {
         setTacticType(parsed.tacticType);
@@ -6255,6 +6288,9 @@ export default function Dashboard({
     setAssignments(nextAssignments);
     setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
+    setPrimaryTraining(null);
+    setSecondaryTraining(null);
+    setAutoSelectionApplied(false);
   };
 
   const handleBehaviorChange = (slotId: string, behavior: number) => {
@@ -6323,6 +6359,7 @@ export default function Dashboard({
 
   useEffect(() => {
     if (starPlayerId || primaryTraining || secondaryTraining) return;
+    if (primaryTraining === null || secondaryTraining === null) return;
     if (!autoSelection) return;
     setStarPlayerId(autoSelection.starPlayerId);
     setPrimaryTraining(autoSelection.primarySkill);
@@ -6434,6 +6471,9 @@ export default function Dashboard({
         return messages.trainingWingerWingerAttackers;
       case "passing_defenders_midfielders":
         return messages.trainingPassingDefendersMidfielders;
+      case null:
+      case "":
+        return TRAINING_UNSET_LABEL;
       default:
         return messages.unknownShort;
     }
@@ -6919,6 +6959,19 @@ export default function Dashboard({
             </div>
           ) : null}
         </div>
+        <Tooltip
+          content={messages.youthTrainingChppLimitTooltip}
+          openOnClick
+          preferred="bottom"
+        >
+          <button
+            type="button"
+            className={styles.trainingInfoButton}
+            aria-label={messages.youthTrainingChppLimitInfoLabel}
+          >
+            ⓘ
+          </button>
+        </Tooltip>
       </div>
       <div className={styles.trainingRow}>
         <span className={styles.trainingLabel}>

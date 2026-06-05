@@ -11,6 +11,68 @@ export const messagesEn: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy manual",
     manualTocTitle: "Table of contents",
+    reminderBellLabel: "Reminders",
+    remindersTitle: "Reminders",
+    reminderDueNow: "Due now",
+    reminderSnoozed: "Snoozed",
+    reminderDismiss: "Dismiss",
+    reminderSnooze: "Snooze",
+    reminderSnooze6Hours: "6 hours",
+    reminderSnooze1Day: "1 day",
+    reminderSnooze3Days: "3 days",
+    reminderSnooze1Week: "1 week",
+    remindersSnoozeForLabel: "Snooze for",
+    remindersSnoozeButtonLabel: "Snooze",
+    remindersSnoozeDurationDay: "{{count}} day",
+    remindersSnoozeDurationDays: "{{count}} days",
+    remindersDismissedSectionTitle: "Dismissed",
+    remindersNoDismissed: "No dismissed reminders.",
+    remindersDismissedAtLabel: "Dismissed {{time}}",
+    reminderTurnOff: "Turn reminders off",
+    reminderOpenModal: "Open",
+    reminderNoDue: "No reminders due.",
+    reminderNoSnoozed: "No snoozed reminders.",
+    remindersDisabledState: "Reminders are turned off.",
+    reminderMissingActionFallback: "This reminder action is not available yet.",
+    reminderActionConfirmTitle: "Dismiss reminder?",
+    reminderActionConfirmBody:
+      "Continuing will perform this action and dismiss the reminder. Cancel to keep the reminder active.",
+    reminderActionConfirmContinue: "Continue and dismiss",
+    reminderSeniorInjuryTitle: "Senior player injured",
+    reminderSeniorInjuryBody:
+      "{{playerName}} is injured for {{weeks}} weeks. Consider looking for a replacement.",
+    reminderActionFindSimilarPlayers: "Find similar players",
+    reminderSeniorInjuryActionUnavailable:
+      "Could not open Find similar players for this reminder.",
+    reminderSeniorSalaryIncreaseTitle: "Player salary significantly increased",
+    reminderSeniorSalaryIncreaseBody:
+      "{{playerName}}’s salary increased from {{previousSalary}} to {{currentSalary}}. Do you want to sell the player?",
+    reminderActionSellPlayer: "Sell player",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Could not open this player in Hattrick.",
+    reminderSeniorMatchLineupMissingTitle:
+      "No orders set for upcoming senior match",
+    reminderYouthMatchLineupMissingTitle:
+      "No orders set for upcoming youth match",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} starts in {{timeRemaining}} and has no orders set.",
+    reminderActionSetOrders: "Set orders",
+    reminderMatchLineupMissingActionUnavailable:
+      "Could not focus the tool for this reminder.",
+    reminderYouthPromotionTitle: "Youth player can be promoted soon",
+    reminderYouthPromotionBody:
+      "{{playerName}} can be promoted in {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "View player in Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Could not open this youth player in Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "Arena usage is high",
+    reminderClubChronicleArenaOccupancyBody:
+      "Your arena was {{occupancyPct}}% full in the latest home league match. Consider expanding it.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "Your arena was {{occupancyPct}}% full in the latest home league match ({{soldTotal}} of {{capacity}} seats sold). Consider expanding it.",
+    reminderActionExpandArena: "Expand arena",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Could not open the arena page in Hattrick.",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",
@@ -145,6 +207,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_0_0:
+      "Added the global reminder framework with settings, bell, snooze/dismiss storage, and export/import support.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -314,12 +378,6 @@ export const messagesEn: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Senior settings",
     settingsSeniorStalenessLabel: "Auto-refresh after (days)",
-    settingsSeniorRatingsWipeLabel: "Ratings matrix reset",
-    settingsSeniorRatingsWipeButton: "Wipe senior ratings matrix",
-    settingsSeniorRatingsWipeWarningTitle: "Wipe senior ratings matrix",
-    settingsSeniorRatingsWipeWarningBody:
-      "This cannot be undone. On the next refresh, ratings will be repopulated automatically from this season and the previous one in ascending match-date order. Every refresh after that only applies ratings updates from newly unprocessed matches.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "I understand",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensive",
     behaviorDefensive: "Defensive",
@@ -361,6 +419,9 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsReminders: "Reminders",
+    settingsRemindersTitle: "Reminders",
+    settingsRemindersEnableLabel: "Enable reminders",
     settingsLicense: "License",
     settingsLicenseTitle: "License",
     settingsLicenseBody:
@@ -419,9 +480,27 @@ export const messagesEn: Messages = {
     settingsGeneralImportAllLabel: "Import all settings",
     settingsGeneralImportAllHint:
       "Import a previously exported JSON backup and replace the current local app settings and cached state.",
-    settingsGeneralEnableScalingLabel: "Enable app scaling",
-    settingsGeneralEnableScalingTooltip:
-      "When enabled, the app scales to fit the viewport and reduce scrolling. When disabled, the app uses normal size and can scroll.",
+    settingsStorageManagementButton: "Storage management",
+    settingsStorageManagementTitle: "Storage management",
+    settingsStorageManagementTotalUsed: "Total storage used: {{size}}",
+    settingsStorageManagementKeyColumn: "Key",
+    settingsStorageManagementUsageColumn: "Usage",
+    settingsStorageManagementActionColumn: "Action",
+    settingsStorageManagementWipeButton: "Wipe",
+    settingsStorageManagementWipeAllButton: "Wipe all",
+    settingsStorageManagementNoKeys: "No localStorage keys found.",
+    settingsStorageManagementWipeConfirmTitle: "Wipe storage key?",
+    settingsStorageManagementWipeConfirmBody:
+      'You are about to wipe "{{key}}" from local storage. Once wiped, this cannot be undone. App data, settings, cache, or state stored under this key may be lost.',
+    settingsStorageManagementWipeAllConfirmTitle: "Wipe all storage keys?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "This will permanently remove every key currently listed in Storage Management. This cannot be undone. Export your data first if you may need it later.",
+    settingsStorageManagementWipeSuccess: "Storage key wiped: {{key}}",
+    settingsStorageManagementWipeError: "Could not wipe storage key: {{key}}",
+    settingsStorageManagementWipeAllSuccess: "All listed storage keys were wiped.",
+    settingsStorageManagementWipeAllError:
+      "Could not wipe all listed storage keys.",
+    settingsStorageManagementReadError: "Could not read localStorage.",
     settingsMachineLearningTitle: "Machine learning",
     settingsMachineLearningBody:
       "Senior player snapshots are learned automatically from own senior refreshes and transfer market result details.",
@@ -509,6 +588,18 @@ export const messagesEn: Messages = {
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
+    settingsDebugStorageButton: "Storage",
+    settingsDebugStorageTitle: "Storage diagnostics",
+    settingsDebugStorageLoading: "Reading storage diagnostics...",
+    settingsDebugStorageOriginEstimateLabel: "Estimated origin storage",
+    settingsDebugStorageOriginUnavailable:
+      "Estimated origin storage unavailable",
+    settingsDebugStorageLocalStorageApproxLabel: "Approx localStorage usage",
+    settingsDebugStorageBreakdownKeyColumn: "Key",
+    settingsDebugStorageBreakdownUsageColumn: "Approx usage",
+    settingsDebugStorageNoLocalStorageKeys: "No localStorage keys found.",
+    settingsDebugStorageRefreshButton: "Refresh",
+    settingsDebugStorageError: "Could not read storage diagnostics.",
     clubChronicleLeaguePanelTitle: "League performance and Cup",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams:
@@ -799,6 +890,10 @@ export const messagesEn: Messages = {
     clubChronicleTsiPlayerColumn: "Player",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Playing pos",
+    clubChronicleMainSkillEstimationColumn: "Main skill estimation¹",
+    clubChronicleMainSkillEstimationFootnote:
+      "¹ Main skill estimation is a rough estimate only.",
+    clubChronicleMainSkillEstimationTooOld: "Player too old",
     clubChronicleForm7RatingColumn: "Form-7 rating",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:
@@ -929,9 +1024,9 @@ export const messagesEn: Messages = {
     detailsTabLabel: "Player details",
     skillsMatrixTabLabel: "Skills matrix",
     ratingsMatrixTabLabel: "Ratings matrix",
-    seniorSkillsMatrixBonusToggleLabel: "Apply bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Effective skill",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Toggle effective skill bonus values in the senior skills matrix (mother club or loyalty bonus).",
+      "Turn on to display effective skill, taking into account loyalty, mother club bonus, form, and stamina.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
     scoutImportantSkillTooltip: "Top-3 skill",
@@ -1383,7 +1478,6 @@ export const messagesEn: Messages = {
     notificationMatchesRefreshFailed: "Matches refresh failed",
     notificationSeniorTrainingRegimenChanged:
       "Senior squad training regimen changed to {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Senior ratings matrix wiped.",
     notificationSeniorRatingsBootstrapComplete:
       "Senior ratings bootstrap completed.",
     notificationReauthRequired: "Refresh aborted: re-auth required",
@@ -1414,6 +1508,9 @@ export const messagesEn: Messages = {
     trainingRegimenLabel: "Training regimen",
     trainingSetButtonLabel: "Set",
     trainingSetButtonTooltip: "Set as new training regimen",
+    youthTrainingChppLimitInfoLabel: "Youth training CHPP limitation",
+    youthTrainingChppLimitTooltip:
+      "CHPP does not allow youth training regimens to be imported from or set in Hattrick. If you want this changed, please submit a feature request to Hattrick.",
     primaryTrainingLabel: "Primary",
     secondaryTrainingLabel: "Secondary",
     trainingUnset: "—",

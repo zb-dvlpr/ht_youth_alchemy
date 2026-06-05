@@ -44,6 +44,17 @@ import {
   SENIOR_SETTINGS_EVENT,
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
+import {
+  SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+  SENIOR_REMINDER_CONTEXT_EVENT,
+  type SeniorFindSimilarPlayersEventDetail,
+  type SeniorReminderContextEventDetail,
+} from "@/lib/reminders/senior";
+import {
+  updateSeniorSalaryBaseline,
+  type SeniorSalaryIncreaseEvent,
+} from "@/lib/reminders/seniorSalaryBaseline";
+import { readReminderStorageState } from "@/lib/reminders/storage";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { useSupporterStatus } from "./SupporterStatusProvider";
@@ -100,6 +111,7 @@ import {
   calculatePsicoTsiMetrics,
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
+import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -458,7 +470,6 @@ const SKILL_KEYS = [
   "ScorerSkill",
   "SetPiecesSkill",
 ] as const;
-const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const LEAGUE_QUALI_MATCH_TYPES = new Set<number>([1, 2]);
@@ -1823,33 +1834,23 @@ const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) =
     );
 };
 
-const computeSeniorSkillBonus = (
-  baseSkill: number | null,
-  details: SeniorPlayerDetails | null
-) => {
-  if (baseSkill === null) return null;
-  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
-  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
-  if (details?.MotherClubBonus) {
-    return Math.min(1.5, remaining);
-  }
-  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
-  return Math.min(Math.max(0, loyaltyRaw) / 20, remaining);
-};
-
 const computeSeniorEffectiveSkill = (
   baseSkill: number | null,
+  player: SeniorPlayer | null,
   details: SeniorPlayerDetails | null
 ) => {
-  if (baseSkill === null) return null;
-  const bonus = computeSeniorSkillBonus(baseSkill, details);
-  if (bonus === null) return null;
-  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
+  return calculateEffectiveSkill({
+    rawSkill: baseSkill,
+    loyalty: details?.Loyalty,
+    motherClubBonus: details?.MotherClubBonus,
+    form: details?.Form ?? player?.Form,
+    stamina: details?.StaminaSkill ?? player?.StaminaSkill,
+  });
 };
 
 // NEW/N detection must always be based on raw skill values from CHPP data only.
-// Effective skill bonus layers (mother club / loyalty) are display-only and must
-// never contribute to change detection.
+// Effective skill adjustments are display-only and must never contribute to
+// change detection.
 const parseBaseSkillForNDetection = (value: unknown): number | null => parseSkill(value);
 
 const SUBSCRIPT_DIGITS: Record<string, string> = {
@@ -3751,6 +3752,11 @@ export default function SeniorDashboard({
   const seniorTeamHydratingRef = useRef(false);
   const seniorTeamHydrationKeyRef = useRef<string | null>(null);
   const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
+  const pendingFindSimilarReminderRef =
+    useRef<SeniorFindSimilarPlayersEventDetail | null>(null);
+  const [salaryIncreaseReminderEvents, setSalaryIncreaseReminderEvents] = useState<
+    SeniorSalaryIncreaseEvent[]
+  >([]);
 
   const selectedPlayer =
     selectedId !== null
@@ -4066,6 +4072,21 @@ export default function SeniorDashboard({
     const detailsSalary = detailsById.get(player.PlayerID)?.Salary;
     return typeof detailsSalary === "number" ? detailsSalary : player.Salary ?? null;
   };
+
+  useEffect(() => {
+    if (!resolvedSeniorTeamId || !players.length) return;
+    const remindersEnabled = readReminderStorageState().preferences.enabled;
+    const events = updateSeniorSalaryBaseline({
+      teamId: resolvedSeniorTeamId,
+      players: players.map((player) => ({
+        playerId: player.PlayerID,
+        playerName: formatPlayerName(player),
+        salarySek: salaryValueForPlayer(player),
+      })),
+      createReminderEvents: remindersEnabled,
+    });
+    setSalaryIncreaseReminderEvents(events);
+  }, [detailsById, players, resolvedSeniorTeamId]);
 
   const seniorTransferListingForDetails = useCallback(
     (details: SeniorPlayerDetails | null | undefined): SeniorTransferListing | null => {
@@ -4567,6 +4588,26 @@ export default function SeniorDashboard({
     () => new Map(players.map((player) => [player.PlayerID, player])),
     [players]
   );
+  useEffect(() => {
+    const detail: SeniorReminderContextEventDetail = {
+      context: {
+        messages,
+        teamId: resolvedSeniorTeamId,
+        players,
+        detailsCache,
+        salaryIncreaseEvents: salaryIncreaseReminderEvents,
+      },
+    };
+    window.dispatchEvent(
+      new CustomEvent(SENIOR_REMINDER_CONTEXT_EVENT, { detail })
+    );
+  }, [
+    detailsCache,
+    messages,
+    players,
+    resolvedSeniorTeamId,
+    salaryIncreaseReminderEvents,
+  ]);
   const resolvedExtraTimeTrainingType =
     extraTimeMatrixTrainingTypeManual && extraTimeMatrixTrainingType !== null
       ? extraTimeMatrixTrainingType
@@ -4594,7 +4635,7 @@ export default function SeniorDashboard({
           details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
         );
         return showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(baseSkill, details)
+          ? computeSeniorEffectiveSkill(baseSkill, player, details)
           : baseSkill;
       };
       const leftValue =
@@ -4678,7 +4719,7 @@ export default function SeniorDashboard({
           details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
         );
         return showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(baseSkill, details)
+          ? computeSeniorEffectiveSkill(baseSkill, player, details)
           : baseSkill;
       };
       const leftValue =
@@ -10699,7 +10740,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const openTransferSearchForPlayer = async (player: SeniorPlayer) => {
     trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
-    if (!hasRequiredScopes) return;
+    if (!hasRequiredScopes) return false;
     const detail = await ensureDetails(player.PlayerID);
     const editedSourceDetails =
       effectiveSelectedPlayerSimulationState.dirty &&
@@ -10720,6 +10761,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       sourcePlayer: player,
       sourceDetails,
     });
+    return true;
   };
 
   const updateTransferSearchSkillFilter = useCallback((
@@ -11784,6 +11826,64 @@ const refreshDetailsForPlayers = async (
       addNotification(`${messages.notificationTeamSwitched} ${teamName}`);
     }
   };
+
+  const openFindSimilarPlayersFromReminder = useCallback(
+    async (detail: SeniorFindSimilarPlayersEventDetail) => {
+      const player = playersById.get(detail.playerId);
+      if (!player) return false;
+      if (detail.teamId && resolvedSeniorTeamId !== detail.teamId) return false;
+      setSelectedId(player.PlayerID);
+      return openTransferSearchForPlayer(player);
+    },
+    [openTransferSearchForPlayer, playersById, resolvedSeniorTeamId]
+  );
+
+  useEffect(() => {
+    const handleFindSimilarPlayersReminder = (event: Event) => {
+      const detail = (event as CustomEvent<SeniorFindSimilarPlayersEventDetail>)
+        .detail;
+      if (!detail || !Number.isFinite(detail.playerId)) return;
+      if (detail.teamId && resolvedSeniorTeamId !== detail.teamId) {
+        pendingFindSimilarReminderRef.current = detail;
+        handleSeniorTeamChange(detail.teamId);
+        return;
+      }
+      void openFindSimilarPlayersFromReminder(detail).then((opened) => {
+        detail.onHandled?.(opened);
+      });
+    };
+    window.addEventListener(
+      SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+      handleFindSimilarPlayersReminder
+    );
+    return () => {
+      window.removeEventListener(
+        SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
+        handleFindSimilarPlayersReminder
+      );
+    };
+  }, [
+    handleSeniorTeamChange,
+    openFindSimilarPlayersFromReminder,
+    resolvedSeniorTeamId,
+  ]);
+
+  useEffect(() => {
+    const pending = pendingFindSimilarReminderRef.current;
+    if (!pending) return;
+    if (pending.teamId && resolvedSeniorTeamId !== pending.teamId) return;
+    if (!playersById.has(pending.playerId)) {
+      if (players.length > 0) {
+        pendingFindSimilarReminderRef.current = null;
+        pending.onHandled?.(false);
+      }
+      return;
+    }
+    pendingFindSimilarReminderRef.current = null;
+    void openFindSimilarPlayersFromReminder(pending).then((opened) => {
+      pending.onHandled?.(opened);
+    });
+  }, [openFindSimilarPlayersFromReminder, players.length, playersById, resolvedSeniorTeamId]);
 
   const ensureRequiredScopes = async () => {
     try {

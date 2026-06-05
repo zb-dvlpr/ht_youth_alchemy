@@ -11,6 +11,69 @@ export const messagesPt: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "Manual do HT Alchemy",
     manualTocTitle: "Índice",
+    reminderBellLabel: "Lembretes",
+    remindersTitle: "Lembretes",
+    reminderDueNow: "Pendentes",
+    reminderSnoozed: "Adiados",
+    reminderDismiss: "Ignorar",
+    reminderSnooze: "Adiar",
+    reminderSnooze6Hours: "6 horas",
+    reminderSnooze1Day: "1 dia",
+    reminderSnooze3Days: "3 dias",
+    reminderSnooze1Week: "1 semana",
+    remindersSnoozeForLabel: "Adiar por",
+    remindersSnoozeButtonLabel: "Adiar",
+    remindersSnoozeDurationDay: "{{count}} dia",
+    remindersSnoozeDurationDays: "{{count}} dias",
+    remindersDismissedSectionTitle: "Ignorados",
+    remindersNoDismissed: "Nenhum lembrete ignorado.",
+    remindersDismissedAtLabel: "Ignorado {{time}}",
+    reminderTurnOff: "Desativar lembretes",
+    reminderOpenModal: "Abrir",
+    reminderNoDue: "Nenhum lembrete pendente.",
+    reminderNoSnoozed: "Nenhum lembrete adiado.",
+    remindersDisabledState: "Os lembretes estão desativados.",
+    reminderMissingActionFallback:
+      "Esta ação de lembrete ainda não está disponível.",
+    reminderActionConfirmTitle: "Ignorar lembrete?",
+    reminderActionConfirmBody:
+      "Continuar irá executar esta ação e ignorar o lembrete. Cancele para manter o lembrete ativo.",
+    reminderActionConfirmContinue: "Continuar e ignorar",
+    reminderSeniorInjuryTitle: "Jogador sénior lesionado",
+    reminderSeniorInjuryBody:
+      "{{playerName}} está lesionado por {{weeks}} semanas. Considera procurar um substituto.",
+    reminderActionFindSimilarPlayers: "Encontrar jogadores semelhantes",
+    reminderSeniorInjuryActionUnavailable:
+      "Não foi possível abrir Encontrar jogadores semelhantes para este lembrete.",
+    reminderSeniorSalaryIncreaseTitle: "O salário do jogador aumentou muito",
+    reminderSeniorSalaryIncreaseBody:
+      "O salário de {{playerName}} aumentou de {{previousSalary}} para {{currentSalary}}. Quer vender o jogador?",
+    reminderActionSellPlayer: "Vender jogador",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Não foi possível abrir este jogador no Hattrick.",
+    reminderSeniorMatchLineupMissingTitle:
+      "Sem ordens para o próximo jogo sénior",
+    reminderYouthMatchLineupMissingTitle:
+      "Sem ordens para o próximo jogo jovem",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} começa em {{timeRemaining}} e não tem ordens definidas.",
+    reminderActionSetOrders: "Definir ordens",
+    reminderMatchLineupMissingActionUnavailable:
+      "Não foi possível focar a ferramenta para este lembrete.",
+    reminderYouthPromotionTitle: "Jogador jovem pode ser promovido em breve",
+    reminderYouthPromotionBody:
+      "{{playerName}} pode ser promovido em {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "Ver jogador no Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Não foi possível abrir este jogador jovem no Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "Uso do estádio está alto",
+    reminderClubChronicleArenaOccupancyBody:
+      "O teu estádio esteve {{occupancyPct}}% cheio no último jogo em casa da liga. Considera expandi-lo.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "O teu estádio esteve {{occupancyPct}}% cheio no último jogo em casa da liga ({{soldTotal}} de {{capacity}} lugares vendidos). Considera expandi-lo.",
+    reminderActionExpandArena: "Expandir estádio",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Não foi possível abrir a página do estádio no Hattrick.",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Paga-me um café",
@@ -146,6 +209,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_6_0_0:
+      "Adicionado o framework global de lembretes com definições, sino, armazenamento de adiar/ignorar e exportação/importação.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -331,12 +396,6 @@ export const messagesPt: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Configurações do senior",
     settingsSeniorStalenessLabel: "Atualização automática após (dias)",
-    settingsSeniorRatingsWipeLabel: "Reset da matriz de avaliações",
-    settingsSeniorRatingsWipeButton: "Limpar matriz de avaliações do senior",
-    settingsSeniorRatingsWipeWarningTitle: "Limpar matriz de avaliações do senior",
-    settingsSeniorRatingsWipeWarningBody:
-      "Isto não pode ser desfeito. No próximo refresh, as avaliações serão repovoadas automaticamente com dados desta época e da anterior em ordem crescente de data da partida. Depois disso, cada refresh aplicará apenas atualizações de partidas novas ainda não processadas.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Entendi",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -379,6 +438,9 @@ export const messagesPt: Messages = {
       "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsReminders: "Lembretes",
+    settingsRemindersTitle: "Lembretes",
+    settingsRemindersEnableLabel: "Ativar lembretes",
     settingsLicense: "Licença",
     settingsLicenseTitle: "Licença",
     settingsLicenseBody:
@@ -438,9 +500,32 @@ export const messagesPt: Messages = {
     settingsGeneralImportAllLabel: "Importar todas as configurações",
     settingsGeneralImportAllHint:
       "Importa um backup JSON exportado anteriormente e substitui as configurações locais e os estados em cache atuais do app.",
-    settingsGeneralEnableScalingLabel: "Ativar escala do app",
-    settingsGeneralEnableScalingTooltip:
-      "Quando ativado, o app é escalado para caber no viewport e reduzir rolagem. Quando desativado, o app usa tamanho normal e pode rolar.",
+    settingsStorageManagementButton: "Gestao de armazenamento",
+    settingsStorageManagementTitle: "Gestao de armazenamento",
+    settingsStorageManagementTotalUsed: "Armazenamento usado: {{size}}",
+    settingsStorageManagementKeyColumn: "Chave",
+    settingsStorageManagementUsageColumn: "Uso",
+    settingsStorageManagementActionColumn: "Acao",
+    settingsStorageManagementWipeButton: "Apagar",
+    settingsStorageManagementWipeAllButton: "Apagar tudo",
+    settingsStorageManagementNoKeys: "Nenhuma chave localStorage encontrada.",
+    settingsStorageManagementWipeConfirmTitle:
+      "Apagar chave de armazenamento?",
+    settingsStorageManagementWipeConfirmBody:
+      'Voce esta prestes a apagar "{{key}}" do armazenamento local. Depois de apagada, esta acao nao pode ser desfeita. Dados, configuracoes, cache ou estado do app armazenados sob esta chave podem ser perdidos.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Apagar todas as chaves de armazenamento?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Isto removera permanentemente todas as chaves listadas atualmente em Gestao de armazenamento. Esta acao nao pode ser desfeita. Exporte seus dados primeiro se puder precisar deles depois.",
+    settingsStorageManagementWipeSuccess:
+      "Chave de armazenamento apagada: {{key}}",
+    settingsStorageManagementWipeError:
+      "Nao foi possivel apagar a chave de armazenamento: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Todas as chaves de armazenamento listadas foram apagadas.",
+    settingsStorageManagementWipeAllError:
+      "Nao foi possivel apagar todas as chaves de armazenamento listadas.",
+    settingsStorageManagementReadError: "Nao foi possivel ler localStorage.",
     settingsMachineLearningTitle: "Aprendizado de máquina",
     settingsMachineLearningBody:
       "Snapshots de jogadores senior são aprendidos automaticamente por atualizações senior e detalhes de resultados do mercado.",
@@ -530,6 +615,22 @@ export const messagesPt: Messages = {
     settingsDebugDisableScalingLabel: "Mostrar atualizações fictícias",
     settingsDebugRandomNewMarkersLabel: "Mostrar marcadores NEW aleatórios",
     settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatórios",
+    settingsDebugStorageButton: "Armazenamento",
+    settingsDebugStorageTitle: "Diagnostico de armazenamento",
+    settingsDebugStorageLoading: "Lendo diagnostico de armazenamento...",
+    settingsDebugStorageOriginEstimateLabel:
+      "Armazenamento de origem estimado",
+    settingsDebugStorageOriginUnavailable:
+      "Armazenamento de origem estimado indisponivel",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Uso aprox. de localStorage",
+    settingsDebugStorageBreakdownKeyColumn: "Chave",
+    settingsDebugStorageBreakdownUsageColumn: "Uso aprox.",
+    settingsDebugStorageNoLocalStorageKeys:
+      "Nenhuma chave localStorage encontrada.",
+    settingsDebugStorageRefreshButton: "Atualizar",
+    settingsDebugStorageError:
+      "Nao foi possivel ler o diagnostico de armazenamento.",
     clubChronicleLeaguePanelTitle: "Desempenho na liga e copa",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
     clubChronicleNoTeams:
@@ -835,6 +936,10 @@ export const messagesPt: Messages = {
     clubChronicleTsiPlayerColumn: "Jogador",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Pos. jog.",
+    clubChronicleMainSkillEstimationColumn: "Estimativa de habilidade principal¹",
+    clubChronicleMainSkillEstimationFootnote:
+      "¹ A estimativa de habilidade principal e apenas aproximada.",
+    clubChronicleMainSkillEstimationTooOld: "Jogador velho demais",
     clubChronicleForm7RatingColumn: "Classificacao forma 7",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:
@@ -966,9 +1071,9 @@ export const messagesPt: Messages = {
     detailsTabLabel: "Detalhes do jogador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de avaliações",
-    seniorSkillsMatrixBonusToggleLabel: "Aplicar bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Habilidade efetiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Ativa ou desativa os valores com bonus efetivo na matriz de habilidades senior (bonus de clube de origem ou lealdade).",
+      "Ative para mostrar a habilidade efetiva que considera lealdade, bonus de clube de origem, forma e resistência.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca um valor atualizado ou revelado pela primeira vez desde a ultima atualizacao.",
@@ -1433,7 +1538,6 @@ export const messagesPt: Messages = {
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
     notificationSeniorTrainingRegimenChanged:
       "O regime de treino da equipa principal foi alterado para {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Matriz de avaliações do senior limpa.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap de avaliações do senior concluído.",
     notificationReauthRequired:
@@ -1470,6 +1574,9 @@ export const messagesPt: Messages = {
     trainingRegimenLabel: "Regime de treino",
     trainingSetButtonLabel: "Definir",
     trainingSetButtonTooltip: "Definir como novo regime de treino",
+    youthTrainingChppLimitInfoLabel: "Limitação CHPP do treino juvenil",
+    youthTrainingChppLimitTooltip:
+      "O CHPP não permite importar regimes de treino juvenil do Hattrick nem defini-los no Hattrick. Se quiser que isto mude, envie um pedido de funcionalidade ao Hattrick.",
     primaryTrainingLabel: "Primário",
     secondaryTrainingLabel: "Secundário",
     trainingUnset: "—",

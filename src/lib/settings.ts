@@ -498,15 +498,3 @@ export function readGeneralEnableScaling(): boolean {
     return DEFAULT_GENERAL_ENABLE_SCALING;
   }
 }
-
-export function writeGeneralEnableScaling(value: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      GENERAL_SETTINGS_STORAGE_KEY,
-      value ? "true" : "false"
-    );
-  } catch {
-    // ignore storage errors
-  }
-}

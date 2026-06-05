@@ -11,6 +11,69 @@ export const messagesSv: Messages = {
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy-manual",
     manualTocTitle: "Innehåll",
+    reminderBellLabel: "Påminnelser",
+    remindersTitle: "Påminnelser",
+    reminderDueNow: "Aktuella",
+    reminderSnoozed: "Snoozade",
+    reminderDismiss: "Avfärda",
+    reminderSnooze: "Snooza",
+    reminderSnooze6Hours: "6 timmar",
+    reminderSnooze1Day: "1 dag",
+    reminderSnooze3Days: "3 dagar",
+    reminderSnooze1Week: "1 vecka",
+    remindersSnoozeForLabel: "Snooza i",
+    remindersSnoozeButtonLabel: "Snooza",
+    remindersSnoozeDurationDay: "{{count}} dag",
+    remindersSnoozeDurationDays: "{{count}} dagar",
+    remindersDismissedSectionTitle: "Avfärdade",
+    remindersNoDismissed: "Inga avfärdade påminnelser.",
+    remindersDismissedAtLabel: "Avfärdad {{time}}",
+    reminderTurnOff: "Stäng av påminnelser",
+    reminderOpenModal: "Öppna",
+    reminderNoDue: "Inga aktuella påminnelser.",
+    reminderNoSnoozed: "Inga snoozade påminnelser.",
+    remindersDisabledState: "Påminnelser är avstängda.",
+    reminderMissingActionFallback:
+      "Den här påminnelseåtgärden är inte tillgänglig än.",
+    reminderActionConfirmTitle: "Avfärda påminnelse?",
+    reminderActionConfirmBody:
+      "Om du fortsätter utförs åtgärden och påminnelsen avfärdas. Avbryt för att behålla påminnelsen aktiv.",
+    reminderActionConfirmContinue: "Fortsätt och avfärda",
+    reminderSeniorInjuryTitle: "Senior spelare skadad",
+    reminderSeniorInjuryBody:
+      "{{playerName}} är skadad i {{weeks}} veckor. Överväg att leta efter en ersättare.",
+    reminderActionFindSimilarPlayers: "Hitta liknande spelare",
+    reminderSeniorInjuryActionUnavailable:
+      "Kunde inte öppna Hitta liknande spelare för den här påminnelsen.",
+    reminderSeniorSalaryIncreaseTitle: "Spelarens lön ökade kraftigt",
+    reminderSeniorSalaryIncreaseBody:
+      "{{playerName}}s lön ökade från {{previousSalary}} till {{currentSalary}}. Vill du sälja spelaren?",
+    reminderActionSellPlayer: "Sälj spelare",
+    reminderSeniorSalaryIncreaseActionUnavailable:
+      "Kunde inte öppna den här spelaren i Hattrick.",
+    reminderSeniorMatchLineupMissingTitle:
+      "Inga order satta för kommande seniormatch",
+    reminderYouthMatchLineupMissingTitle:
+      "Inga order satta för kommande ungdomsmatch",
+    reminderMatchLineupMissingBody:
+      "{{matchName}} börjar om {{timeRemaining}} och har inga order satta.",
+    reminderActionSetOrders: "Sätt order",
+    reminderMatchLineupMissingActionUnavailable:
+      "Kunde inte fokusera verktyget för den här påminnelsen.",
+    reminderYouthPromotionTitle: "Ungdomsspelare kan flyttas upp snart",
+    reminderYouthPromotionBody:
+      "{{playerName}} kan flyttas upp om {{timeRemaining}}.",
+    reminderActionViewPlayerInHattrick: "Visa spelaren i Hattrick",
+    reminderYouthPromotionActionUnavailable:
+      "Kunde inte öppna den här ungdomsspelaren i Hattrick.",
+    reminderClubChronicleArenaOccupancyTitle: "Arenaanvändningen är hög",
+    reminderClubChronicleArenaOccupancyBody:
+      "Din arena var {{occupancyPct}}% full i den senaste hemmaligamatchen. Överväg att bygga ut den.",
+    reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+      "Din arena var {{occupancyPct}}% full i den senaste hemmaligamatchen ({{soldTotal}} av {{capacity}} platser sålda). Överväg att bygga ut den.",
+    reminderActionExpandArena: "Bygg ut arena",
+    reminderClubChronicleArenaOccupancyActionUnavailable:
+      "Kunde inte öppna arenasidan i Hattrick.",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",
@@ -145,6 +208,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_0_0:
+      "Lade till ett globalt påminnelseframework med inställningar, klocka, snooze-/avfärdningslagring och export/import.",
     changelog_5_8_0:
       "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
@@ -328,12 +393,6 @@ export const messagesSv: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Seniorinställningar",
     settingsSeniorStalenessLabel: "Auto-uppdatera efter (dagar)",
-    settingsSeniorRatingsWipeLabel: "Nollställ betygsmatris",
-    settingsSeniorRatingsWipeButton: "Rensa seniorernas betygsmatris",
-    settingsSeniorRatingsWipeWarningTitle: "Rensa seniorernas betygsmatris",
-    settingsSeniorRatingsWipeWarningBody:
-      "Detta kan inte ångras. Vid nästa uppdatering fylls betygen automatiskt på igen från denna och föregående säsong i stigande ordning efter matchdatum. Varje uppdatering därefter använder bara nya matcher som ännu inte har bearbetats.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Jag förstår",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -376,6 +435,9 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsReminders: "Påminnelser",
+    settingsRemindersTitle: "Påminnelser",
+    settingsRemindersEnableLabel: "Aktivera påminnelser",
     settingsLicense: "Licens",
     settingsLicenseTitle: "Licens",
     settingsLicenseBody:
@@ -435,9 +497,30 @@ export const messagesSv: Messages = {
     settingsGeneralImportAllHint:
       "Importera en tidigare exporterad JSON-säkerhetskopia och ersätt appens nuvarande lokala inställningar och cachetillstånd.",
     settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
-    settingsGeneralEnableScalingLabel: "Aktivera appskalning",
-    settingsGeneralEnableScalingTooltip:
-      "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
+    settingsStorageManagementButton: "Lagringshantering",
+    settingsStorageManagementTitle: "Lagringshantering",
+    settingsStorageManagementTotalUsed: "Anvand lagring: {{size}}",
+    settingsStorageManagementKeyColumn: "Nyckel",
+    settingsStorageManagementUsageColumn: "Anvandning",
+    settingsStorageManagementActionColumn: "Atgard",
+    settingsStorageManagementWipeButton: "Rensa",
+    settingsStorageManagementWipeAllButton: "Rensa alla",
+    settingsStorageManagementNoKeys: "Inga localStorage-nycklar hittades.",
+    settingsStorageManagementWipeConfirmTitle: "Rensa lagringsnyckel?",
+    settingsStorageManagementWipeConfirmBody:
+      'Du ar pa vag att rensa "{{key}}" fran lokal lagring. Nar den har rensats kan detta inte angas. Appdata, installningar, cache eller status som lagras under nyckeln kan ga forlorade.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Rensa alla lagringsnycklar?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Detta tar permanent bort varje nyckel som for narvarande listas i Lagringshantering. Detta kan inte angas. Exportera dina data forst om du kan behova dem senare.",
+    settingsStorageManagementWipeSuccess: "Lagringsnyckel rensad: {{key}}",
+    settingsStorageManagementWipeError:
+      "Kunde inte rensa lagringsnyckel: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Alla listade lagringsnycklar har rensats.",
+    settingsStorageManagementWipeAllError:
+      "Kunde inte rensa alla listade lagringsnycklar.",
+    settingsStorageManagementReadError: "Kunde inte lasa localStorage.",
     settingsMachineLearningTitle: "Maskininlärning",
     settingsMachineLearningBody:
       "Senior-spelarsnapshots lärs in automatiskt från senioruppdateringar och detaljer i transfermarknadsresultat.",
@@ -527,6 +610,20 @@ export const messagesSv: Messages = {
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
+    settingsDebugStorageButton: "Lagring",
+    settingsDebugStorageTitle: "Lagringsdiagnostik",
+    settingsDebugStorageLoading: "Laser lagringsdiagnostik...",
+    settingsDebugStorageOriginEstimateLabel: "Uppskattad ursprungslagring",
+    settingsDebugStorageOriginUnavailable:
+      "Uppskattad ursprungslagring ar inte tillganglig",
+    settingsDebugStorageLocalStorageApproxLabel:
+      "Ungefarlig localStorage-anvandning",
+    settingsDebugStorageBreakdownKeyColumn: "Nyckel",
+    settingsDebugStorageBreakdownUsageColumn: "Ungefarlig anvandning",
+    settingsDebugStorageNoLocalStorageKeys:
+      "Inga localStorage-nycklar hittades.",
+    settingsDebugStorageRefreshButton: "Uppdatera",
+    settingsDebugStorageError: "Kunde inte lasa lagringsdiagnostik.",
     clubChronicleLeaguePanelTitle: "Ligaprestanda och cup",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams:
@@ -828,6 +925,10 @@ export const messagesSv: Messages = {
     clubChronicleTsiPlayerColumn: "Spelare",
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Spelpos.",
+    clubChronicleMainSkillEstimationColumn: "Uppskattning av huvudfardighet¹",
+    clubChronicleMainSkillEstimationFootnote:
+      "¹ Uppskattningen av huvudfardighet ar bara grov.",
+    clubChronicleMainSkillEstimationTooOld: "Spelaren ar for gammal",
     clubChronicleForm7RatingColumn: "Form-7-betyg",
     clubChronicleManMarkerColumn: "MM?",
     clubChronicleManMarkerTooltip:
@@ -959,9 +1060,9 @@ export const messagesSv: Messages = {
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
     ratingsMatrixTabLabel: "Betygsmatris",
-    seniorSkillsMatrixBonusToggleLabel: "Anvand bonus",
+    seniorSkillsMatrixBonusToggleLabel: "Effektiv fardighet",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Slår av eller pa effektiva bonusvarden i seniorernas fardighetsmatris (moderklubbs- eller lojalitetsbonus).",
+      "Sla pa for att visa effektiv fardighet som tar hansyn till lojalitet, moderklubbsbonus, form och uthallighet.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",
@@ -1423,7 +1524,6 @@ export const messagesSv: Messages = {
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
     notificationSeniorTrainingRegimenChanged:
       "Seniorlagets träningsregim ändrades till {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Seniorernas betygsmatris rensad.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap för seniorbetyg slutförd.",
     notificationReauthRequired:
@@ -1460,6 +1560,9 @@ export const messagesSv: Messages = {
     trainingRegimenLabel: "Träningsregim",
     trainingSetButtonLabel: "Sätt",
     trainingSetButtonTooltip: "Sätt som ny träningsregim",
+    youthTrainingChppLimitInfoLabel: "CHPP-begränsning för ungdomsträning",
+    youthTrainingChppLimitTooltip:
+      "CHPP tillåter inte att ungdomars träningsregimer importeras från eller ställs in i Hattrick. Om du vill att detta ändras, skicka en funktionsbegäran till Hattrick.",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
     trainingUnset: "—",

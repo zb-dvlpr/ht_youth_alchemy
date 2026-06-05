@@ -9,7 +9,9 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { resolveInjuryStatus } from "@/lib/injuries";
 import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
+import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
@@ -274,23 +276,22 @@ const toSubscript = (value: number) =>
     .join("");
 
 const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
-  if (injuryLevelRaw === null) return null;
-  const isBruised = injuryLevelRaw === 0 || (injuryLevelRaw > 0 && injuryLevelRaw < 1);
-  const injuryWeeks = injuryLevelRaw >= 1 ? Math.ceil(injuryLevelRaw) : null;
-  const label = isBruised
+  const status = resolveInjuryStatus(injuryLevelRaw);
+  if (!status.isKnown) return null;
+  const label = status.isBruised
     ? messages.seniorListInjuryBruised
-    : injuryWeeks !== null
-    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+    : status.injuryWeeks !== null
+    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(status.injuryWeeks))
     : messages.clubChronicleInjuryHealthy;
-  const display = isBruised
+  const display = status.isBruised
     ? "🩹"
-    : injuryWeeks !== null
-    ? `✚${toSubscript(injuryWeeks)}`
+    : status.injuryWeeks !== null
+    ? `✚${toSubscript(status.injuryWeeks)}`
     : messages.clubChronicleInjuryHealthy;
   return {
     label,
     display,
-    isHealthy: !isBruised && injuryWeeks === null,
+    isHealthy: status.isHealthy,
   };
 };
 
@@ -457,8 +458,6 @@ const seniorBarGradient = (
   return `linear-gradient(90deg, ${startColor}, ${endColor})`;
 };
 
-const SENIOR_SKILL_EFFECT_CAP = 20;
-
 const formatSkillMatrixFloat = (value: number) => {
   if (!Number.isFinite(value)) return "0.0";
   if (Number.isInteger(value)) return String(value);
@@ -467,29 +466,18 @@ const formatSkillMatrixFloat = (value: number) => {
   return rounded.toFixed(1);
 };
 
-const computeSeniorSkillBonus = (
-  baseSkill: number | null,
-  details: YouthPlayerDetails | null
-) => {
-  if (baseSkill === null) return null;
-  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
-  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
-  if (details?.MotherClubBonus) {
-    return Math.min(1.5, remaining);
-  }
-  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
-  const loyalty = Math.max(0, loyaltyRaw);
-  return Math.min(loyalty / 20, remaining);
-};
-
 const computeSeniorEffectiveSkill = (
   baseSkill: number | null,
+  player: YouthPlayer | null,
   details: YouthPlayerDetails | null
 ) => {
-  if (baseSkill === null) return null;
-  const bonus = computeSeniorSkillBonus(baseSkill, details);
-  if (bonus === null) return null;
-  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
+  return calculateEffectiveSkill({
+    rawSkill: baseSkill,
+    loyalty: details?.Loyalty,
+    motherClubBonus: details?.MotherClubBonus,
+    form: details?.Form ?? player?.Form,
+    stamina: details?.StaminaSkill ?? player?.StaminaSkill,
+  });
 };
 
 function daysSince(dateString?: string) {
@@ -806,13 +794,13 @@ export default function PlayerDetailsPanel({
         playerKind === "senior" &&
         skillMode === "single" &&
         showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(currentA, detailsA ?? null)
+          ? computeSeniorEffectiveSkill(currentA, playerA ?? null, detailsA ?? null)
           : currentA;
       const effectiveCurrentB =
         playerKind === "senior" &&
         skillMode === "single" &&
         showSeniorSkillBonusInMatrix
-          ? computeSeniorEffectiveSkill(currentB, detailsB ?? null)
+          ? computeSeniorEffectiveSkill(currentB, playerB ?? null, detailsB ?? null)
           : currentB;
       const sumA =
         skillMode === "single"
@@ -2296,7 +2284,11 @@ export default function PlayerDetailsPanel({
                       playerKind === "senior" &&
                       skillMode === "single" &&
                       showSeniorSkillBonusInMatrix
-                        ? computeSeniorEffectiveSkill(current, details ?? null)
+                        ? computeSeniorEffectiveSkill(
+                            current,
+                            player ?? null,
+                            details ?? null
+                          )
                         : current;
                     const isNewCurrent =
                       row.id !== null

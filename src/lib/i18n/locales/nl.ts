@@ -12,10 +12,87 @@ export const messagesNl: Messages = {
   changelogTitle: "Wijzigingslogboek",
   manualTitle: "HT Alchemy-handleiding",
   manualTocTitle: "Inhoudsopgave",
+  reminderBellLabel: "Herinneringen",
+  remindersTitle: "Herinneringen",
+  reminderDueNow: "Nu nodig",
+  reminderSnoozed: "Gesnoozed",
+  reminderDismiss: "Negeren",
+  reminderSnooze: "Snoozen",
+  reminderSnooze6Hours: "6 uur",
+  reminderSnooze1Day: "1 dag",
+  reminderSnooze3Days: "3 dagen",
+  reminderSnooze1Week: "1 week",
+  remindersSnoozeForLabel: "Snoozen voor",
+  remindersSnoozeButtonLabel: "Snoozen",
+  remindersSnoozeDurationDay: "{{count}} dag",
+  remindersSnoozeDurationDays: "{{count}} dagen",
+  remindersDismissedSectionTitle: "Genegeerd",
+  remindersNoDismissed: "Geen genegeerde herinneringen.",
+  remindersDismissedAtLabel: "Genegeerd {{time}}",
+  reminderTurnOff: "Herinneringen uitzetten",
+  reminderOpenModal: "Openen",
+  reminderNoDue: "Geen herinneringen nodig.",
+  reminderNoSnoozed: "Geen gesnoozede herinneringen.",
+  remindersDisabledState: "Herinneringen staan uit.",
+  reminderMissingActionFallback:
+    "Deze herinneringsactie is nog niet beschikbaar.",
+  reminderActionConfirmTitle: "Herinnering negeren?",
+  reminderActionConfirmBody:
+    "Doorgaan voert deze actie uit en negeert de herinnering. Annuleer om de herinnering actief te houden.",
+  reminderActionConfirmContinue: "Doorgaan en negeren",
+  reminderSeniorInjuryTitle: "Senior speler geblesseerd",
+  reminderSeniorInjuryBody:
+    "{{playerName}} is {{weeks}} weken geblesseerd. Overweeg een vervanger te zoeken.",
+  reminderActionFindSimilarPlayers: "Vergelijkbare spelers vinden",
+  reminderSeniorInjuryActionUnavailable:
+    "Kon Vergelijkbare spelers vinden niet openen voor deze herinnering.",
+  reminderSeniorSalaryIncreaseTitle: "Spelersalaris sterk gestegen",
+  reminderSeniorSalaryIncreaseBody:
+    "Het salaris van {{playerName}} is gestegen van {{previousSalary}} naar {{currentSalary}}. Wil je de speler verkopen?",
+  reminderActionSellPlayer: "Speler verkopen",
+  reminderSeniorSalaryIncreaseActionUnavailable:
+    "Kon deze speler niet openen in Hattrick.",
+  reminderSeniorMatchLineupMissingTitle:
+    "Geen orders ingesteld voor komende seniorenwedstrijd",
+  reminderYouthMatchLineupMissingTitle:
+    "Geen orders ingesteld voor komende jeugdwedstrijd",
+  reminderMatchLineupMissingBody:
+    "{{matchName}} begint over {{timeRemaining}} en heeft geen orders ingesteld.",
+  reminderActionSetOrders: "Orders instellen",
+  reminderMatchLineupMissingActionUnavailable:
+    "Kon het hulpmiddel voor deze herinnering niet focussen.",
+  reminderYouthPromotionTitle: "Jeugdspeler kan binnenkort promoveren",
+  reminderYouthPromotionBody:
+    "{{playerName}} kan over {{timeRemaining}} promoveren.",
+  reminderActionViewPlayerInHattrick: "Speler bekijken in Hattrick",
+  reminderYouthPromotionActionUnavailable:
+    "Kon deze jeugdspeler niet openen in Hattrick.",
+  reminderClubChronicleArenaOccupancyTitle: "Stadiongebruik is hoog",
+  reminderClubChronicleArenaOccupancyBody:
+    "Je stadion was {{occupancyPct}}% vol in de laatste thuiswedstrijd in de competitie. Overweeg uitbreiding.",
+  reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+    "Je stadion was {{occupancyPct}}% vol in de laatste thuiswedstrijd in de competitie ({{soldTotal}} van {{capacity}} plaatsen verkocht). Overweeg uitbreiding.",
+  reminderActionExpandArena: "Stadion uitbreiden",
+  reminderClubChronicleArenaOccupancyActionUnavailable:
+    "Kon de stadionpagina in Hattrick niet openen.",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",
   settingsDebugBuyCoffeePromptButton: "Toon koop-een-koffie-voor-me-modal",
+  settingsDebugStorageButton: "Opslag",
+  settingsDebugStorageTitle: "Opslagdiagnostiek",
+  settingsDebugStorageLoading: "Opslagdiagnostiek lezen...",
+  settingsDebugStorageOriginEstimateLabel: "Geschatte origin-opslag",
+  settingsDebugStorageOriginUnavailable:
+    "Geschatte origin-opslag niet beschikbaar",
+  settingsDebugStorageLocalStorageApproxLabel:
+    "Geschat localStorage-gebruik",
+  settingsDebugStorageBreakdownKeyColumn: "Sleutel",
+  settingsDebugStorageBreakdownUsageColumn: "Geschat gebruik",
+  settingsDebugStorageNoLocalStorageKeys:
+    "Geen localStorage-sleutels gevonden.",
+  settingsDebugStorageRefreshButton: "Vernieuwen",
+  settingsDebugStorageError: "Kon opslagdiagnostiek niet lezen.",
   buyCoffeePromptTitle: "☕ Fijn dat je hier bent",
   buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Alchemy gebruikt.",
   buyCoffeePromptBody:
@@ -182,14 +259,11 @@ export const messagesNl: Messages = {
   settingsSenior: "Senior",
   settingsSeniorTitle: "Seniorinstellingen",
   settingsSeniorStalenessLabel: "Automatisch verversen na (dagen)",
-  settingsSeniorRatingsWipeLabel: "Reset beoordelingsmatrix",
-  settingsSeniorRatingsWipeButton: "Wis senior beoordelingsmatrix",
-  settingsSeniorRatingsWipeWarningTitle: "Wis senior beoordelingsmatrix",
-  settingsSeniorRatingsWipeWarningBody:
-    "Dit kan niet ongedaan worden gemaakt. Bij de volgende verversing worden beoordelingen automatisch opnieuw opgebouwd uit dit en vorig seizoen in oplopende volgorde van wedstrijddatum. Elke verversing daarna verwerkt alleen nog updates uit nieuwe, nog niet verwerkte wedstrijden.",
-  settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsReminders: "Herinneringen",
+  settingsRemindersTitle: "Herinneringen",
+  settingsRemindersEnableLabel: "Herinneringen inschakelen",
   settingsLicense: "Licentie",
   settingsLicenseTitle: "Licentie",
   settingsLicenseBody:
@@ -248,6 +322,29 @@ export const messagesNl: Messages = {
   settingsGeneralImportAllLabel: "Alle instellingen importeren",
   settingsGeneralImportAllHint:
     "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
+  settingsStorageManagementButton: "Opslagbeheer",
+  settingsStorageManagementTitle: "Opslagbeheer",
+  settingsStorageManagementTotalUsed: "Gebruikte opslag: {{size}}",
+  settingsStorageManagementKeyColumn: "Sleutel",
+  settingsStorageManagementUsageColumn: "Gebruik",
+  settingsStorageManagementActionColumn: "Actie",
+  settingsStorageManagementWipeButton: "Wissen",
+  settingsStorageManagementWipeAllButton: "Alles wissen",
+  settingsStorageManagementNoKeys: "Geen localStorage-sleutels gevonden.",
+  settingsStorageManagementWipeConfirmTitle: "Opslagsleutel wissen?",
+  settingsStorageManagementWipeConfirmBody:
+    'Je staat op het punt "{{key}}" uit lokale opslag te wissen. Na wissen kan dit niet ongedaan worden gemaakt. Appgegevens, instellingen, cache of status onder deze sleutel kunnen verloren gaan.',
+  settingsStorageManagementWipeAllConfirmTitle: "Alle opslagsleutels wissen?",
+  settingsStorageManagementWipeAllConfirmBody:
+    "Dit verwijdert permanent elke sleutel die momenteel in Opslagbeheer staat. Dit kan niet ongedaan worden gemaakt. Exporteer eerst je gegevens als je ze later nodig kunt hebben.",
+  settingsStorageManagementWipeSuccess: "Opslagsleutel gewist: {{key}}",
+  settingsStorageManagementWipeError:
+    "Kon opslagsleutel niet wissen: {{key}}",
+  settingsStorageManagementWipeAllSuccess:
+    "Alle vermelde opslagsleutels zijn gewist.",
+  settingsStorageManagementWipeAllError:
+    "Kon niet alle vermelde opslagsleutels wissen.",
+  settingsStorageManagementReadError: "Kon localStorage niet lezen.",
   settingsMachineLearningTitle: "Machine learning",
   settingsMachineLearningBody:
     "Senior-spelerssnapshots worden automatisch geleerd uit seniorverversingen en details van transfermarktresultaten.",
@@ -352,6 +449,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_6_0_0:
+    "Globaal herinneringenframework toegevoegd met instellingen, bel, snooze-/negeeropslag en export/import.",
   changelog_5_8_0:
     "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:
@@ -445,9 +544,9 @@ export const messagesNl: Messages = {
   detailsTabLabel: "Details",
   skillsMatrixTabLabel: "Vaardighedenmatrix",
   ratingsMatrixTabLabel: "Beoordelingsmatrix",
-  seniorSkillsMatrixBonusToggleLabel: "Bonus toepassen",
+  seniorSkillsMatrixBonusToggleLabel: "Effectieve vaardigheid",
   seniorSkillsMatrixBonusToggleTooltip:
-    "Schakel effectieve bonuswaarden in de senior vaardighedenmatrix in of uit (moederclub- of loyaliteitsbonus).",
+    "Zet aan om effectieve vaardigheid te tonen die rekening houdt met loyaliteit, moederclubbonus, vorm en uithoudingsvermogen.",
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:
@@ -869,6 +968,10 @@ export const messagesNl: Messages = {
   clubChronicleTeamAttitudeDetailsDisclaimer:
     "Afgeleide instelling is een heuristische schatting op basis van afwijkingen in middenveldrating. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
+  clubChronicleMainSkillEstimationColumn: "Schatting hoofdskill¹",
+  clubChronicleMainSkillEstimationFootnote:
+    "¹ De schatting van de hoofdskill is alleen een grove schatting.",
+  clubChronicleMainSkillEstimationTooOld: "Speler te oud",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleManMarkerColumn: "MM?",
   clubChronicleManMarkerTooltip:
@@ -1123,7 +1226,6 @@ export const messagesNl: Messages = {
     "Er zijn geen formaties met trainingservaring boven 3 gevonden. Er wordt teruggevallen op alle formaties.",
   notificationSeniorTrainingRegimenChanged:
     "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
-  notificationSeniorRatingsMatrixWiped: "Senior beoordelingsmatrix gewist.",
   notificationSeniorRatingsBootstrapComplete:
     "Bootstrap van senior beoordelingsmatrix voltooid.",
   notificationLineupLoaded: "Opstelling geladen:",
@@ -1170,6 +1272,9 @@ export const messagesNl: Messages = {
   trainingRegimenLabel: "Trainingsregime",
   trainingSetButtonLabel: "Instellen",
   trainingSetButtonTooltip: "Instellen als nieuw trainingsregime",
+  youthTrainingChppLimitInfoLabel: "CHPP-beperking voor jeugdtraining",
+  youthTrainingChppLimitTooltip:
+    "CHPP staat niet toe om jeugdtrainingsregimes uit Hattrick te importeren of in Hattrick in te stellen. Als je dit wilt wijzigen, dien dan een functieverzoek in bij Hattrick.",
   primaryTrainingLabel: "Primair",
   secondaryTrainingLabel: "Secundair",
   trainingUnset: "—",

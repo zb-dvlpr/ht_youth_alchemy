@@ -12,10 +12,87 @@ export const messagesPl: Messages = {
   changelogTitle: "Dziennik zmian",
   manualTitle: "Instrukcja HT Alchemy",
   manualTocTitle: "Spis treści",
+  reminderBellLabel: "Przypomnienia",
+  remindersTitle: "Przypomnienia",
+  reminderDueNow: "Do zrobienia",
+  reminderSnoozed: "Odłożone",
+  reminderDismiss: "Ukryj",
+  reminderSnooze: "Odłóż",
+  reminderSnooze6Hours: "6 godzin",
+  reminderSnooze1Day: "1 dzień",
+  reminderSnooze3Days: "3 dni",
+  reminderSnooze1Week: "1 tydzień",
+  remindersSnoozeForLabel: "Odłóż na",
+  remindersSnoozeButtonLabel: "Odłóż",
+  remindersSnoozeDurationDay: "{{count}} dzień",
+  remindersSnoozeDurationDays: "{{count}} dni",
+  remindersDismissedSectionTitle: "Ukryte",
+  remindersNoDismissed: "Brak ukrytych przypomnień.",
+  remindersDismissedAtLabel: "Ukryto {{time}}",
+  reminderTurnOff: "Wyłącz przypomnienia",
+  reminderOpenModal: "Otwórz",
+  reminderNoDue: "Brak przypomnień do zrobienia.",
+  reminderNoSnoozed: "Brak odłożonych przypomnień.",
+  remindersDisabledState: "Przypomnienia są wyłączone.",
+  reminderMissingActionFallback:
+    "Ta akcja przypomnienia nie jest jeszcze dostępna.",
+  reminderActionConfirmTitle: "Ukryć przypomnienie?",
+  reminderActionConfirmBody:
+    "Kontynuowanie wykona tę akcję i ukryje przypomnienie. Anuluj, aby pozostawić przypomnienie aktywne.",
+  reminderActionConfirmContinue: "Kontynuuj i ukryj",
+  reminderSeniorInjuryTitle: "Senior kontuzjowany",
+  reminderSeniorInjuryBody:
+    "{{playerName}} ma kontuzję na {{weeks}} tygodnie. Rozważ poszukanie zastępcy.",
+  reminderActionFindSimilarPlayers: "Znajdź podobnych graczy",
+  reminderSeniorInjuryActionUnavailable:
+    "Nie udało się otworzyć funkcji Znajdź podobnych graczy dla tego przypomnienia.",
+  reminderSeniorSalaryIncreaseTitle: "Pensja zawodnika znacząco wzrosła",
+  reminderSeniorSalaryIncreaseBody:
+    "Pensja zawodnika {{playerName}} wzrosła z {{previousSalary}} do {{currentSalary}}. Czy chcesz sprzedać tego zawodnika?",
+  reminderActionSellPlayer: "Sprzedaj zawodnika",
+  reminderSeniorSalaryIncreaseActionUnavailable:
+    "Nie udało się otworzyć tego zawodnika w Hattricku.",
+  reminderSeniorMatchLineupMissingTitle:
+    "Brak rozkazów dla nadchodzącego meczu seniorów",
+  reminderYouthMatchLineupMissingTitle:
+    "Brak rozkazów dla nadchodzącego meczu juniorów",
+  reminderMatchLineupMissingBody:
+    "{{matchName}} zaczyna się za {{timeRemaining}} i nie ma ustawionych rozkazów.",
+  reminderActionSetOrders: "Ustaw rozkazy",
+  reminderMatchLineupMissingActionUnavailable:
+    "Nie udało się przełączyć na narzędzie dla tego przypomnienia.",
+  reminderYouthPromotionTitle: "Junior może wkrótce awansować",
+  reminderYouthPromotionBody:
+    "{{playerName}} może awansować za {{timeRemaining}}.",
+  reminderActionViewPlayerInHattrick: "Zobacz gracza w Hattrick",
+  reminderYouthPromotionActionUnavailable:
+    "Nie udało się otworzyć tego juniora w Hattrick.",
+  reminderClubChronicleArenaOccupancyTitle: "Wykorzystanie stadionu jest wysokie",
+  reminderClubChronicleArenaOccupancyBody:
+    "Twój stadion był zapełniony w {{occupancyPct}}% w ostatnim domowym meczu ligowym. Rozważ rozbudowę.",
+  reminderClubChronicleArenaOccupancyBodyWithSoldTotal:
+    "Twój stadion był zapełniony w {{occupancyPct}}% w ostatnim domowym meczu ligowym (sprzedano {{soldTotal}} z {{capacity}} miejsc). Rozważ rozbudowę.",
+  reminderActionExpandArena: "Rozbuduj stadion",
+  reminderClubChronicleArenaOccupancyActionUnavailable:
+    "Nie udało się otworzyć strony stadionu w Hattrick.",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",
   settingsDebugBuyCoffeePromptButton: "Pokaż modal postaw mi kawę",
+  settingsDebugStorageButton: "Pamięć",
+  settingsDebugStorageTitle: "Diagnostyka pamięci",
+  settingsDebugStorageLoading: "Odczytywanie diagnostyki pamięci...",
+  settingsDebugStorageOriginEstimateLabel: "Szacowana pamięć origin",
+  settingsDebugStorageOriginUnavailable:
+    "Szacowana pamięć origin niedostępna",
+  settingsDebugStorageLocalStorageApproxLabel:
+    "Przybliżone użycie localStorage",
+  settingsDebugStorageBreakdownKeyColumn: "Klucz",
+  settingsDebugStorageBreakdownUsageColumn: "Przybliżone użycie",
+  settingsDebugStorageNoLocalStorageKeys:
+    "Nie znaleziono kluczy localStorage.",
+  settingsDebugStorageRefreshButton: "Odśwież",
+  settingsDebugStorageError: "Nie udało się odczytać diagnostyki pamięci.",
   buyCoffeePromptTitle: "☕ Dzięki, że tu jesteś",
   buyCoffeePromptLead: "🙏 Jestem naprawdę wdzięczny, że korzystasz z HT Alchemy.",
   buyCoffeePromptBody:
@@ -182,14 +259,11 @@ export const messagesPl: Messages = {
   settingsSenior: "Seniorzy",
   settingsSeniorTitle: "Ustawienia seniorów",
   settingsSeniorStalenessLabel: "Auto-odświeżanie po (dniach)",
-  settingsSeniorRatingsWipeLabel: "Reset macierzy ocen",
-  settingsSeniorRatingsWipeButton: "Wyczyść macierz ocen seniorów",
-  settingsSeniorRatingsWipeWarningTitle: "Wyczyść macierz ocen seniorów",
-  settingsSeniorRatingsWipeWarningBody:
-    "Tej operacji nie można cofnąć. Przy następnym odświeżeniu oceny zostaną automatycznie odbudowane z tego i poprzedniego sezonu w rosnącej kolejności dat meczów. Każde kolejne odświeżenie będzie już uwzględniało tylko nowe, nieprzetworzone mecze.",
-  settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+  settingsReminders: "Przypomnienia",
+  settingsRemindersTitle: "Przypomnienia",
+  settingsRemindersEnableLabel: "Włącz przypomnienia",
   settingsLicense: "Licencja",
   settingsLicenseTitle: "Licencja",
   settingsLicenseBody:
@@ -248,6 +322,30 @@ export const messagesPl: Messages = {
   settingsGeneralImportAllLabel: "Importuj wszystkie ustawienia",
   settingsGeneralImportAllHint:
     "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
+  settingsStorageManagementButton: "Zarządzanie pamięcią",
+  settingsStorageManagementTitle: "Zarządzanie pamięcią",
+  settingsStorageManagementTotalUsed: "Użyta pamięć: {{size}}",
+  settingsStorageManagementKeyColumn: "Klucz",
+  settingsStorageManagementUsageColumn: "Użycie",
+  settingsStorageManagementActionColumn: "Akcja",
+  settingsStorageManagementWipeButton: "Wyczyść",
+  settingsStorageManagementWipeAllButton: "Wyczyść wszystko",
+  settingsStorageManagementNoKeys: "Nie znaleziono kluczy localStorage.",
+  settingsStorageManagementWipeConfirmTitle: "Wyczyścić klucz pamięci?",
+  settingsStorageManagementWipeConfirmBody:
+    'Zamierzasz wyczyścić "{{key}}" z pamięci lokalnej. Po wyczyszczeniu nie można tego cofnąć. Dane aplikacji, ustawienia, pamięć podręczna lub stan zapisane pod tym kluczem mogą zostać utracone.',
+  settingsStorageManagementWipeAllConfirmTitle:
+    "Wyczyścić wszystkie klucze pamięci?",
+  settingsStorageManagementWipeAllConfirmBody:
+    "To trwale usunie każdy klucz aktualnie widoczny w Zarządzaniu pamięcią. Tego nie można cofnąć. Najpierw wyeksportuj dane, jeśli mogą być potrzebne później.",
+  settingsStorageManagementWipeSuccess: "Wyczyszczono klucz pamięci: {{key}}",
+  settingsStorageManagementWipeError:
+    "Nie udało się wyczyścić klucza pamięci: {{key}}",
+  settingsStorageManagementWipeAllSuccess:
+    "Wyczyszczono wszystkie wymienione klucze pamięci.",
+  settingsStorageManagementWipeAllError:
+    "Nie udało się wyczyścić wszystkich wymienionych kluczy pamięci.",
+  settingsStorageManagementReadError: "Nie udało się odczytać localStorage.",
   settingsMachineLearningTitle: "Uczenie maszynowe",
   settingsMachineLearningBody:
     "Migawki seniorów są uczone automatycznie z odświeżeń seniorów i szczegółów wyników rynku transferowego.",
@@ -345,6 +443,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_6_0_0:
+    "Dodano globalny framework przypomnień z ustawieniami, ikoną, odkładaniem/ukrywaniem oraz eksportem/importem.",
   changelog_5_8_0:
     "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:
@@ -438,9 +538,9 @@ export const messagesPl: Messages = {
   detailsTabLabel: "Szczegóły",
   skillsMatrixTabLabel: "Macierz umiejętności",
   ratingsMatrixTabLabel: "Macierz ocen",
-  seniorSkillsMatrixBonusToggleLabel: "Uwzględnij bonus",
+  seniorSkillsMatrixBonusToggleLabel: "Efektywna umiejętność",
   seniorSkillsMatrixBonusToggleTooltip:
-    "Włącza lub wyłącza efektywne wartości z bonusu w macierzy umiejętności seniorów (bonus klubu macierzystego albo lojalności).",
+    "Włącz, aby pokazać efektywną umiejętność uwzględniającą lojalność, bonus klubu macierzystego, formę i kondycję.",
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsLastAppliedMatchLabel:
@@ -862,6 +962,10 @@ export const messagesPl: Messages = {
   clubChronicleTeamAttitudeDetailsDisclaimer:
     "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach ratingu pomocy. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
+  clubChronicleMainSkillEstimationColumn: "Szac. glownej umiejetnosci¹",
+  clubChronicleMainSkillEstimationFootnote:
+    "¹ Szacowanie glownej umiejetnosci jest tylko przyblizone.",
+  clubChronicleMainSkillEstimationTooOld: "Zawodnik zbyt stary",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleManMarkerColumn: "MM?",
   clubChronicleManMarkerTooltip:
@@ -1116,7 +1220,6 @@ export const messagesPl: Messages = {
     "Nie znaleziono formacji z doświadczeniem treningowym powyżej 3. Następuje powrót do wszystkich formacji.",
   notificationSeniorTrainingRegimenChanged:
     "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
-  notificationSeniorRatingsMatrixWiped: "Wyczyszczono macierz ocen seniorów.",
   notificationSeniorRatingsBootstrapComplete:
     "Bootstrap ocen seniorów zakończony.",
   notificationLineupLoaded: "Wczytano skład:",
@@ -1163,6 +1266,9 @@ export const messagesPl: Messages = {
   trainingRegimenLabel: "Reżim treningowy",
   trainingSetButtonLabel: "Ustaw",
   trainingSetButtonTooltip: "Ustaw jako nowy reżim treningowy",
+  youthTrainingChppLimitInfoLabel: "Ograniczenie CHPP treningu juniorów",
+  youthTrainingChppLimitTooltip:
+    "CHPP nie pozwala importować reżimów treningowych juniorów z Hattricka ani ustawiać ich w Hattricku. Jeśli chcesz, aby to się zmieniło, wyślij prośbę o funkcję do Hattricka.",
   primaryTrainingLabel: "Główny",
   secondaryTrainingLabel: "Drugorzędny",
   trainingUnset: "—",

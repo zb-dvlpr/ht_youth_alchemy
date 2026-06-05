@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "../page.module.css";
 import type { Locale, Messages } from "@/lib/i18n";
 import type { FeedbackManagerIdentity } from "@/lib/hattrick/managerIdentity";
+import { collectFeedbackStorageMetadata } from "@/lib/storageDiagnostics";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
@@ -103,6 +104,7 @@ export default function MobileManualButton({
     setSubmitting(true);
     setErrorMessage(null);
     try {
+      const storage = collectFeedbackStorageMetadata();
       const response = await fetch("/api/github/issue", {
         method: "POST",
         headers: {
@@ -122,6 +124,9 @@ export default function MobileManualButton({
           appVersion,
           managerUserId: initialManagerIdentity?.userId,
           managerLoginname: initialManagerIdentity?.loginname,
+          metadata: {
+            storage,
+          },
         }),
       });
       const payload = (await response.json().catch(() => null)) as

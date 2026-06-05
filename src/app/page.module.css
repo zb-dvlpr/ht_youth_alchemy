@@ -148,8 +148,17 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileLauncherUtilityRow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.mobileLauncherUtilityRow .reminderBellWrap {
+  display: flex;
+  min-width: 0;
+}
+
+.mobileLauncherUtilityRow .reminderBellWrap .feedbackButton {
+  border-radius: 16px;
 }
 
 .mobileLauncherUtilityButton {
@@ -185,6 +194,7 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileNavHeader {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px;
   min-width: 0;
   position: sticky;
@@ -210,6 +220,7 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  grid-column: 1;
   min-width: 0;
 }
 
@@ -229,9 +240,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
+  grid-column: 1;
   width: 100%;
   min-width: 0;
   padding: 2px 0 0;
+  overflow: visible;
+}
+
+.mobileNavActions {
+  display: inline-flex;
+  align-items: start;
+  justify-content: flex-end;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 48px;
   overflow: visible;
 }
 
@@ -1475,6 +1497,23 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   }
 }
 
+@media (max-width: 420px) {
+  html[data-mobile-shell="true"] .reminderManagementControls {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  html[data-mobile-shell="true"] .reminderSnoozeControl {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  html[data-mobile-shell="true"] .reminderDismissButton {
+    align-self: flex-end;
+    margin-left: auto;
+  }
+}
+
 .algorithmsModalBody {
   display: grid;
   gap: 12px;
@@ -1666,6 +1705,81 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #3f362c;
 }
 
+.storageDiagnosticsSection {
+  display: grid;
+  gap: 6px;
+}
+
+.storageDiagnosticsHeading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+.storageDiagnosticsValue {
+  margin: 0;
+  color: #5d5246;
+  font-size: 14px;
+}
+
+.storageDiagnosticsTableWrap {
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  border: 1px solid #e0d6c6;
+  border-radius: 10px;
+  background: #f7f2ea;
+}
+
+.storageDiagnosticsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.storageDiagnosticsTable th,
+.storageDiagnosticsTable td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #e0d6c6;
+  text-align: left;
+  vertical-align: top;
+}
+
+.storageDiagnosticsTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f4efe6;
+  color: #6a5f50;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.storageDiagnosticsTable td:first-child {
+  max-width: 380px;
+  overflow-wrap: anywhere;
+  color: #3f362c;
+}
+
+.storageDiagnosticsTable td:nth-child(2),
+.storageDiagnosticsTable th:nth-child(2) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.storageDiagnosticsTable td:last-child,
+.storageDiagnosticsTable th:last-child {
+  width: 110px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.storageDiagnosticsTable .settingsDangerButton {
+  justify-self: end;
+}
+
 .confirmCard.feedbackModal {
   width: min(760px, 94vw);
 }
@@ -1824,6 +1938,197 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .notificationEmpty {
   font-size: 12px;
   color: #9a8f81;
+}
+
+.reminderBellWrap {
+  position: relative;
+}
+
+.reminderBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+}
+
+.reminderDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 2200;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(640px, calc(100vh - 96px));
+  overflow: auto;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  background: #f7f1e3;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  color: #3f362c;
+}
+
+.reminderDropdownHeader,
+.reminderPrimaryActions,
+.reminderManagementControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminderPrimaryActions {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-self: end;
+}
+
+.reminderManagementControls {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(91, 74, 55, 0.18);
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.reminderSnoozeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.reminderSnoozeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4a37;
+}
+
+.reminderSnoozeSelect {
+  border: 1px solid #c8b8a3;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #3f362c;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 28px 6px 10px;
+}
+
+.reminderDismissButton {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.reminderDropdownHeader {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.reminderDropdownSection {
+  display: grid;
+  gap: 8px;
+}
+
+.reminderDropdownSection h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.reminderDropdownList,
+.reminderModalBody {
+  display: grid;
+  gap: 10px;
+}
+
+.confirmCard.remindersModal {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.reminderCard {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+  container-type: inline-size;
+}
+
+.reminderBody {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  min-width: 0;
+}
+
+.reminderContentRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: 12px;
+}
+
+.reminderCardHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.reminderScope {
+  justify-self: start;
+  border-radius: 999px;
+  background: #efe6d6;
+  color: #5b4a38;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reminderCard_info {
+  border-color: #9db7d7;
+}
+
+.reminderCard_warning {
+  border-color: #b45309;
+}
+
+.reminderCard_critical {
+  border-color: #b91c1c;
+}
+
+@container (max-width: 520px) {
+  .reminderContentRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reminderPrimaryActions {
+    justify-self: start;
+  }
+
+  .reminderManagementControls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reminderSnoozeControl {
+    flex-wrap: wrap;
+  }
+
+  .reminderDismissButton {
+    align-self: flex-end;
+    margin-left: 0;
+  }
 }
 
 .connectButton {
@@ -3770,10 +4075,42 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   );
   gap: 1px;
   padding: 8px 4px 6px;
+  align-items: stretch;
+  line-height: 1.15;
 }
 
 .chronicleTsiWagesDetailTable .chronicleTableHeader > span {
   padding: 0 1px 0 0;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderItem {
+  align-items: center;
+  white-space: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderItemWithAccessory {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderButton {
+  white-space: normal;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderButton > span:not(.chronicleTableSortIcon) {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableSortIcon {
+  flex: 0 0 auto;
 }
 
 .chronicleTableFreezeFirstColumn .chronicleTableHeader > span:first-child {
@@ -3841,6 +4178,75 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: inline-flex;
   align-items: center;
   margin-left: -1px;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderAccessory {
+  margin-left: 0;
+}
+
+.chronicleMainSkillHeaderToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  color: #6b6256;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.chronicleMainSkillHeaderToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chronicleMainSkillHeaderToggleTrack {
+  position: relative;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 14px;
+  border: 1px solid #c9b9a3;
+  border-radius: 999px;
+  background: #d8cdc0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.chronicleMainSkillHeaderToggleTrack::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease;
+}
+
+.chronicleMainSkillHeaderToggleInput:checked + .chronicleMainSkillHeaderToggleTrack {
+  background: #2f9f5b;
+  border-color: #2f9f5b;
+}
+
+.chronicleMainSkillHeaderToggleInput:checked
+  + .chronicleMainSkillHeaderToggleTrack::after {
+  transform: translateX(10px);
+}
+
+.chronicleMainSkillHeaderToggleInput:focus-visible
+  + .chronicleMainSkillHeaderToggleTrack {
+  outline: 2px solid rgba(47, 159, 91, 0.4);
+  outline-offset: 2px;
+}
+
+.chronicleMainSkillHeaderToggleLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .chronicleTableHeaderInfoButton {
@@ -4457,6 +4863,42 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.chronicleDetailTableScrollHost {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 14px;
+}
+
+.chronicleDetailTableScroll {
+  scrollbar-width: none;
+  scrollbar-gutter: stable;
+}
+
+.chronicleDetailTableScroll::-webkit-scrollbar {
+  height: 0;
+}
+
+.chronicleDetailFloatingScrollbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 18;
+  width: 100%;
+  height: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: linear-gradient(
+    to bottom,
+    rgba(244, 239, 230, 0),
+    #f4efe6 35%,
+    #f4efe6
+  );
+}
+
+.chronicleDetailFloatingScrollbarSpacer {
+  height: 1px;
 }
 
 .chronicleTransferListedTableWrap .chronicleTableCell {
@@ -5275,6 +5717,77 @@ html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
     padding-top: 0;
   }
 
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap {
+    justify-content: center;
+    min-width: 48px;
+    overflow: visible;
+  }
+
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap {
+    justify-content: flex-end;
+    min-width: 48px;
+    overflow: visible;
+  }
+
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap > span,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap > span {
+    display: inline-flex;
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .feedbackButton,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .feedbackButton {
+    position: relative;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.84);
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .reminderBadge,
+  html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .reminderBadge {
+    top: -6px;
+    right: -6px;
+  }
+
+  html[data-mobile-shell="true"] .reminderManagementControls {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  html[data-mobile-shell="true"] .reminderSnoozeControl {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  html[data-mobile-shell="true"] .reminderSnoozeLabel {
+    flex: 0 0 auto;
+  }
+
+  html[data-mobile-shell="true"] .reminderSnoozeSelect {
+    min-width: 0;
+  }
+
+  html[data-mobile-shell="true"] .reminderDismissButton {
+    align-self: auto;
+    flex: 0 0 auto;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+
   .shellFrame[data-mobile-layout="true"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
@@ -5549,6 +6062,27 @@ html[data-theme="dark"] .feedbackMenu {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+html[data-theme="dark"] .reminderDropdown {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .reminderCard {
+  background: #1f1a13;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .reminderScope {
+  background: #2f281f;
+  color: #eadfd2;
+}
+
+html[data-theme="dark"] .reminderManagementControls {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 html[data-theme="dark"] .feedbackLink {
   background: #2a241d;
   color: #f3ede4;
@@ -5617,6 +6151,30 @@ html[data-theme="dark"] .settingsInfoGrid span {
 
 html[data-theme="dark"] .settingsInfoGrid strong {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .storageDiagnosticsHeading,
+html[data-theme="dark"] .storageDiagnosticsTable td:first-child {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .storageDiagnosticsValue {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTableWrap {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #1f1a13;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTable th {
+  background: #26211c;
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .storageDiagnosticsTable th,
+html[data-theme="dark"] .storageDiagnosticsTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
 
@@ -5856,6 +6414,31 @@ html[data-theme="dark"] .chronicleTableHeader {
   background: #26211c;
   border-bottom-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .chronicleMainSkillHeaderToggle {
+  color: #d6ccc0;
+}
+
+html[data-theme="dark"] .chronicleMainSkillHeaderToggleTrack {
+  border-color: rgba(227, 214, 194, 0.3);
+  background: #3a332b;
+}
+
+html[data-theme="dark"]
+  .chronicleMainSkillHeaderToggleInput:checked
+  + .chronicleMainSkillHeaderToggleTrack {
+  background: #4a8e61;
+  border-color: #4a8e61;
+}
+
+html[data-theme="dark"] .chronicleDetailFloatingScrollbar {
+  background: linear-gradient(
+    to bottom,
+    rgba(38, 33, 28, 0),
+    #26211c 35%,
+    #26211c
+  );
 }
 
 html[data-theme="dark"] .chronicleTableCell {
@@ -6368,6 +6951,19 @@ html[data-theme="dark"] .trainingSelectTrigger {
 
 html[data-theme="dark"] .trainingSelectTrigger::after {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%23f3ede4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+html[data-theme="dark"] .trainingInfoButton {
+  border-color: transparent;
+  background: transparent;
+  color: #c8d8ba;
+}
+
+html[data-theme="dark"] .trainingInfoButton:hover,
+html[data-theme="dark"] .trainingInfoButton:focus-visible {
+  border-color: rgba(200, 216, 186, 0.22);
+  background: rgba(236, 243, 227, 0.1);
+  color: #ecf3e3;
 }
 
 html[data-theme="dark"] .trainingSelectOptionActive {
@@ -7419,6 +8015,35 @@ html[data-theme="dark"] .spinner {
 .trainingSelectTrigger:focus {
   outline: 2px solid rgba(233, 213, 182, 0.65);
   outline-offset: 1px;
+}
+
+.trainingInfoButton {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f6d4e;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.trainingInfoButton:hover,
+.trainingInfoButton:focus-visible {
+  border-color: rgba(95, 109, 78, 0.22);
+  background: rgba(236, 243, 227, 0.54);
+  color: #244d2b;
+}
+
+.trainingInfoButton:focus-visible {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 2px;
 }
 
 .trainingSelectMenu {
@@ -10514,6 +11139,22 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 .fieldTopLeftOverlay .trainingSelectTrigger:hover {
   background: rgba(228, 237, 217, 0.95);
   border-color: rgba(176, 197, 164, 1);
+}
+
+.fieldTopLeftOverlay .trainingInfoButton {
+  width: 20px;
+  height: 20px;
+  border-color: transparent;
+  background: transparent;
+  color: rgba(208, 223, 193, 0.82);
+  font-size: 17px;
+}
+
+.fieldTopLeftOverlay .trainingInfoButton:hover,
+.fieldTopLeftOverlay .trainingInfoButton:focus-visible {
+  border-color: rgba(208, 223, 193, 0.68);
+  background: rgba(236, 243, 227, 0.28);
+  color: #ecf3e3;
 }
 
 .fieldTopLeftOverlay .trainingSelectMenu {

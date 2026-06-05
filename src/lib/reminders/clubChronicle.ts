@@ -6,7 +6,7 @@ import type { ReminderCandidate, ReminderRule } from "./types";
 export const CLUB_CHRONICLE_REMINDER_CONTEXT_EVENT =
   "ya:club-chronicle-reminder-context";
 
-const HIGH_OCCUPANCY_THRESHOLD = 84;
+const HIGH_OCCUPANCY_THRESHOLD = 90;
 const ARENA_OCCUPANCY_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000;
 
 export type ClubChronicleArenaReminderSnapshot = {

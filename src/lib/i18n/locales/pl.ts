@@ -259,12 +259,6 @@ export const messagesPl: Messages = {
   settingsSenior: "Seniorzy",
   settingsSeniorTitle: "Ustawienia seniorów",
   settingsSeniorStalenessLabel: "Auto-odświeżanie po (dniach)",
-  settingsSeniorRatingsWipeLabel: "Reset macierzy ocen",
-  settingsSeniorRatingsWipeButton: "Wyczyść macierz ocen seniorów",
-  settingsSeniorRatingsWipeWarningTitle: "Wyczyść macierz ocen seniorów",
-  settingsSeniorRatingsWipeWarningBody:
-    "Tej operacji nie można cofnąć. Przy następnym odświeżeniu oceny zostaną automatycznie odbudowane z tego i poprzedniego sezonu w rosnącej kolejności dat meczów. Każde kolejne odświeżenie będzie już uwzględniało tylko nowe, nieprzetworzone mecze.",
-  settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
   settingsReminders: "Przypomnienia",
@@ -1226,7 +1220,6 @@ export const messagesPl: Messages = {
     "Nie znaleziono formacji z doświadczeniem treningowym powyżej 3. Następuje powrót do wszystkich formacji.",
   notificationSeniorTrainingRegimenChanged:
     "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
-  notificationSeniorRatingsMatrixWiped: "Wyczyszczono macierz ocen seniorów.",
   notificationSeniorRatingsBootstrapComplete:
     "Bootstrap ocen seniorów zakończony.",
   notificationLineupLoaded: "Wczytano skład:",

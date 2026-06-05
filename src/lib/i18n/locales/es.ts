@@ -395,12 +395,6 @@ export const messagesEs: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Ajustes senior",
     settingsSeniorStalenessLabel: "Autoactualizar después de (días)",
-    settingsSeniorRatingsWipeLabel: "Reinicio de matriz de calificaciones",
-    settingsSeniorRatingsWipeButton: "Borrar matriz de calificaciones senior",
-    settingsSeniorRatingsWipeWarningTitle: "Borrar matriz de calificaciones senior",
-    settingsSeniorRatingsWipeWarningBody:
-      "Esto no se puede deshacer. En la próxima actualización, las calificaciones se volverán a poblar automáticamente con datos de esta temporada y la anterior en orden ascendente por fecha de partido. Después, cada actualización solo aplicará cambios de partidos nuevos aún no procesados.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Entiendo",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -1544,7 +1538,6 @@ export const messagesEs: Messages = {
     notificationMatchesRefreshFailed: "Fallo al actualizar partidos",
     notificationSeniorTrainingRegimenChanged:
       "El régimen de entrenamiento del equipo senior se cambió a {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Matriz de calificaciones senior borrada.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap de calificaciones senior completado.",
     notificationReauthRequired:

@@ -394,12 +394,6 @@ export const messagesDe: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Senior-Einstellungen",
     settingsSeniorStalenessLabel: "Auto-Aktualisierung nach (Tagen)",
-    settingsSeniorRatingsWipeLabel: "Bewertungsmatrix zurücksetzen",
-    settingsSeniorRatingsWipeButton: "Senior-Bewertungsmatrix löschen",
-    settingsSeniorRatingsWipeWarningTitle: "Senior-Bewertungsmatrix löschen",
-    settingsSeniorRatingsWipeWarningBody:
-      "Dies kann nicht rückgängig gemacht werden. Bei der nächsten Aktualisierung werden Bewertungen automatisch aus dieser und der vorherigen Saison in aufsteigender Match-Datum-Reihenfolge neu befüllt. Jede weitere Aktualisierung verarbeitet danach nur neue, noch nicht verarbeitete Matches.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Ich verstehe",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -1526,7 +1520,6 @@ export const messagesDe: Messages = {
     notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",
     notificationSeniorTrainingRegimenChanged:
       "Trainingsregime der Seniorenmannschaft auf {{training}} geändert",
-    notificationSeniorRatingsMatrixWiped: "Senior-Bewertungsmatrix gelöscht.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap der Senior-Bewertungen abgeschlossen.",
     notificationReauthRequired:

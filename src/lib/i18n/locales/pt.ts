@@ -396,12 +396,6 @@ export const messagesPt: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Configurações do senior",
     settingsSeniorStalenessLabel: "Atualização automática após (dias)",
-    settingsSeniorRatingsWipeLabel: "Reset da matriz de avaliações",
-    settingsSeniorRatingsWipeButton: "Limpar matriz de avaliações do senior",
-    settingsSeniorRatingsWipeWarningTitle: "Limpar matriz de avaliações do senior",
-    settingsSeniorRatingsWipeWarningBody:
-      "Isto não pode ser desfeito. No próximo refresh, as avaliações serão repovoadas automaticamente com dados desta época e da anterior em ordem crescente de data da partida. Depois disso, cada refresh aplicará apenas atualizações de partidas novas ainda não processadas.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Entendi",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -1547,7 +1541,6 @@ export const messagesPt: Messages = {
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
     notificationSeniorTrainingRegimenChanged:
       "O regime de treino da equipa principal foi alterado para {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Matriz de avaliações do senior limpa.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap de avaliações do senior concluído.",
     notificationReauthRequired:

@@ -297,11 +297,6 @@ export type Messages = {
   settingsSeniorTitle: string;
   settingsSeniorStalenessLabel: string;
   settingsSeniorStalenessHint: string;
-  settingsSeniorRatingsWipeLabel: string;
-  settingsSeniorRatingsWipeButton: string;
-  settingsSeniorRatingsWipeWarningTitle: string;
-  settingsSeniorRatingsWipeWarningBody: string;
-  settingsSeniorRatingsWipeWarningAcknowledge: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;
@@ -1211,7 +1206,6 @@ export type Messages = {
   notificationMatchesRefreshed: string;
   notificationMatchesRefreshFailed: string;
   notificationSeniorTrainingRegimenChanged: string;
-  notificationSeniorRatingsMatrixWiped: string;
   notificationSeniorRatingsBootstrapComplete: string;
   notificationReauthRequired: string;
   permissionsLabel: string;

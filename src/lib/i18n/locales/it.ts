@@ -397,12 +397,6 @@ export const messagesIt: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Impostazioni senior",
     settingsSeniorStalenessLabel: "Aggiornamento automatico dopo (giorni)",
-    settingsSeniorRatingsWipeLabel: "Reset matrice valutazioni",
-    settingsSeniorRatingsWipeButton: "Cancella matrice valutazioni senior",
-    settingsSeniorRatingsWipeWarningTitle: "Cancella matrice valutazioni senior",
-    settingsSeniorRatingsWipeWarningBody:
-      "Questa azione non può essere annullata. Al prossimo refresh, le valutazioni verranno ripopolate automaticamente da questa stagione e dalla precedente in ordine crescente di data partita. Dopo quel punto, ogni refresh applicherà solo aggiornamenti da nuove partite non ancora elaborate.",
-    settingsSeniorRatingsWipeWarningAcknowledge: "Ho capito",
     behaviorNeutral: "Normale",
     behaviorOffensive: "Offensivo",
     behaviorDefensive: "Difensivo",
@@ -1548,7 +1542,6 @@ export const messagesIt: Messages = {
     notificationMatchesRefreshFailed: "Aggiornamento partite fallito",
     notificationSeniorTrainingRegimenChanged:
       "Il regime di allenamento della squadra senior è stato cambiato in {{training}}",
-    notificationSeniorRatingsMatrixWiped: "Matrice valutazioni senior cancellata.",
     notificationSeniorRatingsBootstrapComplete:
       "Bootstrap valutazioni senior completato.",
     notificationReauthRequired:

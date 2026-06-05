@@ -259,12 +259,6 @@ export const messagesNl: Messages = {
   settingsSenior: "Senior",
   settingsSeniorTitle: "Seniorinstellingen",
   settingsSeniorStalenessLabel: "Automatisch verversen na (dagen)",
-  settingsSeniorRatingsWipeLabel: "Reset beoordelingsmatrix",
-  settingsSeniorRatingsWipeButton: "Wis senior beoordelingsmatrix",
-  settingsSeniorRatingsWipeWarningTitle: "Wis senior beoordelingsmatrix",
-  settingsSeniorRatingsWipeWarningBody:
-    "Dit kan niet ongedaan worden gemaakt. Bij de volgende verversing worden beoordelingen automatisch opnieuw opgebouwd uit dit en vorig seizoen in oplopende volgorde van wedstrijddatum. Elke verversing daarna verwerkt alleen nog updates uit nieuwe, nog niet verwerkte wedstrijden.",
-  settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
   settingsReminders: "Herinneringen",
@@ -1232,7 +1226,6 @@ export const messagesNl: Messages = {
     "Er zijn geen formaties met trainingservaring boven 3 gevonden. Er wordt teruggevallen op alle formaties.",
   notificationSeniorTrainingRegimenChanged:
     "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
-  notificationSeniorRatingsMatrixWiped: "Senior beoordelingsmatrix gewist.",
   notificationSeniorRatingsBootstrapComplete:
     "Bootstrap van senior beoordelingsmatrix voltooid.",
   notificationLineupLoaded: "Opstelling geladen:",

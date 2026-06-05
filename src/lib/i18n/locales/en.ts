@@ -496,12 +496,19 @@ export const messagesEn: Messages = {
     settingsStorageManagementUsageColumn: "Usage",
     settingsStorageManagementActionColumn: "Action",
     settingsStorageManagementWipeButton: "Wipe",
+    settingsStorageManagementWipeAllButton: "Wipe all",
     settingsStorageManagementNoKeys: "No localStorage keys found.",
     settingsStorageManagementWipeConfirmTitle: "Wipe storage key?",
     settingsStorageManagementWipeConfirmBody:
       'You are about to wipe "{{key}}" from local storage. Once wiped, this cannot be undone. App data, settings, cache, or state stored under this key may be lost.',
+    settingsStorageManagementWipeAllConfirmTitle: "Wipe all storage keys?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "This will permanently remove every key currently listed in Storage Management. This cannot be undone. Export your data first if you may need it later.",
     settingsStorageManagementWipeSuccess: "Storage key wiped: {{key}}",
     settingsStorageManagementWipeError: "Could not wipe storage key: {{key}}",
+    settingsStorageManagementWipeAllSuccess: "All listed storage keys were wiped.",
+    settingsStorageManagementWipeAllError:
+      "Could not wipe all listed storage keys.",
     settingsStorageManagementReadError: "Could not read localStorage.",
     settingsMachineLearningTitle: "Machine learning",
     settingsMachineLearningBody:

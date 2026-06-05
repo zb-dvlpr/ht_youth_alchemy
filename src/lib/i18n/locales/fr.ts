@@ -517,13 +517,22 @@ export const messagesFr: Messages = {
     settingsStorageManagementUsageColumn: "Utilisation",
     settingsStorageManagementActionColumn: "Action",
     settingsStorageManagementWipeButton: "Effacer",
+    settingsStorageManagementWipeAllButton: "Tout effacer",
     settingsStorageManagementNoKeys: "Aucune cle localStorage trouvee.",
     settingsStorageManagementWipeConfirmTitle: "Effacer la cle de stockage ?",
     settingsStorageManagementWipeConfirmBody:
       'Vous allez effacer "{{key}}" du stockage local. Une fois effacee, cette action ne peut pas etre annulee. Les donnees, parametres, caches ou etats stockes sous cette cle peuvent etre perdus.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Effacer toutes les cles de stockage ?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Cela supprimera definitivement toutes les cles actuellement listees dans Gestion du stockage. Cette action ne peut pas etre annulee. Exportez d abord vos donnees si vous pourriez en avoir besoin plus tard.",
     settingsStorageManagementWipeSuccess: "Cle de stockage effacee : {{key}}",
     settingsStorageManagementWipeError:
       "Impossible d effacer la cle de stockage : {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Toutes les cles de stockage listees ont ete effacees.",
+    settingsStorageManagementWipeAllError:
+      "Impossible d effacer toutes les cles de stockage listees.",
     settingsStorageManagementReadError: "Impossible de lire localStorage.",
     settingsMachineLearningTitle: "Apprentissage automatique",
     settingsMachineLearningBody:

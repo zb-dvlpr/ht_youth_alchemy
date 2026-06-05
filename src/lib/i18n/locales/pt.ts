@@ -516,15 +516,24 @@ export const messagesPt: Messages = {
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Acao",
     settingsStorageManagementWipeButton: "Apagar",
+    settingsStorageManagementWipeAllButton: "Apagar tudo",
     settingsStorageManagementNoKeys: "Nenhuma chave localStorage encontrada.",
     settingsStorageManagementWipeConfirmTitle:
       "Apagar chave de armazenamento?",
     settingsStorageManagementWipeConfirmBody:
       'Voce esta prestes a apagar "{{key}}" do armazenamento local. Depois de apagada, esta acao nao pode ser desfeita. Dados, configuracoes, cache ou estado do app armazenados sob esta chave podem ser perdidos.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Apagar todas as chaves de armazenamento?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Isto removera permanentemente todas as chaves listadas atualmente em Gestao de armazenamento. Esta acao nao pode ser desfeita. Exporte seus dados primeiro se puder precisar deles depois.",
     settingsStorageManagementWipeSuccess:
       "Chave de armazenamento apagada: {{key}}",
     settingsStorageManagementWipeError:
       "Nao foi possivel apagar a chave de armazenamento: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Todas as chaves de armazenamento listadas foram apagadas.",
+    settingsStorageManagementWipeAllError:
+      "Nao foi possivel apagar todas as chaves de armazenamento listadas.",
     settingsStorageManagementReadError: "Nao foi possivel ler localStorage.",
     settingsMachineLearningTitle: "Aprendizado de máquina",
     settingsMachineLearningBody:

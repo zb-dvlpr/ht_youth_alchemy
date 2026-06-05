@@ -335,13 +335,21 @@ export const messagesNl: Messages = {
   settingsStorageManagementUsageColumn: "Gebruik",
   settingsStorageManagementActionColumn: "Actie",
   settingsStorageManagementWipeButton: "Wissen",
+  settingsStorageManagementWipeAllButton: "Alles wissen",
   settingsStorageManagementNoKeys: "Geen localStorage-sleutels gevonden.",
   settingsStorageManagementWipeConfirmTitle: "Opslagsleutel wissen?",
   settingsStorageManagementWipeConfirmBody:
     'Je staat op het punt "{{key}}" uit lokale opslag te wissen. Na wissen kan dit niet ongedaan worden gemaakt. Appgegevens, instellingen, cache of status onder deze sleutel kunnen verloren gaan.',
+  settingsStorageManagementWipeAllConfirmTitle: "Alle opslagsleutels wissen?",
+  settingsStorageManagementWipeAllConfirmBody:
+    "Dit verwijdert permanent elke sleutel die momenteel in Opslagbeheer staat. Dit kan niet ongedaan worden gemaakt. Exporteer eerst je gegevens als je ze later nodig kunt hebben.",
   settingsStorageManagementWipeSuccess: "Opslagsleutel gewist: {{key}}",
   settingsStorageManagementWipeError:
     "Kon opslagsleutel niet wissen: {{key}}",
+  settingsStorageManagementWipeAllSuccess:
+    "Alle vermelde opslagsleutels zijn gewist.",
+  settingsStorageManagementWipeAllError:
+    "Kon niet alle vermelde opslagsleutels wissen.",
   settingsStorageManagementReadError: "Kon localStorage niet lezen.",
   settingsMachineLearningTitle: "Machine learning",
   settingsMachineLearningBody:

@@ -400,11 +400,16 @@ export type Messages = {
   settingsStorageManagementUsageColumn: string;
   settingsStorageManagementActionColumn: string;
   settingsStorageManagementWipeButton: string;
+  settingsStorageManagementWipeAllButton: string;
   settingsStorageManagementNoKeys: string;
   settingsStorageManagementWipeConfirmTitle: string;
   settingsStorageManagementWipeConfirmBody: string;
+  settingsStorageManagementWipeAllConfirmTitle: string;
+  settingsStorageManagementWipeAllConfirmBody: string;
   settingsStorageManagementWipeSuccess: string;
   settingsStorageManagementWipeError: string;
+  settingsStorageManagementWipeAllSuccess: string;
+  settingsStorageManagementWipeAllError: string;
   settingsStorageManagementReadError: string;
   settingsMachineLearningTitle: string;
   settingsMachineLearningBody: string;

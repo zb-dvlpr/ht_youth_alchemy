@@ -335,13 +335,22 @@ export const messagesPl: Messages = {
   settingsStorageManagementUsageColumn: "Użycie",
   settingsStorageManagementActionColumn: "Akcja",
   settingsStorageManagementWipeButton: "Wyczyść",
+  settingsStorageManagementWipeAllButton: "Wyczyść wszystko",
   settingsStorageManagementNoKeys: "Nie znaleziono kluczy localStorage.",
   settingsStorageManagementWipeConfirmTitle: "Wyczyścić klucz pamięci?",
   settingsStorageManagementWipeConfirmBody:
     'Zamierzasz wyczyścić "{{key}}" z pamięci lokalnej. Po wyczyszczeniu nie można tego cofnąć. Dane aplikacji, ustawienia, pamięć podręczna lub stan zapisane pod tym kluczem mogą zostać utracone.',
+  settingsStorageManagementWipeAllConfirmTitle:
+    "Wyczyścić wszystkie klucze pamięci?",
+  settingsStorageManagementWipeAllConfirmBody:
+    "To trwale usunie każdy klucz aktualnie widoczny w Zarządzaniu pamięcią. Tego nie można cofnąć. Najpierw wyeksportuj dane, jeśli mogą być potrzebne później.",
   settingsStorageManagementWipeSuccess: "Wyczyszczono klucz pamięci: {{key}}",
   settingsStorageManagementWipeError:
     "Nie udało się wyczyścić klucza pamięci: {{key}}",
+  settingsStorageManagementWipeAllSuccess:
+    "Wyczyszczono wszystkie wymienione klucze pamięci.",
+  settingsStorageManagementWipeAllError:
+    "Nie udało się wyczyścić wszystkich wymienionych kluczy pamięci.",
   settingsStorageManagementReadError: "Nie udało się odczytać localStorage.",
   settingsMachineLearningTitle: "Uczenie maszynowe",
   settingsMachineLearningBody:

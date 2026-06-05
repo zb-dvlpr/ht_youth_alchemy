@@ -517,15 +517,24 @@ export const messagesIt: Messages = {
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Azione",
     settingsStorageManagementWipeButton: "Cancella",
+    settingsStorageManagementWipeAllButton: "Cancella tutto",
     settingsStorageManagementNoKeys: "Nessuna chiave localStorage trovata.",
     settingsStorageManagementWipeConfirmTitle:
       "Cancellare la chiave di archiviazione?",
     settingsStorageManagementWipeConfirmBody:
       'Stai per cancellare "{{key}}" dall archiviazione locale. Una volta cancellata, l azione non puo essere annullata. Dati, impostazioni, cache o stato dell app salvati sotto questa chiave potrebbero andare persi.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Cancellare tutte le chiavi di archiviazione?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Questo rimuovera definitivamente ogni chiave attualmente elencata in Gestione archiviazione. L azione non puo essere annullata. Esporta prima i dati se potresti averne bisogno in seguito.",
     settingsStorageManagementWipeSuccess:
       "Chiave di archiviazione cancellata: {{key}}",
     settingsStorageManagementWipeError:
       "Impossibile cancellare la chiave di archiviazione: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Tutte le chiavi di archiviazione elencate sono state cancellate.",
+    settingsStorageManagementWipeAllError:
+      "Impossibile cancellare tutte le chiavi di archiviazione elencate.",
     settingsStorageManagementReadError: "Impossibile leggere localStorage.",
     settingsMachineLearningTitle: "Apprendimento automatico",
     settingsMachineLearningBody:

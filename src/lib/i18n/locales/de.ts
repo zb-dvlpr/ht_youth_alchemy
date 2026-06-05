@@ -510,13 +510,22 @@ export const messagesDe: Messages = {
     settingsStorageManagementUsageColumn: "Nutzung",
     settingsStorageManagementActionColumn: "Aktion",
     settingsStorageManagementWipeButton: "Loeschen",
+    settingsStorageManagementWipeAllButton: "Alle loeschen",
     settingsStorageManagementNoKeys: "Keine localStorage-Schluessel gefunden.",
     settingsStorageManagementWipeConfirmTitle: "Speicherschluessel loeschen?",
     settingsStorageManagementWipeConfirmBody:
       'Du bist dabei, "{{key}}" aus dem lokalen Speicher zu loeschen. Nach dem Loeschen kann dies nicht rueckgaengig gemacht werden. App-Daten, Einstellungen, Cache oder Status unter diesem Schluessel koennen verloren gehen.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Alle Speicherschluessel loeschen?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Dadurch werden alle aktuell in der Speicherverwaltung aufgefuehrten Schluessel dauerhaft entfernt. Dies kann nicht rueckgaengig gemacht werden. Exportiere deine Daten zuerst, wenn du sie spaeter noch brauchst.",
     settingsStorageManagementWipeSuccess: "Speicherschluessel geloescht: {{key}}",
     settingsStorageManagementWipeError:
       "Speicherschluessel konnte nicht geloescht werden: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Alle aufgefuehrten Speicherschluessel wurden geloescht.",
+    settingsStorageManagementWipeAllError:
+      "Nicht alle aufgefuehrten Speicherschluessel konnten geloescht werden.",
     settingsStorageManagementReadError: "localStorage konnte nicht gelesen werden.",
     settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
     settingsDebugStorageButton: "Speicher",

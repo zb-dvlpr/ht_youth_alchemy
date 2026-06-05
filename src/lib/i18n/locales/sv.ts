@@ -513,13 +513,22 @@ export const messagesSv: Messages = {
     settingsStorageManagementUsageColumn: "Anvandning",
     settingsStorageManagementActionColumn: "Atgard",
     settingsStorageManagementWipeButton: "Rensa",
+    settingsStorageManagementWipeAllButton: "Rensa alla",
     settingsStorageManagementNoKeys: "Inga localStorage-nycklar hittades.",
     settingsStorageManagementWipeConfirmTitle: "Rensa lagringsnyckel?",
     settingsStorageManagementWipeConfirmBody:
       'Du ar pa vag att rensa "{{key}}" fran lokal lagring. Nar den har rensats kan detta inte angas. Appdata, installningar, cache eller status som lagras under nyckeln kan ga forlorade.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "Rensa alla lagringsnycklar?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Detta tar permanent bort varje nyckel som for narvarande listas i Lagringshantering. Detta kan inte angas. Exportera dina data forst om du kan behova dem senare.",
     settingsStorageManagementWipeSuccess: "Lagringsnyckel rensad: {{key}}",
     settingsStorageManagementWipeError:
       "Kunde inte rensa lagringsnyckel: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Alla listade lagringsnycklar har rensats.",
+    settingsStorageManagementWipeAllError:
+      "Kunde inte rensa alla listade lagringsnycklar.",
     settingsStorageManagementReadError: "Kunde inte lasa localStorage.",
     settingsMachineLearningTitle: "Maskininlärning",
     settingsMachineLearningBody:

@@ -162,6 +162,7 @@ export default function SettingsButton({
     null
   );
   const [storageWipePending, setStorageWipePending] = useState(false);
+  const [pendingStorageWipeAll, setPendingStorageWipeAll] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessDays, setStalenessDays] = useState(1);
@@ -815,6 +816,28 @@ export default function SettingsButton({
     }
   };
 
+  const handleConfirmStorageWipeAll = () => {
+    if (typeof window === "undefined") return;
+    const keysToRemove =
+      storageManagement?.localStorageKeys.map((row) => row.key) ?? [];
+    if (keysToRemove.length === 0) {
+      setPendingStorageWipeAll(false);
+      return;
+    }
+
+    setStorageWipePending(true);
+    try {
+      keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+      setPendingStorageWipeAll(false);
+      refreshStorageManagement();
+      addNotification(messages.settingsStorageManagementWipeAllSuccess);
+    } catch {
+      addNotification(messages.settingsStorageManagementWipeAllError);
+    } finally {
+      setStorageWipePending(false);
+    }
+  };
+
   const handleOpenLicenseEntry = () => {
     setLicenseSettingsOpen(false);
     setLicenseEntryNonce((prev) => prev + 1);
@@ -1408,35 +1431,45 @@ export default function SettingsButton({
                   ) : null}
                 </section>
                 {storageManagement.localStorageKeys.length > 0 ? (
-                  <div className={styles.storageDiagnosticsTableWrap}>
-                    <table className={styles.storageDiagnosticsTable}>
-                      <thead>
-                        <tr>
-                          <th>{messages.settingsStorageManagementKeyColumn}</th>
-                          <th>{messages.settingsStorageManagementUsageColumn}</th>
-                          <th>{messages.settingsStorageManagementActionColumn}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {storageManagement.localStorageKeys.map((row) => (
-                          <tr key={row.key}>
-                            <td title={row.key}>{row.key}</td>
-                            <td>{row.formatted}</td>
-                            <td>
-                              <button
-                                type="button"
-                                className={styles.settingsDangerButton}
-                                onClick={() => setPendingStorageWipeKey(row.key)}
-                                aria-label={`${messages.settingsStorageManagementWipeButton}: ${row.key}`}
-                              >
-                                {messages.settingsStorageManagementWipeButton}
-                              </button>
-                            </td>
+                  <>
+                    <div className={styles.storageDiagnosticsTableWrap}>
+                      <table className={styles.storageDiagnosticsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.settingsStorageManagementKeyColumn}</th>
+                            <th>{messages.settingsStorageManagementUsageColumn}</th>
+                            <th>{messages.settingsStorageManagementActionColumn}</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {storageManagement.localStorageKeys.map((row) => (
+                            <tr key={row.key}>
+                              <td title={row.key}>{row.key}</td>
+                              <td>{row.formatted}</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className={styles.settingsDangerButton}
+                                  onClick={() => setPendingStorageWipeKey(row.key)}
+                                  aria-label={`${messages.settingsStorageManagementWipeButton}: ${row.key}`}
+                                >
+                                  {messages.settingsStorageManagementWipeButton}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.settingsDangerButton}
+                      onClick={() => setPendingStorageWipeAll(true)}
+                      disabled={storageManagementLoading || storageWipePending}
+                    >
+                      {messages.settingsStorageManagementWipeAllButton}
+                    </button>
+                  </>
                 ) : storageManagement.localStorageBytes !== null ? (
                   <p className={styles.muted}>
                     {messages.settingsStorageManagementNoKeys}
@@ -1505,6 +1538,42 @@ export default function SettingsButton({
         onClose={() => {
           if (storageWipePending) return;
           setPendingStorageWipeKey(null);
+        }}
+      />
+      <Modal
+        open={pendingStorageWipeAll}
+        title={messages.settingsStorageManagementWipeAllConfirmTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>
+              {messages.settingsStorageManagementWipeAllConfirmBody}
+            </p>
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingStorageWipeAll(false)}
+              disabled={storageWipePending}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.settingsDangerButton}
+              onClick={handleConfirmStorageWipeAll}
+              disabled={storageWipePending}
+            >
+              {messages.settingsStorageManagementWipeAllButton}
+            </button>
+          </>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          if (storageWipePending) return;
+          setPendingStorageWipeAll(false);
         }}
       />
       <Modal

@@ -515,14 +515,23 @@ export const messagesEs: Messages = {
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Accion",
     settingsStorageManagementWipeButton: "Borrar",
+    settingsStorageManagementWipeAllButton: "Borrar todo",
     settingsStorageManagementNoKeys: "No se encontraron claves localStorage.",
     settingsStorageManagementWipeConfirmTitle: "¿Borrar clave de almacenamiento?",
     settingsStorageManagementWipeConfirmBody:
       'Estas a punto de borrar "{{key}}" del almacenamiento local. Una vez borrada, esta accion no se puede deshacer. Pueden perderse datos, ajustes, cache o estado de la app almacenados bajo esta clave.',
+    settingsStorageManagementWipeAllConfirmTitle:
+      "¿Borrar todas las claves de almacenamiento?",
+    settingsStorageManagementWipeAllConfirmBody:
+      "Esto eliminara permanentemente todas las claves que aparecen actualmente en Gestionar almacenamiento. No se puede deshacer. Exporta tus datos primero si puedes necesitarlos mas tarde.",
     settingsStorageManagementWipeSuccess:
       "Clave de almacenamiento borrada: {{key}}",
     settingsStorageManagementWipeError:
       "No se pudo borrar la clave de almacenamiento: {{key}}",
+    settingsStorageManagementWipeAllSuccess:
+      "Se borraron todas las claves de almacenamiento listadas.",
+    settingsStorageManagementWipeAllError:
+      "No se pudieron borrar todas las claves de almacenamiento listadas.",
     settingsStorageManagementReadError: "No se pudo leer localStorage.",
     settingsMachineLearningTitle: "Aprendizaje automático",
     settingsMachineLearningBody:

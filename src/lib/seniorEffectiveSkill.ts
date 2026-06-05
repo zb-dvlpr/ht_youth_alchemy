@@ -3,7 +3,7 @@ export type EffectiveSkillInput = {
   loyalty: number | null | undefined;
   motherClubBonus: boolean | null | undefined;
   form: number | null | undefined;
-  staminaFactor?: number | null | undefined;
+  stamina: number | null | undefined;
 };
 
 export function calculateLoyaltySkillBonus(
@@ -25,6 +25,13 @@ export function calculateFormSkillFactor(
   return Math.pow((form - 0.5) / 7, 0.45);
 }
 
+export function calculateStaminaSkillFactor(
+  stamina: number | null | undefined
+): number | null {
+  if (typeof stamina !== "number" || !Number.isFinite(stamina)) return null;
+  return Math.pow((stamina + 6.5) / 14, 0.6);
+}
+
 export function calculateEffectiveSkill(input: EffectiveSkillInput): number | null {
   const { rawSkill } = input;
   if (typeof rawSkill !== "number" || !Number.isFinite(rawSkill)) return null;
@@ -32,16 +39,14 @@ export function calculateEffectiveSkill(input: EffectiveSkillInput): number | nu
   const formFactor = calculateFormSkillFactor(input.form);
   if (formFactor === null) return null;
 
-  const staminaFactor =
-    typeof input.staminaFactor === "number" && Number.isFinite(input.staminaFactor)
-      ? input.staminaFactor
-      : 1;
+  const staminaSkillFactor = calculateStaminaSkillFactor(input.stamina);
+  if (staminaSkillFactor === null) return null;
 
   return (
     (rawSkill +
       calculateLoyaltySkillBonus(input.loyalty) +
       calculateMotherClubSkillBonus(input.motherClubBonus)) *
     formFactor *
-    staminaFactor
+    staminaSkillFactor
   );
 }

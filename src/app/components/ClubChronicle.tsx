@@ -11236,6 +11236,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >
@@ -11247,6 +11248,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >
@@ -11265,6 +11267,7 @@ type Form7LineupSnapshot = {
         loyalty: snapshot?.loyalty,
         motherClubBonus: snapshot?.motherClubBonus === true,
         form: snapshot?.form,
+        stamina: snapshot?.stamina,
       }),
     };
   };
@@ -11279,6 +11282,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >
@@ -11290,6 +11294,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >
@@ -11317,6 +11322,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >
@@ -11328,6 +11334,7 @@ type Form7LineupSnapshot = {
           | "wageIncludesForeignBonus"
           | "playingPositions"
           | "form"
+          | "stamina"
           | "loyalty"
           | "motherClubBonus"
         >

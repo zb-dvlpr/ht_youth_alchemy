@@ -1062,7 +1062,7 @@ export const messagesSv: Messages = {
     ratingsMatrixTabLabel: "Betygsmatris",
     seniorSkillsMatrixBonusToggleLabel: "Effektiv fardighet",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Sla pa for att visa effektiv fardighet som tar hansyn till lojalitet, moderklubbsbonus och form.",
+      "Sla pa for att visa effektiv fardighet som tar hansyn till lojalitet, moderklubbsbonus, form och uthallighet.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",

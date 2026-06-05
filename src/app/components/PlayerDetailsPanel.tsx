@@ -476,6 +476,7 @@ const computeSeniorEffectiveSkill = (
     loyalty: details?.Loyalty,
     motherClubBonus: details?.MotherClubBonus,
     form: details?.Form ?? player?.Form,
+    stamina: details?.StaminaSkill ?? player?.StaminaSkill,
   });
 };
 

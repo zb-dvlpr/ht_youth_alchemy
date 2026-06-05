@@ -537,7 +537,7 @@ export const messagesPl: Messages = {
   ratingsMatrixTabLabel: "Macierz ocen",
   seniorSkillsMatrixBonusToggleLabel: "Efektywna umiejętność",
   seniorSkillsMatrixBonusToggleTooltip:
-    "Włącz, aby pokazać efektywną umiejętność uwzględniającą lojalność, bonus klubu macierzystego i formę.",
+    "Włącz, aby pokazać efektywną umiejętność uwzględniającą lojalność, bonus klubu macierzystego, formę i kondycję.",
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsLastAppliedMatchLabel:

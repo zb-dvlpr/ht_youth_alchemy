@@ -1070,7 +1070,7 @@ export const messagesEs: Messages = {
     ratingsMatrixTabLabel: "Matriz de calificaciones",
     seniorSkillsMatrixBonusToggleLabel: "Habilidad efectiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Activa para mostrar la habilidad efectiva que tiene en cuenta lealtad, bono de club de origen y forma.",
+      "Activa para mostrar la habilidad efectiva que tiene en cuenta lealtad, bono de club de origen, forma y resistencia.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca un valor actualizado o revelado por primera vez desde la ultima actualizacion.",

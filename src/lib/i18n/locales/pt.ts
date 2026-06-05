@@ -1073,7 +1073,7 @@ export const messagesPt: Messages = {
     ratingsMatrixTabLabel: "Matriz de avaliações",
     seniorSkillsMatrixBonusToggleLabel: "Habilidade efetiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Ative para mostrar a habilidade efetiva que considera lealdade, bonus de clube de origem e forma.",
+      "Ative para mostrar a habilidade efetiva que considera lealdade, bonus de clube de origem, forma e resistência.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca um valor atualizado ou revelado pela primeira vez desde a ultima atualizacao.",

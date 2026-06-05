@@ -1069,7 +1069,7 @@ export const messagesFr: Messages = {
     ratingsMatrixTabLabel: "Matrice des notes",
     seniorSkillsMatrixBonusToggleLabel: "Competence effective",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Activez pour afficher la competence effective qui tient compte de la loyaute, du bonus club d origine et de la forme.",
+      "Activez pour afficher la competence effective qui tient compte de la loyaute, du bonus club d origine, de la forme et de l endurance.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N indique une valeur mise a jour ou nouvellement revelee depuis la derniere actualisation.",
     scoutImportantSkillTooltip: "Compétence top 3",

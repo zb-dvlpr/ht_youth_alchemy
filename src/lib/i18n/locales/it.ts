@@ -1074,7 +1074,7 @@ export const messagesIt: Messages = {
     ratingsMatrixTabLabel: "Matrice valutazioni",
     seniorSkillsMatrixBonusToggleLabel: "Abilita effettiva",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Attiva per mostrare l abilita effettiva che tiene conto di lealta, bonus squadra madre e forma.",
+      "Attiva per mostrare l abilita effettiva che tiene conto di lealta, bonus squadra madre, forma e resistenza.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N indica un valore aggiornato o rivelato per la prima volta dall ultimo aggiornamento.",

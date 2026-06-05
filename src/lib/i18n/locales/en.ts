@@ -1028,7 +1028,7 @@ export const messagesEn: Messages = {
     ratingsMatrixTabLabel: "Ratings matrix",
     seniorSkillsMatrixBonusToggleLabel: "Effective skill",
     seniorSkillsMatrixBonusToggleTooltip:
-      "Turn on to display effective skill which takes into account loyalty, mother club bonus and form",
+      "Turn on to display effective skill, taking into account loyalty, mother club bonus, form, and stamina.",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
     scoutImportantSkillTooltip: "Top-3 skill",

@@ -34,7 +34,11 @@ export const messagesFr: Messages = {
     reminderNoSnoozed: "Aucun rappel reporté.",
     remindersDisabledState: "Les rappels sont désactivés.",
     reminderMissingActionFallback:
-      "Cette action de rappel n'est pas encore disponible.",
+      "Cette action de rappel n’est pas encore disponible.",
+    reminderActionConfirmTitle: "Ignorer le rappel ?",
+    reminderActionConfirmBody:
+      "Continuer exécutera cette action et ignorera le rappel. Annulez pour garder le rappel actif.",
+    reminderActionConfirmContinue: "Continuer et ignorer",
     reminderSeniorInjuryTitle: "Joueur senior blessé",
     reminderSeniorInjuryBody:
       "{{playerName}} est blessé pour {{weeks}} semaines. Pense à chercher un remplaçant.",

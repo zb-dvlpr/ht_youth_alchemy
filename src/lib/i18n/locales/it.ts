@@ -35,6 +35,10 @@ export const messagesIt: Messages = {
     remindersDisabledState: "I promemoria sono disattivati.",
     reminderMissingActionFallback:
       "Questa azione del promemoria non è ancora disponibile.",
+    reminderActionConfirmTitle: "Ignorare il promemoria?",
+    reminderActionConfirmBody:
+      "Continuando eseguirai questa azione e ignorerai il promemoria. Annulla per mantenerlo attivo.",
+    reminderActionConfirmContinue: "Continua e ignora",
     reminderSeniorInjuryTitle: "Giocatore senior infortunato",
     reminderSeniorInjuryBody:
       "{{playerName}} è infortunato per {{weeks}} settimane. Valuta di cercare un sostituto.",

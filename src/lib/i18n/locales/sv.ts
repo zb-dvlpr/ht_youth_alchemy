@@ -35,6 +35,10 @@ export const messagesSv: Messages = {
     remindersDisabledState: "Påminnelser är avstängda.",
     reminderMissingActionFallback:
       "Den här påminnelseåtgärden är inte tillgänglig än.",
+    reminderActionConfirmTitle: "Avfärda påminnelse?",
+    reminderActionConfirmBody:
+      "Om du fortsätter utförs åtgärden och påminnelsen avfärdas. Avbryt för att behålla påminnelsen aktiv.",
+    reminderActionConfirmContinue: "Fortsätt och avfärda",
     reminderSeniorInjuryTitle: "Senior spelare skadad",
     reminderSeniorInjuryBody:
       "{{playerName}} är skadad i {{weeks}} veckor. Överväg att leta efter en ersättare.",

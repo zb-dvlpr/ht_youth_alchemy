@@ -36,6 +36,10 @@ export const messagesNl: Messages = {
   remindersDisabledState: "Herinneringen staan uit.",
   reminderMissingActionFallback:
     "Deze herinneringsactie is nog niet beschikbaar.",
+  reminderActionConfirmTitle: "Herinnering negeren?",
+  reminderActionConfirmBody:
+    "Doorgaan voert deze actie uit en negeert de herinnering. Annuleer om de herinnering actief te houden.",
+  reminderActionConfirmContinue: "Doorgaan en negeren",
   reminderSeniorInjuryTitle: "Senior speler geblesseerd",
   reminderSeniorInjuryBody:
     "{{playerName}} is {{weeks}} weken geblesseerd. Overweeg een vervanger te zoeken.",

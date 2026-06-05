@@ -35,6 +35,10 @@ export const messagesEs: Messages = {
     remindersDisabledState: "Los recordatorios están desactivados.",
     reminderMissingActionFallback:
       "Esta acción de recordatorio aún no está disponible.",
+    reminderActionConfirmTitle: "¿Descartar recordatorio?",
+    reminderActionConfirmBody:
+      "Al continuar se realizará esta acción y se descartará el recordatorio. Cancela para mantenerlo activo.",
+    reminderActionConfirmContinue: "Continuar y descartar",
     reminderSeniorInjuryTitle: "Jugador senior lesionado",
     reminderSeniorInjuryBody:
       "{{playerName}} está lesionado durante {{weeks}} semanas. Considera buscar un reemplazo.",

@@ -46,6 +46,9 @@ export type Messages = {
   reminderNoSnoozed: string;
   remindersDisabledState: string;
   reminderMissingActionFallback: string;
+  reminderActionConfirmTitle: string;
+  reminderActionConfirmBody: string;
+  reminderActionConfirmContinue: string;
   reminderSeniorInjuryTitle: string;
   reminderSeniorInjuryBody: string;
   reminderActionFindSimilarPlayers: string;

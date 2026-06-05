@@ -35,6 +35,10 @@ export const messagesDe: Messages = {
     remindersDisabledState: "Erinnerungen sind ausgeschaltet.",
     reminderMissingActionFallback:
       "Diese Erinnerungsaktion ist noch nicht verfügbar.",
+    reminderActionConfirmTitle: "Erinnerung ausblenden?",
+    reminderActionConfirmBody:
+      "Wenn du fortfährst, wird diese Aktion ausgeführt und die Erinnerung ausgeblendet. Brich ab, um die Erinnerung aktiv zu lassen.",
+    reminderActionConfirmContinue: "Fortfahren und ausblenden",
     reminderSeniorInjuryTitle: "Seniorenspieler verletzt",
     reminderSeniorInjuryBody:
       "{{playerName}} ist für {{weeks}} Wochen verletzt. Erwäge, nach Ersatz zu suchen.",

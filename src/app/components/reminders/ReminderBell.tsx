@@ -17,6 +17,7 @@ type ReminderBellProps = {
   snoozed: ReminderDisplayItem[];
   dismissed: DismissedReminderHistoryEntry[];
   onOpenBatch: () => void;
+  onAction?: (action: ReminderAction, item: ReminderDisplayItem) => void;
   onDismissedAction?: (
     action: ReminderAction,
     item: ReminderDisplayItem
@@ -68,6 +69,7 @@ export default function ReminderBell({
   snoozed,
   dismissed = [],
   onOpenBatch,
+  onAction,
   onDismissedAction,
   buttonClassName,
 }: ReminderBellProps) {
@@ -133,6 +135,7 @@ export default function ReminderBell({
                         item={item}
                         messages={messages}
                         readonly
+                        onAction={onAction}
                       />
                     ))}
                   </div>
@@ -150,6 +153,7 @@ export default function ReminderBell({
                         item={item}
                         messages={messages}
                         readonly
+                        onAction={onAction}
                       />
                     ))}
                   </div>

@@ -36,6 +36,10 @@ export const messagesPl: Messages = {
   remindersDisabledState: "Przypomnienia są wyłączone.",
   reminderMissingActionFallback:
     "Ta akcja przypomnienia nie jest jeszcze dostępna.",
+  reminderActionConfirmTitle: "Ukryć przypomnienie?",
+  reminderActionConfirmBody:
+    "Kontynuowanie wykona tę akcję i ukryje przypomnienie. Anuluj, aby pozostawić przypomnienie aktywne.",
+  reminderActionConfirmContinue: "Kontynuuj i ukryj",
   reminderSeniorInjuryTitle: "Senior kontuzjowany",
   reminderSeniorInjuryBody:
     "{{playerName}} ma kontuzję na {{weeks}} tygodnie. Rozważ poszukanie zastępcy.",

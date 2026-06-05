@@ -34,6 +34,10 @@ export const messagesEn: Messages = {
     reminderNoSnoozed: "No snoozed reminders.",
     remindersDisabledState: "Reminders are turned off.",
     reminderMissingActionFallback: "This reminder action is not available yet.",
+    reminderActionConfirmTitle: "Dismiss reminder?",
+    reminderActionConfirmBody:
+      "Continuing will perform this action and dismiss the reminder. Cancel to keep the reminder active.",
+    reminderActionConfirmContinue: "Continue and dismiss",
     reminderSeniorInjuryTitle: "Senior player injured",
     reminderSeniorInjuryBody:
       "{{playerName}} is injured for {{weeks}} weeks. Consider looking for a replacement.",

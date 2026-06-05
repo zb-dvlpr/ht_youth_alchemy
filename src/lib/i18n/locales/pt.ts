@@ -35,6 +35,10 @@ export const messagesPt: Messages = {
     remindersDisabledState: "Os lembretes estão desativados.",
     reminderMissingActionFallback:
       "Esta ação de lembrete ainda não está disponível.",
+    reminderActionConfirmTitle: "Ignorar lembrete?",
+    reminderActionConfirmBody:
+      "Continuar irá executar esta ação e ignorar o lembrete. Cancele para manter o lembrete ativo.",
+    reminderActionConfirmContinue: "Continuar e ignorar",
     reminderSeniorInjuryTitle: "Jogador sénior lesionado",
     reminderSeniorInjuryBody:
       "{{playerName}} está lesionado por {{weeks}} semanas. Considera procurar um substituto.",

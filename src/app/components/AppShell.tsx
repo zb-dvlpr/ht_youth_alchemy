@@ -133,6 +133,11 @@ type BuyCoffeePromptState = {
   cadenceDays: number;
 };
 
+type PendingReminderActionConfirmation = {
+  action: ReminderAction;
+  item: ReminderDisplayItem;
+} | null;
+
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
@@ -255,6 +260,10 @@ export default function AppShell({
   const [reminderBatchItems, setReminderBatchItems] = useState<
     ReminderDisplayItem[]
   >([]);
+  const [
+    pendingReminderActionConfirmation,
+    setPendingReminderActionConfirmation,
+  ] = useState<PendingReminderActionConfirmation>(null);
   const [seniorReminderContext, setSeniorReminderContext] =
     useState<SeniorReminderContext | null>(null);
   const [seniorMatchReminderContext, setSeniorMatchReminderContext] =
@@ -852,6 +861,13 @@ export default function AppShell({
     ]
   );
 
+  const requestReminderActionConfirmation = useCallback(
+    (action: ReminderAction, item: ReminderDisplayItem) => {
+      setPendingReminderActionConfirmation({ action, item });
+    },
+    []
+  );
+
   const handleTurnRemindersOff = useCallback(() => {
     setRemindersEnabled(false);
     setReminderBatchItems([]);
@@ -866,6 +882,7 @@ export default function AppShell({
         snoozed={reminderEvaluation.snoozed}
         dismissed={reminderStorageState.dismissedHistory}
         onOpenBatch={() => setReminderBatchItems(reminderEvaluation.due)}
+        onAction={requestReminderActionConfirmation}
         onDismissedAction={(action, item) =>
           handleReminderAction(action, item, { recordDismissal: false })
         }
@@ -874,6 +891,7 @@ export default function AppShell({
     [
       handleReminderAction,
       messages,
+      requestReminderActionConfirmation,
       reminderEvaluation.due,
       reminderEvaluation.snoozed,
       reminderStorageState.dismissedHistory,
@@ -1884,11 +1902,45 @@ export default function AppShell({
         onClose={() => setReminderBatchItems([])}
         onDismiss={handleReminderDismiss}
         onSnooze={handleReminderSnooze}
-        onAction={handleReminderAction}
+        onAction={requestReminderActionConfirmation}
         onTurnOff={handleTurnRemindersOff}
         defaultSnoozeDurationMsByRuleId={
           reminderStorageState.preferences.defaultSnoozeDurationMsByRuleId
         }
+      />
+      <Modal
+        open={pendingReminderActionConfirmation !== null}
+        title={messages.reminderActionConfirmTitle}
+        movable={false}
+        body={
+          <div className={styles.algorithmsModalBody}>
+            <p>{messages.reminderActionConfirmBody}</p>
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingReminderActionConfirmation(null)}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={() => {
+                const pending = pendingReminderActionConfirmation;
+                if (!pending) return;
+                setPendingReminderActionConfirmation(null);
+                handleReminderAction(pending.action, pending.item);
+              }}
+            >
+              {messages.reminderActionConfirmContinue}
+            </button>
+          </>
+        }
+        onClose={() => setPendingReminderActionConfirmation(null)}
       />
       <Modal
         open={showChangelog}

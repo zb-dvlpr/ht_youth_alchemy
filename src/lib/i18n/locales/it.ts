@@ -501,9 +501,6 @@ export const messagesIt: Messages = {
     settingsGeneralImportAllLabel: "Importa tutte le impostazioni",
     settingsGeneralImportAllHint:
       "Importa un backup JSON esportato in precedenza e sostituisce le impostazioni locali e gli stati in cache attuali dell’app.",
-    settingsGeneralEnableScalingLabel: "Abilita scalatura app",
-    settingsGeneralEnableScalingTooltip:
-      "Quando attiva, l app si scala per adattarsi al viewport e ridurre lo scorrimento. Quando disattiva, l app usa dimensione normale e può scorrere.",
     settingsStorageManagementButton: "Gestione archiviazione",
     settingsStorageManagementTitle: "Gestione archiviazione",
     settingsStorageManagementTotalUsed: "Archiviazione usata: {{size}}",

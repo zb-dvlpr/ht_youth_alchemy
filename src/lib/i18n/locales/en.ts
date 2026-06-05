@@ -480,9 +480,6 @@ export const messagesEn: Messages = {
     settingsGeneralImportAllLabel: "Import all settings",
     settingsGeneralImportAllHint:
       "Import a previously exported JSON backup and replace the current local app settings and cached state.",
-    settingsGeneralEnableScalingLabel: "Enable app scaling",
-    settingsGeneralEnableScalingTooltip:
-      "When enabled, the app scales to fit the viewport and reduce scrolling. When disabled, the app uses normal size and can scroll.",
     settingsStorageManagementButton: "Storage management",
     settingsStorageManagementTitle: "Storage management",
     settingsStorageManagementTotalUsed: "Total storage used: {{size}}",

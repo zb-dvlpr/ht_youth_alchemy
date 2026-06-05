@@ -43,9 +43,6 @@ import {
   writeClubChronicleUpdatesHistoryCount,
   CLUB_CHRONICLE_SETTINGS_EVENT,
   CLUB_CHRONICLE_DEBUG_EVENT,
-  GENERAL_SETTINGS_EVENT,
-  readGeneralEnableScaling,
-  writeGeneralEnableScaling,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
   YOUTH_DEBUG_SE_FETCH_EVENT,
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
@@ -168,7 +165,6 @@ export default function SettingsButton({
     useState(5);
   const [chronicleUpdatesHistoryCount, setChronicleUpdatesHistoryCount] =
     useState(10);
-  const [enableAppScaling, setEnableAppScaling] = useState(false);
   const [remindersEnabled, setRemindersEnabledState] = useState(true);
   const [analyticsConsent, setAnalyticsConsent] =
     useState<AnalyticsConsent | null>(null);
@@ -227,7 +223,6 @@ export default function SettingsButton({
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
-    setEnableAppScaling(readGeneralEnableScaling());
     setRemindersEnabledState(readReminderStorageState().preferences.enabled);
     setAnalyticsConsent(readAnalyticsConsent());
     if (process.env.NODE_ENV !== "production") {
@@ -568,18 +563,6 @@ export default function SettingsButton({
             transferHistoryCount: chronicleTransferHistoryCount,
             updatesHistoryCount: nextValue,
           },
-        })
-      );
-    }
-  };
-
-  const handleEnableScalingToggle = (nextValue: boolean) => {
-    setEnableAppScaling(nextValue);
-    writeGeneralEnableScaling(nextValue);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent(GENERAL_SETTINGS_EVENT, {
-          detail: { enableScaling: nextValue },
         })
       );
     }
@@ -1196,30 +1179,6 @@ export default function SettingsButton({
         title={messages.settingsGeneralTitle}
         body={
           <div className={styles.settingsModalBody}>
-            {!isMobileLauncherVariant ? (
-              <Tooltip
-                content={messages.settingsGeneralEnableScalingTooltip}
-                fullWidth
-              >
-                <label className={styles.algorithmsToggle}>
-                  <span className={styles.algorithmsToggleText}>
-                    {messages.settingsGeneralEnableScalingLabel}
-                  </span>
-                  <input
-                    type="checkbox"
-                    className={styles.algorithmsToggleInput}
-                    checked={enableAppScaling}
-                    onChange={(event) =>
-                      handleEnableScalingToggle(event.target.checked)
-                    }
-                  />
-                  <span
-                    className={styles.algorithmsToggleSwitch}
-                    aria-hidden="true"
-                  />
-                </label>
-              </Tooltip>
-            ) : null}
             <section className={styles.settingsSection}>
               <div className={styles.settingsSectionHeader}>
                 <h3>{messages.settingsAnalyticsConsentTitle}</h3>

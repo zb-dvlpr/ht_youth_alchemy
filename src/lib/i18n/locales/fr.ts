@@ -501,9 +501,6 @@ export const messagesFr: Messages = {
     settingsGeneralImportAllLabel: "Importer tous les paramètres",
     settingsGeneralImportAllHint:
       "Importe une sauvegarde JSON précédemment exportée et remplace les paramètres locaux et états en cache actuels de l’application.",
-    settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",
-    settingsGeneralEnableScalingTooltip:
-      "Si activé, l app est mise à l échelle pour s adapter au viewport et réduire le défilement. Si désactivé, l app reste à taille normale et peut défiler.",
     settingsStorageManagementButton: "Gestion du stockage",
     settingsStorageManagementTitle: "Gestion du stockage",
     settingsStorageManagementTotalUsed: "Stockage utilisé : {{size}}",

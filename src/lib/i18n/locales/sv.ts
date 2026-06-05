@@ -497,9 +497,6 @@ export const messagesSv: Messages = {
     settingsGeneralImportAllHint:
       "Importera en tidigare exporterad JSON-säkerhetskopia och ersätt appens nuvarande lokala inställningar och cachetillstånd.",
     settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
-    settingsGeneralEnableScalingLabel: "Aktivera appskalning",
-    settingsGeneralEnableScalingTooltip:
-      "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
     settingsStorageManagementButton: "Lagringshantering",
     settingsStorageManagementTitle: "Lagringshantering",
     settingsStorageManagementTotalUsed: "Anvand lagring: {{size}}",

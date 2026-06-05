@@ -386,8 +386,6 @@ export type Messages = {
   settingsGeneralExportAllHint: string;
   settingsGeneralImportAllLabel: string;
   settingsGeneralImportAllHint: string;
-  settingsGeneralEnableScalingLabel: string;
-  settingsGeneralEnableScalingTooltip: string;
   settingsStorageManagementButton: string;
   settingsStorageManagementTitle: string;
   settingsStorageManagementTotalUsed: string;

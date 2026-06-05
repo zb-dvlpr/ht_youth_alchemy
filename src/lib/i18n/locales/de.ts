@@ -496,7 +496,6 @@ export const messagesDe: Messages = {
     settingsGeneralImportAllLabel: "Alle Einstellungen importieren",
     settingsGeneralImportAllHint:
       "Importiert eine zuvor exportierte JSON-Sicherung und ersetzt die aktuellen lokalen App-Einstellungen und Cache-Zustände.",
-    settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
     settingsStorageManagementButton: "Speicherverwaltung",
     settingsStorageManagementTitle: "Speicherverwaltung",
     settingsStorageManagementTotalUsed: "Genutzter Speicher: {{size}}",
@@ -536,8 +535,6 @@ export const messagesDe: Messages = {
       "Keine localStorage-Schluessel gefunden.",
     settingsDebugStorageRefreshButton: "Aktualisieren",
     settingsDebugStorageError: "Speicherdiagnose konnte nicht gelesen werden.",
-    settingsGeneralEnableScalingTooltip:
-      "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
     settingsMachineLearningTitle: "Maschinelles Lernen",
     settingsMachineLearningBody:
       "Senior-Spieler-Snapshots werden automatisch aus Senior-Aktualisierungen und Transfermarkt-Ergebnisdetails gelernt.",

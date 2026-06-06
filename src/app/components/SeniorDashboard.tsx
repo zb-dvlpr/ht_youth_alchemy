@@ -415,12 +415,16 @@ type ManagerCompendiumResponse = {
 
 type StafflistStaff = {
   StaffType?: unknown;
+  StaffLevel?: unknown;
 };
 
 type StafflistResponse = {
   data?: {
     HattrickData?: {
       StaffList?: {
+        Trainer?: {
+          TrainerType?: unknown;
+        };
         StaffMembers?: {
           Staff?: StafflistStaff | StafflistStaff[];
         };
@@ -436,6 +440,8 @@ type SeniorTeamGeneralInfo = {
   teamId: number;
   fetchedAt: number;
   hasTacticalAssistant: boolean;
+  tacticalAssistantStaffLevel: number | null;
+  trainerType: 0 | 1 | 2 | null;
 };
 
 type SortKey =
@@ -1035,13 +1041,32 @@ const normalizeStaffMembers = (
   input: StafflistStaff | StafflistStaff[] | null | undefined
 ): StafflistStaff[] => (!input ? [] : Array.isArray(input) ? input : [input]);
 
-const hasTacticalAssistantFromStafflist = (
-  payload: StafflistResponse | null | undefined
-): boolean => {
+const normalizeTrainerType = (value: unknown): 0 | 1 | 2 | null => {
+  const parsed = parseNumber(value);
+  return parsed === 0 || parsed === 1 || parsed === 2 ? parsed : null;
+};
+
+const buildSeniorTeamGeneralInfoFromStafflist = (
+  payload: StafflistResponse | null | undefined,
+  teamId: number
+): SeniorTeamGeneralInfo => {
   const staffMembers = normalizeStaffMembers(
     payload?.data?.HattrickData?.StaffList?.StaffMembers?.Staff
   );
-  return staffMembers.some((staff) => parseNumber(staff?.StaffType) === 7);
+  const tacticalAssistant =
+    staffMembers.find((staff) => parseNumber(staff?.StaffType) === 7) ?? null;
+  return {
+    schemaVersion: SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION,
+    teamId,
+    fetchedAt: Date.now(),
+    hasTacticalAssistant: tacticalAssistant !== null,
+    tacticalAssistantStaffLevel: tacticalAssistant
+      ? parseNumber(tacticalAssistant.StaffLevel)
+      : null,
+    trainerType: normalizeTrainerType(
+      payload?.data?.HattrickData?.StaffList?.Trainer?.TrainerType
+    ),
+  };
 };
 
 const isSeniorTeamGeneralInfo = (
@@ -1069,6 +1094,26 @@ const isSeniorTeamGeneralInfo = (
     return false;
   }
   if (typeof input.hasTacticalAssistant !== "boolean") return false;
+  if (
+    input.tacticalAssistantStaffLevel !== null &&
+    typeof input.tacticalAssistantStaffLevel !== "number"
+  ) {
+    return false;
+  }
+  if (
+    input.tacticalAssistantStaffLevel !== null &&
+    !Number.isFinite(input.tacticalAssistantStaffLevel)
+  ) {
+    return false;
+  }
+  if (
+    input.trainerType !== null &&
+    input.trainerType !== 0 &&
+    input.trainerType !== 1 &&
+    input.trainerType !== 2
+  ) {
+    return false;
+  }
   return true;
 };
 
@@ -3897,12 +3942,17 @@ export default function SeniorDashboard({
     () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
     [activeSeniorTeamId, activeSeniorTeamOption]
   );
-  const ownSeniorTeamHasTacticalAssistant = isSeniorTeamGeneralInfo(
+  const ownSeniorTeamGeneralInfo = isSeniorTeamGeneralInfo(
     seniorTeamGeneralInfo,
     resolvedSeniorTeamId
   )
-    ? seniorTeamGeneralInfo.hasTacticalAssistant
+    ? seniorTeamGeneralInfo
     : null;
+  const ownSeniorTeamHasTacticalAssistant =
+    ownSeniorTeamGeneralInfo?.hasTacticalAssistant ?? null;
+  const ownSeniorTeamTacticalAssistantStaffLevel =
+    ownSeniorTeamGeneralInfo?.tacticalAssistantStaffLevel ?? null;
+  const ownSeniorTeamTrainerType = ownSeniorTeamGeneralInfo?.trainerType ?? null;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
     number | null
   >(null);
@@ -10136,12 +10186,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch staff list");
     }
-    return {
-      schemaVersion: SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION,
-      teamId,
-      fetchedAt: Date.now(),
-      hasTacticalAssistant: hasTacticalAssistantFromStafflist(payload),
-    };
+    return buildSeniorTeamGeneralInfoFromStafflist(payload, teamId);
   };
 
   const fetchMatches = async (teamId?: number | null, lastMatchDate?: string | null) => {
@@ -17427,6 +17472,14 @@ const refreshDetailsForPlayers = async (
           : ownSeniorTeamHasTacticalAssistant
             ? "available"
             : "unavailable"
+      }
+      data-tactical-assistant-staff-level={
+        ownSeniorTeamTacticalAssistantStaffLevel === null
+          ? "unknown"
+          : ownSeniorTeamTacticalAssistantStaffLevel
+      }
+      data-senior-trainer-type={
+        ownSeniorTeamTrainerType === null ? "unknown" : ownSeniorTeamTrainerType
       }
       ref={dashboardRef}
     >

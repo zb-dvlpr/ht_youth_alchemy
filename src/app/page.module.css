@@ -10514,6 +10514,13 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #3f352c;
 }
 
+.seniorOtherOrdersEditor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  color: #3f352c;
+}
+
 .seniorOtherOrdersSection {
   border: 1px solid #dfd2c0;
   border-radius: 8px;
@@ -10524,6 +10531,16 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 }
 
 .seniorOtherOrdersSection:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(2),
+.seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(3) {
+  grid-column: auto;
+}
+
+.seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(3),
+.seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(4) {
   grid-column: 1 / -1;
 }
 
@@ -10541,6 +10558,87 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .seniorOtherOrdersEmpty {
   color: #7a6a56;
+}
+
+.seniorOtherOrdersError {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px solid #d77;
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #8f1f1f;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.seniorOtherOrdersSectionHeader,
+.seniorOtherOrdersOrderHeader,
+.seniorOtherOrdersRangeLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.seniorOtherOrdersSectionHeader span,
+.seniorOtherOrdersRangeLabels {
+  font-size: 12px;
+  color: #7a6a56;
+}
+
+.seniorOtherOrdersFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.seniorOtherOrdersFormGrid label,
+.seniorOtherOrdersSection label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  color: #5d5245;
+}
+
+.seniorOtherOrdersFormGrid label span,
+.seniorOtherOrdersSection label span {
+  font-weight: 700;
+}
+
+.seniorOtherOrdersInput,
+.seniorOtherOrdersSelect {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d6c6b1;
+  border-radius: 6px;
+  background: #fff;
+  color: #3f352c;
+  padding: 7px 8px;
+  font: inherit;
+}
+
+.seniorOtherOrdersRange {
+  width: 100%;
+}
+
+.seniorOtherOrdersCardListEditable {
+  display: grid;
+  gap: 10px;
+}
+
+.seniorOtherOrdersEditableList {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.seniorOtherOrdersEditableList li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
 }
 
 .seniorOtherOrdersList {
@@ -10978,8 +11076,22 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
     grid-template-columns: 1fr;
   }
 
+  .seniorOtherOrdersEditor {
+    grid-template-columns: 1fr;
+  }
+
   .seniorOtherOrdersSection:nth-child(2) {
     grid-column: auto;
+  }
+
+  .seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(3),
+  .seniorOtherOrdersEditor .seniorOtherOrdersSection:nth-child(4) {
+    grid-column: auto;
+  }
+
+  .seniorOtherOrdersFormGrid,
+  .seniorOtherOrdersEditableList li {
+    grid-template-columns: 1fr;
   }
 
   .seniorOtherOrdersTableWrap {

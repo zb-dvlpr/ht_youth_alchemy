@@ -42,6 +42,7 @@ export type Match = MatchLike & {
   Status?: string;
   OrdersGiven?: string | boolean;
   MatchType?: number | string;
+  CupLevel?: number | string;
   SourceSystem?: string;
   HomeTeam?: MatchTeam;
   AwayTeam?: MatchTeam;
@@ -95,6 +96,8 @@ export type LoadedLineupOrders = {
   penaltyKickerIds: number[];
   setPiecesId: number | null;
   captainId: number | null;
+  matchAttitude: number | null;
+  coachModifier: number | null;
   substitutions: MatchOrdersLineupPayload["substitutions"];
   manMarkerPlayerId?: number | null;
   manMarkingPlayerId?: number | null;
@@ -439,6 +442,20 @@ function parseLoadedLineupOrders(payload: unknown): LoadedLineupOrders {
       lineupNode?.CaptainPlayerId ??
       lineupNode?.Captain
   );
+  const settingsNode =
+    matchDataRecord?.Settings && typeof matchDataRecord.Settings === "object"
+      ? (matchDataRecord.Settings as Record<string, unknown>)
+      : lineupNode?.Settings && typeof lineupNode.Settings === "object"
+        ? (lineupNode.Settings as Record<string, unknown>)
+        : null;
+  const matchAttitude = toLoadedNumber(
+    settingsNode?.SpeechLevel ??
+      settingsNode?.MatchAttitude ??
+      settingsNode?.MatchAttitudeType
+  );
+  const coachModifier = toLoadedNumber(
+    settingsNode?.CoachModifier ?? settingsNode?.StyleOfPlay
+  );
   const substitutions = normalizeLoadedArray<Record<string, unknown>>(
     playerOrdersNode?.PlayerOrder
   ).map((order) => ({
@@ -457,6 +474,8 @@ function parseLoadedLineupOrders(payload: unknown): LoadedLineupOrders {
     penaltyKickerIds,
     setPiecesId: setPiecesId && setPiecesId > 0 ? setPiecesId : null,
     captainId: captainId && captainId > 0 ? captainId : null,
+    matchAttitude,
+    coachModifier,
     substitutions,
     manMarkerPlayerId: manMarkingOrder?.playerout ?? null,
     manMarkingPlayerId: manMarkingOrder?.playerin ?? null,

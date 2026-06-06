@@ -3459,6 +3459,8 @@ export default function SeniorDashboard({
   const [otherOrdersModalMatchId, setOtherOrdersModalMatchId] = useState<number | null>(
     null
   );
+  const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
+    useState<Record<number, string>>({});
   const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
   const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
     number | null
@@ -9489,13 +9491,14 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const otherOrdersButtonDisabled = activeOtherOrdersMatchId === null;
 
   const buildSeniorOtherOrdersSummaryPlayer = (
-    playerId: number
+    playerId: number,
+    nameOverride?: string | null
   ): SeniorOtherOrdersSummaryPlayer | null => {
     if (!Number.isFinite(playerId) || playerId <= 0) return null;
     const player = playersById.get(playerId);
     return {
       id: playerId,
-      name: player ? formatPlayerName(player) : String(playerId),
+      name: player ? formatPlayerName(player) : nameOverride || String(playerId),
       setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
     };
   };
@@ -9560,11 +9563,19 @@ function buildSeniorAiManMarkingReadySignature(params: {
     loadedOrders?: LoadedLineupOrders | null
   ): SeniorOtherOrdersSummaryManMarking | null => {
     if (loadedOrders) {
+      const targetId = loadedOrders.manMarkingPlayerId ?? 0;
+      const cachedTargetName =
+        targetId > 0
+          ? otherOrdersOpponentTargetNamesById[targetId] ??
+            opponentTargetPlayerCacheRef.current.get(targetId)?.name ??
+            null
+          : null;
       const marker = buildSeniorOtherOrdersSummaryPlayer(
         loadedOrders.manMarkerPlayerId ?? 0
       );
       const target = buildSeniorOtherOrdersSummaryPlayer(
-        loadedOrders.manMarkingPlayerId ?? 0
+        targetId,
+        cachedTargetName
       );
       return marker || target
         ? {
@@ -9813,6 +9824,43 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ) : (
       fallback
     );
+
+  const renderSeniorOtherOrdersPlayerWithSetPiecesSkill = (
+    player: SeniorOtherOrdersSummaryPlayer | null,
+    fallback: string = messages.unknownShort
+  ) =>
+    player ? (
+      <>
+        {renderSeniorOtherOrdersPlayer(player)}
+        {Number.isFinite(player.setPiecesSkill) ? ` (${player.setPiecesSkill})` : null}
+      </>
+    ) : (
+      fallback
+    );
+
+  const renderSeniorOtherOrdersButton = () => (
+    <Tooltip
+      content={
+        otherOrdersButtonDisabled
+          ? messages.seniorOtherOrdersDisabledTooltip
+          : messages.seniorOtherOrdersTooltip
+      }
+    >
+      <span>
+        <button
+          type="button"
+          className={styles.lineupButtonSecondary}
+          disabled={otherOrdersButtonDisabled}
+          onClick={() => {
+            if (activeOtherOrdersMatchId === null) return;
+            setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
+          }}
+        >
+          {messages.seniorOtherOrdersButton}
+        </button>
+      </span>
+    </Tooltip>
+  );
 
   const seniorOtherOrdersTypeLabel = (
     type: SeniorOtherOrdersSummarySubstitution["type"]
@@ -12339,6 +12387,46 @@ const refreshDetailsForPlayers = async (
       return null;
     }
   };
+
+  useEffect(() => {
+    if (typeof otherOrdersModalMatchId !== "number") return;
+    const loadedOrders = loadedLineupOrdersByMatchId[otherOrdersModalMatchId] ?? null;
+    const targetId = loadedOrders?.manMarkingPlayerId ?? null;
+    if (typeof targetId !== "number" || targetId <= 0) return;
+    const ownPlayer = playersById.get(targetId);
+    if (ownPlayer) return;
+    const currentName =
+      otherOrdersOpponentTargetNamesById[targetId] ??
+      opponentTargetPlayerCacheRef.current.get(targetId)?.name ??
+      null;
+    if (currentName && currentName !== String(targetId)) {
+      if (otherOrdersOpponentTargetNamesById[targetId] !== currentName) {
+        setOtherOrdersOpponentTargetNamesById((prev) => ({
+          ...prev,
+          [targetId]: currentName,
+        }));
+      }
+      return;
+    }
+
+    let cancelled = false;
+    void fetchOpponentTargetPlayer(targetId, String(targetId)).then((snapshot) => {
+      if (cancelled || !snapshot?.name || snapshot.name === String(targetId)) return;
+      setOtherOrdersOpponentTargetNamesById((prev) => ({
+        ...prev,
+        [targetId]: snapshot.name,
+      }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    otherOrdersModalMatchId,
+    loadedLineupOrdersByMatchId,
+    playersById,
+    otherOrdersOpponentTargetNamesById,
+  ]);
 
   const determineOpponentManMarkingCandidates = async (
     rows: OpponentFormationRow[],
@@ -17039,31 +17127,9 @@ const refreshDetailsForPlayers = async (
           skillMode="single"
           maxSkillLevel={20}
           allowExternalPlayerDrop={false}
+          lineupActionsRightContent={renderSeniorOtherOrdersButton()}
           messages={messages}
         />
-        <div className={styles.seniorOtherOrdersActionRow}>
-          <Tooltip
-            content={
-              otherOrdersButtonDisabled
-                ? messages.seniorOtherOrdersDisabledTooltip
-                : messages.seniorOtherOrdersTooltip
-            }
-          >
-            <span>
-              <button
-                type="button"
-                className={styles.matchButtonSecondary}
-                disabled={otherOrdersButtonDisabled}
-                onClick={() => {
-                  if (activeOtherOrdersMatchId === null) return;
-                  setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
-                }}
-              >
-                {messages.seniorOtherOrdersButton}
-              </button>
-            </span>
-          </Tooltip>
-        </div>
         <UpcomingMatches
           response={matchesState}
           messages={messages}
@@ -17573,7 +17639,7 @@ const refreshDetailsForPlayers = async (
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersSetPiecesTitle}</h3>
                 <p>
-                  {renderSeniorOtherOrdersPlayer(
+                  {renderSeniorOtherOrdersPlayerWithSetPiecesSkill(
                     activeOtherOrdersSummary.setPiecesTaker,
                     messages.seniorOtherOrdersCoachPick
                   )}
@@ -20363,31 +20429,9 @@ const refreshDetailsForPlayers = async (
               titleNote={messages.lineupEmptySlotRecommendationsHint}
               skillMode="single"
               maxSkillLevel={20}
+              lineupActionsRightContent={renderSeniorOtherOrdersButton()}
               messages={messages}
             />
-            <div className={styles.seniorOtherOrdersActionRow}>
-              <Tooltip
-                content={
-                  otherOrdersButtonDisabled
-                    ? messages.seniorOtherOrdersDisabledTooltip
-                    : messages.seniorOtherOrdersTooltip
-                }
-              >
-                <span>
-                  <button
-                    type="button"
-                    className={styles.matchButtonSecondary}
-                    disabled={otherOrdersButtonDisabled}
-                    onClick={() => {
-                      if (activeOtherOrdersMatchId === null) return;
-                      setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
-                    }}
-                  >
-                    {messages.seniorOtherOrdersButton}
-                  </button>
-                </span>
-              </Tooltip>
-            </div>
           </div>
           <UpcomingMatches
             response={matchesState}

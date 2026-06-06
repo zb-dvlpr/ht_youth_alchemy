@@ -10503,12 +10503,6 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #7a6a56;
 }
 
-.seniorOtherOrdersActionRow {
-  display: flex;
-  justify-content: flex-end;
-  margin: 10px 0 4px;
-}
-
 .seniorOtherOrdersModal {
   width: min(96vw, 980px);
 }
@@ -12115,9 +12109,23 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   right: 16px;
   bottom: 10px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   z-index: 3;
+}
+
+.lineupActionsLeft,
+.lineupActionsRight {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lineupActionsRight {
+  margin-left: auto;
 }
 
 .lineupActions .lineupButton,

@@ -209,6 +209,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_6_1_0:
+      "Introdotto un flusso completo per inviare e recuperare gli ordini di formazione senior.",
     changelog_6_0_0:
       "Aggiunto il framework globale dei promemoria con impostazioni, campanella, archiviazione di posticipi/ignora ed export/import.",
     changelog_5_8_0:

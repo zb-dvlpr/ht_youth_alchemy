@@ -449,6 +449,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_6_1_0:
+    "Volledige flow toegevoegd voor het verzenden en ophalen van senior-opstellingsorders.",
   changelog_6_0_0:
     "Globaal herinneringenframework toegevoegd met instellingen, bel, snooze-/negeeropslag en export/import.",
   changelog_5_8_0:

@@ -208,6 +208,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_1_0:
+      "Införde ett komplett flöde för att skicka och hämta senioruppställningsorder.",
     changelog_6_0_0:
       "Lade till ett globalt påminnelseframework med inställningar, klocka, snooze-/avfärdningslagring och export/import.",
     changelog_5_8_0:

@@ -208,6 +208,8 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_1_0:
+      "Se introdujo un flujo completo para enviar y recuperar órdenes de alineación senior.",
     changelog_6_0_0:
       "Se añadió el framework global de recordatorios con ajustes, campana, almacenamiento de posponer/descartar y exportación/importación.",
     changelog_5_8_0:

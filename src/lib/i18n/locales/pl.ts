@@ -443,6 +443,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_6_1_0:
+    "Wprowadzono pełny przepływ wysyłania i pobierania poleceń składu seniorów.",
   changelog_6_0_0:
     "Dodano globalny framework przypomnień z ustawieniami, ikoną, odkładaniem/ukrywaniem oraz eksportem/importem.",
   changelog_5_8_0:

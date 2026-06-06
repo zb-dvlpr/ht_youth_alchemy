@@ -413,6 +413,31 @@ type ManagerCompendiumResponse = {
   details?: string;
 };
 
+type StafflistStaff = {
+  StaffType?: unknown;
+};
+
+type StafflistResponse = {
+  data?: {
+    HattrickData?: {
+      StaffList?: {
+        StaffMembers?: {
+          Staff?: StafflistStaff | StafflistStaff[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+};
+
+type SeniorTeamGeneralInfo = {
+  schemaVersion: 1;
+  teamId: number;
+  fetchedAt: number;
+  hasTacticalAssistant: boolean;
+};
+
 type SortKey =
   | "name"
   | "age"
@@ -451,6 +476,7 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION = 1;
 const LEAGUE_ORIGINS_STORAGE_KEY = "ya_senior_worlddetails_league_origins_v1";
 const LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION = 2;
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
@@ -1004,6 +1030,47 @@ const parseNumber = (value: unknown): number | null => {
 
 const normalizeUnknownList = <T,>(value: T | T[] | null | undefined): T[] =>
   !value ? [] : Array.isArray(value) ? value : [value];
+
+const normalizeStaffMembers = (
+  input: StafflistStaff | StafflistStaff[] | null | undefined
+): StafflistStaff[] => (!input ? [] : Array.isArray(input) ? input : [input]);
+
+const hasTacticalAssistantFromStafflist = (
+  payload: StafflistResponse | null | undefined
+): boolean => {
+  const staffMembers = normalizeStaffMembers(
+    payload?.data?.HattrickData?.StaffList?.StaffMembers?.Staff
+  );
+  return staffMembers.some((staff) => parseNumber(staff?.StaffType) === 7);
+};
+
+const isSeniorTeamGeneralInfo = (
+  value: unknown,
+  expectedTeamId?: number | null
+): value is SeniorTeamGeneralInfo => {
+  if (!value || typeof value !== "object") return false;
+  const input = value as Partial<SeniorTeamGeneralInfo>;
+  if (input.schemaVersion !== SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION) return false;
+  if (
+    typeof input.teamId !== "number" ||
+    !Number.isFinite(input.teamId) ||
+    input.teamId <= 0
+  ) {
+    return false;
+  }
+  if (
+    typeof expectedTeamId === "number" &&
+    expectedTeamId > 0 &&
+    input.teamId !== expectedTeamId
+  ) {
+    return false;
+  }
+  if (typeof input.fetchedAt !== "number" || !Number.isFinite(input.fetchedAt)) {
+    return false;
+  }
+  if (typeof input.hasTacticalAssistant !== "boolean") return false;
+  return true;
+};
 
 const normalizeOpponentTrackedRole = (
   role: string | null | undefined
@@ -3386,6 +3453,8 @@ export default function SeniorDashboard({
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [latestFetchedRatingsResponse, setLatestFetchedRatingsResponse] =
     useState<RatingsMatrixResponse | null>(null);
+  const [seniorTeamGeneralInfo, setSeniorTeamGeneralInfo] =
+    useState<SeniorTeamGeneralInfo | null>(null);
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
   const [ratingsManualOverrideEnabled, setRatingsManualOverrideEnabled] = useState(false);
   const [ratingsOverwriteManualEditsEnabled, setRatingsOverwriteManualEditsEnabled] =
@@ -3828,6 +3897,12 @@ export default function SeniorDashboard({
     () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
     [activeSeniorTeamId, activeSeniorTeamOption]
   );
+  const ownSeniorTeamHasTacticalAssistant = isSeniorTeamGeneralInfo(
+    seniorTeamGeneralInfo,
+    resolvedSeniorTeamId
+  )
+    ? seniorTeamGeneralInfo.hasTacticalAssistant
+    : null;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
     number | null
   >(null);
@@ -3920,8 +3995,16 @@ export default function SeniorDashboard({
       ratingsResponse,
       latestFetchedRatingsResponse,
       detailsCache,
+      seniorTeamGeneralInfo,
     }),
-    [players, matchesState, ratingsResponse, latestFetchedRatingsResponse, detailsCache]
+    [
+      players,
+      matchesState,
+      ratingsResponse,
+      latestFetchedRatingsResponse,
+      detailsCache,
+      seniorTeamGeneralInfo,
+    ]
   );
 
   const persistSeniorDataSnapshot = useCallback(
@@ -10040,6 +10123,27 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return normalizeSeniorPlayers(payload?.data?.HattrickData?.Team?.PlayerList?.Player);
   };
 
+  const fetchSeniorTeamGeneralInfo = async (
+    teamId: number | null
+  ): Promise<SeniorTeamGeneralInfo | null> => {
+    if (typeof teamId !== "number" || !Number.isFinite(teamId) || teamId <= 0) {
+      return null;
+    }
+    const { response, payload } = await fetchChppJson<StafflistResponse>(
+      `/api/chpp/stafflist?teamId=${teamId}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch staff list");
+    }
+    return {
+      schemaVersion: SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION,
+      teamId,
+      fetchedAt: Date.now(),
+      hasTacticalAssistant: hasTacticalAssistantFromStafflist(payload),
+    };
+  };
+
   const fetchMatches = async (teamId?: number | null, lastMatchDate?: string | null) => {
     const teamParam = teamId ? `&teamID=${teamId}` : "";
     const lastMatchDateParam = lastMatchDate
@@ -11748,6 +11852,7 @@ const refreshDetailsForPlayers = async (
     setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
     let didBootstrapRatings = false;
     let effectiveTeamId = resolvedSeniorTeamId;
+    let nextSeniorTeamGeneralInfo: SeniorTeamGeneralInfo | null = null;
 
     try {
       try {
@@ -11760,6 +11865,13 @@ const refreshDetailsForPlayers = async (
         }
       } catch {
         // Keep refresh flow intact even if team context fails.
+      }
+
+      try {
+        nextSeniorTeamGeneralInfo = await fetchSeniorTeamGeneralInfo(effectiveTeamId);
+        if (isStopped()) return false;
+      } catch {
+        // Staff data is advisory; preserve the rest of the refresh if it fails.
       }
 
       if (isStartup) {
@@ -11961,12 +12073,19 @@ const refreshDetailsForPlayers = async (
         ratingsManualEditsByPlayerId,
         nextPlayers
       );
+      const refreshedSeniorTeamGeneralInfo =
+        nextSeniorTeamGeneralInfo ??
+        (isSeniorTeamGeneralInfo(seniorTeamGeneralInfo, effectiveTeamId)
+          ? seniorTeamGeneralInfo
+          : null);
+      setSeniorTeamGeneralInfo(refreshedSeniorTeamGeneralInfo);
       const refreshedDataPayload = {
         players: nextPlayers,
         matchesState: nextMatches,
         ratingsResponse: refreshedRatingsResponse,
         latestFetchedRatingsResponse: nextRatings,
         detailsCache: nextDetailsCache,
+        seniorTeamGeneralInfo: refreshedSeniorTeamGeneralInfo,
       };
       persistSeniorDataSnapshot("refresh-success", {
         payloadOverride: refreshedDataPayload,
@@ -12038,6 +12157,7 @@ const refreshDetailsForPlayers = async (
     setPlayers([]);
     setMatchesState({});
     setLatestFetchedRatingsResponse(null);
+    setSeniorTeamGeneralInfo(null);
     setRatingsResponse(null);
     setRatingsManualOverrideEnabled(false);
     setRatingsOverwriteManualEditsEnabled(false);
@@ -14085,6 +14205,7 @@ const refreshDetailsForPlayers = async (
     setPlayers([]);
     setMatchesState({});
     setLatestFetchedRatingsResponse(null);
+    setSeniorTeamGeneralInfo(null);
     setRatingsResponse(null);
     setRatingsManualOverrideEnabled(false);
     setRatingsOverwriteManualEditsEnabled(false);
@@ -14467,6 +14588,7 @@ const refreshDetailsForPlayers = async (
             ratingsResponse?: RatingsMatrixResponse | null;
             latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
             detailsCache?: Record<number, PlayerDetailCacheEntry>;
+            seniorTeamGeneralInfo?: unknown;
           };
           const restoredPlayers = normalizeSeniorPlayers(parsed.players);
           restoredPlayersCount = restoredPlayers.length;
@@ -14497,6 +14619,11 @@ const refreshDetailsForPlayers = async (
           if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
             setDetailsCache(parsed.detailsCache);
           }
+          setSeniorTeamGeneralInfo(
+            isSeniorTeamGeneralInfo(parsed.seniorTeamGeneralInfo, activeSeniorTeamId)
+              ? parsed.seniorTeamGeneralInfo
+              : null
+          );
           const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
             parsedLatestFetchedRatings
           );
@@ -14538,7 +14665,13 @@ const refreshDetailsForPlayers = async (
       setStateRestored(true);
       setDataRestored(true);
     }
-  }, [dataStorageKey, lastRefreshStorageKey, listSortStorageKey, stateStorageKey]);
+  }, [
+    activeSeniorTeamId,
+    dataStorageKey,
+    lastRefreshStorageKey,
+    listSortStorageKey,
+    stateStorageKey,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -14570,6 +14703,7 @@ const refreshDetailsForPlayers = async (
     matchesState,
     ratingsResponse,
     latestFetchedRatingsResponse,
+    seniorTeamGeneralInfo,
     detailsCache,
   ]);
 
@@ -14782,6 +14916,7 @@ const refreshDetailsForPlayers = async (
     dataStorageKey,
     detailsCache,
     latestFetchedRatingsResponse,
+    seniorTeamGeneralInfo,
     matchesState,
     players,
     ratingsResponse,
@@ -17284,7 +17419,17 @@ const refreshDetailsForPlayers = async (
     );
 
   return (
-    <div className={styles.dashboardStack} ref={dashboardRef}>
+    <div
+      className={styles.dashboardStack}
+      data-tactical-assistant-status={
+        ownSeniorTeamHasTacticalAssistant === null
+          ? "unknown"
+          : ownSeniorTeamHasTacticalAssistant
+            ? "available"
+            : "unavailable"
+      }
+      ref={dashboardRef}
+    >
       {startupOverlayMounted ? (
         <StartupLoadingExperience
           title={messages.startupLoadingTitle}

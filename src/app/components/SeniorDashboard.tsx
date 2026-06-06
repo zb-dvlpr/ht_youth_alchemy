@@ -71,6 +71,7 @@ import MobileToolMenu, { type MobileToolView as SeniorMobileView } from "./Mobil
 import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, {
+  type LoadedLineupOrders,
   type IgnoreTrainingFormationPolicy,
   Match,
   MatchOrdersLineupPayload,
@@ -843,10 +844,50 @@ type SeniorSubmitDisclaimerManMarkingSummary = {
   missingTarget: boolean;
 };
 
+type SeniorOtherOrdersSummaryPlayer = {
+  id: number;
+  name: string;
+  setPiecesSkill: number | null;
+};
+
+type SeniorOtherOrdersSummarySubstitution = {
+  minute: number;
+  type: "replace" | "swap" | "reposition" | "special" | "unknown";
+  playerIn: SeniorOtherOrdersSummaryPlayer | null;
+  playerOut: SeniorOtherOrdersSummaryPlayer | null;
+  newPositionId?: number | null;
+  newPositionBehaviour?: number | null;
+  card?: number | null;
+  standing?: number | null;
+};
+
+type SeniorOtherOrdersSummaryManMarking = {
+  marker: SeniorOtherOrdersSummaryPlayer | null;
+  target: SeniorOtherOrdersSummaryPlayer | null;
+  missingMarker?: boolean;
+  missingTarget?: boolean;
+};
+
+type SeniorOtherOrdersSummary = {
+  matchId: number;
+  source: "generated" | "loaded";
+  manMarking: SeniorOtherOrdersSummaryManMarking | null;
+  substitutions: SeniorOtherOrdersSummarySubstitution[];
+  penaltyTakers: SeniorOtherOrdersSummaryPlayer[];
+  captain: SeniorOtherOrdersSummaryPlayer | null;
+  setPiecesTaker: SeniorOtherOrdersSummaryPlayer | null;
+};
+
+type SeniorSubmitDisclaimerOrderSubstitution = SeniorOtherOrdersSummarySubstitution & {
+  type: "replace" | "swap";
+  playerIn: SeniorOtherOrdersSummaryPlayer;
+  playerOut: SeniorOtherOrdersSummaryPlayer;
+};
+
 type SeniorSubmitDisclaimerOrdersSummary = {
-  substitutions: ExtraTimeSubmitDisclaimerSubstitution[];
-  penaltyTakers: Array<{ id: number; name: string; setPiecesSkill: number | null }>;
-  setPiecesTaker: { id: number; name: string; setPiecesSkill: number | null } | null;
+  substitutions: SeniorSubmitDisclaimerOrderSubstitution[];
+  penaltyTakers: SeniorOtherOrdersSummaryPlayer[];
+  setPiecesTaker: SeniorOtherOrdersSummaryPlayer | null;
 };
 
 type SeniorAiManMarkingReadyContext = {
@@ -3412,6 +3453,12 @@ export default function SeniorDashboard({
     Record<number, boolean>
   >({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [loadedLineupOrdersByMatchId, setLoadedLineupOrdersByMatchId] = useState<
+    Record<number, LoadedLineupOrders>
+  >({});
+  const [otherOrdersModalMatchId, setOtherOrdersModalMatchId] = useState<number | null>(
+    null
+  );
   const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
   const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
     number | null
@@ -9413,6 +9460,169 @@ function buildSeniorAiManMarkingReadySignature(params: {
     playersById,
   ]);
 
+  const activeLoadedLineupOrders =
+    typeof loadedMatchId === "number" && loadedMatchId > 0
+      ? loadedLineupOrdersByMatchId[loadedMatchId] ?? null
+      : null;
+  const effectiveSeniorPenaltyKickerIds =
+    activeLoadedLineupOrders && activeLoadedLineupOrders.penaltyKickerIds.length > 0
+      ? activeLoadedLineupOrders.penaltyKickerIds
+      : seniorPenaltyKickerIds;
+  const effectiveSeniorSetPiecesPlayerId =
+    activeLoadedLineupOrders && typeof activeLoadedLineupOrders.setPiecesId === "number"
+      ? activeLoadedLineupOrders.setPiecesId
+      : seniorSetPiecesPlayerId;
+  const effectiveSeniorCaptainId =
+    activeLoadedLineupOrders && typeof activeLoadedLineupOrders.captainId === "number"
+      ? activeLoadedLineupOrders.captainId
+      : 0;
+  const activeOtherOrdersMatchId =
+    typeof loadedMatchId === "number" && loadedMatchId > 0
+      ? loadedMatchId
+      : typeof seniorAiSubmitEnabledMatchId === "number" &&
+          seniorAiSubmitEnabledMatchId > 0
+        ? seniorAiSubmitEnabledMatchId
+        : typeof extraTimePreparedSubmission?.matchId === "number" &&
+            extraTimePreparedSubmission.matchId > 0
+          ? extraTimePreparedSubmission.matchId
+          : null;
+  const otherOrdersButtonDisabled = activeOtherOrdersMatchId === null;
+
+  const buildSeniorOtherOrdersSummaryPlayer = (
+    playerId: number
+  ): SeniorOtherOrdersSummaryPlayer | null => {
+    if (!Number.isFinite(playerId) || playerId <= 0) return null;
+    const player = playersById.get(playerId);
+    return {
+      id: playerId,
+      name: player ? formatPlayerName(player) : String(playerId),
+      setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+    };
+  };
+
+  const orderTypeToSeniorOtherOrdersType = (
+    orderType: number
+  ): SeniorOtherOrdersSummarySubstitution["type"] => {
+    if (orderType === 1) return "replace";
+    if (orderType === 2) return "reposition";
+    if (orderType === 3) return "swap";
+    if (orderType === 4) return "special";
+    return "unknown";
+  };
+
+  const buildSeniorOtherOrdersSummaryFromPayload = (
+    matchId: number,
+    lineupPayload: MatchOrdersLineupPayload,
+    options?: {
+      source?: "generated" | "loaded";
+      manMarking?: SeniorOtherOrdersSummaryManMarking | null;
+    }
+  ): SeniorOtherOrdersSummary => ({
+    matchId,
+    source: options?.source ?? "generated",
+    manMarking: options?.manMarking ?? null,
+    substitutions: (lineupPayload.substitutions ?? [])
+      .filter((substitution) => substitution.orderType !== 4)
+      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
+      .map((substitution) => ({
+        minute: substitution.min,
+        type: orderTypeToSeniorOtherOrdersType(substitution.orderType),
+        playerIn: buildSeniorOtherOrdersSummaryPlayer(substitution.playerin),
+        playerOut: buildSeniorOtherOrdersSummaryPlayer(substitution.playerout),
+        newPositionId:
+          typeof substitution.pos === "number" && substitution.pos >= 0
+            ? substitution.pos
+            : null,
+        newPositionBehaviour:
+          typeof substitution.beh === "number" && substitution.beh >= 0
+            ? substitution.beh
+            : null,
+        card:
+          typeof substitution.card === "number" && substitution.card !== 0
+            ? substitution.card
+            : null,
+        standing:
+          typeof substitution.standing === "number" && substitution.standing !== 0
+            ? substitution.standing
+            : null,
+      })),
+    penaltyTakers: (lineupPayload.kickers ?? [])
+      .map((entry) => entry.id)
+      .filter((playerId, index, list): playerId is number => playerId > 0 && list.indexOf(playerId) === index)
+      .map((playerId) => buildSeniorOtherOrdersSummaryPlayer(playerId))
+      .filter((player): player is SeniorOtherOrdersSummaryPlayer => Boolean(player)),
+    captain: buildSeniorOtherOrdersSummaryPlayer(lineupPayload.captain),
+    setPiecesTaker: buildSeniorOtherOrdersSummaryPlayer(lineupPayload.setPieces),
+  });
+
+  const buildSeniorOtherOrdersManMarkingSummary = (
+    matchId: number,
+    loadedOrders?: LoadedLineupOrders | null
+  ): SeniorOtherOrdersSummaryManMarking | null => {
+    if (loadedOrders) {
+      const marker = buildSeniorOtherOrdersSummaryPlayer(
+        loadedOrders.manMarkerPlayerId ?? 0
+      );
+      const target = buildSeniorOtherOrdersSummaryPlayer(
+        loadedOrders.manMarkingPlayerId ?? 0
+      );
+      return marker || target
+        ? {
+            marker,
+            target,
+            missingMarker: !marker,
+            missingTarget: !target,
+          }
+        : null;
+    }
+    const submitSummary = buildSeniorSubmitDisclaimerManMarkingSummary(matchId);
+    return submitSummary
+      ? {
+          marker: submitSummary.marker
+            ? { ...submitSummary.marker, setPiecesSkill: null }
+            : null,
+          target: submitSummary.target
+            ? { ...submitSummary.target, setPiecesSkill: null }
+            : null,
+          missingMarker: submitSummary.missingMarker,
+          missingTarget: submitSummary.missingTarget,
+        }
+      : null;
+  };
+
+  const buildSeniorOtherOrdersSummaryForMatch = (
+    matchId: number
+  ): SeniorOtherOrdersSummary | null => {
+    const loadedOrders = loadedLineupOrdersByMatchId[matchId] ?? null;
+    if (loadedOrders && loadedMatchId === matchId) {
+      const loadedPayload = buildLineupPayload(assignments, tacticType, {
+        behaviors,
+        kickerIds: loadedOrders.penaltyKickerIds,
+        captainId: loadedOrders.captainId ?? 0,
+        setPiecesId: loadedOrders.setPiecesId ?? 0,
+        substitutions: loadedOrders.substitutions,
+      });
+      return buildSeniorOtherOrdersSummaryFromPayload(matchId, loadedPayload, {
+        source: "loaded",
+        manMarking: buildSeniorOtherOrdersManMarkingSummary(matchId, loadedOrders),
+      });
+    }
+    const defaultPayload = buildLineupPayload(assignments, tacticType, {
+      behaviors,
+      kickerIds: effectiveSeniorPenaltyKickerIds,
+      captainId: effectiveSeniorCaptainId,
+      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+    });
+    return buildSeniorOtherOrdersSummaryFromPayload(
+      matchId,
+      buildSeniorSubmitLineupPayload(matchId, defaultPayload),
+      {
+        source: "generated",
+        manMarking: buildSeniorOtherOrdersManMarkingSummary(matchId),
+      }
+    );
+  };
+
   const formatEffectiveTrainingMinutes = (value: number) => {
     const capped = Math.min(90, Math.max(0, value));
     return Number.isInteger(capped) ? String(capped) : capped.toFixed(1).replace(/\.0$/, "");
@@ -9424,29 +9634,29 @@ function buildSeniorAiManMarkingReadySignature(params: {
       extraTimePreparedSubmission.matchId,
       buildLineupPayload(assignments, 1)
     );
-    const substitutions = (submitPayload.substitutions ?? [])
+    const otherOrdersSummary = buildSeniorOtherOrdersSummaryFromPayload(
+      extraTimePreparedSubmission.matchId,
+      submitPayload
+    );
+    const substitutions = otherOrdersSummary.substitutions
       .filter(
-        (substitution) =>
-          typeof substitution.playerin === "number" &&
-          substitution.playerin > 0 &&
-          typeof substitution.playerout === "number" &&
-          substitution.playerout > 0
+        (
+          substitution
+        ): substitution is SeniorOtherOrdersSummarySubstitution & {
+          type: "replace" | "swap";
+          playerIn: SeniorOtherOrdersSummaryPlayer;
+          playerOut: SeniorOtherOrdersSummaryPlayer;
+        } =>
+          (substitution.type === "replace" || substitution.type === "swap") &&
+          Boolean(substitution.playerIn) &&
+          Boolean(substitution.playerOut)
       )
-      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
       .map((substitution) => {
-        const playerIn = playersById.get(substitution.playerin);
-        const playerOut = playersById.get(substitution.playerout);
         return {
-          minute: substitution.min,
-          type: substitution.orderType === 3 ? "swap" : "replace",
-          playerIn: {
-            id: substitution.playerin,
-            name: playerIn ? formatPlayerName(playerIn) : String(substitution.playerin),
-          },
-          playerOut: {
-            id: substitution.playerout,
-            name: playerOut ? formatPlayerName(playerOut) : String(substitution.playerout),
-          },
+          minute: substitution.minute,
+          type: substitution.type,
+          playerIn: substitution.playerIn,
+          playerOut: substitution.playerOut,
         } satisfies ExtraTimeSubmitDisclaimerSubstitution;
       });
     const candidateTrainingPlayerIds = Array.from(
@@ -9490,101 +9700,29 @@ function buildSeniorAiManMarkingReadySignature(params: {
         number: index + 1,
         ...row,
       }));
-    const penaltyTakers = (submitPayload.kickers ?? [])
-      .map((entry) => entry.id)
-      .filter(
-        (playerId, index, list): playerId is number =>
-          playerId > 0 && list.indexOf(playerId) === index
-      )
-      .map((playerId) => {
-        const player = playersById.get(playerId);
-        return {
-          id: playerId,
-          name: player ? formatPlayerName(player) : String(playerId),
-          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
-        };
-      });
-    const setPiecesTaker =
-      typeof submitPayload.setPieces === "number" && submitPayload.setPieces > 0
-        ? (() => {
-            const playerId = submitPayload.setPieces;
-            const player = playersById.get(playerId);
-            return {
-              id: playerId,
-              name: player ? formatPlayerName(player) : String(playerId),
-              setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
-            };
-          })()
-        : null;
-
     return {
       trainingLabel: obtainedTrainingRegimenLabel(extraTimePreparedSubmission.trainingType),
       trainees,
       substitutions,
       trainingRows,
-      penaltyTakers,
-      setPiecesTaker,
+      penaltyTakers: otherOrdersSummary.penaltyTakers,
+      setPiecesTaker: otherOrdersSummary.setPiecesTaker,
     };
   };
 
   const buildSeniorSubmitDisclaimerOrdersSummary = (
     lineupPayload: MatchOrdersLineupPayload
   ): SeniorSubmitDisclaimerOrdersSummary => {
-    const substitutions = (lineupPayload.substitutions ?? [])
-      .filter(
-        (substitution) =>
-          typeof substitution.playerin === "number" &&
-          substitution.playerin > 0 &&
-          typeof substitution.playerout === "number" &&
-          substitution.playerout > 0
-      )
-      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
-      .map((substitution) => {
-        const playerIn = playersById.get(substitution.playerin);
-        const playerOut = playersById.get(substitution.playerout);
-        return {
-          minute: substitution.min,
-          type: substitution.orderType === 3 ? "swap" : "replace",
-          playerIn: {
-            id: substitution.playerin,
-            name: playerIn ? formatPlayerName(playerIn) : String(substitution.playerin),
-          },
-          playerOut: {
-            id: substitution.playerout,
-            name: playerOut ? formatPlayerName(playerOut) : String(substitution.playerout),
-          },
-        } satisfies ExtraTimeSubmitDisclaimerSubstitution;
-      });
-
-    const penaltyTakers = (lineupPayload.kickers ?? [])
-      .map((entry) => entry.id)
-      .filter((playerId, index, list): playerId is number => playerId > 0 && list.indexOf(playerId) === index)
-      .map((playerId) => {
-        const player = playersById.get(playerId);
-        return {
-          id: playerId,
-          name: player ? formatPlayerName(player) : String(playerId),
-          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
-        };
-      });
-
-    const setPiecesTaker =
-      typeof lineupPayload.setPieces === "number" && lineupPayload.setPieces > 0
-        ? (() => {
-            const playerId = lineupPayload.setPieces;
-            const player = playersById.get(playerId);
-            return {
-              id: playerId,
-              name: player ? formatPlayerName(player) : String(playerId),
-              setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
-            };
-          })()
-        : null;
-
+    const summary = buildSeniorOtherOrdersSummaryFromPayload(0, lineupPayload);
     return {
-      substitutions,
-      penaltyTakers,
-      setPiecesTaker,
+      substitutions: summary.substitutions.filter(
+        (substitution): substitution is SeniorSubmitDisclaimerOrderSubstitution =>
+          (substitution.type === "replace" || substitution.type === "swap") &&
+          Boolean(substitution.playerIn) &&
+          Boolean(substitution.playerOut)
+      ),
+      penaltyTakers: summary.penaltyTakers,
+      setPiecesTaker: summary.setPiecesTaker,
     };
   };
 
@@ -9652,6 +9790,51 @@ function buildSeniorAiManMarkingReadySignature(params: {
         manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
       },
     };
+  };
+
+  const activeOtherOrdersSummary =
+    typeof otherOrdersModalMatchId === "number"
+      ? buildSeniorOtherOrdersSummaryForMatch(otherOrdersModalMatchId)
+      : null;
+
+  const renderSeniorOtherOrdersPlayer = (
+    player: SeniorOtherOrdersSummaryPlayer | null,
+    fallback: string = messages.unknownShort
+  ) =>
+    player ? (
+      <a
+        className={styles.chroniclePressLink}
+        href={hattrickPlayerUrl(player.id)}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {player.name}
+      </a>
+    ) : (
+      fallback
+    );
+
+  const seniorOtherOrdersTypeLabel = (
+    type: SeniorOtherOrdersSummarySubstitution["type"]
+  ) => {
+    if (type === "replace") return messages.seniorOtherOrdersReplaceLabel;
+    if (type === "swap") return messages.seniorOtherOrdersSwapLabel;
+    if (type === "reposition") return messages.seniorOtherOrdersRepositionLabel;
+    if (type === "special") return messages.seniorOtherOrdersSpecialOrderLabel;
+    return messages.seniorOtherOrdersUnknownOrderLabel;
+  };
+
+  const seniorOtherOrdersConditionText = (
+    substitution: SeniorOtherOrdersSummarySubstitution
+  ) => {
+    const parts: string[] = [];
+    if (typeof substitution.card === "number") {
+      parts.push(`${messages.seniorOtherOrdersCardLabel}: ${substitution.card}`);
+    }
+    if (typeof substitution.standing === "number") {
+      parts.push(`${messages.seniorOtherOrdersStandingLabel}: ${substitution.standing}`);
+    }
+    return parts.length > 0 ? parts.join(", ") : messages.unknownShort;
   };
 
   const seniorCardStatusByPlayerId = useMemo(() => {
@@ -16858,13 +17041,37 @@ const refreshDetailsForPlayers = async (
           allowExternalPlayerDrop={false}
           messages={messages}
         />
+        <div className={styles.seniorOtherOrdersActionRow}>
+          <Tooltip
+            content={
+              otherOrdersButtonDisabled
+                ? messages.seniorOtherOrdersDisabledTooltip
+                : messages.seniorOtherOrdersTooltip
+            }
+          >
+            <span>
+              <button
+                type="button"
+                className={styles.matchButtonSecondary}
+                disabled={otherOrdersButtonDisabled}
+                onClick={() => {
+                  if (activeOtherOrdersMatchId === null) return;
+                  setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
+                }}
+              >
+                {messages.seniorOtherOrdersButton}
+              </button>
+            </span>
+          </Tooltip>
+        </div>
         <UpcomingMatches
           response={matchesState}
           messages={messages}
           assignments={assignments}
           behaviors={behaviors}
-          penaltyKickerIds={seniorPenaltyKickerIds}
-          setPiecesId={seniorSetPiecesPlayerId}
+          captainId={effectiveSeniorCaptainId}
+          penaltyKickerIds={effectiveSeniorPenaltyKickerIds}
+          setPiecesId={effectiveSeniorSetPiecesPlayerId}
           tacticType={tacticType}
           sourceSystem="Hattrick"
           includeTournamentMatches={includeTournamentMatches}
@@ -16924,14 +17131,27 @@ const refreshDetailsForPlayers = async (
           onSetBestLineup={(matchId) => {
             void matchId;
           }}
-          onLoadLineup={(nextAssignments, nextBehaviors, matchId, loadedTacticType) => {
+          onLoadLineup={(
+            nextAssignments,
+            nextBehaviors,
+            matchId,
+            loadedTacticType,
+            loadedOrders
+          ) => {
             clearSeniorAiSubmitLock();
             setAssignments(nextAssignments);
             setBehaviors(nextBehaviors);
             if (typeof loadedTacticType === "number") {
               setTacticType(loadedTacticType);
             }
+            if (loadedOrders) {
+              setLoadedLineupOrdersByMatchId((prev) => ({
+                ...prev,
+                [matchId]: loadedOrders,
+              }));
+            }
             setLoadedMatchId(matchId);
+            setOtherOrdersModalMatchId(matchId);
           }}
           loadedMatchId={loadedMatchId}
           onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {
@@ -17195,6 +17415,188 @@ const refreshDetailsForPlayers = async (
         }
         closeOnBackdrop
         onClose={() => setUpdatesOpen(false)}
+      />
+      <Modal
+        open={Boolean(otherOrdersModalMatchId)}
+        title={messages.seniorOtherOrdersTitle}
+        className={styles.seniorOtherOrdersModal}
+        body={
+          activeOtherOrdersSummary ? (
+            <div className={styles.seniorOtherOrdersGrid}>
+              <section className={styles.seniorOtherOrdersSection}>
+                <h3>{messages.seniorOtherOrdersManMarkingTitle}</h3>
+                {activeOtherOrdersSummary.manMarking ? (
+                  <p>
+                    {activeOtherOrdersSummary.manMarking.target
+                      ? renderTemplateTokens(
+                          messages.seniorSubmitDisclaimerManMarkingTargetChosen,
+                          {
+                            target: renderSeniorOtherOrdersPlayer(
+                              activeOtherOrdersSummary.manMarking.target
+                            ),
+                          }
+                        )
+                      : messages.seniorSubmitDisclaimerManMarkingTargetMissing}
+                    {", "}
+                    {activeOtherOrdersSummary.manMarking.marker
+                      ? renderTemplateTokens(
+                          messages.seniorSubmitDisclaimerManMarkingMarkerChosen,
+                          {
+                            marker: renderSeniorOtherOrdersPlayer(
+                              activeOtherOrdersSummary.manMarking.marker
+                            ),
+                          }
+                        )
+                      : messages.seniorSubmitDisclaimerManMarkingMarkerMissing}
+                    {"."}
+                  </p>
+                ) : (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersManMarkingNone}
+                  </p>
+                )}
+              </section>
+              <section className={styles.seniorOtherOrdersSection}>
+                <h3>{messages.seniorOtherOrdersSubstitutionsTitle}</h3>
+                {activeOtherOrdersSummary.substitutions.length > 0 ? (
+                  <>
+                    <div className={styles.seniorOtherOrdersTableWrap}>
+                      <table className={styles.seniorOtherOrdersTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.seniorOtherOrdersMinuteLabel}</th>
+                            <th>{messages.seniorOtherOrdersPlayerOutLabel}</th>
+                            <th>{messages.seniorOtherOrdersPlayerInLabel}</th>
+                            <th>{messages.seniorOtherOrdersOrderTypeLabel}</th>
+                            <th>{messages.seniorOtherOrdersConditionsLabel}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeOtherOrdersSummary.substitutions.map(
+                            (substitution, index) => (
+                              <tr
+                                key={`${substitution.minute}-${substitution.type}-${index}`}
+                              >
+                                <td>{substitution.minute}</td>
+                                <td>
+                                  {renderSeniorOtherOrdersPlayer(
+                                    substitution.playerOut
+                                  )}
+                                </td>
+                                <td>
+                                  {renderSeniorOtherOrdersPlayer(
+                                    substitution.playerIn
+                                  )}
+                                </td>
+                                <td>{seniorOtherOrdersTypeLabel(substitution.type)}</td>
+                                <td>{seniorOtherOrdersConditionText(substitution)}</td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className={styles.seniorOtherOrdersCardList}>
+                      {activeOtherOrdersSummary.substitutions.map(
+                        (substitution, index) => (
+                          <article
+                            key={`card-${substitution.minute}-${substitution.type}-${index}`}
+                            className={styles.seniorOtherOrdersCard}
+                          >
+                            <dl>
+                              <div>
+                                <dt>{messages.seniorOtherOrdersMinuteLabel}</dt>
+                                <dd>{substitution.minute}</dd>
+                              </div>
+                              <div>
+                                <dt>{messages.seniorOtherOrdersPlayerOutLabel}</dt>
+                                <dd>
+                                  {renderSeniorOtherOrdersPlayer(
+                                    substitution.playerOut
+                                  )}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>{messages.seniorOtherOrdersPlayerInLabel}</dt>
+                                <dd>
+                                  {renderSeniorOtherOrdersPlayer(
+                                    substitution.playerIn
+                                  )}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>{messages.seniorOtherOrdersOrderTypeLabel}</dt>
+                                <dd>{seniorOtherOrdersTypeLabel(substitution.type)}</dd>
+                              </div>
+                              <div>
+                                <dt>{messages.seniorOtherOrdersConditionsLabel}</dt>
+                                <dd>{seniorOtherOrdersConditionText(substitution)}</dd>
+                              </div>
+                            </dl>
+                          </article>
+                        )
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersSubstitutionsNone}
+                  </p>
+                )}
+              </section>
+              <section className={styles.seniorOtherOrdersSection}>
+                <h3>{messages.seniorOtherOrdersPenaltyTakersTitle}</h3>
+                {activeOtherOrdersSummary.penaltyTakers.length > 0 ? (
+                  <ol className={styles.seniorOtherOrdersList}>
+                    {activeOtherOrdersSummary.penaltyTakers.map((player) => (
+                      <li key={`other-orders-penalty-${player.id}`}>
+                        {renderSeniorOtherOrdersPlayer(player)}{" "}
+                        ({player.setPiecesSkill ?? messages.unknownShort})
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersPenaltyTakersNone}
+                  </p>
+                )}
+              </section>
+              <section className={styles.seniorOtherOrdersSection}>
+                <h3>{messages.seniorOtherOrdersCaptainTitle}</h3>
+                <p>
+                  {renderSeniorOtherOrdersPlayer(
+                    activeOtherOrdersSummary.captain,
+                    messages.seniorOtherOrdersCoachPick
+                  )}
+                </p>
+              </section>
+              <section className={styles.seniorOtherOrdersSection}>
+                <h3>{messages.seniorOtherOrdersSetPiecesTitle}</h3>
+                <p>
+                  {renderSeniorOtherOrdersPlayer(
+                    activeOtherOrdersSummary.setPiecesTaker,
+                    messages.seniorOtherOrdersCoachPick
+                  )}
+                </p>
+              </section>
+            </div>
+          ) : (
+            <p className={styles.seniorOtherOrdersEmpty}>
+              {messages.seniorOtherOrdersSubstitutionsNone}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setOtherOrdersModalMatchId(null)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setOtherOrdersModalMatchId(null)}
       />
       <Modal
         open={submitDisclaimerOpen}
@@ -19963,14 +20365,38 @@ const refreshDetailsForPlayers = async (
               maxSkillLevel={20}
               messages={messages}
             />
+            <div className={styles.seniorOtherOrdersActionRow}>
+              <Tooltip
+                content={
+                  otherOrdersButtonDisabled
+                    ? messages.seniorOtherOrdersDisabledTooltip
+                    : messages.seniorOtherOrdersTooltip
+                }
+              >
+                <span>
+                  <button
+                    type="button"
+                    className={styles.matchButtonSecondary}
+                    disabled={otherOrdersButtonDisabled}
+                    onClick={() => {
+                      if (activeOtherOrdersMatchId === null) return;
+                      setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
+                    }}
+                  >
+                    {messages.seniorOtherOrdersButton}
+                  </button>
+                </span>
+              </Tooltip>
+            </div>
           </div>
           <UpcomingMatches
             response={matchesState}
             messages={messages}
             assignments={assignments}
             behaviors={behaviors}
-            penaltyKickerIds={seniorPenaltyKickerIds}
-            setPiecesId={seniorSetPiecesPlayerId}
+            captainId={effectiveSeniorCaptainId}
+            penaltyKickerIds={effectiveSeniorPenaltyKickerIds}
+            setPiecesId={effectiveSeniorSetPiecesPlayerId}
             tacticType={tacticType}
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}
@@ -20034,7 +20460,8 @@ const refreshDetailsForPlayers = async (
               nextAssignments,
               nextBehaviors,
               matchId,
-              loadedTacticType
+              loadedTacticType,
+              loadedOrders
             ) => {
               clearSeniorAiSubmitLock();
               setAssignments(nextAssignments);
@@ -20042,7 +20469,14 @@ const refreshDetailsForPlayers = async (
               if (typeof loadedTacticType === "number") {
                 setTacticType(loadedTacticType);
               }
+              if (loadedOrders) {
+                setLoadedLineupOrdersByMatchId((prev) => ({
+                  ...prev,
+                  [matchId]: loadedOrders,
+                }));
+              }
               setLoadedMatchId(matchId);
+              setOtherOrdersModalMatchId(matchId);
             }}
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {

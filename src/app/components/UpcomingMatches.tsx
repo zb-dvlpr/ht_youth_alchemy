@@ -91,6 +91,15 @@ export type MatchOrdersLineupPayload = {
   }>;
 };
 
+export type LoadedLineupOrders = {
+  penaltyKickerIds: number[];
+  setPiecesId: number | null;
+  captainId: number | null;
+  substitutions: MatchOrdersLineupPayload["substitutions"];
+  manMarkerPlayerId?: number | null;
+  manMarkingPlayerId?: number | null;
+};
+
 type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
@@ -105,7 +114,8 @@ type UpcomingMatchesProps = {
     assignments: LineupAssignments,
     behaviors: LineupBehaviors,
     matchId: number,
-    tacticType?: number
+    tacticType?: number,
+    loadedOrders?: LoadedLineupOrders
   ) => void;
   onSetBestLineup?: (matchId: number) => void | Promise<void>;
   onSetBestLineupMode?: (
@@ -320,25 +330,31 @@ function buildLineupPayload(
   };
 }
 
-function parseLoadedTacticType(payload: unknown): number | null {
-  const toNumber = (value: unknown): number | null => {
-    if (typeof value === "number") {
-      return Number.isFinite(value) ? value : null;
-    }
-    if (typeof value === "string") {
-      const parsed = Number(value);
+function toLoadedNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const text = record["#text"];
+    if (typeof text === "string" || typeof text === "number") {
+      const parsed = Number(text);
       return Number.isFinite(parsed) ? parsed : null;
     }
-    if (value && typeof value === "object") {
-      const record = value as Record<string, unknown>;
-      const text = record["#text"];
-      if (typeof text === "string" || typeof text === "number") {
-        const parsed = Number(text);
-        return Number.isFinite(parsed) ? parsed : null;
-      }
-    }
-    return null;
-  };
+  }
+  return null;
+}
+
+function normalizeLoadedArray<T = unknown>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  return value ? [value as T] : [];
+}
+
+function getLoadedMatchData(payload: unknown): Record<string, unknown> | null {
   if (!payload || typeof payload !== "object") return null;
   const root = payload as Record<string, unknown>;
   const hattrickData =
@@ -347,8 +363,14 @@ function parseLoadedTacticType(payload: unknown): number | null {
       : null;
   if (!hattrickData || typeof hattrickData !== "object") return null;
   const matchData = (hattrickData as Record<string, unknown>).MatchData;
-  if (!matchData || typeof matchData !== "object") return null;
-  const matchDataRecord = matchData as Record<string, unknown>;
+  return matchData && typeof matchData === "object"
+    ? (matchData as Record<string, unknown>)
+    : null;
+}
+
+function parseLoadedTacticType(payload: unknown): number | null {
+  const matchDataRecord = getLoadedMatchData(payload);
+  if (!matchDataRecord) return null;
   const lineupNode =
     matchDataRecord.Lineup && typeof matchDataRecord.Lineup === "object"
       ? (matchDataRecord.Lineup as Record<string, unknown>)
@@ -374,10 +396,71 @@ function parseLoadedTacticType(payload: unknown): number | null {
     );
   });
   for (const candidate of valueCandidates) {
-    const parsed = toNumber(candidate);
+    const parsed = toLoadedNumber(candidate);
     if (parsed !== null) return parsed;
   }
   return null;
+}
+
+function parseLoadedLineupOrders(payload: unknown): LoadedLineupOrders {
+  const matchDataRecord = getLoadedMatchData(payload);
+  const lineupNode =
+    matchDataRecord?.Lineup && typeof matchDataRecord.Lineup === "object"
+      ? (matchDataRecord.Lineup as Record<string, unknown>)
+      : null;
+  const playerOrdersNode =
+    matchDataRecord?.PlayerOrders && typeof matchDataRecord.PlayerOrders === "object"
+      ? (matchDataRecord.PlayerOrders as Record<string, unknown>)
+      : null;
+  const kickersNode =
+    lineupNode?.Kickers && typeof lineupNode.Kickers === "object"
+      ? (lineupNode.Kickers as Record<string, unknown>)
+      : null;
+  const penaltyKickerIds = normalizeLoadedArray<Record<string, unknown>>(kickersNode?.Player)
+    .map((player) => ({
+      playerId: toLoadedNumber(player.PlayerID) ?? 0,
+      roleId: toLoadedNumber(player.RoleID) ?? 0,
+    }))
+    .filter((player) => player.playerId > 0)
+    .sort((left, right) => left.roleId - right.roleId)
+    .map((player) => player.playerId);
+  const setPiecesNode =
+    lineupNode?.SetPieces && typeof lineupNode.SetPieces === "object"
+      ? (lineupNode.SetPieces as Record<string, unknown>)
+      : null;
+  const setPiecesId = toLoadedNumber(setPiecesNode?.PlayerID ?? lineupNode?.SetPieces);
+  const captainNode =
+    lineupNode?.Captain && typeof lineupNode.Captain === "object"
+      ? (lineupNode.Captain as Record<string, unknown>)
+      : null;
+  const captainId = toLoadedNumber(
+    captainNode?.PlayerID ??
+      lineupNode?.CaptainPlayerID ??
+      lineupNode?.CaptainPlayerId ??
+      lineupNode?.Captain
+  );
+  const substitutions = normalizeLoadedArray<Record<string, unknown>>(
+    playerOrdersNode?.PlayerOrder
+  ).map((order) => ({
+    playerin: toLoadedNumber(order.ObjectPlayerID) ?? 0,
+    playerout: toLoadedNumber(order.SubjectPlayerID) ?? 0,
+    orderType: toLoadedNumber(order.OrderType) ?? 0,
+    min: toLoadedNumber(order.MatchMinuteCriteria) ?? 0,
+    pos: toLoadedNumber(order.NewPositionId) ?? -1,
+    beh: toLoadedNumber(order.NewPositionBehaviour) ?? -1,
+    card: toLoadedNumber(order.RedCardCriteria) ?? 0,
+    standing: toLoadedNumber(order.GoalDiffCriteria) ?? 0,
+  }));
+  const manMarkingOrder = substitutions.find((order) => order.orderType === 4);
+
+  return {
+    penaltyKickerIds,
+    setPiecesId: setPiecesId && setPiecesId > 0 ? setPiecesId : null,
+    captainId: captainId && captainId > 0 ? captainId : null,
+    substitutions,
+    manMarkerPlayerId: manMarkingOrder?.playerout ?? null,
+    manMarkingPlayerId: manMarkingOrder?.playerin ?? null,
+  };
 }
 
 type SetBestLineupMenuButtonProps = {
@@ -1328,11 +1411,13 @@ export default function UpcomingMatches({
         throw new Error(messages.loadLineupUnavailable);
       }
       const loadedTacticType = parseLoadedTacticType(payload);
+      const loadedOrders = parseLoadedLineupOrders(payload);
       onLoadLineup?.(
         next,
         nextBehaviors,
         matchId,
-        loadedTacticType !== null ? loadedTacticType : undefined
+        loadedTacticType !== null ? loadedTacticType : undefined,
+        loadedOrders
       );
       addNotification(
         `${messages.notificationLineupLoaded} ${formatMatchName(

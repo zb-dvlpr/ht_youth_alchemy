@@ -854,9 +854,9 @@ export const messagesNl: Messages = {
   seniorOtherOrdersButton: "Andere orders",
   seniorOtherOrdersTitle: "Andere orders",
   seniorOtherOrdersTooltip:
-    "Bekijk de andere orders voor deze wedstrijdopstelling.",
+    "Bewerk wedstrijdinstelling, spelerorders, penaltynemers, aanvoerder en spelhervattingen.",
   seniorOtherOrdersDisabledTooltip:
-    "Stel een opstelling in of laad er een voor een specifieke wedstrijd om andere orders te bekijken.",
+    "Laad senior-spelergegevens voordat je andere orders bewerkt.",
   seniorOtherOrdersManMarkingTitle: "Mandekking",
   seniorOtherOrdersManMarkingNone: "Geen instructies voor mandekking.",
   seniorOtherOrdersSubstitutionsTitle: "Geplande wissels",
@@ -900,6 +900,8 @@ export const messagesNl: Messages = {
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
+  seniorOtherOrdersWrongMatchContext: "Opgeslagen andere orders horen bij een andere wedstrijd. Open Andere orders en sla een actuele conceptversie op voordat je deze wedstrijd indient.",
+  seniorOtherOrdersNoLineupPlayers: "Wijs spelers toe aan opstelling of bank om penaltynemers, aanvoerder en spelhervattingen te kiezen.",
   seniorOtherOrdersAnyMinute: "Jederzeit",
   seniorOtherOrdersMinuteAfter: "Nach {{minute}} Minuten",
   seniorOtherOrdersHalftime: "Halbzeit",

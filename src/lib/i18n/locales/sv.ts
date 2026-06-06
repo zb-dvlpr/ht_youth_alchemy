@@ -1427,9 +1427,9 @@ export const messagesSv: Messages = {
     seniorOtherOrdersButton: "Andra order",
     seniorOtherOrdersTitle: "Andra order",
     seniorOtherOrdersTooltip:
-      "Granska de andra orderna för den här matchuppställningen.",
+      "Redigera matchinstallning, spelarorder, straffskyttar, lagkapten och fasta situationer.",
     seniorOtherOrdersDisabledTooltip:
-      "Sätt eller ladda en uppställning för en specifik match för att granska andra order.",
+      "Ladda seniorspelardata innan du redigerar andra order.",
     seniorOtherOrdersManMarkingTitle: "Man-man-markering",
     seniorOtherOrdersManMarkingNone: "Inga man-markeringsinstruktioner.",
     seniorOtherOrdersSubstitutionsTitle: "Planerade byten",
@@ -1473,6 +1473,8 @@ export const messagesSv: Messages = {
     seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
     seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
     seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
+    seniorOtherOrdersWrongMatchContext: "Sparade andra order tillhor en annan match. Oppna Andra order och spara ett aktuellt utkast innan du skickar denna match.",
+    seniorOtherOrdersNoLineupPlayers: "Tilldela spelare till uppstallningen eller banken for att valja straffskyttar, lagkapten och fasta situationer.",
     seniorOtherOrdersAnyMinute: "Jederzeit",
     seniorOtherOrdersMinuteAfter: "Nach {{minute}} Minuten",
     seniorOtherOrdersHalftime: "Halbzeit",

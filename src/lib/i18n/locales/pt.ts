@@ -1441,9 +1441,9 @@ export const messagesPt: Messages = {
     seniorOtherOrdersButton: "Outras ordens",
     seniorOtherOrdersTitle: "Outras ordens",
     seniorOtherOrdersTooltip:
-      "Inspecione as outras ordens da escalação desta partida.",
+      "Editar atitude da partida, ordens de jogadores, cobradores de penaltis, capitao e bolas paradas.",
     seniorOtherOrdersDisabledTooltip:
-      "Defina ou carregue uma escalação para uma partida específica para inspecionar outras ordens.",
+      "Carregue dados dos jogadores seniores antes de editar outras ordens.",
     seniorOtherOrdersManMarkingTitle: "Marcação individual",
     seniorOtherOrdersManMarkingNone: "Nenhuma instrução de marcação individual.",
     seniorOtherOrdersSubstitutionsTitle: "Substituições planejadas",
@@ -1487,6 +1487,8 @@ export const messagesPt: Messages = {
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
+    seniorOtherOrdersWrongMatchContext: "As outras ordens salvas pertencem a outra partida. Abra Outras ordens e salve um rascunho atual antes de enviar esta partida.",
+    seniorOtherOrdersNoLineupPlayers: "Atribua jogadores ao time ou banco para escolher cobradores de penaltis, capitao e bolas paradas.",
     seniorOtherOrdersAnyMinute: "A tout moment",
     seniorOtherOrdersMinuteAfter: "Apres {{minute}} minutes",
     seniorOtherOrdersHalftime: "Mi-temps",

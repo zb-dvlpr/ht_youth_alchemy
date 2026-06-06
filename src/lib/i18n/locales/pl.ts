@@ -848,9 +848,9 @@ export const messagesPl: Messages = {
   seniorOtherOrdersButton: "Inne polecenia",
   seniorOtherOrdersTitle: "Inne polecenia",
   seniorOtherOrdersTooltip:
-    "Sprawdź inne polecenia dla składu na ten mecz.",
+    "Edytuj nastawienie meczowe, polecenia zawodnikow, wykonawcow karnych, kapitana i stale fragmenty.",
   seniorOtherOrdersDisabledTooltip:
-    "Ustaw lub wczytaj skład dla konkretnego meczu, aby sprawdzić inne polecenia.",
+    "Zaladuj dane seniorow przed edycja innych polecen.",
   seniorOtherOrdersManMarkingTitle: "Krycie indywidualne",
   seniorOtherOrdersManMarkingNone: "Brak instrukcji krycia indywidualnego.",
   seniorOtherOrdersSubstitutionsTitle: "Zaplanowane zmiany",
@@ -894,6 +894,8 @@ export const messagesPl: Messages = {
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
+  seniorOtherOrdersWrongMatchContext: "Zapisane inne polecenia naleza do innego meczu. Otworz Inne polecenia i zapisz aktualny szkic przed wyslaniem tego meczu.",
+  seniorOtherOrdersNoLineupPlayers: "Przypisz zawodnikow do skladu lub lawki, aby wybrac wykonawcow karnych, kapitana i stale fragmenty.",
   seniorOtherOrdersAnyMinute: "Jederzeit",
   seniorOtherOrdersMinuteAfter: "Nach {{minute}} Minuten",
   seniorOtherOrdersHalftime: "Halbzeit",

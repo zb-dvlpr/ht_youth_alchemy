@@ -1420,9 +1420,9 @@ export const messagesDe: Messages = {
     seniorOtherOrdersButton: "Weitere Anweisungen",
     seniorOtherOrdersTitle: "Weitere Anweisungen",
     seniorOtherOrdersTooltip:
-      "Prüfe die weiteren Anweisungen für diese Spielaufstellung.",
+      "Match-Einstellung, Spieleranweisungen, Elfmeterschuetzen, Kapitaen und Standards bearbeiten.",
     seniorOtherOrdersDisabledTooltip:
-      "Setze oder lade eine Aufstellung für ein bestimmtes Spiel, um weitere Anweisungen zu prüfen.",
+      "Lade Senior-Spielerdaten, bevor du weitere Anweisungen bearbeitest.",
     seniorOtherOrdersManMarkingTitle: "Manndeckung",
     seniorOtherOrdersManMarkingNone: "Keine Manndeckungsanweisungen.",
     seniorOtherOrdersSubstitutionsTitle: "Geplante Wechsel",
@@ -1466,6 +1466,8 @@ export const messagesDe: Messages = {
     seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
     seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
     seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
+    seniorOtherOrdersWrongMatchContext: "Gespeicherte weitere Anweisungen gehoeren zu einem anderen Spiel. Oeffne Weitere Anweisungen und speichere einen aktuellen Entwurf, bevor du dieses Spiel sendest.",
+    seniorOtherOrdersNoLineupPlayers: "Weise Spieler der Aufstellung oder Bank zu, um Elfmeterschuetzen, Kapitaen und Standards zu waehlen.",
     seniorOtherOrdersAnyMinute: "Jederzeit",
     seniorOtherOrdersMinuteAfter: "Nach {{minute}} Minuten",
     seniorOtherOrdersHalftime: "Halbzeit",

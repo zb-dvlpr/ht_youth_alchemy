@@ -931,7 +931,7 @@ type SeniorEditablePlayerOrder = {
 };
 
 type SeniorEditableOrdersState = {
-  matchId: number;
+  matchId: number | null;
   source: "generated" | "loaded" | "manual" | "mixed";
   matchAttitude: number | null;
   coachModifier: number | null;
@@ -3174,13 +3174,13 @@ const normalizeSeniorEditableOrderType = (
 };
 
 const seniorEditableOrderId = (
-  matchId: number,
+  matchId: number | null,
   order: MatchOrderSubstitution,
   index: number
 ) =>
   [
     "order",
-    matchId,
+    matchId ?? "draft",
     index,
     order.orderType,
     order.min,
@@ -3191,7 +3191,7 @@ const seniorEditableOrderId = (
   ].join("-");
 
 const buildSeniorEditableOrderFromSubstitution = (
-  matchId: number,
+  matchId: number | null,
   order: MatchOrderSubstitution,
   index: number
 ): SeniorEditablePlayerOrder => ({
@@ -3213,7 +3213,7 @@ const buildSeniorEditableOrderFromSubstitution = (
 });
 
 const buildSeniorEditableOrdersFromPayload = (
-  matchId: number,
+  matchId: number | null,
   payload: MatchOrdersLineupPayload,
   source: SeniorEditableOrdersState["source"]
 ): SeniorEditableOrdersState => ({
@@ -3724,9 +3724,9 @@ export default function SeniorDashboard({
   const [loadedLineupOrdersByMatchId, setLoadedLineupOrdersByMatchId] = useState<
     Record<number, LoadedLineupOrders>
   >({});
-  const [seniorEditableOrdersByMatchId, setSeniorEditableOrdersByMatchId] = useState<
-    Record<number, SeniorEditableOrdersState>
-  >({});
+  const [seniorEditableOrdersState, setSeniorEditableOrdersState] =
+    useState<SeniorEditableOrdersState | null>(null);
+  const [otherOrdersEditorOpen, setOtherOrdersEditorOpen] = useState(false);
   const [otherOrdersModalMatchId, setOtherOrdersModalMatchId] = useState<number | null>(
     null
   );
@@ -3915,6 +3915,7 @@ export default function SeniorDashboard({
     setSeniorAiManMarkingReadyContext(null);
     setTrainingAwarePreparedTraineeIds([]);
     setExtraTimePreparedSubmission(null);
+    seededSeniorEditableOrdersContextRef.current = null;
   };
 
   const lockSeniorAiSubmitToMatch = (
@@ -4065,6 +4066,7 @@ export default function SeniorDashboard({
   >(
     new Map()
   );
+  const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshAllRef = useRef<
     ((
@@ -9802,7 +9804,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
             extraTimePreparedSubmission.matchId > 0
           ? extraTimePreparedSubmission.matchId
           : null;
-  const otherOrdersButtonDisabled = activeOtherOrdersMatchId === null;
+  const otherOrdersButtonDisabled = false;
   const seniorMatchesList = useMemo(() => {
     const matchNode =
       matchesState.data?.HattrickData?.Team?.MatchList?.Match ??
@@ -9810,9 +9812,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!matchNode) return [] as Match[];
     return Array.isArray(matchNode) ? matchNode : [matchNode];
   }, [matchesState]);
-  const findSeniorMatchById = (matchId: number) =>
-    seniorMatchesList.find((match) => Number(match.MatchID) === matchId) ?? null;
-  const isSeniorOtherOrdersMatchAttitudeEligible = (matchId: number) => {
+  const findSeniorMatchById = (matchId: number | null) =>
+    typeof matchId === "number"
+      ? seniorMatchesList.find((match) => Number(match.MatchID) === matchId) ?? null
+      : null;
+  const isSeniorOtherOrdersMatchAttitudeEligible = (matchId: number | null) => {
+    if (typeof matchId !== "number") return false;
     const match = findSeniorMatchById(matchId);
     const matchType = parseNumber(match?.MatchType);
     if (matchType !== null && LEAGUE_QUALI_MATCH_TYPES.has(matchType)) return true;
@@ -9930,11 +9935,30 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setPiecesTaker: buildSeniorOtherOrdersSummaryPlayer(lineupPayload.setPieces),
   });
 
-  const buildSeniorEditableOrdersForMatch = (
-    matchId: number
+  const buildManualSeniorEditableOrdersDraft = (): SeniorEditableOrdersState =>
+    buildSeniorEditableOrdersFromPayload(
+      null,
+      buildLineupPayload(assignments, tacticType, {
+        behaviors,
+        kickerIds: [],
+        captainId: 0,
+        setPiecesId: 0,
+        substitutions: [],
+      }),
+      "manual"
+    );
+
+  const buildSeniorEditableOrdersForContext = (
+    matchId: number | null
   ): SeniorEditableOrdersState | null => {
-    const savedOrders = seniorEditableOrdersByMatchId[matchId] ?? null;
+    const savedOrders =
+      seniorEditableOrdersState &&
+      (seniorEditableOrdersState.matchId === matchId ||
+        (seniorEditableOrdersState.matchId === null && matchId === null))
+        ? seniorEditableOrdersState
+        : null;
     if (savedOrders) return savedOrders;
+    if (matchId === null) return buildManualSeniorEditableOrdersDraft();
     const loadedOrders = loadedLineupOrdersByMatchId[matchId] ?? null;
     if (loadedOrders && loadedMatchId === matchId) {
       const payload = buildLineupPayload(assignments, tacticType, {
@@ -10169,6 +10193,18 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ) {
       return messages.seniorOtherOrdersMatchAttitudeUnavailable;
     }
+    const selectedOrderPlayerIds = [
+      orders.captainPlayerId,
+      orders.setPiecesPlayerId,
+      ...orders.penaltyTakerIds.filter((playerId) => playerId > 0),
+    ].filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0);
+    if (
+      selectedOrderPlayerIds.some(
+        (playerId) => !availableOrderPlayerIdSet.has(playerId)
+      )
+    ) {
+      return messages.seniorOtherOrdersInvalidOwnPlayer;
+    }
     for (const order of orders.playerOrders) {
       if (
         typeof order.subjectPlayerId !== "number" ||
@@ -10194,11 +10230,24 @@ function buildSeniorAiManMarkingReadySignature(params: {
     matchId: number,
     payload: MatchOrdersLineupPayload
   ): MatchOrdersLineupPayload => {
-    const savedOrders = seniorEditableOrdersByMatchId[matchId] ?? null;
+    const savedOrders = seniorEditableOrdersState;
     if (!savedOrders) return payload;
+    if (
+      typeof savedOrders.matchId === "number" &&
+      savedOrders.matchId > 0 &&
+      savedOrders.matchId !== matchId
+    ) {
+      const validationError = messages.seniorOtherOrdersWrongMatchContext;
+      setOtherOrdersModalMatchId(savedOrders.matchId);
+      setOtherOrdersEditorOpen(true);
+      setOtherOrdersDraft(savedOrders);
+      setOtherOrdersValidationError(validationError);
+      throw new Error(validationError);
+    }
     const validationError = validateSeniorEditableOrders(savedOrders);
     if (validationError) {
-      setOtherOrdersModalMatchId(matchId);
+      setOtherOrdersModalMatchId(savedOrders.matchId ?? matchId);
+      setOtherOrdersEditorOpen(true);
       setOtherOrdersDraft(savedOrders);
       setOtherOrdersValidationError(validationError);
       throw new Error(validationError);
@@ -10220,6 +10269,38 @@ function buildSeniorAiManMarkingReadySignature(params: {
       buildSeniorGeneratedLineupPayload(matchId, defaultPayload)
     );
 
+  useEffect(() => {
+    const generatedMatchId =
+      typeof seniorAiSubmitEnabledMatchId === "number" &&
+      seniorAiSubmitEnabledMatchId > 0
+        ? seniorAiSubmitEnabledMatchId
+        : typeof extraTimePreparedSubmission?.matchId === "number" &&
+            extraTimePreparedSubmission.matchId > 0
+          ? extraTimePreparedSubmission.matchId
+          : null;
+    if (generatedMatchId === null || loadedMatchId === generatedMatchId) return;
+    const seedKey = `${generatedMatchId}:${seniorAiPreparedSubmissionMode ?? "extraTime"}`;
+    if (seededSeniorEditableOrdersContextRef.current === seedKey) return;
+    const defaultPayload = buildLineupPayload(assignments, tacticType, {
+      behaviors,
+      kickerIds: effectiveSeniorPenaltyKickerIds,
+      captainId: effectiveSeniorCaptainId,
+      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+    });
+    setSeniorEditableOrdersState(
+      buildSeniorEditableOrdersFromPayload(
+        generatedMatchId,
+        buildSeniorGeneratedLineupPayload(generatedMatchId, defaultPayload),
+        "generated"
+      )
+    );
+    seededSeniorEditableOrdersContextRef.current = seedKey;
+  }, [
+    seniorAiSubmitEnabledMatchId,
+    seniorAiPreparedSubmissionMode,
+    extraTimePreparedSubmission?.matchId,
+  ]);
+
   const updateOtherOrdersDraft = (
     updater: (draft: SeniorEditableOrdersState) => SeniorEditableOrdersState
   ) => {
@@ -10227,6 +10308,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOtherOrdersDraft((current) => (current ? updater(current) : current));
   };
   const closeOtherOrdersEditor = () => {
+    setOtherOrdersEditorOpen(false);
     setOtherOrdersModalMatchId(null);
     setOtherOrdersDraft(null);
     setOtherOrdersValidationError(null);
@@ -10238,28 +10320,25 @@ function buildSeniorAiManMarkingReadySignature(params: {
       setOtherOrdersValidationError(validationError);
       return;
     }
-    setSeniorEditableOrdersByMatchId((prev) => ({
-      ...prev,
-      [otherOrdersDraft.matchId]: {
-        ...otherOrdersDraft,
-        source:
-          otherOrdersDraft.source === "generated" || otherOrdersDraft.source === "loaded"
-            ? "mixed"
-            : otherOrdersDraft.source,
-      },
-    }));
+    setSeniorEditableOrdersState({
+      ...otherOrdersDraft,
+      source:
+        otherOrdersDraft.source === "generated" || otherOrdersDraft.source === "loaded"
+          ? "mixed"
+          : otherOrdersDraft.source,
+    });
     closeOtherOrdersEditor();
   };
 
   useEffect(() => {
-    if (typeof otherOrdersModalMatchId !== "number") {
+    if (!otherOrdersEditorOpen) {
       setOtherOrdersDraft(null);
       setOtherOrdersValidationError(null);
       return;
     }
-    setOtherOrdersDraft(buildSeniorEditableOrdersForMatch(otherOrdersModalMatchId));
+    setOtherOrdersDraft(buildSeniorEditableOrdersForContext(otherOrdersModalMatchId));
     setOtherOrdersValidationError(null);
-  }, [otherOrdersModalMatchId]);
+  }, [otherOrdersEditorOpen, otherOrdersModalMatchId]);
 
   const renderSeniorOtherOrdersButton = () => (
     <Tooltip
@@ -10275,8 +10354,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
           className={styles.lineupButtonSecondary}
           disabled={otherOrdersButtonDisabled}
           onClick={() => {
-            if (activeOtherOrdersMatchId === null) return;
             setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
+            setOtherOrdersEditorOpen(true);
           }}
         >
           {messages.seniorOtherOrdersButton}
@@ -17765,17 +17844,13 @@ const refreshDetailsForPlayers = async (
                 loadedOrders.manMarkerPlayerId ?? 0;
               loadedPayload.settings.manMarkingPlayerId =
                 loadedOrders.manMarkingPlayerId ?? 0;
-              setSeniorEditableOrdersByMatchId((prev) => ({
-                ...prev,
-                [matchId]: buildSeniorEditableOrdersFromPayload(
-                  matchId,
-                  loadedPayload,
-                  "loaded"
-                ),
-              }));
+              setSeniorEditableOrdersState(
+                buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+              );
             }
             setLoadedMatchId(matchId);
             setOtherOrdersModalMatchId(matchId);
+            setOtherOrdersEditorOpen(true);
           }}
           loadedMatchId={loadedMatchId}
           onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {
@@ -18059,7 +18134,7 @@ const refreshDetailsForPlayers = async (
         onClose={() => setUpdatesOpen(false)}
       />
       <Modal
-        open={Boolean(otherOrdersModalMatchId)}
+        open={otherOrdersEditorOpen}
         title={messages.seniorOtherOrdersTitle}
         className={styles.seniorOtherOrdersModal}
         body={
@@ -18143,6 +18218,11 @@ const refreshDetailsForPlayers = async (
                       .replace("{{max}}", String(seniorOtherOrdersMaxPlayerOrders))}
                   </span>
                 </div>
+                {availableOrderPlayerOptions.length === 0 ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersNoLineupPlayers}
+                  </p>
+                ) : null}
                 <div className={styles.seniorOtherOrdersCardListEditable}>
                   {otherOrdersDraft.playerOrders.map((order, index) => {
                     const kind = seniorOtherOrdersDraftOrderKind(order);
@@ -18474,6 +18554,7 @@ const refreshDetailsForPlayers = async (
                   type="button"
                   className={styles.lineupButtonSecondary}
                   disabled={
+                    availableOrderPlayerOptions.length === 0 ||
                     otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders
                   }
                   onClick={addSeniorOtherOrdersDraftOrder}
@@ -18488,6 +18569,11 @@ const refreshDetailsForPlayers = async (
               </section>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersPenaltyTakersTitle}</h3>
+                {availableOrderPlayerOptions.length === 0 ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersNoLineupPlayers}
+                  </p>
+                ) : null}
                 <ol className={styles.seniorOtherOrdersEditableList}>
                   {Array.from({ length: 11 }, (_, index) => (
                     <li key={`penalty-${index}`}>
@@ -18545,6 +18631,11 @@ const refreshDetailsForPlayers = async (
               </section>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersCaptainTitle}</h3>
+                {availableOrderPlayerOptions.length === 0 ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersNoLineupPlayers}
+                  </p>
+                ) : null}
                 <select
                   className={styles.seniorOtherOrdersSelect}
                   value={otherOrdersDraft.captainPlayerId ?? 0}
@@ -18566,6 +18657,11 @@ const refreshDetailsForPlayers = async (
               </section>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersSetPiecesTitle}</h3>
+                {availableOrderPlayerOptions.length === 0 ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersNoLineupPlayers}
+                  </p>
+                ) : null}
                 <select
                   className={styles.seniorOtherOrdersSelect}
                   value={otherOrdersDraft.setPiecesPlayerId ?? 0}
@@ -21485,17 +21581,13 @@ const refreshDetailsForPlayers = async (
                   loadedOrders.manMarkerPlayerId ?? 0;
                 loadedPayload.settings.manMarkingPlayerId =
                   loadedOrders.manMarkingPlayerId ?? 0;
-                setSeniorEditableOrdersByMatchId((prev) => ({
-                  ...prev,
-                  [matchId]: buildSeniorEditableOrdersFromPayload(
-                    matchId,
-                    loadedPayload,
-                    "loaded"
-                  ),
-                }));
+                setSeniorEditableOrdersState(
+                  buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+                );
               }
               setLoadedMatchId(matchId);
               setOtherOrdersModalMatchId(matchId);
+              setOtherOrdersEditorOpen(true);
             }}
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {

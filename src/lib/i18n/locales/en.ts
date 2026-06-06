@@ -1381,9 +1381,10 @@ export const messagesEn: Messages = {
       "Click Submit lineup in the appropriate match card to send the lineup to Hattrick.",
     seniorOtherOrdersButton: "Other orders",
     seniorOtherOrdersTitle: "Other orders",
-    seniorOtherOrdersTooltip: "Inspect the other orders for this match lineup.",
+    seniorOtherOrdersTooltip:
+      "Edit match attitude, player orders, penalty takers, captain, and set pieces.",
     seniorOtherOrdersDisabledTooltip:
-      "Set or load a lineup for a specific match to inspect other orders.",
+      "Load senior player data before editing other orders.",
     seniorOtherOrdersManMarkingTitle: "Man marking",
     seniorOtherOrdersManMarkingNone: "No man marking instructions.",
     seniorOtherOrdersSubstitutionsTitle: "Planned substitutions",
@@ -1433,6 +1434,10 @@ export const messagesEn: Messages = {
       "Select valid lineup or bench players for all own-player fields.",
     seniorOtherOrdersInvalidManMarkingTarget:
       "Man marking needs a valid opponent target player.",
+    seniorOtherOrdersWrongMatchContext:
+      "Saved other orders belong to another match. Open Other orders and save a current draft before submitting this match.",
+    seniorOtherOrdersNoLineupPlayers:
+      "Assign players to the lineup or bench to choose penalty takers, captain, and set pieces.",
     seniorOtherOrdersAnyMinute: "Anytime",
     seniorOtherOrdersMinuteAfter: "After {{minute}} minutes",
     seniorOtherOrdersHalftime: "Halftime",

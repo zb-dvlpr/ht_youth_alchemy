@@ -1436,9 +1436,9 @@ export const messagesFr: Messages = {
     seniorOtherOrdersButton: "Autres consignes",
     seniorOtherOrdersTitle: "Autres consignes",
     seniorOtherOrdersTooltip:
-      "Inspecter les autres consignes de la composition de ce match.",
+      "Modifier l attitude du match, les ordres des joueurs, les tireurs de penalty, le capitaine et les coups de pied arretes.",
     seniorOtherOrdersDisabledTooltip:
-      "Définissez ou chargez une composition pour un match précis afin d inspecter les autres consignes.",
+      "Chargez les donnees des joueurs seniors avant de modifier les autres ordres.",
     seniorOtherOrdersManMarkingTitle: "Marquage individuel",
     seniorOtherOrdersManMarkingNone: "Aucune consigne de marquage individuel.",
     seniorOtherOrdersSubstitutionsTitle: "Remplacements prévus",
@@ -1482,6 +1482,8 @@ export const messagesFr: Messages = {
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
+    seniorOtherOrdersWrongMatchContext: "Les autres ordres enregistres appartiennent a un autre match. Ouvrez Autres ordres et enregistrez un brouillon actuel avant de soumettre ce match.",
+    seniorOtherOrdersNoLineupPlayers: "Placez des joueurs dans la composition ou sur le banc pour choisir les tireurs de penalty, le capitaine et les coups de pied arretes.",
     seniorOtherOrdersAnyMinute: "A tout moment",
     seniorOtherOrdersMinuteAfter: "Apres {{minute}} minutes",
     seniorOtherOrdersHalftime: "Mi-temps",

@@ -1442,9 +1442,9 @@ export const messagesIt: Messages = {
     seniorOtherOrdersButton: "Altri ordini",
     seniorOtherOrdersTitle: "Altri ordini",
     seniorOtherOrdersTooltip:
-      "Ispeziona gli altri ordini per la formazione di questa partita.",
+      "Modifica atteggiamento partita, ordini giocatore, rigoristi, capitano e calci piazzati.",
     seniorOtherOrdersDisabledTooltip:
-      "Imposta o carica una formazione per una partita specifica per ispezionare gli altri ordini.",
+      "Carica i dati dei giocatori senior prima di modificare gli altri ordini.",
     seniorOtherOrdersManMarkingTitle: "Marcatura a uomo",
     seniorOtherOrdersManMarkingNone: "Nessuna istruzione di marcatura a uomo.",
     seniorOtherOrdersSubstitutionsTitle: "Sostituzioni pianificate",
@@ -1488,6 +1488,8 @@ export const messagesIt: Messages = {
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
+    seniorOtherOrdersWrongMatchContext: "Gli altri ordini salvati appartengono a un altra partita. Apri Altri ordini e salva una bozza attuale prima di inviare questa partita.",
+    seniorOtherOrdersNoLineupPlayers: "Assegna giocatori alla formazione o alla panchina per scegliere rigoristi, capitano e calci piazzati.",
     seniorOtherOrdersAnyMinute: "A tout moment",
     seniorOtherOrdersMinuteAfter: "Apres {{minute}} minutes",
     seniorOtherOrdersHalftime: "Mi-temps",

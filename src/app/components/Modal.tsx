@@ -19,6 +19,7 @@ type ModalProps = {
   actions?: ReactNode;
   variant?: ModalVariant;
   className?: string;
+  autoPosition?: boolean;
   movable?: boolean;
   closeOnBackdrop?: boolean;
   onClose?: () => void;
@@ -35,6 +36,7 @@ export default function Modal({
   actions,
   variant = "global",
   className,
+  autoPosition = true,
   movable = true,
   closeOnBackdrop = false,
   onClose,
@@ -99,7 +101,7 @@ export default function Modal({
   }, [DESKTOP_MODAL_MEDIA_QUERY]);
 
   useEffect(() => {
-    if (!open || !mounted || !desktopViewportActive) return;
+    if (!open || !mounted || !desktopViewportActive || !autoPosition) return;
     const frameId = window.requestAnimationFrame(() => {
       const card = cardRef.current;
       if (!card) return;
@@ -110,7 +112,7 @@ export default function Modal({
       );
     });
     return () => window.cancelAnimationFrame(frameId);
-  }, [desktopViewportActive, mounted, open, size]);
+  }, [autoPosition, desktopViewportActive, mounted, open, size]);
 
   useEffect(() => {
     if (!open || !isDragging) return;
@@ -189,7 +191,7 @@ export default function Modal({
   }, [isResizing, open]);
 
   useEffect(() => {
-    if (!open || !desktopViewportActive) return;
+    if (!open || !desktopViewportActive || !autoPosition) return;
     const onResize = () => {
       const card = cardRef.current;
       if (!card) return;
@@ -209,13 +211,13 @@ export default function Modal({
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [desktopViewportActive, open, size]);
+  }, [autoPosition, desktopViewportActive, open, size]);
 
   if (!open || !mounted || typeof document === "undefined") return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
   const cardStyle: CSSProperties = {
-    ...(desktopViewportActive && position
+    ...(autoPosition && desktopViewportActive && position
       ? {
           position: "fixed",
           left: `${position.left}px`,

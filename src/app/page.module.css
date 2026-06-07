@@ -10527,8 +10527,42 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #7a6a56;
 }
 
-.seniorOtherOrdersModal {
-  width: min(96vw, 980px);
+.confirmCard.seniorOtherOrdersModal {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: min(1120px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.seniorOtherOrdersModal .confirmTitle {
+  flex: 0 0 auto;
+}
+
+.seniorOtherOrdersModal .confirmBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin-bottom: 0;
+  padding-right: 4px;
+}
+
+.seniorOtherOrdersModal .confirmActions {
+  flex: 0 0 auto;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e2d3bf;
+  background: #f7f1e3;
+}
+
+.seniorOtherOrdersModal .modalResizeHandle {
+  display: none;
 }
 
 .seniorOtherOrdersGrid {
@@ -11309,8 +11343,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
     display: none;
   }
 
-  .seniorOtherOrdersModal {
-    width: min(96vw, 760px);
+  .confirmCard.seniorOtherOrdersModal {
+    top: 0.5rem;
+    width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
   }
 
   .seniorOtherOrdersGrid {

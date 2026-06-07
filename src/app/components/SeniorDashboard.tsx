@@ -18582,6 +18582,8 @@ const refreshDetailsForPlayers = async (
         open={otherOrdersEditorOpen}
         title={messages.seniorOtherOrdersTitle}
         className={styles.seniorOtherOrdersModal}
+        autoPosition={false}
+        movable={false}
         body={
           otherOrdersDraft ? (
             <div className={styles.seniorOtherOrdersEditor}>

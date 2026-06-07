@@ -4126,6 +4126,7 @@ export default function SeniorDashboard({
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
+  const hasObservedStartingXiCompletionRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
   const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
@@ -4406,6 +4407,12 @@ export default function SeniorDashboard({
   }, [assignments]);
 
   useEffect(() => {
+    if (!hasObservedStartingXiCompletionRef.current) {
+      hasObservedStartingXiCompletionRef.current = true;
+      previousStartingXiCompleteRef.current = startingXiComplete;
+      return;
+    }
+
     const wasComplete = previousStartingXiCompleteRef.current;
 
     if (!wasComplete && startingXiComplete) {

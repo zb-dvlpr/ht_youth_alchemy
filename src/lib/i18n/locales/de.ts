@@ -1457,6 +1457,14 @@ export const messagesDe: Messages = {
     seniorOtherOrdersNeutral: "Neutral",
     seniorOtherOrdersStyleOffensive: "Offensiv",
     seniorOtherOrdersTacticalAssistantLevel: "Taktikassistent Stufe {{level}}",
+    seniorOtherOrdersTacticalAssistantDetected:
+      "Taktikassistent Stufe {{level}} erkannt. Taktikassistent-Funktionen sind verfuegbar.",
+    seniorOtherOrdersTacticalAssistantSimulated:
+      "Dev-Simulation: Taktikassistent Stufe {{level}} aktiv. Taktikassistent-Funktionen sind verfuegbar.",
+    seniorOtherOrdersTacticalAssistantNone:
+      "Kein Taktikassistent erkannt. Das Standardlimit fuer Anweisungen gilt.",
+    seniorOtherOrdersTacticalAssistantUnknownLevel:
+      "Taktikassistent erkannt, aber die Stufe ist unbekannt. Das Standardlimit gilt, bis die Mitarbeiterdaten aktualisiert wurden.",
     seniorOtherOrdersDevSimulateTacticalAssistant:
       "Dev: Taktikassistent simulieren",
     seniorOtherOrdersDevTacticalAssistantLevel:

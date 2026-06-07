@@ -891,6 +891,14 @@ export const messagesNl: Messages = {
   seniorOtherOrdersNeutral: "Neutral",
   seniorOtherOrdersStyleOffensive: "Offensiv",
   seniorOtherOrdersTacticalAssistantLevel: "Taktikassistent Stufe {{level}}",
+  seniorOtherOrdersTacticalAssistantDetected:
+    "Tactische assistent niveau {{level}} gedetecteerd. Functies voor tactische assistent zijn beschikbaar.",
+  seniorOtherOrdersTacticalAssistantSimulated:
+    "Dev-simulatie: tactische assistent niveau {{level}} actief. Functies voor tactische assistent zijn beschikbaar.",
+  seniorOtherOrdersTacticalAssistantNone:
+    "Geen tactische assistent gedetecteerd. De standaardlimiet voor orders geldt.",
+  seniorOtherOrdersTacticalAssistantUnknownLevel:
+    "Tactische assistent gedetecteerd, maar het niveau is onbekend. De standaardlimiet geldt tot staffgegevens zijn vernieuwd.",
   seniorOtherOrdersDevSimulateTacticalAssistant:
     "Dev: tactische assistent simuleren",
   seniorOtherOrdersDevTacticalAssistantLevel:

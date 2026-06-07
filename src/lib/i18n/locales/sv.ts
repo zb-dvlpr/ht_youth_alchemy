@@ -1464,6 +1464,14 @@ export const messagesSv: Messages = {
     seniorOtherOrdersNeutral: "Neutral",
     seniorOtherOrdersStyleOffensive: "Offensiv",
     seniorOtherOrdersTacticalAssistantLevel: "Taktikassistent Stufe {{level}}",
+    seniorOtherOrdersTacticalAssistantDetected:
+      "Taktisk assistent niva {{level}} upptackt. Funktioner for taktisk assistent ar tillgangliga.",
+    seniorOtherOrdersTacticalAssistantSimulated:
+      "Dev-simulering: taktisk assistent niva {{level}} aktiv. Funktioner for taktisk assistent ar tillgangliga.",
+    seniorOtherOrdersTacticalAssistantNone:
+      "Ingen taktisk assistent upptackt. Standardgransen for order galler.",
+    seniorOtherOrdersTacticalAssistantUnknownLevel:
+      "Taktisk assistent upptackt, men nivan ar okand. Standardgransen galler tills personaldata uppdateras.",
     seniorOtherOrdersDevSimulateTacticalAssistant:
       "Dev: simulera taktisk assistent",
     seniorOtherOrdersDevTacticalAssistantLevel:

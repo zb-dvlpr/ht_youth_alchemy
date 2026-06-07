@@ -4129,6 +4129,7 @@ export default function SeniorDashboard({
           hasTacticalAssistant: false,
           tacticalAssistantStaffLevel: null,
           trainerType: ownSeniorTeamTrainerType ?? null,
+          simulated: false,
         };
       }
 
@@ -4136,6 +4137,7 @@ export default function SeniorDashboard({
         hasTacticalAssistant: true,
         tacticalAssistantStaffLevel: devSimulatedTacticalAssistantLevel,
         trainerType: ownSeniorTeamTrainerType ?? 2,
+        simulated: true,
       };
     }
 
@@ -4143,6 +4145,7 @@ export default function SeniorDashboard({
       hasTacticalAssistant: ownSeniorTeamHasTacticalAssistant === true,
       tacticalAssistantStaffLevel: ownSeniorTeamTacticalAssistantStaffLevel,
       trainerType: ownSeniorTeamTrainerType,
+      simulated: false,
     };
   }, [
     isDevBuild,
@@ -4158,6 +4161,45 @@ export default function SeniorDashboard({
     effectiveOtherOrdersTacticalAssistantContext.tacticalAssistantStaffLevel;
   const effectiveOtherOrdersTrainerType =
     effectiveOtherOrdersTacticalAssistantContext.trainerType;
+  const effectiveOtherOrdersTacticalAssistantLevelIsValid =
+    typeof effectiveOtherOrdersTacticalAssistantStaffLevel === "number" &&
+    Number.isFinite(effectiveOtherOrdersTacticalAssistantStaffLevel) &&
+    effectiveOtherOrdersTacticalAssistantStaffLevel >= 1 &&
+    effectiveOtherOrdersTacticalAssistantStaffLevel <= 5;
+  const seniorOtherOrdersTacticalAssistantStatus = useMemo(() => {
+    if (
+      effectiveOtherOrdersHasTacticalAssistant &&
+      effectiveOtherOrdersTacticalAssistantLevelIsValid
+    ) {
+      const levelText = String(effectiveOtherOrdersTacticalAssistantStaffLevel);
+      return {
+        className: effectiveOtherOrdersTacticalAssistantContext.simulated
+          ? styles.seniorOtherOrdersAssistantStatusDev
+          : styles.seniorOtherOrdersAssistantStatusActive,
+        text: (
+          effectiveOtherOrdersTacticalAssistantContext.simulated
+            ? messages.seniorOtherOrdersTacticalAssistantSimulated
+            : messages.seniorOtherOrdersTacticalAssistantDetected
+        ).replace("{{level}}", levelText),
+      };
+    }
+    if (effectiveOtherOrdersHasTacticalAssistant) {
+      return {
+        className: styles.seniorOtherOrdersAssistantStatusInactive,
+        text: messages.seniorOtherOrdersTacticalAssistantUnknownLevel,
+      };
+    }
+    return {
+      className: styles.seniorOtherOrdersAssistantStatusInactive,
+      text: messages.seniorOtherOrdersTacticalAssistantNone,
+    };
+  }, [
+    effectiveOtherOrdersHasTacticalAssistant,
+    effectiveOtherOrdersTacticalAssistantContext.simulated,
+    effectiveOtherOrdersTacticalAssistantLevelIsValid,
+    effectiveOtherOrdersTacticalAssistantStaffLevel,
+    messages,
+  ]);
   const seniorOtherOrdersMaxPlayerOrders = effectiveOtherOrdersHasTacticalAssistant
     ? Math.min(
         SENIOR_PLAYER_ORDER_MAX_LIMIT,
@@ -18251,6 +18293,11 @@ const refreshDetailsForPlayers = async (
                   ) : null}
                 </section>
               ) : null}
+              <p
+                className={`${styles.seniorOtherOrdersAssistantStatus} ${seniorOtherOrdersTacticalAssistantStatus.className}`}
+              >
+                {seniorOtherOrdersTacticalAssistantStatus.text}
+              </p>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersMatchAttitudeTitle}</h3>
                 {isSeniorOtherOrdersMatchAttitudeEligible(otherOrdersDraft.matchId) ? (

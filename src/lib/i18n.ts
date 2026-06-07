@@ -1150,6 +1150,10 @@ export type Messages = {
   seniorOtherOrdersNeutral: string;
   seniorOtherOrdersStyleOffensive: string;
   seniorOtherOrdersTacticalAssistantLevel: string;
+  seniorOtherOrdersTacticalAssistantDetected: string;
+  seniorOtherOrdersTacticalAssistantSimulated: string;
+  seniorOtherOrdersTacticalAssistantNone: string;
+  seniorOtherOrdersTacticalAssistantUnknownLevel: string;
   seniorOtherOrdersDevSimulateTacticalAssistant: string;
   seniorOtherOrdersDevTacticalAssistantLevel: string;
   seniorOtherOrdersPlayerOrdersTitle: string;

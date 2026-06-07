@@ -7539,6 +7539,24 @@ html[data-theme="dark"] .seniorOtherOrdersDevPanel {
   background: rgba(32, 26, 20, 0.86);
 }
 
+html[data-theme="dark"] .seniorOtherOrdersAssistantStatusActive {
+  border-color: rgba(142, 199, 128, 0.42);
+  background: rgba(36, 77, 43, 0.28);
+  color: #d8f0d1;
+}
+
+html[data-theme="dark"] .seniorOtherOrdersAssistantStatusInactive {
+  border-color: rgba(232, 210, 174, 0.22);
+  background: rgba(32, 26, 20, 0.86);
+  color: #cdbfaa;
+}
+
+html[data-theme="dark"] .seniorOtherOrdersAssistantStatusDev {
+  border-color: rgba(217, 182, 120, 0.42);
+  background: rgba(91, 72, 16, 0.32);
+  color: #f8e7b2;
+}
+
 html[data-theme="dark"] .seniorOtherOrdersGrid,
 html[data-theme="dark"] .seniorOtherOrdersDevPanel,
 html[data-theme="dark"] .seniorOtherOrdersSection h3,
@@ -10535,6 +10553,33 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+.seniorOtherOrdersAssistantStatus {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px solid #d8cbb6;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.seniorOtherOrdersAssistantStatusActive {
+  border-color: #b8d0b3;
+  background: #f1f8ee;
+  color: #244d2b;
+}
+
+.seniorOtherOrdersAssistantStatusInactive {
+  background: #fffaf3;
+  color: #7a6a56;
+}
+
+.seniorOtherOrdersAssistantStatusDev {
+  border-color: #d8b55f;
+  background: #fff7d8;
+  color: #5b4810;
 }
 
 .seniorOtherOrdersSection {

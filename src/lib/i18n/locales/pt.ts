@@ -1478,6 +1478,14 @@ export const messagesPt: Messages = {
     seniorOtherOrdersNeutral: "Neutre",
     seniorOtherOrdersStyleOffensive: "Offensif",
     seniorOtherOrdersTacticalAssistantLevel: "Assistant tactique niveau {{level}}",
+    seniorOtherOrdersTacticalAssistantDetected:
+      "Assistente tatico nivel {{level}} detectado. Funcoes do assistente tatico disponiveis.",
+    seniorOtherOrdersTacticalAssistantSimulated:
+      "Simulacao dev: assistente tatico nivel {{level}} ativo. Funcoes do assistente tatico disponiveis.",
+    seniorOtherOrdersTacticalAssistantNone:
+      "Nenhum assistente tatico detectado. Aplica-se o limite padrao de ordens.",
+    seniorOtherOrdersTacticalAssistantUnknownLevel:
+      "Assistente tatico detectado, mas o nivel e desconhecido. O limite padrao aplica-se ate os dados da equipa tecnica serem atualizados.",
     seniorOtherOrdersDevSimulateTacticalAssistant:
       "Dev: simular assistente tatico",
     seniorOtherOrdersDevTacticalAssistantLevel:

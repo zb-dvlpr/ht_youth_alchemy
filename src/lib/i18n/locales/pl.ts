@@ -885,6 +885,14 @@ export const messagesPl: Messages = {
   seniorOtherOrdersNeutral: "Neutral",
   seniorOtherOrdersStyleOffensive: "Offensiv",
   seniorOtherOrdersTacticalAssistantLevel: "Taktikassistent Stufe {{level}}",
+  seniorOtherOrdersTacticalAssistantDetected:
+    "Asystent taktyczny poziom {{level}} wykryty. Funkcje asystenta taktycznego sa dostepne.",
+  seniorOtherOrdersTacticalAssistantSimulated:
+    "Symulacja dev: asystent taktyczny poziom {{level}} aktywny. Funkcje asystenta taktycznego sa dostepne.",
+  seniorOtherOrdersTacticalAssistantNone:
+    "Nie wykryto asystenta taktycznego. Obowiazuje standardowy limit polecen.",
+  seniorOtherOrdersTacticalAssistantUnknownLevel:
+    "Wykryto asystenta taktycznego, ale poziom jest nieznany. Standardowy limit obowiazuje do odswiezenia danych sztabu.",
   seniorOtherOrdersDevSimulateTacticalAssistant:
     "Dev: symuluj asystenta taktycznego",
   seniorOtherOrdersDevTacticalAssistantLevel:

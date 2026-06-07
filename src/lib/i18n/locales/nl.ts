@@ -914,6 +914,7 @@ export const messagesNl: Messages = {
   seniorOtherOrdersBenchSubstitutionLimitReached: "Je kunt maximaal 3 bankwissels instellen.",
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
+  seniorOtherOrdersSetPiecesKeeperInvalid: "De keeper kan niet als spelhervattingnemer worden gekozen.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
   seniorOtherOrdersWrongMatchContext: "Opgeslagen andere orders horen bij een andere wedstrijd. Open Andere orders en sla een actuele conceptversie op voordat je deze wedstrijd indient.",
   seniorOtherOrdersNoLineupPlayers: "Wijs spelers toe aan opstelling of bank om penaltynemers, aanvoerder en spelhervattingen te kiezen.",

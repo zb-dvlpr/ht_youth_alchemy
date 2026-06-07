@@ -1487,6 +1487,7 @@ export const messagesSv: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Du kan ange hogst 3 bankbyten.",
     seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
     seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "Malvakten kan inte valjas som fasta situationer-skytt.",
     seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
     seniorOtherOrdersWrongMatchContext: "Sparade andra order tillhor en annan match. Oppna Andra order och spara ett aktuellt utkast innan du skickar denna match.",
     seniorOtherOrdersNoLineupPlayers: "Tilldela spelare till uppstallningen eller banken for att valja straffskyttar, lagkapten och fasta situationer.",

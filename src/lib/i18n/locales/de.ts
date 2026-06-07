@@ -1480,6 +1480,7 @@ export const messagesDe: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Du kannst hoechstens 3 Bankwechsel festlegen.",
     seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
     seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "Der Torwart kann nicht als Standardschuetze ausgewaehlt werden.",
     seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
     seniorOtherOrdersWrongMatchContext: "Gespeicherte weitere Anweisungen gehoeren zu einem anderen Spiel. Oeffne Weitere Anweisungen und speichere einen aktuellen Entwurf, bevor du dieses Spiel sendest.",
     seniorOtherOrdersNoLineupPlayers: "Weise Spieler der Aufstellung oder Bank zu, um Elfmeterschuetzen, Kapitaen und Standards zu waehlen.",

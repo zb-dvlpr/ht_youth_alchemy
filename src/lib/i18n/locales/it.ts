@@ -1502,6 +1502,7 @@ export const messagesIt: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Puoi definire al massimo 3 sostituzioni dalla panchina.",
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "Il portiere non puo essere selezionato come tiratore dei calci piazzati.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
     seniorOtherOrdersWrongMatchContext: "Gli altri ordini salvati appartengono a un altra partita. Apri Altri ordini e salva una bozza attuale prima di inviare questa partita.",
     seniorOtherOrdersNoLineupPlayers: "Assegna giocatori alla formazione o alla panchina per scegliere rigoristi, capitano e calci piazzati.",

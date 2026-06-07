@@ -1501,6 +1501,7 @@ export const messagesPt: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Pode definir no maximo 3 substituicoes do banco.",
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "O guarda-redes nao pode ser escolhido como marcador de bolas paradas.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
     seniorOtherOrdersWrongMatchContext: "As outras ordens salvas pertencem a outra partida. Abra Outras ordens e salve um rascunho atual antes de enviar esta partida.",
     seniorOtherOrdersNoLineupPlayers: "Atribua jogadores ao time ou banco para escolher cobradores de penaltis, capitao e bolas paradas.",

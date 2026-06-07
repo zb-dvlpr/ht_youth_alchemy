@@ -10044,6 +10044,24 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
     return left.name.localeCompare(right.name);
   };
+  const seniorOtherOrdersKeeperPlayerId =
+    typeof assignments.KP === "number" && Number.isFinite(assignments.KP) && assignments.KP > 0
+      ? assignments.KP
+      : null;
+  const setPiecesOrderPlayerOptions = useMemo(
+    () =>
+      availableOrderPlayerOptions.filter(
+        (player) => player.id !== seniorOtherOrdersKeeperPlayerId
+      ),
+    [availableOrderPlayerOptions, seniorOtherOrdersKeeperPlayerId]
+  );
+  const startingXiSetPiecesOrderPlayerOptions = useMemo(
+    () =>
+      startingXiOrderPlayerOptions.filter(
+        (player) => player.id !== seniorOtherOrdersKeeperPlayerId
+      ),
+    [seniorOtherOrdersKeeperPlayerId, startingXiOrderPlayerOptions]
+  );
   const buildDefaultPenaltyTakerIds = () => [
     ...[...availableOrderPlayerOptions]
       .sort(sortSeniorOrderPlayersBySetPieces)
@@ -10052,9 +10070,27 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ...Array(11).fill(0),
   ].slice(0, 11);
   const buildDefaultSetPiecesPlayerId = () =>
-    [...startingXiOrderPlayerOptions]
-      .filter((player) => typeof player.setPiecesSkill === "number")
+    [...startingXiSetPiecesOrderPlayerOptions]
+      .filter(
+        (player) =>
+          typeof player.setPiecesSkill === "number" &&
+          Number.isFinite(player.setPiecesSkill)
+      )
       .sort(sortSeniorOrderPlayersBySetPieces)[0]?.id ?? null;
+  const sanitizeSeniorEditableOrdersSetPieces = (
+    orders: SeniorEditableOrdersState
+  ): SeniorEditableOrdersState => {
+    if (
+      seniorOtherOrdersKeeperPlayerId === null ||
+      orders.setPiecesPlayerId !== seniorOtherOrdersKeeperPlayerId
+    ) {
+      return orders;
+    }
+    return {
+      ...orders,
+      setPiecesPlayerId: buildDefaultSetPiecesPlayerId(),
+    };
+  };
   const availableOrderPlayerIdSet = useMemo(
     () => new Set(availableOrderPlayerOptions.map((player) => player.id)),
     [availableOrderPlayerOptions]
@@ -10153,16 +10189,18 @@ function buildSeniorAiManMarkingReadySignature(params: {
   });
 
   const buildManualSeniorEditableOrdersDraft = (): SeniorEditableOrdersState =>
-    buildSeniorEditableOrdersFromPayload(
-      null,
-      buildLineupPayload(assignments, tacticType, {
-        behaviors,
-        kickerIds: buildDefaultPenaltyTakerIds(),
-        captainId: 0,
-        setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
-        substitutions: [],
-      }),
-      "manual"
+    sanitizeSeniorEditableOrdersSetPieces(
+      buildSeniorEditableOrdersFromPayload(
+        null,
+        buildLineupPayload(assignments, tacticType, {
+          behaviors,
+          kickerIds: buildDefaultPenaltyTakerIds(),
+          captainId: 0,
+          setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
+          substitutions: [],
+        }),
+        "manual"
+      )
     );
 
   const buildSeniorEditableOrdersForContext = (
@@ -10174,7 +10212,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         (seniorEditableOrdersState.matchId === null && matchId === null))
         ? seniorEditableOrdersState
         : null;
-    if (savedOrders) return savedOrders;
+    if (savedOrders) return sanitizeSeniorEditableOrdersSetPieces(savedOrders);
     if (matchId === null) return buildManualSeniorEditableOrdersDraft();
     const loadedOrders = loadedLineupOrdersByMatchId[matchId] ?? null;
     if (loadedOrders && loadedMatchId === matchId) {
@@ -10189,7 +10227,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
       payload.settings.coachModifier = loadedOrders.coachModifier ?? 0;
       payload.settings.manMarkerPlayerId = loadedOrders.manMarkerPlayerId ?? 0;
       payload.settings.manMarkingPlayerId = loadedOrders.manMarkingPlayerId ?? 0;
-      return buildSeniorEditableOrdersFromPayload(matchId, payload, "loaded");
+      return sanitizeSeniorEditableOrdersSetPieces(
+        buildSeniorEditableOrdersFromPayload(matchId, payload, "loaded")
+      );
     }
     const defaultPayload = buildLineupPayload(assignments, tacticType, {
       behaviors,
@@ -10197,10 +10237,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
       captainId: effectiveSeniorCaptainId,
       setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
     });
-    return buildSeniorEditableOrdersFromPayload(
-      matchId,
-      buildSeniorGeneratedLineupPayload(matchId, defaultPayload),
-      "generated"
+    return sanitizeSeniorEditableOrdersSetPieces(
+      buildSeniorEditableOrdersFromPayload(
+        matchId,
+        buildSeniorGeneratedLineupPayload(matchId, defaultPayload),
+        "generated"
+      )
     );
   };
 
@@ -10401,6 +10443,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ) {
       return messages.seniorOtherOrdersMatchAttitudeUnavailable;
     }
+    if (
+      seniorOtherOrdersKeeperPlayerId !== null &&
+      orders.setPiecesPlayerId === seniorOtherOrdersKeeperPlayerId
+    ) {
+      return messages.seniorOtherOrdersSetPiecesKeeperInvalid;
+    }
     const selectedOrderPlayerIds = [
       orders.captainPlayerId,
       orders.setPiecesPlayerId,
@@ -10466,9 +10514,17 @@ function buildSeniorAiManMarkingReadySignature(params: {
     matchId: number,
     payload: MatchOrdersLineupPayload
   ): MatchOrdersLineupPayload => {
+    const payloadWithEligibleSetPieces =
+      seniorOtherOrdersKeeperPlayerId !== null &&
+      payload.setPieces === seniorOtherOrdersKeeperPlayerId
+        ? {
+            ...payload,
+            setPieces: buildDefaultSetPiecesPlayerId() ?? 0,
+          }
+        : payload;
     const savedOrders = seniorEditableOrdersState;
-    if (!savedOrders) return payload;
-    if (savedOrders.matchId === null) return payload;
+    if (!savedOrders) return payloadWithEligibleSetPieces;
+    if (savedOrders.matchId === null) return payloadWithEligibleSetPieces;
     if (
       typeof savedOrders.matchId === "number" &&
       savedOrders.matchId > 0 &&
@@ -10489,7 +10545,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       setOtherOrdersValidationError(validationError);
       throw new Error(validationError);
     }
-    return serializeSeniorEditableOrdersToPayload(payload, savedOrders, {
+    return serializeSeniorEditableOrdersToPayload(payloadWithEligibleSetPieces, savedOrders, {
       includeMatchAttitude: isSeniorOtherOrdersMatchAttitudeEligible(matchId),
       includeCoachModifier:
         effectiveOtherOrdersHasTacticalAssistant &&
@@ -10525,10 +10581,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
       setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
     });
     setSeniorEditableOrdersState(
-      buildSeniorEditableOrdersFromPayload(
-        generatedMatchId,
-        buildSeniorGeneratedLineupPayload(generatedMatchId, defaultPayload),
-        "generated"
+      sanitizeSeniorEditableOrdersSetPieces(
+        buildSeniorEditableOrdersFromPayload(
+          generatedMatchId,
+          buildSeniorGeneratedLineupPayload(generatedMatchId, defaultPayload),
+          "generated"
+        )
       )
     );
     seededSeniorEditableOrdersContextRef.current = seedKey;
@@ -18290,7 +18348,9 @@ const refreshDetailsForPlayers = async (
               loadedPayload.settings.manMarkingPlayerId =
                 loadedOrders.manMarkingPlayerId ?? 0;
               setSeniorEditableOrdersState(
-                buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+                sanitizeSeniorEditableOrdersSetPieces(
+                  buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+                )
               );
             }
             setLoadedMatchId(matchId);
@@ -19394,7 +19454,7 @@ const refreshDetailsForPlayers = async (
                   }
                 >
                   <option value={0}>{messages.seniorOtherOrdersCoachPick}</option>
-                  {availableOrderPlayerOptions.map((player) => (
+                  {setPiecesOrderPlayerOptions.map((player) => (
                     <option key={player.id} value={player.id}>
                       {seniorOtherOrdersPlayerSetPiecesLabel(player)}
                     </option>
@@ -22302,7 +22362,9 @@ const refreshDetailsForPlayers = async (
                 loadedPayload.settings.manMarkingPlayerId =
                   loadedOrders.manMarkingPlayerId ?? 0;
                 setSeniorEditableOrdersState(
-                  buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+                  sanitizeSeniorEditableOrdersSetPieces(
+                    buildSeniorEditableOrdersFromPayload(matchId, loadedPayload, "loaded")
+                  )
                 );
               }
               setLoadedMatchId(matchId);

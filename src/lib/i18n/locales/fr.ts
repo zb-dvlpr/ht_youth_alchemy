@@ -1496,6 +1496,7 @@ export const messagesFr: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Vous pouvez definir au maximum 3 remplacements depuis le banc.",
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "Le gardien ne peut pas etre selectionne comme tireur de coups de pied arretes.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
     seniorOtherOrdersWrongMatchContext: "Les autres ordres enregistres appartiennent a un autre match. Ouvrez Autres ordres et enregistrez un brouillon actuel avant de soumettre ce match.",
     seniorOtherOrdersNoLineupPlayers: "Placez des joueurs dans la composition ou sur le banc pour choisir les tireurs de penalty, le capitaine et les coups de pied arretes.",

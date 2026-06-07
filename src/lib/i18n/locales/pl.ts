@@ -908,6 +908,7 @@ export const messagesPl: Messages = {
   seniorOtherOrdersBenchSubstitutionLimitReached: "Mozesz zdefiniowac maksymalnie 3 zmiany z lawki.",
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
+  seniorOtherOrdersSetPiecesKeeperInvalid: "Bramkarz nie moze byc wybrany jako wykonawca stalych fragmentow.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",
   seniorOtherOrdersWrongMatchContext: "Zapisane inne polecenia naleza do innego meczu. Otworz Inne polecenia i zapisz aktualny szkic przed wyslaniem tego meczu.",
   seniorOtherOrdersNoLineupPlayers: "Przypisz zawodnikow do skladu lub lawki, aby wybrac wykonawcow karnych, kapitana i stale fragmenty.",

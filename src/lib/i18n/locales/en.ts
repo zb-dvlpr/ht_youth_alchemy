@@ -1447,6 +1447,8 @@ export const messagesEn: Messages = {
       "Style of play is outside the allowed Tactical Assistant range.",
     seniorOtherOrdersInvalidOwnPlayer:
       "Select valid lineup or bench players for all own-player fields.",
+    seniorOtherOrdersSetPiecesKeeperInvalid:
+      "The goalkeeper cannot be selected as set pieces taker.",
     seniorOtherOrdersInvalidManMarkingTarget:
       "Man marking needs a valid opponent target player.",
     seniorOtherOrdersWrongMatchContext:

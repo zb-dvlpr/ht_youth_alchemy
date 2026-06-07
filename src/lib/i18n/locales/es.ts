@@ -1498,6 +1498,7 @@ export const messagesEs: Messages = {
     seniorOtherOrdersBenchSubstitutionLimitReached: "Puedes definir como maximo 3 sustituciones desde el banquillo.",
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l asistente tactico.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
+    seniorOtherOrdersSetPiecesKeeperInvalid: "El portero no puede ser seleccionado como lanzador de balon parado.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",
     seniorOtherOrdersWrongMatchContext: "Las otras ordenes guardadas pertenecen a otro partido. Abre Otras ordenes y guarda un borrador actual antes de enviar este partido.",
     seniorOtherOrdersNoLineupPlayers: "Asigna jugadores a la alineacion o al banquillo para elegir lanzadores de penaltis, capitan y balon parado.",

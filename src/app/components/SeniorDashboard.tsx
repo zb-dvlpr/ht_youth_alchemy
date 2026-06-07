@@ -3779,6 +3779,7 @@ export default function SeniorDashboard({
     string | null
   >(null);
   const [otherOrdersFlashActive, setOtherOrdersFlashActive] = useState(false);
+  const [lineupMutationEpoch, setLineupMutationEpoch] = useState(0);
   const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
     useState<Record<number, string>>({});
   const [opponentPlayersForSession, setOpponentPlayersForSession] = useState<
@@ -4126,8 +4127,9 @@ export default function SeniorDashboard({
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
-  const hasObservedStartingXiCompletionRef = useRef(false);
+  const otherOrdersFlashArmedRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
+  const startingXiCompleteRef = useRef(false);
   const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
@@ -4407,11 +4409,30 @@ export default function SeniorDashboard({
   }, [assignments]);
 
   useEffect(() => {
-    if (!hasObservedStartingXiCompletionRef.current) {
-      hasObservedStartingXiCompletionRef.current = true;
-      previousStartingXiCompleteRef.current = startingXiComplete;
-      return;
-    }
+    startingXiCompleteRef.current = startingXiComplete;
+  }, [startingXiComplete]);
+
+  const markSeniorLineupMutated = useCallback(() => {
+    setLineupMutationEpoch((value) => value + 1);
+  }, []);
+
+  const seedOtherOrdersFlashBaseline = useCallback(() => {
+    previousStartingXiCompleteRef.current = startingXiCompleteRef.current;
+    otherOrdersFlashArmedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!stateRestored || !dataRestored) return;
+    if (seniorTeamHydratingRef.current) return;
+    if (otherOrdersFlashArmedRef.current) return;
+    seedOtherOrdersFlashBaseline();
+  }, [dataRestored, seedOtherOrdersFlashBaseline, stateRestored, startingXiComplete]);
+
+  useEffect(() => {
+    if (!otherOrdersFlashArmedRef.current) return;
+    if (!stateRestored || !dataRestored) return;
+    if (seniorTeamHydratingRef.current) return;
+    if (lineupMutationEpoch === 0) return;
 
     const wasComplete = previousStartingXiCompleteRef.current;
 
@@ -4429,12 +4450,13 @@ export default function SeniorDashboard({
     }
 
     previousStartingXiCompleteRef.current = startingXiComplete;
-  }, [startingXiComplete]);
+  }, [dataRestored, lineupMutationEpoch, stateRestored, startingXiComplete]);
 
   useEffect(
     () => () => {
       if (otherOrdersFlashTimeoutRef.current !== null) {
         window.clearTimeout(otherOrdersFlashTimeoutRef.current);
+        otherOrdersFlashTimeoutRef.current = null;
       }
     },
     []
@@ -9481,6 +9503,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         nonTraineeAssignmentTrace: NonTraineeAssignmentTraceEntry[]
       ) => {
         setAssignments(nextAssignments);
+        markSeniorLineupMutated();
         setBehaviors(nextBehaviors);
         setTacticType(1);
         setLoadedMatchId(matchId);
@@ -13189,6 +13212,13 @@ const refreshDetailsForPlayers = async (
     if (nextTeamId === selectedSeniorTeamId) return;
     persistSeniorDataSnapshot("before-team-switch");
     staleRefreshAttemptedRef.current = false;
+    otherOrdersFlashArmedRef.current = false;
+    previousStartingXiCompleteRef.current = false;
+    setOtherOrdersFlashActive(false);
+    if (otherOrdersFlashTimeoutRef.current !== null) {
+      window.clearTimeout(otherOrdersFlashTimeoutRef.current);
+      otherOrdersFlashTimeoutRef.current = null;
+    }
     setSelectedId(null);
     setAssignments({});
     setBehaviors({});
@@ -14851,6 +14881,7 @@ const refreshDetailsForPlayers = async (
         }
 
         setAssignments(chosenAssignments);
+        markSeniorLineupMutated();
         selectedManMarkingMarker = selectManMarkingMarkerForAssignments(
           chosenAssignments,
           opponentContext.manMarkingTarget
@@ -15188,6 +15219,13 @@ const refreshDetailsForPlayers = async (
     if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
       window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
       seniorTeamHydrationReleaseTimeoutRef.current = null;
+    }
+    otherOrdersFlashArmedRef.current = false;
+    previousStartingXiCompleteRef.current = false;
+    setOtherOrdersFlashActive(false);
+    if (otherOrdersFlashTimeoutRef.current !== null) {
+      window.clearTimeout(otherOrdersFlashTimeoutRef.current);
+      otherOrdersFlashTimeoutRef.current = null;
     }
     restoredStateStorageKeyRef.current = null;
     restoredDataStorageKeyRef.current = null;
@@ -15726,6 +15764,7 @@ const refreshDetailsForPlayers = async (
       seniorTeamHydratingRef.current = false;
       seniorTeamHydrationKeyRef.current = null;
       seniorTeamHydrationReleaseTimeoutRef.current = null;
+      seedOtherOrdersFlashBaseline();
     }, 0);
 
     return () => {
@@ -15737,6 +15776,7 @@ const refreshDetailsForPlayers = async (
   }, [
     dataStorageKey,
     dataRestored,
+    seedOtherOrdersFlashBaseline,
     stateRestored,
     players,
     matchesState,
@@ -18222,6 +18262,7 @@ const refreshDetailsForPlayers = async (
             });
             nextAssignments[slotId] = playerId;
             setAssignments(nextAssignments);
+            markSeniorLineupMutated();
             preservePreparedSeniorAiContextAfterManualEdit(
               nextAssignments,
               behaviors,
@@ -18231,6 +18272,7 @@ const refreshDetailsForPlayers = async (
           onClear={(slotId) => {
             const nextAssignments = { ...assignments, [slotId]: null };
             setAssignments(nextAssignments);
+            markSeniorLineupMutated();
             preservePreparedSeniorAiContextAfterManualEdit(
               nextAssignments,
               behaviors,
@@ -18244,6 +18286,7 @@ const refreshDetailsForPlayers = async (
               [fromSlot]: assignments[toSlot] ?? null,
             };
             setAssignments(nextAssignments);
+            markSeniorLineupMutated();
             preservePreparedSeniorAiContextAfterManualEdit(
               nextAssignments,
               behaviors,
@@ -18263,6 +18306,7 @@ const refreshDetailsForPlayers = async (
           }}
           onReset={() => {
             setAssignments({});
+            markSeniorLineupMutated();
             setBehaviors({});
             setLoadedMatchId(null);
             clearSeniorAiSubmitLock();
@@ -18379,6 +18423,7 @@ const refreshDetailsForPlayers = async (
           ) => {
             clearSeniorAiSubmitLock();
             setAssignments(nextAssignments);
+            markSeniorLineupMutated();
             setBehaviors(nextBehaviors);
             if (typeof loadedTacticType === "number") {
               setTacticType(loadedTacticType);
@@ -22238,6 +22283,7 @@ const refreshDetailsForPlayers = async (
                 });
                 nextAssignments[slotId] = playerId;
                 setAssignments(nextAssignments);
+                markSeniorLineupMutated();
                 preservePreparedSeniorAiContextAfterManualEdit(
                   nextAssignments,
                   behaviors,
@@ -22247,6 +22293,7 @@ const refreshDetailsForPlayers = async (
               onClear={(slotId) => {
                 const nextAssignments = { ...assignments, [slotId]: null };
                 setAssignments(nextAssignments);
+                markSeniorLineupMutated();
                 preservePreparedSeniorAiContextAfterManualEdit(
                   nextAssignments,
                   behaviors,
@@ -22260,6 +22307,7 @@ const refreshDetailsForPlayers = async (
                   [fromSlot]: assignments[toSlot] ?? null,
                 };
                 setAssignments(nextAssignments);
+                markSeniorLineupMutated();
                 preservePreparedSeniorAiContextAfterManualEdit(
                   nextAssignments,
                   behaviors,
@@ -22279,6 +22327,7 @@ const refreshDetailsForPlayers = async (
               }}
               onReset={() => {
                 setAssignments({});
+                markSeniorLineupMutated();
                 setBehaviors({});
                 setLoadedMatchId(null);
                 clearSeniorAiSubmitLock();
@@ -22396,6 +22445,7 @@ const refreshDetailsForPlayers = async (
             ) => {
               clearSeniorAiSubmitLock();
               setAssignments(nextAssignments);
+              markSeniorLineupMutated();
               setBehaviors(nextBehaviors);
               if (typeof loadedTacticType === "number") {
                 setTacticType(loadedTacticType);

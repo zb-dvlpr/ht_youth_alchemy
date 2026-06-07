@@ -900,10 +900,12 @@ export const messagesPl: Messages = {
   seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
   seniorOtherOrdersPlayerOrdersNone: "Brak polecen dla graczy.",
   seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
+  seniorOtherOrdersBenchSubstitutionsCount:
+    "Zmiany z lawki: {{count}} / {{limit}}",
   seniorOtherOrdersAddOrder: "+ Anweisung hinzufuegen",
   seniorOtherOrdersDeleteOrder: "Loeschen",
   seniorOtherOrdersOrderLimitReached: "Limit fuer Spieleranweisungen erreicht.",
-  seniorOtherOrdersBenchSubstitutionLimitReached: "Hoechstens drei Einwechslungen von der Bank koennen gesendet werden.",
+  seniorOtherOrdersBenchSubstitutionLimitReached: "Mozesz zdefiniowac maksymalnie 3 zmiany z lawki.",
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",

@@ -1159,6 +1159,7 @@ export type Messages = {
   seniorOtherOrdersPlayerOrdersTitle: string;
   seniorOtherOrdersPlayerOrdersNone: string;
   seniorOtherOrdersPlayerOrdersCounter: string;
+  seniorOtherOrdersBenchSubstitutionsCount: string;
   seniorOtherOrdersAddOrder: string;
   seniorOtherOrdersDeleteOrder: string;
   seniorOtherOrdersOrderLimitReached: string;

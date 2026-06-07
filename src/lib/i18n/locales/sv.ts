@@ -1479,10 +1479,12 @@ export const messagesSv: Messages = {
     seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
     seniorOtherOrdersPlayerOrdersNone: "Inga spelarorder annu.",
     seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
+    seniorOtherOrdersBenchSubstitutionsCount:
+      "Bankbyten: {{count}} / {{limit}}",
     seniorOtherOrdersAddOrder: "+ Anweisung hinzufuegen",
     seniorOtherOrdersDeleteOrder: "Loeschen",
     seniorOtherOrdersOrderLimitReached: "Limit fuer Spieleranweisungen erreicht.",
-    seniorOtherOrdersBenchSubstitutionLimitReached: "Hoechstens drei Einwechslungen von der Bank koennen gesendet werden.",
+    seniorOtherOrdersBenchSubstitutionLimitReached: "Du kan ange hogst 3 bankbyten.",
     seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
     seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
     seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",

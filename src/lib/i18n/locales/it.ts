@@ -1494,10 +1494,12 @@ export const messagesIt: Messages = {
     seniorOtherOrdersPlayerOrdersTitle: "Ordres des joueurs",
     seniorOtherOrdersPlayerOrdersNone: "Nessun ordine giocatore ancora.",
     seniorOtherOrdersPlayerOrdersCounter: "Ordres des joueurs : {{count}} / {{max}}",
+    seniorOtherOrdersBenchSubstitutionsCount:
+      "Sostituzioni dalla panchina: {{count}} / {{limit}}",
     seniorOtherOrdersAddOrder: "+ Ajouter un ordre",
     seniorOtherOrdersDeleteOrder: "Supprimer",
     seniorOtherOrdersOrderLimitReached: "Limite d ordres des joueurs atteinte.",
-    seniorOtherOrdersBenchSubstitutionLimitReached: "Trois remplacements depuis le banc au maximum peuvent etre envoyes.",
+    seniorOtherOrdersBenchSubstitutionLimitReached: "Puoi definire al massimo 3 sostituzioni dalla panchina.",
     seniorOtherOrdersInvalidCoachModifier: "Le style de jeu est hors de la plage autorisee par l assistant tactique.",
     seniorOtherOrdersInvalidOwnPlayer: "Selectionnez des joueurs valides du onze ou du banc pour tous les champs de votre equipe.",
     seniorOtherOrdersInvalidManMarkingTarget: "Le marquage individuel necessite une cible adverse valide.",

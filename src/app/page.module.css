@@ -10637,6 +10637,13 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #7a6a56;
 }
 
+.seniorOtherOrdersSectionCounters {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  text-align: right;
+}
+
 .seniorOtherOrdersSectionActions {
   display: flex;
   justify-content: flex-start;

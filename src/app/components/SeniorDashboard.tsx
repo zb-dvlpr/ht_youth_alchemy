@@ -10008,6 +10008,22 @@ function buildSeniorAiManMarkingReadySignature(params: {
     () => new Set(benchOrderPlayerOptions.map((player) => player.id)),
     [benchOrderPlayerOptions]
   );
+  const isSeniorOtherOrdersBenchSubstitution = (
+    order: SeniorEditablePlayerOrder
+  ) => {
+    if (order.orderType !== 1) return false;
+    const playerOut = Number(order.subjectPlayerId ?? 0);
+    const playerIn = Number(order.objectPlayerId ?? 0);
+    return (
+      playerOut > 0 &&
+      playerIn > 0 &&
+      startingXiOrderPlayerIdSet.has(playerOut) &&
+      benchOrderPlayerIdSet.has(playerIn)
+    );
+  };
+  const countSeniorOtherOrdersBenchSubstitutions = (
+    orders: SeniorEditablePlayerOrder[]
+  ) => orders.filter(isSeniorOtherOrdersBenchSubstitution).length;
 
   const buildSeniorOtherOrdersSummaryPlayer = (
     playerId: number,
@@ -10304,19 +10320,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (orders.playerOrders.length > seniorOtherOrdersMaxPlayerOrders) {
       return messages.seniorOtherOrdersOrderLimitReached;
     }
-    const benchPlayerIds = new Set(
-      BENCH_SLOT_ORDER.map((slot) => assignments[slot]).filter(
-        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
-      )
-    );
-    const benchSubstitutions = orders.playerOrders.filter(
-      (order) =>
-        order.orderType === 1 &&
-        order.subjectPlayerId !== order.objectPlayerId &&
-        typeof order.objectPlayerId === "number" &&
-        benchPlayerIds.has(order.objectPlayerId)
-    );
-    if (benchSubstitutions.length > SENIOR_BENCH_SUBSTITUTION_LIMIT) {
+    if (
+      countSeniorOtherOrdersBenchSubstitutions(orders.playerOrders) >
+      SENIOR_BENCH_SUBSTITUTION_LIMIT
+    ) {
       return messages.seniorOtherOrdersBenchSubstitutionLimitReached;
     }
     const range = seniorOtherOrdersCoachModifierRange;
@@ -10579,10 +10586,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
     { value: 11, label: messages.seniorOtherOrdersRedCardOpponentWingBack },
     { value: 12, label: messages.seniorOtherOrdersRedCardOpponentWinger },
   ];
-  const seniorOtherOrdersPlayerLabel = (player: SeniorOrderPlayerOption) =>
+  const seniorOtherOrdersPlayerSetPiecesLabel = (player: SeniorOrderPlayerOption) =>
     Number.isFinite(player.setPiecesSkill)
       ? `${player.name} (${player.setPiecesSkill})`
       : player.name;
+  const seniorOtherOrdersPlayerNameLabel = (player: SeniorOrderPlayerOption) =>
+    player.name;
   const seniorOtherOrdersPlayerName = (playerId: number | null) =>
     typeof playerId === "number"
       ? availableOrderPlayerOptions.find((player) => player.id === playerId)?.name ??
@@ -10605,8 +10614,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const addSeniorOtherOrdersDraftOrder = () => {
     updateOtherOrdersDraft((draft) => {
       if (draft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders) return draft;
+      const benchSubstitutionCount = countSeniorOtherOrdersBenchSubstitutions(
+        draft.playerOrders
+      );
       const canAddSubstitution =
-        startingXiOrderPlayerOptions.length > 0 && benchOrderPlayerOptions.length > 0;
+        benchSubstitutionCount < SENIOR_BENCH_SUBSTITUTION_LIMIT &&
+        startingXiOrderPlayerOptions.length > 0 &&
+        benchOrderPlayerOptions.length > 0;
       const canAddSwap = startingXiOrderPlayerOptions.length >= 2;
       const orderType = canAddSubstitution ? 1 : 3;
       return {
@@ -18455,11 +18469,25 @@ const refreshDetailsForPlayers = async (
               >
                 <div className={styles.seniorOtherOrdersSectionHeader}>
                   <h3>{messages.seniorOtherOrdersPlayerOrdersTitle}</h3>
-                  <span>
-                    {messages.seniorOtherOrdersPlayerOrdersCounter
-                      .replace("{{count}}", String(otherOrdersDraft.playerOrders.length))
-                      .replace("{{max}}", String(seniorOtherOrdersMaxPlayerOrders))}
-                  </span>
+                  <div className={styles.seniorOtherOrdersSectionCounters}>
+                    <span>
+                      {messages.seniorOtherOrdersPlayerOrdersCounter
+                        .replace("{{count}}", String(otherOrdersDraft.playerOrders.length))
+                        .replace("{{max}}", String(seniorOtherOrdersMaxPlayerOrders))}
+                    </span>
+                    <span>
+                      {messages.seniorOtherOrdersBenchSubstitutionsCount
+                        .replace(
+                          "{{count}}",
+                          String(
+                            countSeniorOtherOrdersBenchSubstitutions(
+                              otherOrdersDraft.playerOrders
+                            )
+                          )
+                        )
+                        .replace("{{limit}}", String(SENIOR_BENCH_SUBSTITUTION_LIMIT))}
+                    </span>
+                  </div>
                 </div>
                 <div className={styles.seniorOtherOrdersSectionActions}>
                   <button
@@ -18689,7 +18717,7 @@ const refreshDetailsForPlayers = async (
                               <option value={0}>{subjectEmptyLabel}</option>
                               {subjectPlayerOptions.map((player) => (
                                 <option key={player.id} value={player.id}>
-                                  {seniorOtherOrdersPlayerLabel(player)}
+                                  {seniorOtherOrdersPlayerNameLabel(player)}
                                 </option>
                               ))}
                             </select>
@@ -18752,7 +18780,7 @@ const refreshDetailsForPlayers = async (
                                 <option value={0}>{objectEmptyLabel}</option>
                                 {objectPlayerOptions.map((player) => (
                                   <option key={player.id} value={player.id}>
-                                    {seniorOtherOrdersPlayerLabel(player)}
+                                    {seniorOtherOrdersPlayerNameLabel(player)}
                                   </option>
                                 ))}
                               </select>
@@ -18906,7 +18934,7 @@ const refreshDetailsForPlayers = async (
                         <option value={0}>{messages.seniorOtherOrdersPenaltyTakersNone}</option>
                         {availableOrderPlayerOptions.map((player) => (
                           <option key={player.id} value={player.id}>
-                            {seniorOtherOrdersPlayerLabel(player)}
+                            {seniorOtherOrdersPlayerSetPiecesLabel(player)}
                           </option>
                         ))}
                       </select>
@@ -18965,7 +18993,7 @@ const refreshDetailsForPlayers = async (
                   <option value={0}>{messages.seniorOtherOrdersCoachPick}</option>
                   {availableOrderPlayerOptions.map((player) => (
                     <option key={player.id} value={player.id}>
-                      {seniorOtherOrdersPlayerLabel(player)}
+                      {seniorOtherOrdersPlayerNameLabel(player)}
                     </option>
                   ))}
                 </select>
@@ -18991,7 +19019,7 @@ const refreshDetailsForPlayers = async (
                   <option value={0}>{messages.seniorOtherOrdersCoachPick}</option>
                   {availableOrderPlayerOptions.map((player) => (
                     <option key={player.id} value={player.id}>
-                      {seniorOtherOrdersPlayerLabel(player)}
+                      {seniorOtherOrdersPlayerSetPiecesLabel(player)}
                     </option>
                   ))}
                 </select>

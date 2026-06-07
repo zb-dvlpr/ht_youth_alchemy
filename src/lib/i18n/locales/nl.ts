@@ -906,10 +906,12 @@ export const messagesNl: Messages = {
   seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
   seniorOtherOrdersPlayerOrdersNone: "Nog geen spelersorders.",
   seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
+  seniorOtherOrdersBenchSubstitutionsCount:
+    "Bankwissels: {{count}} / {{limit}}",
   seniorOtherOrdersAddOrder: "+ Anweisung hinzufuegen",
   seniorOtherOrdersDeleteOrder: "Loeschen",
   seniorOtherOrdersOrderLimitReached: "Limit fuer Spieleranweisungen erreicht.",
-  seniorOtherOrdersBenchSubstitutionLimitReached: "Hoechstens drei Einwechslungen von der Bank koennen gesendet werden.",
+  seniorOtherOrdersBenchSubstitutionLimitReached: "Je kunt maximaal 3 bankwissels instellen.",
   seniorOtherOrdersInvalidCoachModifier: "Der Spielstil liegt ausserhalb des erlaubten Taktikassistenten-Bereichs.",
   seniorOtherOrdersInvalidOwnPlayer: "Waehle gueltige Aufstellungs- oder Bankspieler fuer alle eigenen Spielerfelder.",
   seniorOtherOrdersInvalidManMarkingTarget: "Manndeckung benoetigt einen gueltigen gegnerischen Zielspieler.",

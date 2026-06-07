@@ -1436,11 +1436,13 @@ export const messagesEn: Messages = {
     seniorOtherOrdersPlayerOrdersTitle: "Player orders",
     seniorOtherOrdersPlayerOrdersNone: "No player orders yet.",
     seniorOtherOrdersPlayerOrdersCounter: "Player orders: {{count}} / {{max}}",
+    seniorOtherOrdersBenchSubstitutionsCount:
+      "Bench substitutions: {{count}} / {{limit}}",
     seniorOtherOrdersAddOrder: "+ Add order",
     seniorOtherOrdersDeleteOrder: "Delete",
     seniorOtherOrdersOrderLimitReached: "Player order limit reached.",
     seniorOtherOrdersBenchSubstitutionLimitReached:
-      "At most three substitutions from the bench can be submitted.",
+      "You can define at most 3 bench substitutions.",
     seniorOtherOrdersInvalidCoachModifier:
       "Style of play is outside the allowed Tactical Assistant range.",
     seniorOtherOrdersInvalidOwnPlayer:

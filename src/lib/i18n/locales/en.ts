@@ -1421,6 +1421,10 @@ export const messagesEn: Messages = {
     seniorOtherOrdersNeutral: "Neutral",
     seniorOtherOrdersStyleOffensive: "Offensive",
     seniorOtherOrdersTacticalAssistantLevel: "Tactical Assistant level {{level}}",
+    seniorOtherOrdersDevSimulateTacticalAssistant:
+      "Dev: simulate Tactical Assistant",
+    seniorOtherOrdersDevTacticalAssistantLevel:
+      "Simulated Tactical Assistant level: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Player orders",
     seniorOtherOrdersPlayerOrdersCounter: "Player orders: {{count}} / {{max}}",
     seniorOtherOrdersAddOrder: "Add order",

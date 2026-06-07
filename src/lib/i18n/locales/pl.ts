@@ -885,6 +885,10 @@ export const messagesPl: Messages = {
   seniorOtherOrdersNeutral: "Neutral",
   seniorOtherOrdersStyleOffensive: "Offensiv",
   seniorOtherOrdersTacticalAssistantLevel: "Taktikassistent Stufe {{level}}",
+  seniorOtherOrdersDevSimulateTacticalAssistant:
+    "Dev: symuluj asystenta taktycznego",
+  seniorOtherOrdersDevTacticalAssistantLevel:
+    "Symulowany poziom asystenta taktycznego: {{level}}",
   seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
   seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
   seniorOtherOrdersAddOrder: "Anweisung hinzufuegen",

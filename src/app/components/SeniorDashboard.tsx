@@ -516,7 +516,7 @@ const SENIOR_ORDER_DEFAULT_BEHAVIOUR = -1;
 const SENIOR_PLAYER_ORDER_BASE_LIMIT = 5;
 const SENIOR_PLAYER_ORDER_MAX_LIMIT = 10;
 const SENIOR_BENCH_SUBSTITUTION_LIMIT = 3;
-const SENIOR_OTHER_ORDERS_DEV_TACTICAL_ASSISTANT_LEVEL = 5;
+const SENIOR_OTHER_ORDERS_DEFAULT_DEV_TACTICAL_ASSISTANT_LEVEL = 5;
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
@@ -3640,7 +3640,8 @@ export default function SeniorDashboard({
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
 }: SeniorDashboardProps) {
-  const showSetBestLineupDebugModal = process.env.NODE_ENV !== "production";
+  const isDevBuild = process.env.NODE_ENV !== "production";
+  const showSetBestLineupDebugModal = isDevBuild;
   const { addNotification } = useNotifications();
   const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
   const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
@@ -3737,6 +3738,10 @@ export default function SeniorDashboard({
   >(null);
   const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
     useState<Record<number, string>>({});
+  const [devSimulateTacticalAssistant, setDevSimulateTacticalAssistant] =
+    useState(false);
+  const [devSimulatedTacticalAssistantLevel, setDevSimulatedTacticalAssistantLevel] =
+    useState(SENIOR_OTHER_ORDERS_DEFAULT_DEV_TACTICAL_ASSISTANT_LEVEL);
   const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
   const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
     number | null
@@ -4117,23 +4122,47 @@ export default function SeniorDashboard({
   const ownSeniorTeamTacticalAssistantStaffLevel =
     ownSeniorTeamGeneralInfo?.tacticalAssistantStaffLevel ?? null;
   const ownSeniorTeamTrainerType = ownSeniorTeamGeneralInfo?.trainerType ?? null;
+  const effectiveOtherOrdersTacticalAssistantContext = useMemo(() => {
+    if (isDevBuild) {
+      if (!devSimulateTacticalAssistant) {
+        return {
+          hasTacticalAssistant: false,
+          tacticalAssistantStaffLevel: null,
+          trainerType: ownSeniorTeamTrainerType ?? null,
+        };
+      }
+
+      return {
+        hasTacticalAssistant: true,
+        tacticalAssistantStaffLevel: devSimulatedTacticalAssistantLevel,
+        trainerType: ownSeniorTeamTrainerType ?? 2,
+      };
+    }
+
+    return {
+      hasTacticalAssistant: ownSeniorTeamHasTacticalAssistant === true,
+      tacticalAssistantStaffLevel: ownSeniorTeamTacticalAssistantStaffLevel,
+      trainerType: ownSeniorTeamTrainerType,
+    };
+  }, [
+    isDevBuild,
+    devSimulateTacticalAssistant,
+    devSimulatedTacticalAssistantLevel,
+    ownSeniorTeamHasTacticalAssistant,
+    ownSeniorTeamTacticalAssistantStaffLevel,
+    ownSeniorTeamTrainerType,
+  ]);
   const effectiveOtherOrdersHasTacticalAssistant =
-    process.env.NODE_ENV !== "production"
-      ? true
-      : ownSeniorTeamHasTacticalAssistant === true;
+    effectiveOtherOrdersTacticalAssistantContext.hasTacticalAssistant;
   const effectiveOtherOrdersTacticalAssistantStaffLevel =
-    process.env.NODE_ENV !== "production"
-      ? SENIOR_OTHER_ORDERS_DEV_TACTICAL_ASSISTANT_LEVEL
-      : ownSeniorTeamTacticalAssistantStaffLevel ?? 0;
+    effectiveOtherOrdersTacticalAssistantContext.tacticalAssistantStaffLevel;
   const effectiveOtherOrdersTrainerType =
-    process.env.NODE_ENV !== "production"
-      ? ownSeniorTeamTrainerType ?? 2
-      : ownSeniorTeamTrainerType;
+    effectiveOtherOrdersTacticalAssistantContext.trainerType;
   const seniorOtherOrdersMaxPlayerOrders = effectiveOtherOrdersHasTacticalAssistant
     ? Math.min(
         SENIOR_PLAYER_ORDER_MAX_LIMIT,
         SENIOR_PLAYER_ORDER_BASE_LIMIT +
-          Math.max(0, effectiveOtherOrdersTacticalAssistantStaffLevel)
+          Math.max(0, effectiveOtherOrdersTacticalAssistantStaffLevel ?? 0)
       )
     : SENIOR_PLAYER_ORDER_BASE_LIMIT;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
@@ -9827,8 +9856,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
     return false;
   };
-  const seniorOtherOrdersCoachModifierRange = () => {
+  const seniorOtherOrdersCoachModifierRange = useMemo(() => {
     if (!effectiveOtherOrdersHasTacticalAssistant) return null;
+    if (effectiveOtherOrdersTacticalAssistantStaffLevel === null) return null;
     const level = Math.max(0, effectiveOtherOrdersTacticalAssistantStaffLevel);
     if (effectiveOtherOrdersTrainerType === 0) {
       return { min: -10, max: -10 + 2 * level };
@@ -9840,7 +9870,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
       return { min: -level, max: level };
     }
     return null;
-  };
+  }, [
+    effectiveOtherOrdersHasTacticalAssistant,
+    effectiveOtherOrdersTacticalAssistantStaffLevel,
+    effectiveOtherOrdersTrainerType,
+  ]);
   const availableOrderPlayerOptions = useMemo<SeniorOrderPlayerOption[]>(() => {
     const ids = [
       ...FIELD_SLOT_ORDER.map((slot) => assignments[slot]),
@@ -10177,7 +10211,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (benchSubstitutions.length > SENIOR_BENCH_SUBSTITUTION_LIMIT) {
       return messages.seniorOtherOrdersBenchSubstitutionLimitReached;
     }
-    const range = seniorOtherOrdersCoachModifierRange();
+    const range = seniorOtherOrdersCoachModifierRange;
     if (
       effectiveOtherOrdersHasTacticalAssistant &&
       range &&
@@ -10256,7 +10290,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       includeMatchAttitude: isSeniorOtherOrdersMatchAttitudeEligible(matchId),
       includeCoachModifier:
         effectiveOtherOrdersHasTacticalAssistant &&
-        Boolean(seniorOtherOrdersCoachModifierRange()),
+        Boolean(seniorOtherOrdersCoachModifierRange),
     });
   };
 
@@ -10339,6 +10373,30 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOtherOrdersDraft(buildSeniorEditableOrdersForContext(otherOrdersModalMatchId));
     setOtherOrdersValidationError(null);
   }, [otherOrdersEditorOpen, otherOrdersModalMatchId]);
+
+  useEffect(() => {
+    if (!otherOrdersEditorOpen) return;
+    setOtherOrdersDraft((current) => {
+      if (!current) return current;
+      if (!effectiveOtherOrdersHasTacticalAssistant || !seniorOtherOrdersCoachModifierRange) {
+        if (current.coachModifier === null) return current;
+        return { ...current, source: "mixed", coachModifier: null };
+      }
+      if (current.coachModifier === null) return current;
+      const nextCoachModifier = Math.min(
+        seniorOtherOrdersCoachModifierRange.max,
+        Math.max(seniorOtherOrdersCoachModifierRange.min, current.coachModifier)
+      );
+      if (nextCoachModifier === current.coachModifier) return current;
+      return { ...current, source: "mixed", coachModifier: nextCoachModifier };
+    });
+    setOtherOrdersValidationError(null);
+  }, [
+    effectiveOtherOrdersHasTacticalAssistant,
+    otherOrdersDraft?.coachModifier,
+    otherOrdersEditorOpen,
+    seniorOtherOrdersCoachModifierRange,
+  ]);
 
   const renderSeniorOtherOrdersButton = () => (
     <Tooltip
@@ -18145,6 +18203,54 @@ const refreshDetailsForPlayers = async (
                   {otherOrdersValidationError}
                 </p>
               ) : null}
+              {isDevBuild ? (
+                <section className={styles.seniorOtherOrdersDevPanel}>
+                  <label className={styles.algorithmsToggle}>
+                    <span className={styles.algorithmsToggleText}>
+                      {messages.seniorOtherOrdersDevSimulateTacticalAssistant}
+                    </span>
+                    <input
+                      type="checkbox"
+                      className={styles.algorithmsToggleInput}
+                      checked={devSimulateTacticalAssistant}
+                      onChange={(event) => {
+                        setDevSimulateTacticalAssistant(event.target.checked);
+                        setOtherOrdersValidationError(null);
+                      }}
+                    />
+                    <span
+                      className={styles.algorithmsToggleSwitch}
+                      aria-hidden="true"
+                    />
+                  </label>
+                  {devSimulateTacticalAssistant ? (
+                    <label className={styles.seniorOtherOrdersDevSlider}>
+                      <span>
+                        {messages.seniorOtherOrdersDevTacticalAssistantLevel.replace(
+                          "{{level}}",
+                          String(devSimulatedTacticalAssistantLevel)
+                        )}
+                      </span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={devSimulatedTacticalAssistantLevel}
+                        onChange={(event) => {
+                          setDevSimulatedTacticalAssistantLevel(
+                            Math.min(
+                              5,
+                              Math.max(1, Math.round(Number(event.target.value)))
+                            )
+                          );
+                          setOtherOrdersValidationError(null);
+                        }}
+                      />
+                    </label>
+                  ) : null}
+                </section>
+              ) : null}
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersMatchAttitudeTitle}</h3>
                 {isSeniorOtherOrdersMatchAttitudeEligible(otherOrdersDraft.matchId) ? (
@@ -18175,13 +18281,13 @@ const refreshDetailsForPlayers = async (
               {effectiveOtherOrdersHasTacticalAssistant ? (
                 <section className={styles.seniorOtherOrdersSection}>
                   <h3>{messages.seniorOtherOrdersStyleOfPlayTitle}</h3>
-                  {seniorOtherOrdersCoachModifierRange() ? (
+                  {seniorOtherOrdersCoachModifierRange ? (
                     <>
                       <input
                         className={styles.seniorOtherOrdersRange}
                         type="range"
-                        min={seniorOtherOrdersCoachModifierRange()?.min ?? 0}
-                        max={seniorOtherOrdersCoachModifierRange()?.max ?? 0}
+                        min={seniorOtherOrdersCoachModifierRange.min}
+                        max={seniorOtherOrdersCoachModifierRange.max}
                         value={otherOrdersDraft.coachModifier ?? 0}
                         onChange={(event) =>
                           updateOtherOrdersDraft((draft) => ({

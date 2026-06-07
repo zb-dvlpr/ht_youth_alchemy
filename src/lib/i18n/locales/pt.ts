@@ -1478,6 +1478,10 @@ export const messagesPt: Messages = {
     seniorOtherOrdersNeutral: "Neutre",
     seniorOtherOrdersStyleOffensive: "Offensif",
     seniorOtherOrdersTacticalAssistantLevel: "Assistant tactique niveau {{level}}",
+    seniorOtherOrdersDevSimulateTacticalAssistant:
+      "Dev: simular assistente tatico",
+    seniorOtherOrdersDevTacticalAssistantLevel:
+      "Nivel do assistente tatico simulado: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Ordres des joueurs",
     seniorOtherOrdersPlayerOrdersCounter: "Ordres des joueurs : {{count}} / {{max}}",
     seniorOtherOrdersAddOrder: "Ajouter un ordre",

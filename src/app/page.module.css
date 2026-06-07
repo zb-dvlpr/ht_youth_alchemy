@@ -7534,7 +7534,13 @@ html[data-theme="dark"] .seniorOtherOrdersSection {
   background: rgba(32, 26, 20, 0.92);
 }
 
+html[data-theme="dark"] .seniorOtherOrdersDevPanel {
+  border-color: rgba(217, 182, 120, 0.36);
+  background: rgba(32, 26, 20, 0.86);
+}
+
 html[data-theme="dark"] .seniorOtherOrdersGrid,
+html[data-theme="dark"] .seniorOtherOrdersDevPanel,
 html[data-theme="dark"] .seniorOtherOrdersSection h3,
 html[data-theme="dark"] .seniorOtherOrdersSection p,
 html[data-theme="dark"] .seniorOtherOrdersList,
@@ -10521,6 +10527,16 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #3f352c;
 }
 
+.seniorOtherOrdersDevPanel {
+  grid-column: 1 / -1;
+  border: 1px dashed #b99b6b;
+  border-radius: 8px;
+  background: #fff7e8;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
 .seniorOtherOrdersSection {
   border: 1px solid #dfd2c0;
   border-radius: 8px;
@@ -10619,6 +10635,21 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 }
 
 .seniorOtherOrdersRange {
+  width: 100%;
+}
+
+.seniorOtherOrdersDevSlider {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #5d5245;
+}
+
+.seniorOtherOrdersDevSlider span {
+  font-weight: 700;
+}
+
+.seniorOtherOrdersDevSlider input {
   width: 100%;
 }
 

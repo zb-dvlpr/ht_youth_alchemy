@@ -18382,7 +18382,9 @@ const refreshDetailsForPlayers = async (
               >
                 {seniorOtherOrdersTacticalAssistantStatus.text}
               </p>
-              <section className={styles.seniorOtherOrdersSection}>
+              <section
+                className={`${styles.seniorOtherOrdersSection} ${styles.seniorOtherOrdersSectionWide}`}
+              >
                 <h3>{messages.seniorOtherOrdersMatchAttitudeTitle}</h3>
                 {isSeniorOtherOrdersMatchAttitudeEligible(otherOrdersDraft.matchId) ? (
                   <select
@@ -18410,7 +18412,9 @@ const refreshDetailsForPlayers = async (
                 )}
               </section>
               {effectiveOtherOrdersHasTacticalAssistant ? (
-                <section className={styles.seniorOtherOrdersSection}>
+                <section
+                  className={`${styles.seniorOtherOrdersSection} ${styles.seniorOtherOrdersSectionWide}`}
+                >
                   <h3>{messages.seniorOtherOrdersStyleOfPlayTitle}</h3>
                   {seniorOtherOrdersCoachModifierRange ? (
                     <>
@@ -18446,7 +18450,9 @@ const refreshDetailsForPlayers = async (
                   )}
                 </section>
               ) : null}
-              <section className={styles.seniorOtherOrdersSection}>
+              <section
+                className={`${styles.seniorOtherOrdersSection} ${styles.seniorOtherOrdersSectionWide}`}
+              >
                 <div className={styles.seniorOtherOrdersSectionHeader}>
                   <h3>{messages.seniorOtherOrdersPlayerOrdersTitle}</h3>
                   <span>

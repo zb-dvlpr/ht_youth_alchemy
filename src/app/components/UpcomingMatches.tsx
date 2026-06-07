@@ -20,6 +20,7 @@ import {
   filterVisibleMatches,
   hasExistingOrders,
   normalizeMatches,
+  resolveOpponentTeam,
   resolveMatchSourceSystem,
   type MatchLike,
 } from "@/lib/matches/visibility";
@@ -221,32 +222,6 @@ function sortByDate(matches: Match[]) {
     const bTime = parseChppDate(b.MatchDate)?.getTime() ?? 0;
     return aTime - bTime;
   });
-}
-
-function resolveOpponentTeam(
-  match: Match | undefined,
-  teamId: number | null
-): { teamId: number; teamName: string } | null {
-  if (!match || typeof teamId !== "number" || !Number.isFinite(teamId) || teamId <= 0) {
-    return null;
-  }
-  const homeTeamId = Number(match.HomeTeam?.HomeTeamID);
-  const awayTeamId = Number(match.AwayTeam?.AwayTeamID);
-  if (Number.isFinite(homeTeamId) && homeTeamId === teamId) {
-    if (!Number.isFinite(awayTeamId) || awayTeamId <= 0) return null;
-    return {
-      teamId: awayTeamId,
-      teamName: match.AwayTeam?.AwayTeamName ?? "",
-    };
-  }
-  if (Number.isFinite(awayTeamId) && awayTeamId === teamId) {
-    if (!Number.isFinite(homeTeamId) || homeTeamId <= 0) return null;
-    return {
-      teamId: homeTeamId,
-      teamName: match.HomeTeam?.HomeTeamName ?? "",
-    };
-  }
-  return null;
 }
 
 type MatchState = {

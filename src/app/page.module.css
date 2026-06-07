@@ -10542,6 +10542,7 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  align-items: start;
   color: #3f352c;
 }
 
@@ -10703,6 +10704,35 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   font: inherit;
 }
 
+.seniorOtherOrdersInlineStatus,
+.seniorOtherOrdersErrorText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.seniorOtherOrdersInlineStatus {
+  color: #7a6a56;
+}
+
+.seniorOtherOrdersErrorText {
+  color: #8f1f1f;
+}
+
+.seniorOtherOrdersInlineButton {
+  border: 0;
+  background: transparent;
+  color: #244d2b;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
 .seniorOtherOrdersRange {
   width: 100%;
 }
@@ -10710,6 +10740,36 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 .seniorOtherOrdersAddOrderButton {
   justify-self: start;
   min-width: 120px;
+}
+
+.seniorOtherOrdersModal .seniorOtherOrdersAddOrderButton {
+  background: #2f6b3f;
+  border-color: #2f6b3f;
+  color: #fff;
+}
+
+.seniorOtherOrdersModal .seniorOtherOrdersAddOrderButton:hover {
+  background: #285c35;
+  border-color: #285c35;
+  color: #fff;
+}
+
+.seniorOtherOrdersModal .seniorOtherOrdersAddOrderButton:disabled {
+  background: #d8d0c4;
+  border-color: #c8b8a3;
+  color: #6c5d4a;
+}
+
+.seniorOtherOrdersModal .seniorOtherOrdersDeleteOrderButton {
+  background: #8f2d2d;
+  border-color: #8f2d2d;
+  color: #fff;
+}
+
+.seniorOtherOrdersModal .seniorOtherOrdersDeleteOrderButton:hover {
+  background: #7b2525;
+  border-color: #7b2525;
+  color: #fff;
 }
 
 .seniorOtherOrdersDevSlider {

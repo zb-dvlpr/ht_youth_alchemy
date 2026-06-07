@@ -120,6 +120,7 @@ import {
   readAppLicenseState,
 } from "@/lib/license";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import { resolveOpponentTeam } from "@/lib/matches/visibility";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -936,6 +937,7 @@ type SeniorEditableOrdersState = {
   matchAttitude: number | null;
   coachModifier: number | null;
   playerOrders: SeniorEditablePlayerOrder[];
+  manMarkingOrder: SeniorEditablePlayerOrder | null;
   penaltyTakerIds: number[];
   captainPlayerId: number | null;
   setPiecesPlayerId: number | null;
@@ -945,6 +947,17 @@ type SeniorOrderPlayerOption = {
   id: number;
   name: string;
   setPiecesSkill: number | null;
+};
+
+type SeniorOpponentManMarkingPlayer = {
+  playerId: number;
+  name: string;
+};
+
+type SeniorOpponentPlayersResponse = {
+  data?: { HattrickData?: { Team?: { PlayerList?: { Player?: unknown } } } };
+  error?: string;
+  details?: string;
 };
 
 type SeniorSubmitDisclaimerOrderSubstitution = SeniorOtherOrdersSummarySubstitution & {
@@ -3216,24 +3229,49 @@ const buildSeniorEditableOrdersFromPayload = (
   matchId: number | null,
   payload: MatchOrdersLineupPayload,
   source: SeniorEditableOrdersState["source"]
-): SeniorEditableOrdersState => ({
-  matchId,
-  source,
-  matchAttitude:
-    typeof payload.settings?.speechLevel === "number" ? payload.settings.speechLevel : null,
-  coachModifier:
-    typeof payload.settings?.coachModifier === "number"
-      ? payload.settings.coachModifier
-      : null,
-  playerOrders: (payload.substitutions ?? []).map((order, index) =>
+): SeniorEditableOrdersState => {
+  const editableOrders = (payload.substitutions ?? []).map((order, index) =>
     buildSeniorEditableOrderFromSubstitution(matchId, order, index)
-  ),
-  penaltyTakerIds: (payload.kickers ?? [])
-    .map((kicker) => Number(kicker.id) || 0)
-    .slice(0, 11),
-  captainPlayerId: payload.captain > 0 ? payload.captain : null,
-  setPiecesPlayerId: payload.setPieces > 0 ? payload.setPieces : null,
-});
+  );
+  const loadedManMarkingOrder =
+    editableOrders.find((order) => order.orderType === 4) ??
+    (payload.settings.manMarkerPlayerId > 0 || payload.settings.manMarkingPlayerId > 0
+      ? {
+          id: `man-marking-${matchId ?? "draft"}`,
+          orderType: 4,
+          minute: SENIOR_ORDER_DEFAULT_MINUTE,
+          standing: SENIOR_ORDER_DEFAULT_CONDITION,
+          card: SENIOR_ORDER_DEFAULT_CONDITION,
+          subjectPlayerId:
+            payload.settings.manMarkerPlayerId > 0
+              ? payload.settings.manMarkerPlayerId
+              : null,
+          objectPlayerId:
+            payload.settings.manMarkingPlayerId > 0
+              ? payload.settings.manMarkingPlayerId
+              : null,
+          newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+          newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+        }
+      : null);
+  return {
+    matchId,
+    source,
+    matchAttitude:
+      typeof payload.settings?.speechLevel === "number" ? payload.settings.speechLevel : null,
+    coachModifier:
+      typeof payload.settings?.coachModifier === "number"
+        ? payload.settings.coachModifier
+        : null,
+    playerOrders: editableOrders.filter((order) => order.orderType !== 4),
+    manMarkingOrder: loadedManMarkingOrder,
+    penaltyTakerIds: (payload.kickers ?? [])
+      .map((kicker) => Number(kicker.id) || 0)
+      .slice(0, 11),
+    captainPlayerId: payload.captain > 0 ? payload.captain : null,
+    setPiecesPlayerId: payload.setPieces > 0 ? payload.setPieces : null,
+  };
+};
 
 const serializeSeniorEditableOrdersToPayload = (
   payload: MatchOrdersLineupPayload,
@@ -3242,30 +3280,8 @@ const serializeSeniorEditableOrdersToPayload = (
     includeMatchAttitude: boolean;
     includeCoachModifier: boolean;
   }
-): MatchOrdersLineupPayload => ({
-  ...payload,
-  kickers: Array.from({ length: 11 }, (_, index) => ({
-    id: Number(orders.penaltyTakerIds[index] ?? 0) || 0,
-    behaviour: 0,
-  })),
-  captain: Number(orders.captainPlayerId ?? 0) || 0,
-  setPieces: Number(orders.setPiecesPlayerId ?? 0) || 0,
-  settings: {
-    ...payload.settings,
-    speechLevel: options.includeMatchAttitude
-      ? Number(orders.matchAttitude ?? 0) || 0
-      : payload.settings.speechLevel,
-    coachModifier: options.includeCoachModifier
-      ? Number(orders.coachModifier ?? 0) || 0
-      : payload.settings.coachModifier,
-    manMarkerPlayerId:
-      orders.playerOrders.find((order) => order.orderType === 4)?.subjectPlayerId ??
-      payload.settings.manMarkerPlayerId,
-    manMarkingPlayerId:
-      orders.playerOrders.find((order) => order.orderType === 4)?.objectPlayerId ??
-      payload.settings.manMarkingPlayerId,
-  },
-  substitutions: orders.playerOrders.map((order) => ({
+): MatchOrdersLineupPayload => {
+  const serializeEditableOrder = (order: SeniorEditablePlayerOrder) => ({
     playerin: Number(order.objectPlayerId ?? 0) || 0,
     playerout: Number(order.subjectPlayerId ?? 0) || 0,
     orderType: order.orderType,
@@ -3280,8 +3296,34 @@ const serializeSeniorEditableOrdersToPayload = (
     standing: Number.isFinite(order.standing)
       ? order.standing
       : SENIOR_ORDER_DEFAULT_CONDITION,
-  })),
-});
+  });
+  return {
+    ...payload,
+    kickers: Array.from({ length: 11 }, (_, index) => ({
+      id: Number(orders.penaltyTakerIds[index] ?? 0) || 0,
+      behaviour: 0,
+    })),
+    captain: Number(orders.captainPlayerId ?? 0) || 0,
+    setPieces: Number(orders.setPiecesPlayerId ?? 0) || 0,
+    settings: {
+      ...payload.settings,
+      speechLevel: options.includeMatchAttitude
+        ? Number(orders.matchAttitude ?? 0) || 0
+        : payload.settings.speechLevel,
+      coachModifier: options.includeCoachModifier
+        ? Number(orders.coachModifier ?? 0) || 0
+        : payload.settings.coachModifier,
+      manMarkerPlayerId: Number(orders.manMarkingOrder?.subjectPlayerId ?? 0) || 0,
+      manMarkingPlayerId: Number(orders.manMarkingOrder?.objectPlayerId ?? 0) || 0,
+    },
+    substitutions: [
+      ...orders.playerOrders.map(serializeEditableOrder),
+      ...(orders.manMarkingOrder
+        ? [serializeEditableOrder(orders.manMarkingOrder)]
+        : []),
+    ],
+  };
+};
 
 const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
   const midfield = ratings.ratingMidfield ?? 0;
@@ -3738,6 +3780,13 @@ export default function SeniorDashboard({
   >(null);
   const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
     useState<Record<number, string>>({});
+  const [opponentPlayersForSession, setOpponentPlayersForSession] = useState<
+    SeniorOpponentManMarkingPlayer[] | null
+  >(null);
+  const [opponentPlayersLoading, setOpponentPlayersLoading] = useState(false);
+  const [opponentPlayersError, setOpponentPlayersError] = useState<string | null>(
+    null
+  );
   const [devSimulateTacticalAssistant, setDevSimulateTacticalAssistant] =
     useState(false);
   const [devSimulatedTacticalAssistantLevel, setDevSimulatedTacticalAssistantLevel] =
@@ -3927,6 +3976,7 @@ export default function SeniorDashboard({
     matchId: number,
     mode: Exclude<SetBestLineupMode, "extraTime"> | null
   ) => {
+    seededSeniorEditableOrdersContextRef.current = null;
     setSeniorAiSubmitLockActive(true);
     setSeniorAiSubmitEnabledMatchId(matchId);
     setSeniorAiPreparedSubmissionMode(mode);
@@ -4071,6 +4121,7 @@ export default function SeniorDashboard({
   >(
     new Map()
   );
+  const opponentPlayersSessionRequestIdRef = useRef(0);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshAllRef = useRef<
@@ -9887,6 +9938,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
     typeof matchId === "number"
       ? seniorMatchesList.find((match) => Number(match.MatchID) === matchId) ?? null
       : null;
+  const activeOtherOrdersMatch = findSeniorMatchById(otherOrdersModalMatchId);
+  const activeOtherOrdersOpponentTeam = resolveOpponentTeam(
+    activeOtherOrdersMatch ?? undefined,
+    resolvedSeniorTeamId
+  );
   const isSeniorOtherOrdersMatchAttitudeEligible = (matchId: number | null) => {
     if (typeof matchId !== "number") return false;
     const match = findSeniorMatchById(matchId);
@@ -10345,6 +10401,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     const selectedOrderPlayerIds = [
       orders.captainPlayerId,
       orders.setPiecesPlayerId,
+      orders.manMarkingOrder?.subjectPlayerId,
       ...orders.penaltyTakerIds.filter((playerId) => playerId > 0),
     ].filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0);
     if (
@@ -10354,6 +10411,23 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ) {
       return messages.seniorOtherOrdersInvalidOwnPlayer;
     }
+    if (orders.manMarkingOrder) {
+      if (typeof orders.matchId !== "number") {
+        return messages.seniorOtherOrdersManMarkingNoOpponent;
+      }
+      if (
+        typeof orders.manMarkingOrder.subjectPlayerId !== "number" ||
+        !startingXiOrderPlayerIdSet.has(orders.manMarkingOrder.subjectPlayerId)
+      ) {
+        return messages.seniorOtherOrdersInvalidOwnPlayer;
+      }
+      if (
+        typeof orders.manMarkingOrder.objectPlayerId !== "number" ||
+        orders.manMarkingOrder.objectPlayerId <= 0
+      ) {
+        return messages.seniorOtherOrdersInvalidManMarkingTarget;
+      }
+    }
     for (const order of orders.playerOrders) {
       if (
         typeof order.subjectPlayerId !== "number" ||
@@ -10362,10 +10436,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
         return messages.seniorOtherOrdersInvalidOwnPlayer;
       }
       if (order.orderType === 4) {
-        if (typeof order.objectPlayerId !== "number" || order.objectPlayerId <= 0) {
-          return messages.seniorOtherOrdersInvalidManMarkingTarget;
-        }
-      } else if (order.orderType === 3) {
+        return messages.seniorOtherOrdersInvalidManMarkingTarget;
+      }
+      if (order.orderType === 3) {
         if (
           !startingXiOrderPlayerIdSet.has(order.subjectPlayerId) ||
           typeof order.objectPlayerId !== "number" ||
@@ -10392,6 +10465,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ): MatchOrdersLineupPayload => {
     const savedOrders = seniorEditableOrdersState;
     if (!savedOrders) return payload;
+    if (savedOrders.matchId === null) return payload;
     if (
       typeof savedOrders.matchId === "number" &&
       savedOrders.matchId > 0 &&
@@ -10438,7 +10512,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
             extraTimePreparedSubmission.matchId > 0
           ? extraTimePreparedSubmission.matchId
           : null;
-    if (generatedMatchId === null || loadedMatchId === generatedMatchId) return;
+    if (generatedMatchId === null) return;
     const seedKey = `${generatedMatchId}:${seniorAiPreparedSubmissionMode ?? "extraTime"}`;
     if (seededSeniorEditableOrdersContextRef.current === seedKey) return;
     const defaultPayload = buildLineupPayload(assignments, tacticType, {
@@ -10472,6 +10546,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOtherOrdersModalMatchId(null);
     setOtherOrdersDraft(null);
     setOtherOrdersValidationError(null);
+    opponentPlayersSessionRequestIdRef.current += 1;
+    setOpponentPlayersForSession(null);
+    setOpponentPlayersLoading(false);
+    setOpponentPlayersError(null);
   };
   const saveOtherOrdersEditor = () => {
     if (!otherOrdersDraft) return;
@@ -10489,6 +10567,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
     });
     closeOtherOrdersEditor();
   };
+
+  useEffect(() => {
+    opponentPlayersSessionRequestIdRef.current += 1;
+    setOpponentPlayersForSession(null);
+    setOpponentPlayersLoading(false);
+    setOpponentPlayersError(null);
+  }, [otherOrdersEditorOpen]);
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) {
@@ -10575,16 +10660,34 @@ function buildSeniorAiManMarkingReadySignature(params: {
     { value: -1, label: messages.seniorOtherOrdersRedCardIgnore },
     { value: 1, label: messages.seniorOtherOrdersRedCardMyPlayer },
     { value: 2, label: messages.seniorOtherOrdersRedCardOpponent },
-    { value: 3, label: messages.seniorOtherOrdersRedCardMyCentralDefender },
-    { value: 4, label: messages.seniorOtherOrdersRedCardMyMidfielder },
-    { value: 5, label: messages.seniorOtherOrdersRedCardMyForward },
-    { value: 6, label: messages.seniorOtherOrdersRedCardMyWingBack },
-    { value: 7, label: messages.seniorOtherOrdersRedCardMyWinger },
-    { value: 8, label: messages.seniorOtherOrdersRedCardOpponentCentralDefender },
-    { value: 9, label: messages.seniorOtherOrdersRedCardOpponentMidfielder },
-    { value: 10, label: messages.seniorOtherOrdersRedCardOpponentForward },
-    { value: 11, label: messages.seniorOtherOrdersRedCardOpponentWingBack },
-    { value: 12, label: messages.seniorOtherOrdersRedCardOpponentWinger },
+  ];
+  const seniorOtherOrdersNewPositionOptions = [
+    { value: -1, label: messages.seniorOtherOrdersNoPositionChange },
+    { value: 0, label: messages.posKeeperFull },
+    { value: 1, label: messages.lineupSlotRightWingBack },
+    { value: 2, label: messages.lineupSlotRightCentralDefender },
+    { value: 3, label: messages.lineupSlotCentralDefender },
+    { value: 4, label: messages.lineupSlotLeftCentralDefender },
+    { value: 5, label: messages.lineupSlotLeftWingBack },
+    { value: 6, label: messages.lineupSlotRightWinger },
+    { value: 7, label: messages.lineupSlotRightInnerMidfield },
+    { value: 8, label: messages.lineupSlotCentralInnerMidfield },
+    { value: 9, label: messages.lineupSlotLeftInnerMidfield },
+    { value: 10, label: messages.lineupSlotLeftWinger },
+    { value: 11, label: messages.lineupSlotRightForward },
+    { value: 12, label: messages.lineupSlotCentralForward },
+    { value: 13, label: messages.lineupSlotLeftForward },
+  ];
+  const seniorOtherOrdersNewBehaviourOptions = [
+    { value: -1, label: messages.seniorOtherOrdersNoBehaviourChange },
+    { value: 0, label: messages.seniorOtherOrdersBehaviourNormal },
+    { value: 1, label: messages.seniorOtherOrdersBehaviourOffensive },
+    { value: 2, label: messages.seniorOtherOrdersBehaviourDefensive },
+    { value: 3, label: messages.seniorOtherOrdersBehaviourTowardsMiddle },
+    { value: 4, label: messages.seniorOtherOrdersBehaviourTowardsWing },
+    { value: 5, label: messages.seniorOtherOrdersBehaviourExtraForward },
+    { value: 6, label: messages.seniorOtherOrdersBehaviourExtraInnerMidfield },
+    { value: 7, label: messages.seniorOtherOrdersBehaviourExtraDefender },
   ];
   const seniorOtherOrdersPlayerSetPiecesLabel = (player: SeniorOrderPlayerOption) =>
     Number.isFinite(player.setPiecesSkill)
@@ -10592,15 +10695,111 @@ function buildSeniorAiManMarkingReadySignature(params: {
       : player.name;
   const seniorOtherOrdersPlayerNameLabel = (player: SeniorOrderPlayerOption) =>
     player.name;
-  const seniorOtherOrdersPlayerName = (playerId: number | null) =>
-    typeof playerId === "number"
-      ? availableOrderPlayerOptions.find((player) => player.id === playerId)?.name ??
-        otherOrdersOpponentTargetNamesById[playerId] ??
-        String(playerId)
-      : messages.unknownShort;
+  const seniorOtherOrdersUnknownOpponentPlayerLabel = (playerId: number) =>
+    messages.seniorOtherOrdersUnknownOpponentPlayer.replace(
+      "{{playerId}}",
+      String(playerId)
+    );
+  const seniorOtherOrdersOpponentPlayerName = (playerId: number | null) => {
+    if (typeof playerId !== "number" || playerId <= 0) return messages.unknownShort;
+    return (
+      opponentPlayersForSession?.find((player) => player.playerId === playerId)?.name ??
+      otherOrdersOpponentTargetNamesById[playerId] ??
+      seniorOtherOrdersUnknownOpponentPlayerLabel(playerId)
+    );
+  };
+  const normalizeOpponentPlayersForManMarking = (
+    payload: SeniorOpponentPlayersResponse | null | undefined
+  ): SeniorOpponentManMarkingPlayer[] => {
+    const raw = payload?.data?.HattrickData?.Team?.PlayerList?.Player;
+    const rawPlayers = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    return rawPlayers
+      .map((player) => {
+        if (!player || typeof player !== "object") return null;
+        const playerNode = player as Record<string, unknown>;
+        const playerId = parseNumber(playerNode.PlayerID);
+        if (!playerId || playerId <= 0) return null;
+        const name =
+          formatPlayerName({
+            FirstName:
+              typeof playerNode.FirstName === "string" ? playerNode.FirstName : "",
+            NickName:
+              typeof playerNode.NickName === "string" && playerNode.NickName
+                ? playerNode.NickName
+                : undefined,
+            LastName:
+              typeof playerNode.LastName === "string" ? playerNode.LastName : "",
+          }) || seniorOtherOrdersUnknownOpponentPlayerLabel(playerId);
+        return { playerId, name };
+      })
+      .filter(
+        (player): player is SeniorOpponentManMarkingPlayer => Boolean(player)
+      )
+      .sort((left, right) => left.name.localeCompare(right.name));
+  };
+  const ensureOpponentPlayersForManMarking = async (force = false) => {
+    if (!force && (opponentPlayersForSession || opponentPlayersLoading)) return;
+    if (!activeOtherOrdersOpponentTeam) {
+      setOpponentPlayersError(messages.seniorOtherOrdersManMarkingNoOpponent);
+      return;
+    }
+
+    setOpponentPlayersLoading(true);
+    setOpponentPlayersError(null);
+    const requestId = opponentPlayersSessionRequestIdRef.current;
+    try {
+      const { response, payload } = await fetchChppJson<SeniorOpponentPlayersResponse>(
+        `/api/chpp/players?teamId=${activeOtherOrdersOpponentTeam.teamId}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(
+          payload?.details ??
+            payload?.error ??
+            messages.seniorOtherOrdersOpponentPlayersLoadError
+        );
+      }
+      const normalized = normalizeOpponentPlayersForManMarking(payload);
+      if (opponentPlayersSessionRequestIdRef.current !== requestId) return;
+      setOpponentPlayersForSession(normalized);
+      setOtherOrdersOpponentTargetNamesById((prev) => {
+        const next = { ...prev };
+        normalized.forEach((player) => {
+          next[player.playerId] = player.name;
+        });
+        return next;
+      });
+    } catch (error) {
+      if (opponentPlayersSessionRequestIdRef.current !== requestId) return;
+      setOpponentPlayersError(
+        error instanceof Error
+          ? error.message
+          : messages.seniorOtherOrdersOpponentPlayersLoadError
+      );
+    } finally {
+      if (opponentPlayersSessionRequestIdRef.current === requestId) {
+        setOpponentPlayersLoading(false);
+      }
+    }
+  };
+  const seniorOtherOrdersOpponentTargetOptions = (selectedPlayerId: number | null) => {
+    const options = [...(opponentPlayersForSession ?? [])];
+    if (
+      typeof selectedPlayerId === "number" &&
+      selectedPlayerId > 0 &&
+      !options.some((player) => player.playerId === selectedPlayerId)
+    ) {
+      options.unshift({
+        playerId: selectedPlayerId,
+        name:
+          otherOrdersOpponentTargetNamesById[selectedPlayerId] ??
+          seniorOtherOrdersUnknownOpponentPlayerLabel(selectedPlayerId),
+      });
+    }
+    return options;
+  };
   const seniorOtherOrdersDraftOrderKind = (order: SeniorEditablePlayerOrder) => {
     if (order.orderType === 3) return "swap";
-    if (order.orderType === 4) return "marking";
     return order.subjectPlayerId && order.subjectPlayerId === order.objectPlayerId
       ? "behaviour"
       : "substitution";
@@ -10608,7 +10807,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const seniorOtherOrdersOrderKindLabel = (kind: string) => {
     if (kind === "behaviour") return messages.seniorOtherOrdersBehaviourChangeLabel;
     if (kind === "swap") return messages.seniorOtherOrdersPositionSwapLabel;
-    if (kind === "marking") return messages.seniorOtherOrdersManMarkingOrderLabel;
     return messages.seniorOtherOrdersSubstitutionLabel;
   };
   const addSeniorOtherOrdersDraftOrder = () => {
@@ -15500,7 +15698,6 @@ const refreshDetailsForPlayers = async (
     assignments,
     behaviors,
     includeTournamentMatches,
-    loadedMatchId,
     seniorAiSubmitLockActive,
     seniorAiSubmitEnabledMatchId,
     seniorAiPreparedSubmissionMode,
@@ -18518,8 +18715,7 @@ const refreshDetailsForPlayers = async (
                     const subjectPlayerOptions =
                       kind === "substitution" ||
                       kind === "swap" ||
-                      kind === "behaviour" ||
-                      kind === "marking"
+                      kind === "behaviour"
                         ? startingXiOrderPlayerOptions
                         : availableOrderPlayerOptions;
                     const objectPlayerOptions =
@@ -18546,7 +18742,7 @@ const refreshDetailsForPlayers = async (
                           </strong>
                           <button
                             type="button"
-                            className={styles.lineupButtonSecondary}
+                            className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersDeleteOrderButton}`}
                             onClick={() =>
                               updateOtherOrdersDraft((draft) => ({
                                 ...draft,
@@ -18596,19 +18792,6 @@ const refreshDetailsForPlayers = async (
                                           SENIOR_ORDER_DEFAULT_BEHAVIOUR,
                                       };
                                     }
-                                    if (nextKind === "marking") {
-                                      return {
-                                        ...candidate,
-                                        orderType: 4,
-                                        subjectPlayerId:
-                                          candidate.subjectPlayerId !== null &&
-                                          startingXiOrderPlayerIdSet.has(
-                                            candidate.subjectPlayerId
-                                          )
-                                            ? candidate.subjectPlayerId
-                                            : null,
-                                      };
-                                    }
                                     if (nextKind === "behaviour") {
                                       const nextSubjectPlayerId =
                                         candidate.subjectPlayerId !== null &&
@@ -18653,9 +18836,6 @@ const refreshDetailsForPlayers = async (
                               <option value="swap">
                                 {messages.seniorOtherOrdersPositionSwapLabel}
                               </option>
-                              <option value="marking">
-                                {messages.seniorOtherOrdersManMarkingOrderLabel}
-                              </option>
                             </select>
                           </label>
                           <label>
@@ -18686,11 +18866,7 @@ const refreshDetailsForPlayers = async (
                             </select>
                           </label>
                           <label>
-                            <span>
-                              {kind === "marking"
-                                ? messages.seniorOtherOrdersMarkerLabel
-                                : messages.seniorOtherOrdersPlayerOutLabel}
-                            </span>
+                            <span>{messages.seniorOtherOrdersPlayerOutLabel}</span>
                             <select
                               className={styles.seniorOtherOrdersSelect}
                               value={order.subjectPlayerId ?? 0}
@@ -18722,70 +18898,36 @@ const refreshDetailsForPlayers = async (
                               ))}
                             </select>
                           </label>
-                          {kind === "marking" ? (
-                            <label>
-                              <span>{messages.seniorOtherOrdersTargetLabel}</span>
-                              <input
-                                className={styles.seniorOtherOrdersInput}
-                                type="number"
-                                min={0}
-                                value={order.objectPlayerId ?? ""}
-                                placeholder={messages.seniorOtherOrdersOpponentIdPlaceholder}
-                                onChange={(event) =>
-                                  updateOtherOrdersDraft((draft) => ({
-                                    ...draft,
-                                    source: "mixed",
-                                    playerOrders: draft.playerOrders.map((candidate) =>
-                                      candidate.id === order.id
-                                        ? {
-                                            ...candidate,
-                                            objectPlayerId:
-                                              Number(event.target.value) || null,
-                                          }
-                                        : candidate
-                                    ),
-                                  }))
-                                }
-                              />
-                              <small>
-                                {messages.seniorOtherOrdersCurrentTarget.replace(
-                                  "{{target}}",
-                                  seniorOtherOrdersPlayerName(order.objectPlayerId)
-                                )}
-                              </small>
-                            </label>
-                          ) : (
-                            <label>
-                              <span>{messages.seniorOtherOrdersPlayerInLabel}</span>
-                              <select
-                                className={styles.seniorOtherOrdersSelect}
-                                value={order.objectPlayerId ?? 0}
-                                disabled={kind === "behaviour"}
-                                onChange={(event) =>
-                                  updateOtherOrdersDraft((draft) => ({
-                                    ...draft,
-                                    source: "mixed",
-                                    playerOrders: draft.playerOrders.map((candidate) =>
-                                      candidate.id === order.id
-                                        ? {
-                                            ...candidate,
-                                            objectPlayerId:
-                                              Number(event.target.value) || null,
-                                          }
-                                        : candidate
-                                    ),
-                                  }))
-                                }
-                              >
-                                <option value={0}>{objectEmptyLabel}</option>
-                                {objectPlayerOptions.map((player) => (
-                                  <option key={player.id} value={player.id}>
-                                    {seniorOtherOrdersPlayerNameLabel(player)}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                          )}
+                          <label>
+                            <span>{messages.seniorOtherOrdersPlayerInLabel}</span>
+                            <select
+                              className={styles.seniorOtherOrdersSelect}
+                              value={order.objectPlayerId ?? 0}
+                              disabled={kind === "behaviour"}
+                              onChange={(event) =>
+                                updateOtherOrdersDraft((draft) => ({
+                                  ...draft,
+                                  source: "mixed",
+                                  playerOrders: draft.playerOrders.map((candidate) =>
+                                    candidate.id === order.id
+                                      ? {
+                                          ...candidate,
+                                          objectPlayerId:
+                                            Number(event.target.value) || null,
+                                        }
+                                      : candidate
+                                  ),
+                                }))
+                              }
+                            >
+                              <option value={0}>{objectEmptyLabel}</option>
+                              {objectPlayerOptions.map((player) => (
+                                <option key={player.id} value={player.id}>
+                                  {seniorOtherOrdersPlayerNameLabel(player)}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
                           <label>
                             <span>{messages.seniorOtherOrdersStandingLabel}</span>
                             <select
@@ -18835,6 +18977,13 @@ const refreshDetailsForPlayers = async (
                                   {option.label}
                                 </option>
                               ))}
+                              {!seniorOtherOrdersRedCardOptions.some(
+                                (option) => option.value === order.card
+                              ) ? (
+                                <option value={order.card}>
+                                  {messages.seniorOtherOrdersDeprecatedRedCardCriterion}
+                                </option>
+                              ) : null}
                             </select>
                           </label>
                           <label>
@@ -18857,12 +19006,9 @@ const refreshDetailsForPlayers = async (
                                 }))
                               }
                             >
-                              <option value={-1}>
-                                {messages.seniorOtherOrdersNoPositionChange}
-                              </option>
-                              {FIELD_SLOT_ORDER.map((slot, slotIndex) => (
-                                <option key={slot} value={slotIndex}>
-                                  {slot}
+                              {seniorOtherOrdersNewPositionOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
                                 </option>
                               ))}
                             </select>
@@ -18887,16 +19033,11 @@ const refreshDetailsForPlayers = async (
                                 }))
                               }
                             >
-                              <option value={-1}>
-                                {messages.seniorOtherOrdersNoBehaviourChange}
-                              </option>
-                              <option value={0}>{messages.seniorOtherOrdersNeutral}</option>
-                              <option value={1}>
-                                {messages.seniorOtherOrdersStyleDefensive}
-                              </option>
-                              <option value={2}>
-                                {messages.seniorOtherOrdersStyleOffensive}
-                              </option>
+                              {seniorOtherOrdersNewBehaviourOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
                             </select>
                           </label>
                         </div>
@@ -18909,6 +19050,175 @@ const refreshDetailsForPlayers = async (
                     {messages.seniorOtherOrdersPlayerOrdersNone}
                   </p>
                 ) : null}
+              </section>
+              <section
+                className={`${styles.seniorOtherOrdersSection} ${styles.seniorOtherOrdersSectionWide}`}
+              >
+                <div className={styles.seniorOtherOrdersSectionHeader}>
+                  <h3>{messages.seniorOtherOrdersManMarkingTitle}</h3>
+                  {otherOrdersDraft.manMarkingOrder ? (
+                    <button
+                      type="button"
+                      className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersDeleteOrderButton}`}
+                      onClick={() =>
+                        updateOtherOrdersDraft((draft) => ({
+                          ...draft,
+                          source: "mixed",
+                          manMarkingOrder: null,
+                        }))
+                      }
+                    >
+                      {messages.seniorOtherOrdersClear}
+                    </button>
+                  ) : null}
+                </div>
+                {!otherOrdersDraft.manMarkingOrder ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersManMarkingNone}
+                  </p>
+                ) : null}
+                <div className={styles.seniorOtherOrdersFormGrid}>
+                  <label>
+                    <span>{messages.seniorOtherOrdersMarkerLabel}</span>
+                    <select
+                      className={styles.seniorOtherOrdersSelect}
+                      value={otherOrdersDraft.manMarkingOrder?.subjectPlayerId ?? 0}
+                      onChange={(event) => {
+                        const nextMarkerId = Number(event.target.value) || null;
+                        updateOtherOrdersDraft((draft) => ({
+                          ...draft,
+                          source: "mixed",
+                          manMarkingOrder:
+                            nextMarkerId === null && !draft.manMarkingOrder?.objectPlayerId
+                              ? null
+                              : {
+                                  id:
+                                    draft.manMarkingOrder?.id ??
+                                    `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
+                                  orderType: 4,
+                                  minute:
+                                    draft.manMarkingOrder?.minute ??
+                                    SENIOR_ORDER_DEFAULT_MINUTE,
+                                  standing:
+                                    draft.manMarkingOrder?.standing ??
+                                    SENIOR_ORDER_DEFAULT_CONDITION,
+                                  card:
+                                    draft.manMarkingOrder?.card ??
+                                    SENIOR_ORDER_DEFAULT_CONDITION,
+                                  subjectPlayerId: nextMarkerId,
+                                  objectPlayerId:
+                                    draft.manMarkingOrder?.objectPlayerId ?? null,
+                                  newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+                                  newPositionBehaviour:
+                                    SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+                                },
+                        }));
+                      }}
+                    >
+                      <option value={0}>
+                        {startingXiOrderPlayerOptions.length === 0
+                          ? messages.seniorOtherOrdersNoStartingXiPlayers
+                          : messages.unknownShort}
+                      </option>
+                      {startingXiOrderPlayerOptions.map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {seniorOtherOrdersPlayerNameLabel(player)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>{messages.seniorOtherOrdersTargetLabel}</span>
+                    <select
+                      className={styles.seniorOtherOrdersSelect}
+                      value={otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? 0}
+                      disabled={!activeOtherOrdersOpponentTeam || opponentPlayersLoading}
+                      onFocus={() => {
+                        void ensureOpponentPlayersForManMarking();
+                      }}
+                      onPointerDown={() => {
+                        void ensureOpponentPlayersForManMarking();
+                      }}
+                      onMouseDown={() => {
+                        void ensureOpponentPlayersForManMarking();
+                      }}
+                      onChange={(event) => {
+                        const nextTargetId = Number(event.target.value) || null;
+                        updateOtherOrdersDraft((draft) => ({
+                          ...draft,
+                          source: "mixed",
+                          manMarkingOrder:
+                            nextTargetId === null && !draft.manMarkingOrder?.subjectPlayerId
+                              ? null
+                              : {
+                                  id:
+                                    draft.manMarkingOrder?.id ??
+                                    `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
+                                  orderType: 4,
+                                  minute:
+                                    draft.manMarkingOrder?.minute ??
+                                    SENIOR_ORDER_DEFAULT_MINUTE,
+                                  standing:
+                                    draft.manMarkingOrder?.standing ??
+                                    SENIOR_ORDER_DEFAULT_CONDITION,
+                                  card:
+                                    draft.manMarkingOrder?.card ??
+                                    SENIOR_ORDER_DEFAULT_CONDITION,
+                                  subjectPlayerId:
+                                    draft.manMarkingOrder?.subjectPlayerId ?? null,
+                                  objectPlayerId: nextTargetId,
+                                  newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+                                  newPositionBehaviour:
+                                    SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+                                },
+                        }));
+                      }}
+                    >
+                      <option value={0}>
+                        {opponentPlayersLoading
+                          ? messages.seniorOtherOrdersOpponentPlayersLoading
+                          : messages.seniorOtherOrdersManMarkingTargetPlaceholder}
+                      </option>
+                      {seniorOtherOrdersOpponentTargetOptions(
+                        otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
+                      ).map((player) => (
+                        <option key={player.playerId} value={player.playerId}>
+                          {player.name}
+                        </option>
+                      ))}
+                    </select>
+                    {!activeOtherOrdersOpponentTeam ? (
+                      <small className={styles.seniorOtherOrdersInlineStatus}>
+                        {messages.seniorOtherOrdersManMarkingNoOpponent}
+                      </small>
+                    ) : null}
+                    {opponentPlayersError ? (
+                      <small className={styles.seniorOtherOrdersErrorText}>
+                        {opponentPlayersError}
+                        <button
+                          type="button"
+                          className={styles.seniorOtherOrdersInlineButton}
+                          onClick={() => {
+                            setOpponentPlayersForSession(null);
+                            void ensureOpponentPlayersForManMarking(true);
+                          }}
+                        >
+                          {messages.seniorOtherOrdersOpponentPlayersRetry}
+                        </button>
+                      </small>
+                    ) : null}
+                    {otherOrdersDraft.manMarkingOrder?.objectPlayerId ? (
+                      <small>
+                        {messages.seniorOtherOrdersCurrentTarget.replace(
+                          "{{target}}",
+                          seniorOtherOrdersOpponentPlayerName(
+                            otherOrdersDraft.manMarkingOrder.objectPlayerId
+                          )
+                        )}
+                      </small>
+                    ) : null}
+                  </label>
+                </div>
               </section>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersPenaltyTakersTitle}</h3>

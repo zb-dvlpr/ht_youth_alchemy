@@ -49,6 +49,32 @@ export function resolveMatchSourceSystem(
   return fallbackSourceSystem;
 }
 
+export function resolveOpponentTeam(
+  match: MatchLike | undefined,
+  teamId: number | null
+): { teamId: number; teamName: string } | null {
+  if (!match || typeof teamId !== "number" || !Number.isFinite(teamId) || teamId <= 0) {
+    return null;
+  }
+  const homeTeamId = Number(match.HomeTeam?.HomeTeamID);
+  const awayTeamId = Number(match.AwayTeam?.AwayTeamID);
+  if (Number.isFinite(homeTeamId) && homeTeamId === teamId) {
+    if (!Number.isFinite(awayTeamId) || awayTeamId <= 0) return null;
+    return {
+      teamId: awayTeamId,
+      teamName: match.AwayTeam?.AwayTeamName ?? "",
+    };
+  }
+  if (Number.isFinite(awayTeamId) && awayTeamId === teamId) {
+    if (!Number.isFinite(homeTeamId) || homeTeamId <= 0) return null;
+    return {
+      teamId: homeTeamId,
+      teamName: match.HomeTeam?.HomeTeamName ?? "",
+    };
+  }
+  return null;
+}
+
 export function filterVisibleMatches<MatchType extends MatchLike>(
   matches: MatchType[],
   includeTournamentMatches: boolean

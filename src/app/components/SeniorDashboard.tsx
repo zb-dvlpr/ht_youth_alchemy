@@ -3778,6 +3778,7 @@ export default function SeniorDashboard({
   const [otherOrdersValidationError, setOtherOrdersValidationError] = useState<
     string | null
   >(null);
+  const [otherOrdersFlashActive, setOtherOrdersFlashActive] = useState(false);
   const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
     useState<Record<number, string>>({});
   const [opponentPlayersForSession, setOpponentPlayersForSession] = useState<
@@ -4125,6 +4126,8 @@ export default function SeniorDashboard({
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
+  const previousStartingXiCompleteRef = useRef(false);
+  const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshAllRef = useRef<
@@ -4392,6 +4395,42 @@ export default function SeniorDashboard({
       }
     },
     [dataStorageKey, buildSeniorDataPersistencePayload]
+  );
+
+  const startingXiComplete = useMemo(() => {
+    const startingPlayerIds = FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+      (playerId): playerId is number =>
+        typeof playerId === "number" && Number.isFinite(playerId) && playerId > 0
+    );
+    return new Set(startingPlayerIds).size === 11;
+  }, [assignments]);
+
+  useEffect(() => {
+    const wasComplete = previousStartingXiCompleteRef.current;
+
+    if (!wasComplete && startingXiComplete) {
+      setOtherOrdersFlashActive(true);
+
+      if (otherOrdersFlashTimeoutRef.current !== null) {
+        window.clearTimeout(otherOrdersFlashTimeoutRef.current);
+      }
+
+      otherOrdersFlashTimeoutRef.current = window.setTimeout(() => {
+        setOtherOrdersFlashActive(false);
+        otherOrdersFlashTimeoutRef.current = null;
+      }, 5000);
+    }
+
+    previousStartingXiCompleteRef.current = startingXiComplete;
+  }, [startingXiComplete]);
+
+  useEffect(
+    () => () => {
+      if (otherOrdersFlashTimeoutRef.current !== null) {
+        window.clearTimeout(otherOrdersFlashTimeoutRef.current);
+      }
+    },
+    []
   );
 
   useEffect(() => {
@@ -10699,7 +10738,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
       <span>
         <button
           type="button"
-          className={styles.lineupButtonSecondary}
+          className={`${styles.lineupButtonSecondary} ${
+            otherOrdersFlashActive ? styles.otherOrdersFlash : ""
+          }`}
           disabled={otherOrdersButtonDisabled}
           onClick={() => {
             setOtherOrdersModalMatchId(activeOtherOrdersMatchId);
@@ -10739,6 +10780,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
     { value: -1, label: messages.seniorOtherOrdersRedCardIgnore },
     { value: 1, label: messages.seniorOtherOrdersRedCardMyPlayer },
     { value: 2, label: messages.seniorOtherOrdersRedCardOpponent },
+    { value: 11, label: messages.seniorOtherOrdersRedCardMyCentralDefender },
+    { value: 12, label: messages.seniorOtherOrdersRedCardMyMidfielder },
+    { value: 13, label: messages.seniorOtherOrdersRedCardMyForward },
+    { value: 14, label: messages.seniorOtherOrdersRedCardMyWingBack },
+    { value: 15, label: messages.seniorOtherOrdersRedCardMyWinger },
+    { value: 21, label: messages.seniorOtherOrdersRedCardOpponentCentralDefender },
+    { value: 22, label: messages.seniorOtherOrdersRedCardOpponentMidfielder },
+    { value: 23, label: messages.seniorOtherOrdersRedCardOpponentForward },
+    { value: 24, label: messages.seniorOtherOrdersRedCardOpponentWingBack },
+    { value: 25, label: messages.seniorOtherOrdersRedCardOpponentWinger },
   ];
   const seniorOtherOrdersNewPositionOptions = [
     { value: -1, label: messages.seniorOtherOrdersNoPositionChange },

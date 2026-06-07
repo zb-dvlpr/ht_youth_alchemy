@@ -11961,6 +11961,21 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   transform: translateY(-1px);
 }
 
+.otherOrdersFlash {
+  animation: starSelectionFlash 0.72s ease-in-out infinite;
+  z-index: 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otherOrdersFlash {
+    animation: none;
+    background: #fff4c2;
+    border: 1px solid #f2d06b;
+    color: #8a5a00;
+    box-shadow: 0 0 0 3px rgba(255, 214, 78, 0.45);
+  }
+}
+
 .optimizerSection {
   margin-top: 12px;
 }

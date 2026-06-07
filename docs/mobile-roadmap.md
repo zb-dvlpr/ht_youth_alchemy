@@ -67,6 +67,7 @@ Last updated: 2026-05-18
   - [x] Added a mobile launcher Help submenu for Manual, Bug report, and Feature request, with on-demand manual table of contents access.
   - [x] Added bottom Manual entries to all mobile floating dropdowns.
   - [x] Added a mobile Premium pill to the launcher header and mobile tool headers when a premium license is active.
+  - [x] Compacted senior Other Orders penalty taker rows so mobile keeps selector, Up, and Clear controls on one line.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
   - [x] Added default mobile fallbacks so Youth and Senior reopen on Player list and Club Chronicle reopens on a valid panel instead of blank states.
   - [x] Hardened Club Chronicle mobile restore so legacy blank detail states automatically recover to an enabled panel on refresh.

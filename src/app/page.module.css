@@ -11366,6 +11366,22 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
     grid-template-columns: 1fr;
   }
 
+  .seniorOtherOrdersEditableList li.seniorOtherOrdersPenaltyRow {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
+  }
+
+  .seniorOtherOrdersPenaltyRow select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .seniorOtherOrdersPenaltyRow button {
+    min-width: 44px;
+    width: auto;
+    white-space: nowrap;
+  }
+
   .seniorOtherOrdersTableWrap {
     display: none;
   }

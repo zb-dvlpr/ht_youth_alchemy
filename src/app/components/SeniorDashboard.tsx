@@ -19407,7 +19407,10 @@ const refreshDetailsForPlayers = async (
                 ) : null}
                 <ol className={styles.seniorOtherOrdersEditableList}>
                   {Array.from({ length: 11 }, (_, index) => (
-                    <li key={`penalty-${index}`}>
+                    <li
+                      key={`penalty-${index}`}
+                      className={styles.seniorOtherOrdersPenaltyRow}
+                    >
                       <select
                         className={styles.seniorOtherOrdersSelect}
                         value={otherOrdersDraft.penaltyTakerIds[index] ?? 0}

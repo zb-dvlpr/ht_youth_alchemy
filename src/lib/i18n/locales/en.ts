@@ -1434,6 +1434,7 @@ export const messagesEn: Messages = {
     seniorOtherOrdersDevTacticalAssistantLevel:
       "Simulated Tactical Assistant level: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Player orders",
+    seniorOtherOrdersPlayerOrdersNone: "No player orders yet.",
     seniorOtherOrdersPlayerOrdersCounter: "Player orders: {{count}} / {{max}}",
     seniorOtherOrdersAddOrder: "+ Add order",
     seniorOtherOrdersDeleteOrder: "Delete",

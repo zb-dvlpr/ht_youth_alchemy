@@ -898,6 +898,7 @@ export const messagesPl: Messages = {
   seniorOtherOrdersDevTacticalAssistantLevel:
     "Symulowany poziom asystenta taktycznego: {{level}}",
   seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
+  seniorOtherOrdersPlayerOrdersNone: "Brak polecen dla graczy.",
   seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
   seniorOtherOrdersAddOrder: "+ Anweisung hinzufuegen",
   seniorOtherOrdersDeleteOrder: "Loeschen",

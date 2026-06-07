@@ -10605,6 +10605,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const addSeniorOtherOrdersDraftOrder = () => {
     updateOtherOrdersDraft((draft) => {
       if (draft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders) return draft;
+      const canAddSubstitution =
+        startingXiOrderPlayerOptions.length > 0 && benchOrderPlayerOptions.length > 0;
+      const canAddSwap = startingXiOrderPlayerOptions.length >= 2;
+      const orderType = canAddSubstitution ? 1 : 3;
       return {
         ...draft,
         source: "mixed",
@@ -10612,12 +10616,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
           ...draft.playerOrders,
           {
             id: `manual-${draft.matchId}-${Date.now()}`,
-            orderType: 1,
+            orderType,
             minute: 70,
             standing: SENIOR_ORDER_DEFAULT_CONDITION,
             card: SENIOR_ORDER_DEFAULT_CONDITION,
-            subjectPlayerId: null,
-            objectPlayerId: null,
+            subjectPlayerId: startingXiOrderPlayerOptions[0]?.id ?? null,
+            objectPlayerId: canAddSubstitution
+              ? benchOrderPlayerOptions[0]?.id ?? null
+              : canAddSwap
+                ? startingXiOrderPlayerOptions[1]?.id ?? null
+                : null,
             newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
             newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
           },
@@ -18447,9 +18455,27 @@ const refreshDetailsForPlayers = async (
                       .replace("{{max}}", String(seniorOtherOrdersMaxPlayerOrders))}
                   </span>
                 </div>
-                {availableOrderPlayerOptions.length === 0 ? (
+                <div className={styles.seniorOtherOrdersSectionActions}>
+                  <button
+                    type="button"
+                    className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersAddOrderButton}`}
+                    disabled={
+                      startingXiOrderPlayerOptions.length === 0 ||
+                      otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders
+                    }
+                    onClick={addSeniorOtherOrdersDraftOrder}
+                  >
+                    {messages.seniorOtherOrdersAddOrder}
+                  </button>
+                </div>
+                {startingXiOrderPlayerOptions.length === 0 ? (
                   <p className={styles.seniorOtherOrdersEmpty}>
                     {messages.seniorOtherOrdersNoLineupPlayers}
+                  </p>
+                ) : null}
+                {otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders ? (
+                  <p className={styles.seniorOtherOrdersEmpty}>
+                    {messages.seniorOtherOrdersOrderLimitReached}
                   </p>
                 ) : null}
                 <div className={styles.seniorOtherOrdersCardListEditable}>
@@ -18846,23 +18872,7 @@ const refreshDetailsForPlayers = async (
                 </div>
                 {otherOrdersDraft.playerOrders.length === 0 ? (
                   <p className={styles.seniorOtherOrdersEmpty}>
-                    {messages.seniorOtherOrdersSubstitutionsNone}
-                  </p>
-                ) : null}
-                <button
-                  type="button"
-                  className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersAddOrderButton}`}
-                  disabled={
-                    availableOrderPlayerOptions.length === 0 ||
-                    otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders
-                  }
-                  onClick={addSeniorOtherOrdersDraftOrder}
-                >
-                  {messages.seniorOtherOrdersAddOrder}
-                </button>
-                {otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders ? (
-                  <p className={styles.seniorOtherOrdersEmpty}>
-                    {messages.seniorOtherOrdersOrderLimitReached}
+                    {messages.seniorOtherOrdersPlayerOrdersNone}
                   </p>
                 ) : null}
               </section>

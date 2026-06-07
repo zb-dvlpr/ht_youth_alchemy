@@ -1492,6 +1492,7 @@ export const messagesIt: Messages = {
     seniorOtherOrdersDevTacticalAssistantLevel:
       "Livello assistente tattico simulato: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Ordres des joueurs",
+    seniorOtherOrdersPlayerOrdersNone: "Nessun ordine giocatore ancora.",
     seniorOtherOrdersPlayerOrdersCounter: "Ordres des joueurs : {{count}} / {{max}}",
     seniorOtherOrdersAddOrder: "+ Ajouter un ordre",
     seniorOtherOrdersDeleteOrder: "Supprimer",

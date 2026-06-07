@@ -1477,6 +1477,7 @@ export const messagesSv: Messages = {
     seniorOtherOrdersDevTacticalAssistantLevel:
       "Simulerad taktisk assistent-niva: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Spieleranweisungen",
+    seniorOtherOrdersPlayerOrdersNone: "Inga spelarorder annu.",
     seniorOtherOrdersPlayerOrdersCounter: "Spieleranweisungen: {{count}} / {{max}}",
     seniorOtherOrdersAddOrder: "+ Anweisung hinzufuegen",
     seniorOtherOrdersDeleteOrder: "Loeschen",

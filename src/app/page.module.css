@@ -10647,6 +10647,14 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #7a6a56;
 }
 
+.seniorOtherOrdersSectionActions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .seniorOtherOrdersFormGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

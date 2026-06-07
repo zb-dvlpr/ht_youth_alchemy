@@ -1212,6 +1212,7 @@ export type Messages = {
   seniorOtherOrdersOpponentPlayersLoading: string;
   seniorOtherOrdersOpponentPlayersLoadError: string;
   seniorOtherOrdersOpponentPlayersRetry: string;
+  seniorOtherOrdersOpponentPlayersNone: string;
   seniorOtherOrdersManMarkingTargetPlaceholder: string;
   seniorOtherOrdersUnknownOpponentPlayer: string;
   seniorOtherOrdersNewPositionLabel: string;

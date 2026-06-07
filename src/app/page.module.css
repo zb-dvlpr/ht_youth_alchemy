@@ -10733,6 +10733,82 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   padding: 0;
 }
 
+.seniorOtherOrdersCombobox {
+  position: relative;
+  min-width: 0;
+}
+
+.seniorOtherOrdersComboboxButton {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d6c6b1;
+  border-radius: 6px;
+  background: #fff;
+  color: #3f352c;
+  padding: 7px 28px 7px 8px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+
+.seniorOtherOrdersComboboxButton::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #5d5245;
+  transform: translateY(-50%);
+}
+
+.seniorOtherOrdersComboboxMenu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 2px;
+  max-height: min(280px, 45vh);
+  overflow-y: auto;
+  border: 1px solid #c8b8a3;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(61, 45, 28, 0.18);
+  padding: 6px;
+}
+
+.seniorOtherOrdersComboboxOption {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3f352c;
+  padding: 8px 9px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.seniorOtherOrdersComboboxOption:hover,
+.seniorOtherOrdersComboboxOption[aria-selected="true"] {
+  background: #f3eadc;
+}
+
+.seniorOtherOrdersComboboxStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #6f5f4d;
+  padding: 8px 9px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .seniorOtherOrdersRange {
   width: 100%;
 }

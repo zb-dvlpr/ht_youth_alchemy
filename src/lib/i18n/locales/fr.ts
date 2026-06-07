@@ -1545,6 +1545,7 @@ export const messagesFr: Messages = {
     seniorOtherOrdersOpponentPlayersLoadError:
       "Impossible de charger les joueurs adverses.",
     seniorOtherOrdersOpponentPlayersRetry: "Reessayer",
+    seniorOtherOrdersOpponentPlayersNone: "Aucun joueur adverse trouve.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Choisir une cible",
     seniorOtherOrdersUnknownOpponentPlayer: "Joueur {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "Nouvelle position",

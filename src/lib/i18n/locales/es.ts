@@ -1547,6 +1547,7 @@ export const messagesEs: Messages = {
     seniorOtherOrdersOpponentPlayersLoadError:
       "No se pudieron cargar los jugadores rivales.",
     seniorOtherOrdersOpponentPlayersRetry: "Reintentar",
+    seniorOtherOrdersOpponentPlayersNone: "No se encontraron jugadores rivales.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Elegir objetivo",
     seniorOtherOrdersUnknownOpponentPlayer: "Jugador {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "Nouvelle position",

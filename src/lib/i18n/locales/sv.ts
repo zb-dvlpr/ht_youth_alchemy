@@ -1536,6 +1536,7 @@ export const messagesSv: Messages = {
     seniorOtherOrdersOpponentPlayersLoadError:
       "Kunde inte ladda motstandarspelare.",
     seniorOtherOrdersOpponentPlayersRetry: "Forsok igen",
+    seniorOtherOrdersOpponentPlayersNone: "Inga motstandarspelare hittades.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Valj mal",
     seniorOtherOrdersUnknownOpponentPlayer: "Spelare {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "Neue Position",

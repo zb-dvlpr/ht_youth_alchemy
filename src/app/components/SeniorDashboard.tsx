@@ -3787,6 +3787,8 @@ export default function SeniorDashboard({
   const [opponentPlayersError, setOpponentPlayersError] = useState<string | null>(
     null
   );
+  const [manMarkingTargetDropdownOpen, setManMarkingTargetDropdownOpen] =
+    useState(false);
   const [devSimulateTacticalAssistant, setDevSimulateTacticalAssistant] =
     useState(false);
   const [devSimulatedTacticalAssistantLevel, setDevSimulatedTacticalAssistantLevel] =
@@ -4122,6 +4124,7 @@ export default function SeniorDashboard({
     new Map()
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
+  const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshAllRef = useRef<
@@ -10550,6 +10553,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOpponentPlayersForSession(null);
     setOpponentPlayersLoading(false);
     setOpponentPlayersError(null);
+    setManMarkingTargetDropdownOpen(false);
   };
   const saveOtherOrdersEditor = () => {
     if (!otherOrdersDraft) return;
@@ -10573,7 +10577,24 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOpponentPlayersForSession(null);
     setOpponentPlayersLoading(false);
     setOpponentPlayersError(null);
+    setManMarkingTargetDropdownOpen(false);
   }, [otherOrdersEditorOpen]);
+
+  useEffect(() => {
+    if (!manMarkingTargetDropdownOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        manMarkingTargetDropdownRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setManMarkingTargetDropdownOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [manMarkingTargetDropdownOpen]);
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) {
@@ -10797,6 +10818,35 @@ function buildSeniorAiManMarkingReadySignature(params: {
       });
     }
     return options;
+  };
+  const updateSeniorOtherOrdersManMarkingTarget = (nextTargetId: number | null) => {
+    updateOtherOrdersDraft((draft) => ({
+      ...draft,
+      source: "mixed",
+      manMarkingOrder:
+        nextTargetId === null && !draft.manMarkingOrder?.subjectPlayerId
+          ? null
+          : {
+              id:
+                draft.manMarkingOrder?.id ??
+                `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
+              orderType: 4,
+              minute: draft.manMarkingOrder?.minute ?? SENIOR_ORDER_DEFAULT_MINUTE,
+              standing:
+                draft.manMarkingOrder?.standing ?? SENIOR_ORDER_DEFAULT_CONDITION,
+              card: draft.manMarkingOrder?.card ?? SENIOR_ORDER_DEFAULT_CONDITION,
+              subjectPlayerId: draft.manMarkingOrder?.subjectPlayerId ?? null,
+              objectPlayerId: nextTargetId,
+              newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+              newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+            },
+    }));
+  };
+  const openSeniorOtherOrdersManMarkingTargetDropdown = () => {
+    setManMarkingTargetDropdownOpen(true);
+    if (activeOtherOrdersOpponentTeam) {
+      void ensureOpponentPlayersForManMarking();
+    }
   };
   const seniorOtherOrdersDraftOrderKind = (order: SeniorEditablePlayerOrder) => {
     if (order.orderType === 3) return "swap";
@@ -19067,6 +19117,7 @@ const refreshDetailsForPlayers = async (
                           manMarkingOrder: null,
                         }))
                       }
+                      onPointerDown={() => setManMarkingTargetDropdownOpen(false)}
                     >
                       {messages.seniorOtherOrdersClear}
                     </button>
@@ -19129,82 +19180,96 @@ const refreshDetailsForPlayers = async (
                   </label>
                   <label>
                     <span>{messages.seniorOtherOrdersTargetLabel}</span>
-                    <select
-                      className={styles.seniorOtherOrdersSelect}
-                      value={otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? 0}
-                      disabled={!activeOtherOrdersOpponentTeam || opponentPlayersLoading}
-                      onFocus={() => {
-                        void ensureOpponentPlayersForManMarking();
-                      }}
-                      onPointerDown={() => {
-                        void ensureOpponentPlayersForManMarking();
-                      }}
-                      onMouseDown={() => {
-                        void ensureOpponentPlayersForManMarking();
-                      }}
-                      onChange={(event) => {
-                        const nextTargetId = Number(event.target.value) || null;
-                        updateOtherOrdersDraft((draft) => ({
-                          ...draft,
-                          source: "mixed",
-                          manMarkingOrder:
-                            nextTargetId === null && !draft.manMarkingOrder?.subjectPlayerId
-                              ? null
-                              : {
-                                  id:
-                                    draft.manMarkingOrder?.id ??
-                                    `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
-                                  orderType: 4,
-                                  minute:
-                                    draft.manMarkingOrder?.minute ??
-                                    SENIOR_ORDER_DEFAULT_MINUTE,
-                                  standing:
-                                    draft.manMarkingOrder?.standing ??
-                                    SENIOR_ORDER_DEFAULT_CONDITION,
-                                  card:
-                                    draft.manMarkingOrder?.card ??
-                                    SENIOR_ORDER_DEFAULT_CONDITION,
-                                  subjectPlayerId:
-                                    draft.manMarkingOrder?.subjectPlayerId ?? null,
-                                  objectPlayerId: nextTargetId,
-                                  newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
-                                  newPositionBehaviour:
-                                    SENIOR_ORDER_DEFAULT_BEHAVIOUR,
-                                },
-                        }));
-                      }}
+                    <div
+                      className={styles.seniorOtherOrdersCombobox}
+                      ref={manMarkingTargetDropdownRef}
                     >
-                      <option value={0}>
-                        {opponentPlayersLoading
-                          ? messages.seniorOtherOrdersOpponentPlayersLoading
+                      <button
+                        type="button"
+                        className={styles.seniorOtherOrdersComboboxButton}
+                        onClick={openSeniorOtherOrdersManMarkingTargetDropdown}
+                        aria-haspopup="listbox"
+                        aria-expanded={manMarkingTargetDropdownOpen}
+                      >
+                        {otherOrdersDraft.manMarkingOrder?.objectPlayerId
+                          ? seniorOtherOrdersOpponentPlayerName(
+                              otherOrdersDraft.manMarkingOrder.objectPlayerId
+                            )
                           : messages.seniorOtherOrdersManMarkingTargetPlaceholder}
-                      </option>
-                      {seniorOtherOrdersOpponentTargetOptions(
-                        otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
-                      ).map((player) => (
-                        <option key={player.playerId} value={player.playerId}>
-                          {player.name}
-                        </option>
-                      ))}
-                    </select>
+                      </button>
+                      {manMarkingTargetDropdownOpen ? (
+                        <div
+                          className={styles.seniorOtherOrdersComboboxMenu}
+                          role="listbox"
+                        >
+                          {!activeOtherOrdersOpponentTeam ? (
+                            <div className={styles.seniorOtherOrdersComboboxStatus}>
+                              {messages.seniorOtherOrdersManMarkingNoOpponent}
+                            </div>
+                          ) : null}
+                          {opponentPlayersLoading ? (
+                            <div className={styles.seniorOtherOrdersComboboxStatus}>
+                              <span className={styles.spinner} aria-hidden="true" />
+                              <span>
+                                {messages.seniorOtherOrdersOpponentPlayersLoading}
+                              </span>
+                            </div>
+                          ) : null}
+                          {opponentPlayersError ? (
+                            <div className={styles.seniorOtherOrdersComboboxStatus}>
+                              <span>{opponentPlayersError}</span>
+                              <button
+                                type="button"
+                                className={styles.seniorOtherOrdersInlineButton}
+                                onClick={() => {
+                                  setOpponentPlayersForSession(null);
+                                  void ensureOpponentPlayersForManMarking(true);
+                                }}
+                              >
+                                {messages.seniorOtherOrdersOpponentPlayersRetry}
+                              </button>
+                            </div>
+                          ) : null}
+                          {!opponentPlayersLoading &&
+                          !opponentPlayersError &&
+                          activeOtherOrdersOpponentTeam &&
+                          seniorOtherOrdersOpponentTargetOptions(
+                            otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
+                          ).length === 0 ? (
+                            <div className={styles.seniorOtherOrdersComboboxStatus}>
+                              {messages.seniorOtherOrdersOpponentPlayersNone}
+                            </div>
+                          ) : null}
+                          {!opponentPlayersLoading && !opponentPlayersError
+                            ? seniorOtherOrdersOpponentTargetOptions(
+                                otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
+                              ).map((player) => (
+                                <button
+                                  key={player.playerId}
+                                  type="button"
+                                  role="option"
+                                  className={styles.seniorOtherOrdersComboboxOption}
+                                  aria-selected={
+                                    player.playerId ===
+                                    otherOrdersDraft.manMarkingOrder?.objectPlayerId
+                                  }
+                                  onClick={() => {
+                                    updateSeniorOtherOrdersManMarkingTarget(
+                                      player.playerId
+                                    );
+                                    setManMarkingTargetDropdownOpen(false);
+                                  }}
+                                >
+                                  {player.name}
+                                </button>
+                              ))
+                            : null}
+                        </div>
+                      ) : null}
+                    </div>
                     {!activeOtherOrdersOpponentTeam ? (
                       <small className={styles.seniorOtherOrdersInlineStatus}>
                         {messages.seniorOtherOrdersManMarkingNoOpponent}
-                      </small>
-                    ) : null}
-                    {opponentPlayersError ? (
-                      <small className={styles.seniorOtherOrdersErrorText}>
-                        {opponentPlayersError}
-                        <button
-                          type="button"
-                          className={styles.seniorOtherOrdersInlineButton}
-                          onClick={() => {
-                            setOpponentPlayersForSession(null);
-                            void ensureOpponentPlayersForManMarking(true);
-                          }}
-                        >
-                          {messages.seniorOtherOrdersOpponentPlayersRetry}
-                        </button>
                       </small>
                     ) : null}
                     {otherOrdersDraft.manMarkingOrder?.objectPlayerId ? (

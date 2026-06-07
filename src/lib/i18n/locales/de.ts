@@ -1529,6 +1529,7 @@ export const messagesDe: Messages = {
     seniorOtherOrdersOpponentPlayersLoadError:
       "Gegnerische Spieler konnten nicht geladen werden.",
     seniorOtherOrdersOpponentPlayersRetry: "Erneut versuchen",
+    seniorOtherOrdersOpponentPlayersNone: "Keine gegnerischen Spieler gefunden.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Ziel waehlen",
     seniorOtherOrdersUnknownOpponentPlayer: "Spieler {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "Neue Position",

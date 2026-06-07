@@ -1499,6 +1499,7 @@ export const messagesEn: Messages = {
     seniorOtherOrdersOpponentPlayersLoading: "Loading opponent players...",
     seniorOtherOrdersOpponentPlayersLoadError: "Unable to load opponent players.",
     seniorOtherOrdersOpponentPlayersRetry: "Retry",
+    seniorOtherOrdersOpponentPlayersNone: "No opponent players found.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Choose target",
     seniorOtherOrdersUnknownOpponentPlayer: "Player {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "New position",

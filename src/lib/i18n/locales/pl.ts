@@ -957,6 +957,7 @@ export const messagesPl: Messages = {
   seniorOtherOrdersOpponentPlayersLoadError:
     "Nie udalo sie zaladowac zawodnikow rywala.",
   seniorOtherOrdersOpponentPlayersRetry: "Sprobuj ponownie",
+  seniorOtherOrdersOpponentPlayersNone: "Nie znaleziono zawodnikow rywala.",
   seniorOtherOrdersManMarkingTargetPlaceholder: "Wybierz cel",
   seniorOtherOrdersUnknownOpponentPlayer: "Zawodnik {{playerId}}",
   seniorOtherOrdersNewPositionLabel: "Neue Position",

@@ -1550,6 +1550,7 @@ export const messagesPt: Messages = {
     seniorOtherOrdersOpponentPlayersLoadError:
       "Nao foi possivel carregar os jogadores adversarios.",
     seniorOtherOrdersOpponentPlayersRetry: "Tentar novamente",
+    seniorOtherOrdersOpponentPlayersNone: "Nenhum jogador adversario encontrado.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Escolher alvo",
     seniorOtherOrdersUnknownOpponentPlayer: "Jogador {{playerId}}",
     seniorOtherOrdersNewPositionLabel: "Nouvelle position",

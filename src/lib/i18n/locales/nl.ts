@@ -963,6 +963,7 @@ export const messagesNl: Messages = {
   seniorOtherOrdersOpponentPlayersLoadError:
     "Kan tegenstanders niet laden.",
   seniorOtherOrdersOpponentPlayersRetry: "Opnieuw proberen",
+  seniorOtherOrdersOpponentPlayersNone: "Geen tegenstanders gevonden.",
   seniorOtherOrdersManMarkingTargetPlaceholder: "Kies doelwit",
   seniorOtherOrdersUnknownOpponentPlayer: "Speler {{playerId}}",
   seniorOtherOrdersNewPositionLabel: "Neue Position",

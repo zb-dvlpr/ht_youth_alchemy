@@ -1167,6 +1167,8 @@ export type Messages = {
   seniorOtherOrdersInvalidManMarkingTarget: string;
   seniorOtherOrdersWrongMatchContext: string;
   seniorOtherOrdersNoLineupPlayers: string;
+  seniorOtherOrdersNoStartingXiPlayers: string;
+  seniorOtherOrdersNoBenchPlayers: string;
   seniorOtherOrdersAnyMinute: string;
   seniorOtherOrdersMinuteAfter: string;
   seniorOtherOrdersHalftime: string;

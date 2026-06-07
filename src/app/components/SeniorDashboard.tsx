@@ -9938,9 +9938,75 @@ function buildSeniorAiManMarkingReadySignature(params: {
         };
       });
   }, [assignments, playersById, skillValueForPlayer]);
+  const startingXiOrderPlayerOptions = useMemo<SeniorOrderPlayerOption[]>(() => {
+    const seen = new Set<number>();
+    return FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+      .filter((playerId): playerId is number => {
+        if (typeof playerId !== "number" || playerId <= 0 || seen.has(playerId)) {
+          return false;
+        }
+        seen.add(playerId);
+        return true;
+      })
+      .map((playerId) => {
+        const player = playersById.get(playerId);
+        return {
+          id: playerId,
+          name: player ? formatPlayerName(player) : String(playerId),
+          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+        };
+      });
+  }, [assignments, playersById, skillValueForPlayer]);
+  const benchOrderPlayerOptions = useMemo<SeniorOrderPlayerOption[]>(() => {
+    const seen = new Set<number>();
+    return BENCH_SLOT_ORDER.map((slot) => assignments[slot])
+      .filter((playerId): playerId is number => {
+        if (typeof playerId !== "number" || playerId <= 0 || seen.has(playerId)) {
+          return false;
+        }
+        seen.add(playerId);
+        return true;
+      })
+      .map((playerId) => {
+        const player = playersById.get(playerId);
+        return {
+          id: playerId,
+          name: player ? formatPlayerName(player) : String(playerId),
+          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+        };
+      });
+  }, [assignments, playersById, skillValueForPlayer]);
+  const sortSeniorOrderPlayersBySetPieces = (
+    left: SeniorOrderPlayerOption,
+    right: SeniorOrderPlayerOption
+  ) => {
+    const rightSetPieces = right.setPiecesSkill ?? -1;
+    const leftSetPieces = left.setPiecesSkill ?? -1;
+    if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
+    return left.name.localeCompare(right.name);
+  };
+  const buildDefaultPenaltyTakerIds = () => [
+    ...[...availableOrderPlayerOptions]
+      .sort(sortSeniorOrderPlayersBySetPieces)
+      .slice(0, 11)
+      .map((player) => player.id),
+    ...Array(11).fill(0),
+  ].slice(0, 11);
+  const buildDefaultSetPiecesPlayerId = () =>
+    [...startingXiOrderPlayerOptions]
+      .filter((player) => typeof player.setPiecesSkill === "number")
+      .sort(sortSeniorOrderPlayersBySetPieces)[0]?.id ?? null;
   const availableOrderPlayerIdSet = useMemo(
     () => new Set(availableOrderPlayerOptions.map((player) => player.id)),
     [availableOrderPlayerOptions]
+  );
+  const startingXiOrderPlayerIdSet = useMemo(
+    () => new Set(startingXiOrderPlayerOptions.map((player) => player.id)),
+    [startingXiOrderPlayerOptions]
+  );
+  const benchOrderPlayerIdSet = useMemo(
+    () => new Set(benchOrderPlayerOptions.map((player) => player.id)),
+    [benchOrderPlayerOptions]
   );
 
   const buildSeniorOtherOrdersSummaryPlayer = (
@@ -10016,9 +10082,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
       null,
       buildLineupPayload(assignments, tacticType, {
         behaviors,
-        kickerIds: [],
+        kickerIds: buildDefaultPenaltyTakerIds(),
         captainId: 0,
-        setPiecesId: 0,
+        setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
         substitutions: [],
       }),
       "manual"
@@ -10052,9 +10118,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
     const defaultPayload = buildLineupPayload(assignments, tacticType, {
       behaviors,
-      kickerIds: effectiveSeniorPenaltyKickerIds,
+      kickerIds: buildDefaultPenaltyTakerIds(),
       captainId: effectiveSeniorCaptainId,
-      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+      setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
     });
     return buildSeniorEditableOrdersFromPayload(
       matchId,
@@ -10292,9 +10358,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
         if (typeof order.objectPlayerId !== "number" || order.objectPlayerId <= 0) {
           return messages.seniorOtherOrdersInvalidManMarkingTarget;
         }
+      } else if (order.orderType === 3) {
+        if (
+          !startingXiOrderPlayerIdSet.has(order.subjectPlayerId) ||
+          typeof order.objectPlayerId !== "number" ||
+          !startingXiOrderPlayerIdSet.has(order.objectPlayerId)
+        ) {
+          return messages.seniorOtherOrdersInvalidOwnPlayer;
+        }
       } else if (
         typeof order.objectPlayerId !== "number" ||
-        !availableOrderPlayerIdSet.has(order.objectPlayerId)
+        !availableOrderPlayerIdSet.has(order.objectPlayerId) ||
+        (order.subjectPlayerId !== order.objectPlayerId &&
+          (!startingXiOrderPlayerIdSet.has(order.subjectPlayerId) ||
+            !benchOrderPlayerIdSet.has(order.objectPlayerId)))
       ) {
         return messages.seniorOtherOrdersInvalidOwnPlayer;
       }
@@ -10359,9 +10436,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (seededSeniorEditableOrdersContextRef.current === seedKey) return;
     const defaultPayload = buildLineupPayload(assignments, tacticType, {
       behaviors,
-      kickerIds: effectiveSeniorPenaltyKickerIds,
+      kickerIds: buildDefaultPenaltyTakerIds(),
       captainId: effectiveSeniorCaptainId,
-      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+      setPiecesId: buildDefaultSetPiecesPlayerId() ?? 0,
     });
     setSeniorEditableOrdersState(
       buildSeniorEditableOrdersFromPayload(
@@ -10465,10 +10542,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
   );
 
   const seniorOtherOrdersMinuteOptions = [
-    { value: -1, label: messages.seniorOtherOrdersAnyMinute },
-    { value: 46, label: messages.seniorOtherOrdersHalftime },
-    { value: 91, label: messages.seniorOtherOrdersBeforeExtraTime },
+    { key: "any", value: -1, label: messages.seniorOtherOrdersAnyMinute },
+    { key: "halftime", value: 46, label: messages.seniorOtherOrdersHalftime },
+    { key: "before-extra-time", value: 91, label: messages.seniorOtherOrdersBeforeExtraTime },
     ...Array.from({ length: 120 }, (_, minute) => ({
+      key: `minute-${minute}`,
       value: minute,
       label: messages.seniorOtherOrdersMinuteAfter.replace("{{minute}}", String(minute)),
     })),
@@ -10527,8 +10605,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const addSeniorOtherOrdersDraftOrder = () => {
     updateOtherOrdersDraft((draft) => {
       if (draft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders) return draft;
-      const firstPlayerId = availableOrderPlayerOptions[0]?.id ?? null;
-      const secondPlayerId = availableOrderPlayerOptions[1]?.id ?? firstPlayerId;
       return {
         ...draft,
         source: "mixed",
@@ -10540,8 +10616,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
             minute: 70,
             standing: SENIOR_ORDER_DEFAULT_CONDITION,
             card: SENIOR_ORDER_DEFAULT_CONDITION,
-            subjectPlayerId: firstPlayerId,
-            objectPlayerId: secondPlayerId,
+            subjectPlayerId: null,
+            objectPlayerId: null,
             newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
             newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
           },
@@ -18379,6 +18455,29 @@ const refreshDetailsForPlayers = async (
                 <div className={styles.seniorOtherOrdersCardListEditable}>
                   {otherOrdersDraft.playerOrders.map((order, index) => {
                     const kind = seniorOtherOrdersDraftOrderKind(order);
+                    const subjectPlayerOptions =
+                      kind === "substitution" ||
+                      kind === "swap" ||
+                      kind === "behaviour" ||
+                      kind === "marking"
+                        ? startingXiOrderPlayerOptions
+                        : availableOrderPlayerOptions;
+                    const objectPlayerOptions =
+                      kind === "substitution"
+                        ? benchOrderPlayerOptions
+                        : kind === "swap"
+                          ? startingXiOrderPlayerOptions
+                          : availableOrderPlayerOptions;
+                    const subjectEmptyLabel =
+                      subjectPlayerOptions.length === 0
+                        ? messages.seniorOtherOrdersNoStartingXiPlayers
+                        : messages.unknownShort;
+                    const objectEmptyLabel =
+                      kind === "substitution" && objectPlayerOptions.length === 0
+                        ? messages.seniorOtherOrdersNoBenchPlayers
+                        : kind === "swap" && objectPlayerOptions.length === 0
+                          ? messages.seniorOtherOrdersNoStartingXiPlayers
+                          : messages.unknownShort;
                     return (
                       <article key={order.id} className={styles.seniorOtherOrdersCard}>
                         <div className={styles.seniorOtherOrdersOrderHeader}>
@@ -18418,22 +18517,69 @@ const refreshDetailsForPlayers = async (
                                       return {
                                         ...candidate,
                                         orderType: 3,
+                                        subjectPlayerId:
+                                          candidate.subjectPlayerId !== null &&
+                                          startingXiOrderPlayerIdSet.has(
+                                            candidate.subjectPlayerId
+                                          )
+                                            ? candidate.subjectPlayerId
+                                            : null,
+                                        objectPlayerId:
+                                          candidate.objectPlayerId !== null &&
+                                          startingXiOrderPlayerIdSet.has(
+                                            candidate.objectPlayerId
+                                          )
+                                            ? candidate.objectPlayerId
+                                            : null,
                                         newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
                                         newPositionBehaviour:
                                           SENIOR_ORDER_DEFAULT_BEHAVIOUR,
                                       };
                                     }
                                     if (nextKind === "marking") {
-                                      return { ...candidate, orderType: 4 };
+                                      return {
+                                        ...candidate,
+                                        orderType: 4,
+                                        subjectPlayerId:
+                                          candidate.subjectPlayerId !== null &&
+                                          startingXiOrderPlayerIdSet.has(
+                                            candidate.subjectPlayerId
+                                          )
+                                            ? candidate.subjectPlayerId
+                                            : null,
+                                      };
                                     }
                                     if (nextKind === "behaviour") {
+                                      const nextSubjectPlayerId =
+                                        candidate.subjectPlayerId !== null &&
+                                        startingXiOrderPlayerIdSet.has(
+                                          candidate.subjectPlayerId
+                                        )
+                                          ? candidate.subjectPlayerId
+                                          : null;
                                       return {
                                         ...candidate,
                                         orderType: 1,
-                                        objectPlayerId: candidate.subjectPlayerId,
+                                        subjectPlayerId: nextSubjectPlayerId,
+                                        objectPlayerId: nextSubjectPlayerId,
                                       };
                                     }
-                                    return { ...candidate, orderType: 1 };
+                                    return {
+                                      ...candidate,
+                                      orderType: 1,
+                                      subjectPlayerId:
+                                        candidate.subjectPlayerId !== null &&
+                                        startingXiOrderPlayerIdSet.has(
+                                          candidate.subjectPlayerId
+                                        )
+                                          ? candidate.subjectPlayerId
+                                          : null,
+                                      objectPlayerId:
+                                        candidate.objectPlayerId !== null &&
+                                        benchOrderPlayerIdSet.has(candidate.objectPlayerId)
+                                          ? candidate.objectPlayerId
+                                          : null,
+                                    };
                                   }),
                                 }));
                               }}
@@ -18473,7 +18619,7 @@ const refreshDetailsForPlayers = async (
                               }
                             >
                               {seniorOtherOrdersMinuteOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
+                                <option key={option.key} value={option.value}>
                                   {option.label}
                                 </option>
                               ))}
@@ -18508,8 +18654,8 @@ const refreshDetailsForPlayers = async (
                                 }))
                               }
                             >
-                              <option value={0}>{messages.unknownShort}</option>
-                              {availableOrderPlayerOptions.map((player) => (
+                              <option value={0}>{subjectEmptyLabel}</option>
+                              {subjectPlayerOptions.map((player) => (
                                 <option key={player.id} value={player.id}>
                                   {seniorOtherOrdersPlayerLabel(player)}
                                 </option>
@@ -18571,8 +18717,8 @@ const refreshDetailsForPlayers = async (
                                   }))
                                 }
                               >
-                                <option value={0}>{messages.unknownShort}</option>
-                                {availableOrderPlayerOptions.map((player) => (
+                                <option value={0}>{objectEmptyLabel}</option>
+                                {objectPlayerOptions.map((player) => (
                                   <option key={player.id} value={player.id}>
                                     {seniorOtherOrdersPlayerLabel(player)}
                                   </option>
@@ -18705,7 +18851,7 @@ const refreshDetailsForPlayers = async (
                 ) : null}
                 <button
                   type="button"
-                  className={styles.lineupButtonSecondary}
+                  className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersAddOrderButton}`}
                   disabled={
                     availableOrderPlayerOptions.length === 0 ||
                     otherOrdersDraft.playerOrders.length >= seniorOtherOrdersMaxPlayerOrders
@@ -18845,7 +18991,7 @@ const refreshDetailsForPlayers = async (
           <>
             <button
               type="button"
-              className={styles.confirmSecondary}
+              className={styles.confirmCancel}
               onClick={closeOtherOrdersEditor}
             >
               {messages.seniorOtherOrdersCancel}

@@ -1435,7 +1435,7 @@ export const messagesEn: Messages = {
       "Simulated Tactical Assistant level: {{level}}",
     seniorOtherOrdersPlayerOrdersTitle: "Player orders",
     seniorOtherOrdersPlayerOrdersCounter: "Player orders: {{count}} / {{max}}",
-    seniorOtherOrdersAddOrder: "Add order",
+    seniorOtherOrdersAddOrder: "+ Add order",
     seniorOtherOrdersDeleteOrder: "Delete",
     seniorOtherOrdersOrderLimitReached: "Player order limit reached.",
     seniorOtherOrdersBenchSubstitutionLimitReached:
@@ -1450,6 +1450,8 @@ export const messagesEn: Messages = {
       "Saved other orders belong to another match. Open Other orders and save a current draft before submitting this match.",
     seniorOtherOrdersNoLineupPlayers:
       "Assign players to the lineup or bench to choose penalty takers, captain, and set pieces.",
+    seniorOtherOrdersNoStartingXiPlayers: "No starting XI players available",
+    seniorOtherOrdersNoBenchPlayers: "No bench players available",
     seniorOtherOrdersAnyMinute: "Anytime",
     seniorOtherOrdersMinuteAfter: "After {{minute}} minutes",
     seniorOtherOrdersHalftime: "Halftime",

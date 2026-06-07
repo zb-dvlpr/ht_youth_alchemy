@@ -10683,6 +10683,11 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   width: 100%;
 }
 
+.seniorOtherOrdersAddOrderButton {
+  justify-self: start;
+  min-width: 120px;
+}
+
 .seniorOtherOrdersDevSlider {
   display: grid;
   gap: 6px;

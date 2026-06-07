@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   } catch (error) {
     if (error instanceof ChppAuthError) {
       return NextResponse.json(
-        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { error: error.message, code: error.code },
         { status: error.status }
       );
     }

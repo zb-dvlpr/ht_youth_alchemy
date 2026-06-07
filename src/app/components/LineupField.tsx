@@ -69,6 +69,7 @@ type LineupFieldProps = {
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
+  lineupActionsRightContent?: ReactNode;
   onOptimizeSelect?: (mode: OptimizeMode) => void;
   tacticType?: number;
   onTacticChange?: (value: number) => void;
@@ -425,6 +426,7 @@ export default function LineupField({
   onChangeBehavior,
   onRandomize,
   onReset,
+  lineupActionsRightContent,
   onOptimizeSelect,
   tacticType = 7,
   onTacticChange,
@@ -1376,29 +1378,36 @@ export default function LineupField({
         <div className={styles.centerCircle} />
         <div className={styles.centerSpot} />
         <div className={styles.fieldMidline} />
-        {onRandomize || onReset || showBottomRightTactic ? (
+        {onRandomize || onReset || showBottomRightTactic || lineupActionsRightContent ? (
           <div className={styles.lineupActions}>
-            {onReset ? (
-              <button
-                type="button"
-                className={styles.lineupButtonSecondary}
-                onClick={onReset}
-              >
-                {messages.resetLineup}
-              </button>
+            <div className={styles.lineupActionsLeft}>
+              {onReset ? (
+                <button
+                  type="button"
+                  className={styles.lineupButtonSecondary}
+                  onClick={onReset}
+                >
+                  {messages.resetLineup}
+                </button>
+              ) : null}
+              {onRandomize ? (
+                <button
+                  type="button"
+                  className={styles.lineupButton}
+                  onClick={onRandomize}
+                >
+                  {messages.randomizeLineup}
+                </button>
+              ) : null}
+              {showBottomRightTactic
+                ? renderTacticControl(styles.tacticOverlayBottomRight)
+                : null}
+            </div>
+            {lineupActionsRightContent ? (
+              <div className={styles.lineupActionsRight}>
+                {lineupActionsRightContent}
+              </div>
             ) : null}
-            {onRandomize ? (
-              <button
-                type="button"
-                className={styles.lineupButton}
-                onClick={onRandomize}
-              >
-                {messages.randomizeLineup}
-              </button>
-            ) : null}
-            {showBottomRightTactic
-              ? renderTacticControl(styles.tacticOverlayBottomRight)
-              : null}
           </div>
         ) : null}
       </div>

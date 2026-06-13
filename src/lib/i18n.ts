@@ -176,6 +176,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_6_2_0: string;
   changelog_6_1_0: string;
   changelog_6_0_0: string;
   changelog_5_8_0: string;
@@ -335,6 +336,14 @@ export type Messages = {
   settingsClubChronicleUpdatesHistoryHint: string;
   settingsGeneral: string;
   settingsGeneralTitle: string;
+  settingsDisplayCurrencyTitle: string;
+  settingsDisplayCurrencyDescription: string;
+  settingsDisplayCurrencyCurrentDefault: string;
+  settingsDisplayCurrencyCurrentOverride: string;
+  settingsDisplayCurrencySelectLabel: string;
+  settingsDisplayCurrencyDefaultButton: string;
+  settingsDisplayCurrencyUnavailable: string;
+  settingsDisplayCurrencyRateLabel: string;
   settingsReminders: string;
   settingsRemindersTitle: string;
   settingsRemindersEnableLabel: string;

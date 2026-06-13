@@ -21,6 +21,12 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import { parseChppDate } from "@/lib/chpp/utils";
 import { formatTimeRemaining } from "@/lib/datetime";
+import {
+  displayAmountToSek,
+  formatSekCurrency,
+  sekToDisplayAmount,
+  type DisplayCurrency,
+} from "@/lib/currency";
 import Modal from "./Modal";
 import Tooltip from "./Tooltip";
 import styles from "../page.module.css";
@@ -30,7 +36,6 @@ export const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
 export const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
 export const TRANSFER_SEARCH_PAGE_SIZE = 100;
-export const CHPP_SEK_PER_EUR = 10;
 
 export const TRANSFER_SEARCH_SKILLS = [
   { key: "KeeperSkill", skillType: 1, labelKey: "skillKeeper", min: 0, max: 20 },
@@ -62,8 +67,8 @@ export type TransferSearchFilters = {
   ageMaxDays: string;
   tsiMin: string;
   tsiMax: string;
-  priceMinEur: string;
-  priceMaxEur: string;
+  priceMinDisplay: string;
+  priceMaxDisplay: string;
 };
 
 export type TransferSearchResult = {
@@ -99,8 +104,8 @@ export type TransferSearchResult = {
 };
 
 export type TransferSearchBidDraft = {
-  bidEur: string;
-  maxBidEur: string;
+  bidDisplay: string;
+  maxBidDisplay: string;
 };
 
 export const TRANSFER_SEARCH_SORT_SEPARATOR = "__separator__";
@@ -134,7 +139,7 @@ export type TransferSearchTableRowData = {
   ageTotalDays?: number | null;
   priceKind: "HB" | "AP" | null;
   priceDisplay: string;
-  priceValueEur?: number | null;
+  priceValueSek?: number | null;
   tsi: number | null;
   leadership: number | null;
   experience: number | null;
@@ -151,11 +156,11 @@ export type TransferSearchTableRowData = {
   avgPsicoTsi: number | null;
   avgPsicoWage: number | null;
   wageDisplay: string;
-  wageValueEur?: number | null;
+  wageValueSek?: number | null;
   wageIncludesForeignBonus?: boolean;
   deadline: string | null;
   deadlineTimestamp?: number | null;
-  minBidEur: number | null;
+  minBidSek: number | null;
 };
 
 type TransferSearchSkillRowProps = {
@@ -177,6 +182,7 @@ type TransferSearchModalProps = {
   selectedPlayerDetailPills?: string[];
   selectedPlayerDetailPillsInline?: boolean;
   filters: TransferSearchFilters | null;
+  displayCurrency: DisplayCurrency;
   skillSlotCount?: number;
   loading: boolean;
   onUpdateSkillFilter: (
@@ -217,8 +223,8 @@ type TransferSearchDraftFields = Pick<
   | "ageMaxDays"
   | "tsiMin"
   | "tsiMax"
-  | "priceMinEur"
-  | "priceMaxEur"
+  | "priceMinDisplay"
+  | "priceMaxDisplay"
 >;
 
 type TransferSearchMarketBucket = {
@@ -521,8 +527,8 @@ const buildTransferSearchDraftFields = (
   ageMaxDays: filters.ageMaxDays,
   tsiMin: filters.tsiMin,
   tsiMax: filters.tsiMax,
-  priceMinEur: filters.priceMinEur,
-  priceMaxEur: filters.priceMaxEur,
+  priceMinDisplay: filters.priceMinDisplay,
+  priceMaxDisplay: filters.priceMaxDisplay,
 });
 
 const resolveValidatedTransferSearchDraftFilters = (
@@ -550,8 +556,8 @@ const resolveValidatedTransferSearchDraftFilters = (
   if (
     !isTransferSearchRangeDraftValid(nextFilters.tsiMin, nextFilters.tsiMax) ||
     !isTransferSearchRangeDraftValid(
-      nextFilters.priceMinEur,
-      nextFilters.priceMaxEur
+      nextFilters.priceMinDisplay,
+      nextFilters.priceMaxDisplay
     )
   ) {
     return null;
@@ -643,12 +649,15 @@ export const normalizeTransferSearchFilters = (
     ageMaxDays: String(normalizedMaxAge.days),
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
-    priceMinEur: String(filters.priceMinEur ?? "").trim(),
-    priceMaxEur: String(filters.priceMaxEur ?? "").trim(),
+    priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
+    priceMaxDisplay: String(filters.priceMaxDisplay ?? "").trim(),
   };
 };
 
-export const buildTransferSearchParams = (filters: TransferSearchFilters) => {
+export const buildTransferSearchParams = (
+  filters: TransferSearchFilters,
+  displayCurrency: DisplayCurrency
+) => {
   const normalized = normalizeTransferSearchFilters(filters);
   const params = new URLSearchParams({
     ageMin: normalized.ageMinYears,
@@ -685,17 +694,19 @@ export const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     params.set("tsiMax", String(tsiMax));
   }
 
-  const priceMinEur = parseOptionalTransferSearchNonNegativeInteger(
-    normalized.priceMinEur
+  const priceMinDisplay = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMinDisplay
   );
-  const priceMaxEur = parseOptionalTransferSearchNonNegativeInteger(
-    normalized.priceMaxEur
+  const priceMaxDisplay = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMaxDisplay
   );
-  if (priceMinEur !== null) {
-    params.set("priceMin", String(priceMinEur * CHPP_SEK_PER_EUR));
+  if (priceMinDisplay !== null) {
+    const priceMinSek = displayAmountToSek(priceMinDisplay, displayCurrency);
+    if (priceMinSek !== null) params.set("priceMin", String(priceMinSek));
   }
-  if (priceMaxEur !== null) {
-    params.set("priceMax", String(priceMaxEur * CHPP_SEK_PER_EUR));
+  if (priceMaxDisplay !== null) {
+    const priceMaxSek = displayAmountToSek(priceMaxDisplay, displayCurrency);
+    if (priceMaxSek !== null) params.set("priceMax", String(priceMaxSek));
   }
 
   return params;
@@ -775,46 +786,52 @@ export const formatTransferSearchPlayerName = (player: TransferSearchResult) =>
     .filter(Boolean)
     .join(" ");
 
-export const eurToSek = (value: string) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return Math.round(parsed * CHPP_SEK_PER_EUR);
-};
+export const displayToSek = (
+  value: string,
+  displayCurrency: DisplayCurrency
+) => displayAmountToSek(value, displayCurrency);
 
-export const buildTransferSearchMinimumBidEur = (result: TransferSearchResult) => {
+export const buildTransferSearchMinimumBidSek = (result: TransferSearchResult) => {
   if (typeof result.highestBidSek === "number" && result.highestBidSek > 0) {
-    return Math.ceil((result.highestBidSek + 1000 * CHPP_SEK_PER_EUR) / CHPP_SEK_PER_EUR);
+    return result.highestBidSek + 1000;
   }
   if (typeof result.askingPriceSek === "number" && result.askingPriceSek > 0) {
-    return Math.ceil(result.askingPriceSek / CHPP_SEK_PER_EUR);
+    return result.askingPriceSek;
   }
   return "";
 };
 
-export const formatTransferSearchBidDraftEur = (valueEur: number | string) =>
-  valueEur === "" ? "" : String(valueEur);
+export const formatTransferSearchBidDraftDisplay = (
+  valueSek: number | string,
+  displayCurrency: DisplayCurrency
+) => {
+  if (valueSek === "") return "";
+  const displayAmount =
+    typeof valueSek === "number" ? sekToDisplayAmount(valueSek, displayCurrency) : null;
+  return displayAmount === null ? "" : String(Math.ceil(displayAmount));
+};
 
 const TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT = 4;
 const TRANSFER_SEARCH_MAX_SKILL_DELTA =
   TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT - 1;
 const TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT = 3;
 
-const formatTransferSearchMarketEur = (value: number) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-    notation: value >= 100000 ? "compact" : "standard",
-  }).format(Math.round(value));
+const formatTransferSearchMarketDisplay = (
+  valueSek: number,
+  displayCurrency: DisplayCurrency
+) =>
+  formatSekCurrency(valueSek, displayCurrency, {
+    compact: valueSek >= 100000,
+  });
 
-const resolveTransferSearchMarketPriceEur = (result: TransferSearchResult) => {
+const resolveTransferSearchMarketPriceSek = (result: TransferSearchResult) => {
   const priceSek =
     typeof result.highestBidSek === "number" && result.highestBidSek > 0
       ? result.highestBidSek
       : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
         ? result.askingPriceSek
         : null;
-  return priceSek === null ? null : priceSek / CHPP_SEK_PER_EUR;
+  return priceSek;
 };
 
 const percentile = (sortedValues: number[], ratio: number) => {
@@ -833,7 +850,7 @@ const buildTransferSearchMarketSummary = (
   results: TransferSearchResult[]
 ): TransferSearchMarketSummary | null => {
   const prices = results
-    .map(resolveTransferSearchMarketPriceEur)
+    .map(resolveTransferSearchMarketPriceSek)
     .filter((price): price is number => price !== null && Number.isFinite(price))
     .sort((left, right) => left - right);
   if (prices.length === 0) return null;
@@ -1094,6 +1111,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   selectedPlayerDetailPills,
   selectedPlayerDetailPillsInline,
   filters,
+  displayCurrency,
   skillSlotCount,
   loading,
   onUpdateSkillFilter,
@@ -1318,7 +1336,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const tableRows = useMemo(
     (): Array<{ result: TransferSearchResult; data: TransferSearchTableRowData }> =>
       sortedResults.map((result) => {
-        const fallbackMinimumBid = buildTransferSearchMinimumBidEur(result);
+        const fallbackMinimumBid = buildTransferSearchMinimumBidSek(result);
         const fallbackMetricInput = getSortMetricInput
           ? getSortMetricInput(result)
           : buildTransferSearchMetricInput(result);
@@ -1366,15 +1384,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     : null,
               priceDisplay:
                 typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
-                  ? new Intl.NumberFormat(undefined, {
-                      style: "currency",
-                      currency: "EUR",
-                      maximumFractionDigits: 0,
-                    }).format(fallbackPriceSek / CHPP_SEK_PER_EUR)
+                  ? formatSekCurrency(fallbackPriceSek, displayCurrency)
                   : "—",
-              priceValueEur:
+              priceValueSek:
                 typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
-                  ? fallbackPriceSek / CHPP_SEK_PER_EUR
+                  ? fallbackPriceSek
                   : null,
               tsi: fallbackMetricInput.tsi ?? null,
               leadership: result.leadership,
@@ -1393,22 +1407,18 @@ const TransferSearchModal = memo(function TransferSearchModal({
               avgPsicoWage: getTransferSearchSortValue(fallbackMetricInput, "psicoWageAvg"),
               wageDisplay:
                 typeof result.salarySek === "number"
-                  ? new Intl.NumberFormat(undefined, {
-                      style: "currency",
-                      currency: "EUR",
-                      maximumFractionDigits: 0,
-                    }).format(result.salarySek / CHPP_SEK_PER_EUR)
+                  ? formatSekCurrency(result.salarySek, displayCurrency)
                   : messages.unknownShort,
-              wageValueEur:
-                typeof result.salarySek === "number" ? result.salarySek / CHPP_SEK_PER_EUR : null,
+              wageValueSek:
+                typeof result.salarySek === "number" ? result.salarySek : null,
               wageIncludesForeignBonus: Boolean(result.isAbroad),
               deadline: result.deadline,
               deadlineTimestamp: fallbackDeadline?.getTime() ?? null,
-              minBidEur: typeof fallbackMinimumBid === "number" ? fallbackMinimumBid : null,
+              minBidSek: typeof fallbackMinimumBid === "number" ? fallbackMinimumBid : null,
             },
         };
       }),
-    [getSortMetricInput, getTableRowData, messages, sortedResults]
+    [displayCurrency, getSortMetricInput, getTableRowData, messages, sortedResults]
   );
   const renderedSkillSlotCount = filters
     ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
@@ -1499,9 +1509,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 {messages.transferSearchMarketRangeLabel}
               </span>
               <strong>
-                {formatTransferSearchMarketEur(marketSummary.min)}
+                {formatTransferSearchMarketDisplay(marketSummary.min, displayCurrency)}
                 {" - "}
-                {formatTransferSearchMarketEur(marketSummary.max)}
+                {formatTransferSearchMarketDisplay(marketSummary.max, displayCurrency)}
               </strong>
             </div>
             {marketSummaryRich ? (
@@ -1511,23 +1521,23 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     {messages.transferSearchMarketMedianLabel}
                   </span>
                   <strong>
-                    {formatTransferSearchMarketEur(marketSummary.median)}
+                    {formatTransferSearchMarketDisplay(marketSummary.median, displayCurrency)}
                   </strong>
                 </div>
                 <div className={styles.transferSearchMarketStat}>
                   <span className={styles.infoLabel}>
                     {messages.transferSearchMarketMeanLabel}
                   </span>
-                  <strong>{formatTransferSearchMarketEur(marketSummary.mean)}</strong>
+                  <strong>{formatTransferSearchMarketDisplay(marketSummary.mean, displayCurrency)}</strong>
                 </div>
                 <div className={styles.transferSearchMarketStat}>
                   <span className={styles.infoLabel}>
                     {messages.transferSearchMarketMiddleLabel}
                   </span>
                   <strong>
-                    {formatTransferSearchMarketEur(marketSummary.q1)}
+                    {formatTransferSearchMarketDisplay(marketSummary.q1, displayCurrency)}
                     {" - "}
-                    {formatTransferSearchMarketEur(marketSummary.q3)}
+                    {formatTransferSearchMarketDisplay(marketSummary.q3, displayCurrency)}
                   </strong>
                 </div>
               </>
@@ -1544,9 +1554,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   className={styles.transferSearchMarketBucketRow}
                 >
                   <span className={styles.transferSearchMarketBucketLabel}>
-                    {formatTransferSearchMarketEur(bucket.min)}
+                    {formatTransferSearchMarketDisplay(bucket.min, displayCurrency)}
                     {" - "}
-                    {formatTransferSearchMarketEur(bucket.max)}
+                    {formatTransferSearchMarketDisplay(bucket.max, displayCurrency)}
                   </span>
                   <span className={styles.transferSearchMarketBucketTrack}>
                     <span
@@ -1615,7 +1625,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     };
     return {
       age: collect((row) => row.ageTotalDays),
-      price: collect((row) => row.priceValueEur),
+      price: collect((row) => row.priceValueSek),
       tsi: collect((row) => row.tsi),
       lead: collect((row) => row.leadership),
       xp: collect((row) => row.experience),
@@ -1631,8 +1641,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
       htms: collect((row) => row.htmsPotential),
       ptsi: collect((row) => row.avgPsicoTsi),
       pwage: collect((row) => row.avgPsicoWage),
-      wage: collect((row) => row.wageValueEur),
-      bid: collect((row) => row.minBidEur),
+      wage: collect((row) => row.wageValueSek),
+      bid: collect((row) => row.minBidSek),
     };
   }, [tableRows]);
 
@@ -1651,7 +1661,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
         case "age":
           return (left.ageTotalDays ?? Number.POSITIVE_INFINITY) - (right.ageTotalDays ?? Number.POSITIVE_INFINITY);
         case "price":
-          return (left.priceValueEur ?? Number.POSITIVE_INFINITY) - (right.priceValueEur ?? Number.POSITIVE_INFINITY);
+          return (left.priceValueSek ?? Number.POSITIVE_INFINITY) - (right.priceValueSek ?? Number.POSITIVE_INFINITY);
         case "tsi":
           return (right.tsi ?? Number.NEGATIVE_INFINITY) - (left.tsi ?? Number.NEGATIVE_INFINITY);
         case "lead":
@@ -1683,11 +1693,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
         case "pwage":
           return (right.avgPsicoWage ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoWage ?? Number.NEGATIVE_INFINITY);
         case "wage":
-          return (left.wageValueEur ?? Number.POSITIVE_INFINITY) - (right.wageValueEur ?? Number.POSITIVE_INFINITY);
+          return (left.wageValueSek ?? Number.POSITIVE_INFINITY) - (right.wageValueSek ?? Number.POSITIVE_INFINITY);
         case "deadline":
           return (left.deadlineTimestamp ?? Number.POSITIVE_INFINITY) - (right.deadlineTimestamp ?? Number.POSITIVE_INFINITY);
         case "bid":
-          return (left.minBidEur ?? Number.POSITIVE_INFINITY) - (right.minBidEur ?? Number.POSITIVE_INFINITY);
+          return (left.minBidSek ?? Number.POSITIVE_INFINITY) - (right.minBidSek ?? Number.POSITIVE_INFINITY);
         default:
           return 0;
       }
@@ -1988,12 +1998,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      placeholder={`${messages.seniorTransferSearchMinLabel} (EUR)`}
-                      value={draftFields?.priceMinEur ?? ""}
+                      placeholder={`${messages.seniorTransferSearchMinLabel}`}
+                      value={draftFields?.priceMinDisplay ?? ""}
                       onChange={(event) => {
                         const nextValue = event.target.value;
                         if (!isTransferSearchDigitsInput(nextValue)) return;
-                        updateDraftField("priceMinEur", nextValue);
+                        updateDraftField("priceMinDisplay", nextValue);
                       }}
                       onBlur={() => {
                         void commitDraftFields();
@@ -2005,12 +2015,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      placeholder={`${messages.seniorTransferSearchMaxLabel} (EUR)`}
-                      value={draftFields?.priceMaxEur ?? ""}
+                      placeholder={`${messages.seniorTransferSearchMaxLabel}`}
+                      value={draftFields?.priceMaxDisplay ?? ""}
                       onChange={(event) => {
                         const nextValue = event.target.value;
                         if (!isTransferSearchDigitsInput(nextValue)) return;
-                        updateDraftField("priceMaxEur", nextValue);
+                        updateDraftField("priceMaxDisplay", nextValue);
                       }}
                       onBlur={() => {
                         void commitDraftFields();
@@ -2243,7 +2253,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                     {data.priceDisplay}
                                   </>,
                                   {
-                                    numericValue: data.priceValueEur ?? null,
+                                    numericValue: data.priceValueSek ?? null,
                                     stats: tableColumnStats.price,
                                     higherBetter: false,
                                   }
@@ -2268,7 +2278,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                 {renderTablePill(
                                   `${data.wageDisplay}${data.wageIncludesForeignBonus ? "*" : ""}`,
                                   {
-                                    numericValue: data.wageValueEur ?? null,
+                                    numericValue: data.wageValueSek ?? null,
                                     stats: tableColumnStats.wage,
                                     higherBetter: false,
                                   }
@@ -2288,12 +2298,15 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                       !canQuickBid ||
                                       !onQuickBid ||
                                       quickBidPendingPlayerId === result.playerId ||
-                                      data.minBidEur === null
+                                      data.minBidSek === null
                                     }
                                   >
-                                    {data.minBidEur === null
+                                    {data.minBidSek === null
                                       ? messages.unknownShort
-                                      : `${messages.transferSearchTableBidAction} ${data.minBidEur.toLocaleString()}`}
+                                      : `${messages.transferSearchTableBidAction} ${formatSekCurrency(
+                                          data.minBidSek,
+                                          displayCurrency
+                                        )}`}
                                   </button>
                                 </Tooltip>
                               </td>

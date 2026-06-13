@@ -205,7 +205,7 @@ export const messagesNl: Messages = {
   clubChronicleHelpBulletLeague:
     "Competitieprestaties: tabel met positie, punten, reeks, beker, positiewijziging en doelsaldo. De bekerwaarde komt uit teamdetails en toont Geen wanneer het team niet meer in de beker zit. Klik op een rij voor een vergelijking van vorig/huidig per attribuut.",
   clubChronicleHelpBulletFinance:
-    "Transferbalans: aantal aankopen, aantal verkopen en saldo in EUR. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
+    "Transferbalans: aantal aankopen, aantal verkopen en saldo in the display currency. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
   clubChronicleFinancePanelTitle: "Transferbalans",
   clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Competitieprestaties en beker",
@@ -261,6 +261,14 @@ export const messagesNl: Messages = {
   settingsSeniorStalenessLabel: "Automatisch verversen na (dagen)",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
   settingsReminders: "Herinneringen",
   settingsRemindersTitle: "Herinneringen",
   settingsRemindersEnableLabel: "Herinneringen inschakelen",
@@ -449,7 +457,9 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
-  changelog_6_1_0:
+  changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
+    changelog_6_1_0:
     "Volledige flow toegevoegd voor het verzenden en ophalen van senior-opstellingsorders.",
   changelog_6_0_0:
     "Globaal herinneringenframework toegevoegd met instellingen, bel, snooze-/negeeropslag en export/import.",
@@ -632,7 +642,7 @@ export const messagesNl: Messages = {
   seniorTransferSearchAnySpecialtyLabel: "Elke",
   seniorTransferSearchAgeRangeLabel: "Leeftijd",
   seniorTransferSearchTsiRangeLabel: "TSI",
-  seniorTransferSearchPriceRangeLabel: "Prijs (EUR)",
+  seniorTransferSearchPriceRangeLabel: "Prijs (display currency)",
   seniorTransferSearchSearchButton: "Zoeken",
   seniorTransferSearchCloseButton: "Sluiten",
   seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",
@@ -649,8 +659,8 @@ export const messagesNl: Messages = {
   seniorTransferListedIndicatorLabel: "Op de transferlijst",
   seniorTransferListedNoBidsYet: "Nog geen biedingen",
   seniorTransferSearchSellerLabel: "Verkoper",
-  seniorTransferSearchBidAmountLabel: "Bodbedrag (EUR)",
-  seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",
+  seniorTransferSearchBidAmountLabel: "Bodbedrag (display currency)",
+  seniorTransferSearchMaxBidAmountLabel: "Maxbod (display currency)",
   seniorTransferSearchPlaceBidButton: "Bieden",
   seniorTransferSearchPlaceMaxBidButton: "Maxbod instellen",
   seniorTransferSearchSupporterOnlyTooltip:
@@ -1064,7 +1074,7 @@ export const messagesNl: Messages = {
   clubChronicleHelpBulletTsi:
     "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleHelpBulletWages:
-    "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
+    "Lonen: totale teamlonen en top-11-lonen in the display currency. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
   clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -1289,7 +1299,7 @@ export const messagesNl: Messages = {
     "Vaardigheids-, leeftijds-, loon- of TSI-waarden zijn handmatig gewijzigd en weerspiegelen niet meer de echte speler.",
   seniorFoxtrickSimulationAgeYearsLabel: "Leeftijd jaren",
   seniorFoxtrickSimulationAgeDaysLabel: "Leeftijd dagen",
-  seniorFoxtrickSimulationWageLabel: "Loon (EUR)",
+  seniorFoxtrickSimulationWageLabel: "Loon (display currency)",
   seniorHtmsAbilityLabel: "HTMS-vaardigheid",
   seniorHtmsPotentialLabel: "HTMS-potentieel",
   seniorPsicoTsiMainSkillLabel: "Hoofdvaardigheid",

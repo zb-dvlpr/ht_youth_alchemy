@@ -84,6 +84,12 @@ type ManagerTeam = {
   TeamName?: string;
   GenderID?: number | string;
   LeagueID?: number | string;
+  Country?: {
+    CountryID?: number | string;
+    CountryId?: number | string;
+    CountryName?: string;
+  };
+  IsPrimaryClub?: boolean | string;
   League?: {
     LeagueID?: number | string;
     LeagueId?: number | string;
@@ -102,6 +108,8 @@ export type YouthTeamOption = {
   teamId: number;
   teamName: string;
   teamLeagueId?: number | null;
+  countryId?: number | null;
+  isPrimaryClub?: boolean;
   youthTeamId: number;
   youthTeamName: string;
   youthLeagueName?: string | null;
@@ -111,6 +119,8 @@ export type SeniorTeamOption = {
   teamId: number;
   teamName: string;
   leagueId?: number | null;
+  countryId?: number | null;
+  isPrimaryClub?: boolean;
   teamGender: "male" | "female" | null;
 };
 
@@ -229,6 +239,15 @@ function normalizeTeams(input?: ManagerTeam[] | ManagerTeam): ManagerTeam[] {
   return Array.isArray(input) ? input : [input];
 }
 
+function parseTeamCountryId(team: ManagerTeam): number | null {
+  const parsed = Number(team.Country?.CountryID ?? team.Country?.CountryId ?? 0);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function parseIsPrimaryClub(value: ManagerTeam["IsPrimaryClub"]): boolean {
+  return value === true || (typeof value === "string" && value.toLowerCase() === "true");
+}
+
 function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption[] {
   const teams = normalizeTeams(
     response.data?.HattrickData?.Manager?.Teams?.Team
@@ -242,6 +261,8 @@ function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption
       teamLeagueId:
         Number(team.LeagueID ?? team.League?.LeagueID ?? team.League?.LeagueId ?? 0) ||
         null,
+      countryId: parseTeamCountryId(team),
+      isPrimaryClub: parseIsPrimaryClub(team.IsPrimaryClub),
       youthTeamId,
       youthTeamName: team.YouthTeam?.YouthTeamName ?? "",
       youthLeagueName: team.YouthTeam?.YouthLeague?.YouthLeagueName ?? null,
@@ -264,6 +285,8 @@ function extractSeniorTeams(response: ManagerCompendiumResponse): SeniorTeamOpti
       leagueId:
         Number(team.LeagueID ?? team.League?.LeagueID ?? team.League?.LeagueId ?? 0) ||
         null,
+      countryId: parseTeamCountryId(team),
+      isPrimaryClub: parseIsPrimaryClub(team.IsPrimaryClub),
       teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
     });
     return acc;
@@ -283,6 +306,10 @@ export default async function Home() {
   const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const youthTeams = extractYouthTeams(managerResponse);
   const seniorTeams = extractSeniorTeams(managerResponse);
+  const primarySeniorTeamCountryId =
+    seniorTeams.find((team) => team.isPrimaryClub)?.countryId ??
+    seniorTeams[0]?.countryId ??
+    null;
   const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
   const defaultSeniorTeamId = seniorTeams.length > 1 ? seniorTeams[0]?.teamId : null;
 
@@ -436,6 +463,7 @@ export default async function Home() {
               initialSeniorTeamId={defaultSeniorTeamId}
               initialYouthTeams={youthTeams}
               initialYouthTeamId={defaultYouthTeamId}
+              primarySeniorTeamCountryId={primarySeniorTeamCountryId}
             >
               <Dashboard
                 players={players}

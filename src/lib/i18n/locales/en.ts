@@ -207,6 +207,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:
       "Introduced full-blown senior lineup order submission and retrieval flow",
     changelog_6_0_0:
@@ -421,6 +423,14 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
     settingsReminders: "Reminders",
     settingsRemindersTitle: "Reminders",
     settingsRemindersEnableLabel: "Enable reminders",
@@ -672,7 +682,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletPress:
       "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
     clubChronicleHelpBulletFinance:
-      "Transfer balance: buy count, sale count, and balance in EUR. Click a row for detailed value breakdowns.",
+      "Transfer balance: buy count, sale count, and balance in the display currency. Click a row for detailed value breakdowns.",
     clubChronicleHelpBulletFanclub:
       "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
     clubChronicleHelpBulletArena:
@@ -688,7 +698,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletLikelyTraining:
       "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
+      "Wages: team total wages and top-11 wages in the display currency. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team, retains the latest non-empty global-refresh diff for review, and lets you switch between saved changed refreshes.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -1684,7 +1694,7 @@ export const messagesEn: Messages = {
     seniorTransferSearchAnySpecialtyLabel: "Any",
     seniorTransferSearchAgeRangeLabel: "Age",
     seniorTransferSearchTsiRangeLabel: "TSI",
-    seniorTransferSearchPriceRangeLabel: "Price (EUR)",
+    seniorTransferSearchPriceRangeLabel: "Price (display currency)",
     seniorTransferSearchSearchButton: "Search",
     seniorTransferSearchCloseButton: "Close",
     seniorTransferSearchLoading: "Searching transfer market…",
@@ -1700,8 +1710,8 @@ export const messagesEn: Messages = {
     seniorTransferListedIndicatorLabel: "Transfer listed",
     seniorTransferListedNoBidsYet: "No bids yet",
     seniorTransferSearchSellerLabel: "Seller",
-    seniorTransferSearchBidAmountLabel: "Bid amount (EUR)",
-    seniorTransferSearchMaxBidAmountLabel: "Max bid (EUR)",
+    seniorTransferSearchBidAmountLabel: "Bid amount (display currency)",
+    seniorTransferSearchMaxBidAmountLabel: "Max bid (display currency)",
     seniorTransferSearchPlaceBidButton: "Place bid",
     seniorTransferSearchPlaceMaxBidButton: "Set max bid",
     seniorTransferSearchSupporterOnlyTooltip:
@@ -1887,7 +1897,7 @@ export const messagesEn: Messages = {
       "Skill, age, wage, or TSI values have been manually changed and no longer reflect the actual player.",
     seniorFoxtrickSimulationAgeYearsLabel: "Age years",
     seniorFoxtrickSimulationAgeDaysLabel: "Age days",
-    seniorFoxtrickSimulationWageLabel: "Wage (EUR)",
+    seniorFoxtrickSimulationWageLabel: "Wage (display currency)",
     seniorHtmsAbilityLabel: "HTMS ability",
     seniorHtmsPotentialLabel: "HTMS potential",
     seniorPsicoTsiMainSkillLabel: "Main skill",

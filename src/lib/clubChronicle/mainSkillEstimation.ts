@@ -24,7 +24,7 @@ export type ChronicleEstimatedMainSkill =
       dominantRoleId: number;
       dominantPositionKey: PositionKey;
       mainSkill: Exclude<ChronicleMainSkillKey, "passing">;
-      baseWageEur: number;
+      baseWageInternal: number;
     }
   | { kind: "tooOld" }
   | { kind: "unavailable" };
@@ -105,9 +105,9 @@ export const resolveChronicleDominantPlayingPosition = (
   };
 };
 
-const CHPP_SEK_PER_EUR = 10;
+const INTERNAL_SEK_PER_WAGE_MODEL_UNIT = 10;
 
-const MAIN_SKILL_WAGE_MINIMUMS_EUR: Record<
+const MAIN_SKILL_WAGE_MINIMUMS_INTERNAL: Record<
   ChronicleMainSkillKey,
   readonly (readonly [number, number])[]
 > = {
@@ -236,34 +236,34 @@ const hasSpecialty = (specialty: number | null | undefined): boolean =>
   typeof specialty === "number" && Number.isFinite(specialty) && specialty > 0;
 
 function estimateLevelFromWageMinimums(
-  baseWageEur: number,
+  baseWageInternal: number,
   wageMinimums: readonly (readonly [number, number])[]
 ): number | null {
-  if (!Number.isFinite(baseWageEur)) return null;
+  if (!Number.isFinite(baseWageInternal)) return null;
 
   if (wageMinimums.length === 0) return null;
 
   const first = wageMinimums[0];
-  if (!first || baseWageEur < first[1]) return null;
+  if (!first || baseWageInternal < first[1]) return null;
 
   for (let index = 0; index < wageMinimums.length; index += 1) {
     const current = wageMinimums[index];
     if (!current) continue;
 
-    const [level, minimumWageEur] = current;
+    const [level, minimumWageInternal] = current;
     const next = wageMinimums[index + 1];
 
     if (!next) {
       return level;
     }
 
-    const [nextLevel, nextMinimumWageEur] = next;
+    const [nextLevel, nextMinimumWageInternal] = next;
 
-    if (baseWageEur >= minimumWageEur && baseWageEur < nextMinimumWageEur) {
-      const wageSpan = nextMinimumWageEur - minimumWageEur;
+    if (baseWageInternal >= minimumWageInternal && baseWageInternal < nextMinimumWageInternal) {
+      const wageSpan = nextMinimumWageInternal - minimumWageInternal;
       if (wageSpan <= 0) return level;
 
-      const fraction = (baseWageEur - minimumWageEur) / wageSpan;
+      const fraction = (baseWageInternal - minimumWageInternal) / wageSpan;
       const interpolated = level + (nextLevel - level) * fraction;
 
       return Math.round((interpolated + Number.EPSILON) * 10) / 10;
@@ -299,21 +299,21 @@ export function estimateChronicleMainSkillFromWage(input: {
   const mainSkill = mainSkillByPositionKey[dominantPosition.positionKey];
   if (!mainSkill) return { kind: "unavailable" };
 
-  let baseWageEur = salarySek / CHPP_SEK_PER_EUR;
+  let baseWageInternal = salarySek / INTERNAL_SEK_PER_WAGE_MODEL_UNIT;
   if (input.wageIncludesForeignBonus) {
-    baseWageEur /= 1.2;
+    baseWageInternal /= 1.2;
   }
   if (hasSpecialty(input.specialty)) {
-    baseWageEur /= 1.1;
+    baseWageInternal /= 1.1;
   }
   if (ageYears >= 29) {
     const ageFactor = 1 - (ageYears - 28) / 10;
     if (ageFactor <= 0) return { kind: "tooOld" };
-    baseWageEur /= ageFactor;
+    baseWageInternal /= ageFactor;
   }
 
-  const wageMinimums = MAIN_SKILL_WAGE_MINIMUMS_EUR[mainSkill];
-  const estimatedLevel = estimateLevelFromWageMinimums(baseWageEur, wageMinimums);
+  const wageMinimums = MAIN_SKILL_WAGE_MINIMUMS_INTERNAL[mainSkill];
+  const estimatedLevel = estimateLevelFromWageMinimums(baseWageInternal, wageMinimums);
 
   if (estimatedLevel === null) return { kind: "unavailable" };
 
@@ -323,6 +323,6 @@ export function estimateChronicleMainSkillFromWage(input: {
     dominantRoleId: dominantPosition.roleId,
     dominantPositionKey: dominantPosition.positionKey,
     mainSkill,
-    baseWageEur,
+    baseWageInternal,
   };
 }

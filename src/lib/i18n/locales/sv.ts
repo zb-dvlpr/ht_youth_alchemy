@@ -208,6 +208,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:
       "Införde ett komplett flöde för att skicka och hämta senioruppställningsorder.",
     changelog_6_0_0:
@@ -437,6 +439,14 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
     settingsReminders: "Påminnelser",
     settingsRemindersTitle: "Påminnelser",
     settingsRemindersEnableLabel: "Aktivera påminnelser",
@@ -706,7 +716,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletPress:
       "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
-      "Transferbalans: antal kop, antal forsaljningar och saldo i EUR. Klicka pa en rad for detaljerad uppdelning.",
+      "Transferbalans: antal kop, antal forsaljningar och saldo in the display currency. Klicka pa en rad for detaljerad uppdelning.",
     clubChronicleHelpBulletFanclub:
       "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
@@ -722,7 +732,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletLikelyTraining:
       "Trolig traningsinriktning: infererad fran senaste formationer; lika hogsta konfidens visas tillsammans och markeras som oklar. Klicka pa en rad for full konfidensrangordning och urvalsstorlek.",
     clubChronicleHelpBulletWages:
-      "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), lon och sparade form-7-matchbetyg med vaderemoji.",
+      "Loner: lagets total och top-11 loner in the display currency. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), lon och sparade form-7-matchbetyg med vaderemoji.",
     clubChronicleHelpBulletLatestUpdates:
       "Senaste uppdateringar behaller andringsgrupper per attribut och lag, sparar senaste icke-tomma globala diff for granskning och later dig byta mellan sparade uppdateringar med andringar.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
@@ -1729,7 +1739,7 @@ export const messagesSv: Messages = {
     seniorTransferSearchAnySpecialtyLabel: "Valfri",
     seniorTransferSearchAgeRangeLabel: "Alder",
     seniorTransferSearchTsiRangeLabel: "TSI",
-    seniorTransferSearchPriceRangeLabel: "Pris (EUR)",
+    seniorTransferSearchPriceRangeLabel: "Pris (display currency)",
     seniorTransferSearchSearchButton: "Sok",
     seniorTransferSearchCloseButton: "Stang",
     seniorTransferSearchLoading: "Soker pa transfermarknaden…",
@@ -1745,8 +1755,8 @@ export const messagesSv: Messages = {
     seniorTransferListedIndicatorLabel: "Transferlistad",
     seniorTransferListedNoBidsYet: "Inga bud an",
     seniorTransferSearchSellerLabel: "Saljare",
-    seniorTransferSearchBidAmountLabel: "Budbelopp (EUR)",
-    seniorTransferSearchMaxBidAmountLabel: "Maxbud (EUR)",
+    seniorTransferSearchBidAmountLabel: "Budbelopp (display currency)",
+    seniorTransferSearchMaxBidAmountLabel: "Maxbud (display currency)",
     seniorTransferSearchPlaceBidButton: "Lag bud",
     seniorTransferSearchPlaceMaxBidButton: "Satt maxbud",
     seniorTransferSearchSupporterOnlyTooltip:
@@ -1934,7 +1944,7 @@ export const messagesSv: Messages = {
       "Fardighets-, alder-, lone- eller TSI-varden har andrats manuellt och speglar inte langre den riktiga spelaren.",
     seniorFoxtrickSimulationAgeYearsLabel: "Alder ar",
     seniorFoxtrickSimulationAgeDaysLabel: "Alder dagar",
-    seniorFoxtrickSimulationWageLabel: "Lon (EUR)",
+    seniorFoxtrickSimulationWageLabel: "Lon (display currency)",
     seniorHtmsAbilityLabel: "HTMS-formaga",
     seniorHtmsPotentialLabel: "HTMS-potential",
     seniorPsicoTsiMainSkillLabel: "Huvudfardighet",

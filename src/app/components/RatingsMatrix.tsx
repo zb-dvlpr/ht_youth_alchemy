@@ -11,8 +11,11 @@ import Tooltip from "./Tooltip";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
-
-const CHPP_SEK_PER_EUR = 10;
+import {
+  formatSekCurrency,
+  SEK_DISPLAY_CURRENCY,
+  type DisplayCurrency,
+} from "@/lib/currency";
 
 type RatingRow = {
   id: number;
@@ -69,6 +72,7 @@ type RatingsMatrixProps = {
   hasManualEdits?: boolean;
   onManualRatingChange?: (playerId: number, position: number, value: number | null) => void;
   manualEditedRatingsByPlayerId?: Record<number, Record<string, number>>;
+  displayCurrency?: DisplayCurrency;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -92,13 +96,6 @@ function ratingStyle(value: number | null) {
     backgroundColor: `hsla(${hue}, 70%, 38%, ${alpha})`,
   } as React.CSSProperties;
 }
-
-const formatEurFromSek = (valueSek: number) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(valueSek / CHPP_SEK_PER_EUR);
 
 const specialtyName = (value: number | undefined, messages: Messages) => {
   switch (value) {
@@ -156,7 +153,10 @@ export default function RatingsMatrix({
   hasManualEdits = false,
   onManualRatingChange,
   manualEditedRatingsByPlayerId = {},
+  displayCurrency = SEK_DISPLAY_CURRENCY,
 }: RatingsMatrixProps) {
+  const formatDisplayCurrencyFromSek = (valueSek: number) =>
+    formatSekCurrency(valueSek, displayCurrency);
   const newPlayerIdSet = useMemo(() => new Set(newPlayerIds), [newPlayerIds]);
   const players = useMemo(() => response?.players ?? [], [response?.players]);
   const positions = useMemo(
@@ -524,7 +524,7 @@ export default function RatingsMatrix({
                       <SeniorTransferListedIndicator
                         listing={transferListingByName[row.name] ?? null}
                         messages={messages}
-                        formatEurFromSek={formatEurFromSek}
+                        formatSekValue={formatDisplayCurrencyFromSek}
                         compact
                       />
                     ) : null}

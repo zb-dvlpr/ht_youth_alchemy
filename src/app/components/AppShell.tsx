@@ -14,6 +14,7 @@ import {
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
+import { DisplayCurrencyProvider } from "./DisplayCurrencyProvider";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
 import ReminderBell from "./reminders/ReminderBell";
@@ -102,14 +103,19 @@ type AppShellProps = {
     teamId: number;
     teamName: string;
     leagueId?: number | null;
+    countryId?: number | null;
+    isPrimaryClub?: boolean;
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
   initialYouthTeams?: Array<{
     youthTeamId: number;
     youthTeamName: string;
+    countryId?: number | null;
+    isPrimaryClub?: boolean;
   }>;
   initialYouthTeamId?: number | null;
+  primarySeniorTeamCountryId?: number | null;
   mobileLauncherUtility?: ReactNode;
 };
 
@@ -226,6 +232,7 @@ export default function AppShell({
   initialSeniorTeamId = null,
   initialYouthTeams = [],
   initialYouthTeamId = null,
+  primarySeniorTeamCountryId = null,
   mobileLauncherUtility,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -1630,6 +1637,7 @@ export default function AppShell({
   ) : null;
 
   return (
+    <DisplayCurrencyProvider>
     <ReminderBellSlotProvider bell={reminderBell}>
       <div
         className={styles.shellFrame}
@@ -1831,14 +1839,24 @@ export default function AppShell({
             <>
               {activeTool === "youth" ? youthToolChildren : null}
               {activeTool === "senior" ? seniorToolChildren : null}
-              {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
+              {activeTool === "chronicle" ? (
+                <ClubChronicle
+                  messages={messages}
+                  primarySeniorTeamCountryId={primarySeniorTeamCountryId}
+                />
+              ) : null}
             </>
           )
         ) : (
           <>
             {activeTool === "youth" ? youthToolChildren : null}
             {activeTool === "senior" ? seniorToolChildren : null}
-            {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
+            {activeTool === "chronicle" ? (
+              <ClubChronicle
+                messages={messages}
+                primarySeniorTeamCountryId={primarySeniorTeamCountryId}
+              />
+            ) : null}
           </>
         )}
       </section>
@@ -2011,5 +2029,6 @@ export default function AppShell({
       <VersionUpdateGate appVersion={appVersion} messages={messages} />
       </div>
     </ReminderBellSlotProvider>
+    </DisplayCurrencyProvider>
   );
 }

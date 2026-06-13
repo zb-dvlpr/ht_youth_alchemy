@@ -1,6 +1,7 @@
 import type { Messages } from "@/lib/i18n";
 import { resolveInjuryStatus } from "@/lib/injuries";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
+import { formatSekCurrency, SEK_DISPLAY_CURRENCY } from "@/lib/currency";
 import type { ReminderCandidate, ReminderRule } from "./types";
 import {
   seniorSalaryIncreaseEpisodeKey,
@@ -12,7 +13,6 @@ export const SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT =
 export const SENIOR_REMINDER_CONTEXT_EVENT = "ya:senior-reminder-context";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const CHPP_SEK_PER_EUR = 10;
 
 export type SeniorReminderPlayer = {
   PlayerID: number;
@@ -62,11 +62,7 @@ export const formatSeniorReminderPlayerName = (player: SeniorReminderPlayer) =>
     .trim() || String(player.PlayerID);
 
 const formatReminderSalaryFromSek = (salarySek: number) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(salarySek / CHPP_SEK_PER_EUR);
+  formatSekCurrency(salarySek, SEK_DISPLAY_CURRENCY);
 
 const getSeniorReminderTeamContexts = (
   context: SeniorReminderContext | undefined
@@ -99,9 +95,6 @@ export const SENIOR_PLAYER_SALARY_INCREASE_RULE: ReminderRule<
           if (event.teamId !== teamContext.teamId) return [];
           const previousSalary = formatReminderSalaryFromSek(event.previousSalarySek);
           const currentSalary = formatReminderSalaryFromSek(event.currentSalarySek);
-          const previousSalaryEur = event.previousSalarySek / CHPP_SEK_PER_EUR;
-          const currentSalaryEur = event.currentSalarySek / CHPP_SEK_PER_EUR;
-          const increaseEur = event.increaseSek / CHPP_SEK_PER_EUR;
           const stableKey = `senior:${event.teamId}:player-salary-increase:v1:${event.playerId}`;
           const episodeKey = seniorSalaryIncreaseEpisodeKey(
             event.teamId,
@@ -136,9 +129,6 @@ export const SENIOR_PLAYER_SALARY_INCREASE_RULE: ReminderRule<
                 increaseSek: event.increaseSek,
                 previousSalary,
                 currentSalary,
-                previousSalaryEur,
-                currentSalaryEur,
-                increaseEur,
               },
               expiresAtFromFirstSeenMs: WEEK_MS,
               actions: [

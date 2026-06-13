@@ -27,6 +27,8 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import { formatSekCurrency } from "@/lib/currency";
+import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import {
   CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
@@ -163,6 +165,7 @@ type StateUpdater<T> = T | ((prev: T) => T);
 
 type ClubChronicleProps = {
   messages: Messages;
+  primarySeniorTeamCountryId?: number | null;
 };
 
 type MobileChronicleScreen =
@@ -1486,7 +1489,6 @@ const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const CHPP_DAYS_PER_YEAR = 112;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
-const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 30;
 const CHRONICLE_DETAIL_MODAL_MATCH_LIMIT = 20;
 const TEAM_REFRESH_CONCURRENCY = 4;
@@ -3710,7 +3712,12 @@ const getLatestCacheTimestampForTeams = (
   return latest > 0 ? latest : null;
 };
 
-export default function ClubChronicle({ messages }: ClubChronicleProps) {
+export default function ClubChronicle({
+  messages,
+  primarySeniorTeamCountryId = null,
+}: ClubChronicleProps) {
+  const { resolveForCountry } = useDisplayCurrency();
+  const displayCurrency = resolveForCountry(primarySeniorTeamCountryId);
   const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const initialTabsState = useMemo(
     () => readChronicleTabsStorage(messages, messages.clubChronicleInjuryHealthy),
@@ -4917,8 +4924,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               {
                 fieldKey: "finance.estimate",
                 label: messages.clubChronicleFinanceColumnEstimate,
-                previous: "€120,000*",
-                current: "€95,000*",
+                previous: `${formatChppCurrencyFromSek(120000)}*`,
+                current: `${formatChppCurrencyFromSek(95000)}*`,
               },
               {
                 fieldKey: "transfer.listed",
@@ -9185,22 +9192,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return Number.isFinite(amount) ? amount : null;
   };
 
-  const formatEuro = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return messages.unknownShort;
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const convertSekToEur = (valueSek: number | null | undefined) => {
-    if (valueSek === null || valueSek === undefined) return null;
-    return valueSek / CHPP_SEK_PER_EUR;
-  };
-
   const formatChppCurrencyFromSek = (valueSek: number | null | undefined) =>
-    formatEuro(convertSekToEur(valueSek));
+    formatSekCurrency(valueSek, displayCurrency, {
+      fallback: messages.unknownShort,
+    });
 
   const hashText = (input: string): string => {
     let hash = 5381;

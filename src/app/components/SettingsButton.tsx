@@ -9,6 +9,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import Modal from "./Modal";
 import AppLicenseModal from "./AppLicenseModal";
 import AppLicenseDetails from "./AppLicenseDetails";
+import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import QRCode from "qrcode";
 import {
   dispatchAnalyticsConsentChange,
@@ -85,6 +86,7 @@ import {
   subscribeReminderStorageState,
   type ReminderStorageExport,
 } from "@/lib/reminders/storage";
+import { formatSekCurrency } from "@/lib/currency";
 import {
   collectLocalStorageDiagnostics,
   collectStorageDiagnostics,
@@ -185,6 +187,14 @@ export default function SettingsButton({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const handledChronicleImportUrlRef = useRef(false);
   const { addNotification } = useNotifications();
+  const {
+    currencyOptions,
+    setting: displayCurrencySetting,
+    selectedOverride,
+    setOverride: setDisplayCurrencyOverride,
+    clearOverride: clearDisplayCurrencyOverride,
+  } = useDisplayCurrency();
+  const settingsDisplayCurrency = selectedOverride ?? undefined;
   const isDev = process.env.NODE_ENV !== "production";
   const pendingChronicleImportSummary = pendingImportedChronicleWatchlists
     ? summarizeImportedChronicleWatchlists(pendingImportedChronicleWatchlists)
@@ -1181,6 +1191,65 @@ export default function SettingsButton({
           <div className={styles.settingsModalBody}>
             <section className={styles.settingsSection}>
               <div className={styles.settingsSectionHeader}>
+                <h3>{messages.settingsDisplayCurrencyTitle}</h3>
+                <p className={styles.muted}>
+                  {messages.settingsDisplayCurrencyDescription}
+                </p>
+              </div>
+              <p className={styles.muted}>
+                {displayCurrencySetting.mode === "override" && selectedOverride
+                  ? messages.settingsDisplayCurrencyCurrentOverride.replace(
+                      "{{currency}}",
+                      selectedOverride.currencyName
+                    )
+                  : messages.settingsDisplayCurrencyCurrentDefault}
+              </p>
+              <div className={styles.settingsField}>
+                <label
+                  className={styles.settingsFieldLabel}
+                  htmlFor="display-currency-select"
+                >
+                  {messages.settingsDisplayCurrencySelectLabel}
+                </label>
+                <select
+                  id="display-currency-select"
+                  className={styles.settingsFieldInput}
+                  value={selectedOverride?.key ?? ""}
+                  onChange={(event) => {
+                    const next = currencyOptions.find(
+                      (currency) => currency.key === event.target.value
+                    );
+                    if (next) setDisplayCurrencyOverride(next);
+                  }}
+                  disabled={currencyOptions.length === 0}
+                >
+                  <option value="">
+                    {currencyOptions.length === 0
+                      ? messages.settingsDisplayCurrencyUnavailable
+                      : messages.settingsDisplayCurrencyDefaultButton}
+                  </option>
+                  {currencyOptions.map((currency) => (
+                    <option key={currency.key} value={currency.key}>
+                      {messages.settingsDisplayCurrencyRateLabel
+                        .replace("{{currency}}", currency.currencyName)
+                        .replace("{{rate}}", String(currency.currencyRate))}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.settingsChoiceRow}>
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={clearDisplayCurrencyOverride}
+                  disabled={displayCurrencySetting.mode === "default"}
+                >
+                  {messages.settingsDisplayCurrencyDefaultButton}
+                </button>
+              </div>
+            </section>
+            <section className={styles.settingsSection}>
+              <div className={styles.settingsSectionHeader}>
                 <h3>{messages.settingsAnalyticsConsentTitle}</h3>
                 <p className={styles.muted}>
                   {messages.settingsAnalyticsConsentDescription}
@@ -1562,9 +1631,10 @@ export default function SettingsButton({
                     <span>{messages.seniorMlEvaluationWageMae}</span>
                     <strong>
                       {seniorMlEvaluation.wageMaeSek !== null
-                        ? `€${Math.round(
-                            seniorMlEvaluation.wageMaeSek / 10
-                          ).toLocaleString()}`
+                        ? formatSekCurrency(
+                            seniorMlEvaluation.wageMaeSek,
+                            settingsDisplayCurrency
+                          )
                         : messages.unknownShort}
                     </strong>
                     <span>{messages.seniorMlEvaluationAgeMae}</span>

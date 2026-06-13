@@ -178,9 +178,14 @@ export function DisplayCurrencyProvider({
   const resolveForCountry = useCallback(
     (countryId: number | null | undefined) => {
       if (selectedOverride) return selectedOverride;
-      return resolveCurrencyForCountry(currencies, countryId) ?? SEK_DISPLAY_CURRENCY;
+      const resolved = resolveCurrencyForCountry(currencies, countryId);
+      if (!resolved) return SEK_DISPLAY_CURRENCY;
+      return (
+        currencyOptions.find((currency) => currency.key === resolved.key) ??
+        resolved
+      );
     },
-    [currencies, selectedOverride]
+    [currencies, currencyOptions, selectedOverride]
   );
 
   const setOverride = useCallback((currency: DisplayCurrency) => {

@@ -16927,18 +16927,27 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
+      let changed = false;
       const next = { ...prev };
       transferSearchResults.forEach((result) => {
         const existing = next[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
+        const bidDisplay = formatTransferSearchBidDraftDisplay(
+          buildTransferSearchMinimumBidSek(result),
+          displayCurrency
+        );
+        if (
+          existing.bidDisplay === bidDisplay &&
+          next[result.playerId]?.maxBidDisplay === existing.maxBidDisplay
+        ) {
+          return;
+        }
+        changed = true;
         next[result.playerId] = {
-          bidDisplay: formatTransferSearchBidDraftDisplay(
-            buildTransferSearchMinimumBidSek(result),
-            displayCurrency
-          ),
+          bidDisplay,
           maxBidDisplay: existing.maxBidDisplay,
         };
       });
-      return next;
+      return changed ? next : prev;
     });
   }, [displayCurrency, transferSearchResults]);
   const renderTransferSearchResultCard = useCallback((

@@ -1,6 +1,6 @@
 export type CurrencyMeta = {
   countryId: number;
-  countryName?: string | null;
+  countryName: string;
   currencyName: string;
   currencyRate: number;
 };
@@ -9,6 +9,12 @@ export type DisplayCurrency = {
   key: string;
   currencyName: string;
   currencyRate: number;
+};
+
+export type DisplayCurrencyOption = DisplayCurrency & {
+  countryId: number;
+  countryName: string;
+  label: string;
 };
 
 export const SEK_DISPLAY_CURRENCY: DisplayCurrency = {
@@ -45,6 +51,30 @@ export function buildCurrencyKey(currencyName: string, currencyRate: number): st
   return `${currencyName.trim().toUpperCase()}:${currencyRate}`;
 }
 
+export function buildCurrencyOptionKey(
+  countryId: number,
+  currencyName: string,
+  currencyRate: number
+): string {
+  return `${countryId}:${currencyName.trim().toUpperCase()}:${currencyRate}`;
+}
+
+export function getDisplayCurrencyLabel(currency: DisplayCurrency): string {
+  return currency.currencyName;
+}
+
+export function getDisplayCurrencyRateLabel(currency: DisplayCurrency): string {
+  return `${currency.currencyName}, 1 = ${currency.currencyRate} SEK`;
+}
+
+export function buildDisplayCurrencyOptionLabel(
+  currencyName: string,
+  countryName: string,
+  currencyRate: number
+): string {
+  return `${currencyName} - ${countryName} (1 = ${currencyRate} SEK)`;
+}
+
 export function parseCurrencyRate(value: unknown): number | null {
   return parsePositiveNumber(value);
 }
@@ -74,11 +104,12 @@ export function parseWorldDetailsCurrencies(payload: unknown): CurrencyMeta[] {
     const countryId = parsePositiveNumber(country.CountryID ?? country.CountryId);
     const currencyName = normalizeCurrencyName(country.CurrencyName);
     const currencyRate = parseCurrencyRate(country.CurrencyRate);
-    if (!countryId || !currencyName || !currencyRate) return [];
+    const countryName = normalizeCurrencyName(country.CountryName);
+    if (!countryId || !countryName || !currencyName || !currencyRate) return [];
     return [
       {
         countryId,
-        countryName: normalizeCurrencyName(country.CountryName),
+        countryName,
         currencyName,
         currencyRate,
       },
@@ -88,23 +119,52 @@ export function parseWorldDetailsCurrencies(payload: unknown): CurrencyMeta[] {
 
 export function buildDisplayCurrencyOptions(
   currencies: CurrencyMeta[]
-): DisplayCurrency[] {
-  const byKey = new Map<string, DisplayCurrency>();
-  byKey.set(SEK_DISPLAY_CURRENCY.key, SEK_DISPLAY_CURRENCY);
+): DisplayCurrencyOption[] {
+  const byKey = new Map<string, DisplayCurrencyOption>();
   currencies.forEach((currency) => {
-    const key = buildCurrencyKey(currency.currencyName, currency.currencyRate);
+    const key = buildCurrencyOptionKey(
+      currency.countryId,
+      currency.currencyName,
+      currency.currencyRate
+    );
     if (byKey.has(key)) return;
     byKey.set(key, {
       key,
+      countryId: currency.countryId,
+      countryName: currency.countryName,
       currencyName: currency.currencyName,
       currencyRate: currency.currencyRate,
+      label: buildDisplayCurrencyOptionLabel(
+        currency.currencyName,
+        currency.countryName,
+        currency.currencyRate
+      ),
     });
   });
+  if (
+    !Array.from(byKey.values()).some(
+      (currency) =>
+        buildCurrencyKey(currency.currencyName, currency.currencyRate) ===
+        SEK_DISPLAY_CURRENCY.key
+    )
+  ) {
+    byKey.set(buildCurrencyOptionKey(0, "SEK", 1), {
+      ...SEK_DISPLAY_CURRENCY,
+      key: buildCurrencyOptionKey(0, "SEK", 1),
+      countryId: 0,
+      countryName: "Sweden",
+      label: buildDisplayCurrencyOptionLabel("SEK", "Sweden", 1),
+    });
+  }
   return Array.from(byKey.values()).sort(
     (left, right) =>
       left.currencyName.localeCompare(right.currencyName, undefined, {
         sensitivity: "base",
-      }) || left.currencyRate - right.currencyRate
+      }) ||
+      left.countryName.localeCompare(right.countryName, undefined, {
+        sensitivity: "base",
+      }) ||
+      left.currencyRate - right.currencyRate
   );
 }
 

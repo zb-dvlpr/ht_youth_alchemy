@@ -1230,9 +1230,7 @@ export default function SettingsButton({
                   </option>
                   {currencyOptions.map((currency) => (
                     <option key={currency.key} value={currency.key}>
-                      {messages.settingsDisplayCurrencyRateLabel
-                        .replace("{{currency}}", currency.currencyName)
-                        .replace("{{rate}}", String(currency.currencyRate))}
+                      {currency.label}
                     </option>
                   ))}
                 </select>

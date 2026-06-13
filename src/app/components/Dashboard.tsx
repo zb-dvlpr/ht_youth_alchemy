@@ -37,6 +37,7 @@ import TransferSearchModal, {
   buildTransferSearchParams,
   clampTransferSkillValue,
   displayToSek,
+  formatTransferSearchCurrencyLabel,
   formatTransferSearchBidDraftDisplay,
   formatTransferSearchPlayerName,
   normalizeTransferSearchFilters,
@@ -54,7 +55,7 @@ import TransferSearchModal, {
   type TransferSearchSkillKey,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
-import { formatSekCurrency } from "@/lib/currency";
+import { formatSekCurrency, getDisplayCurrencyLabel } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import {
   POSITION_COLUMNS,
@@ -4393,6 +4394,16 @@ export default function Dashboard({
       typeof result.highestBidSek === "number" && result.highestBidSek > 0
         ? messages.seniorTransferSearchHighestBidLabel
         : messages.clubChronicleTransferListedAskingPriceColumn;
+    const currencyName = getDisplayCurrencyLabel(displayCurrency);
+    const displayPriceCurrencyLabel = `${displayPriceLabel} (${currencyName})`;
+    const bidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchBidAmountLabel,
+      displayCurrency
+    );
+    const maxBidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchMaxBidAmountLabel,
+      displayCurrency
+    );
     const deadlineDate = parseChppDate(result.deadline ?? undefined);
     const resultSpecialty = resultDetails?.Specialty ?? result.specialty;
     const resultSpecialtyName =
@@ -4502,7 +4513,7 @@ export default function Dashboard({
             ) : null}
           </div>
           <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{displayPriceLabel}</div>
+            <div className={styles.infoLabel}>{displayPriceCurrencyLabel}</div>
             <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
               {displayPriceSek !== null
                 ? formatDisplayCurrencyFromSek(displayPriceSek)
@@ -4578,7 +4589,7 @@ export default function Dashboard({
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`youth-bid-${result.playerId}`}>
-              {messages.seniorTransferSearchBidAmountLabel}
+              {bidAmountCurrencyLabel}
             </label>
             <input
               id={`youth-bid-${result.playerId}`}
@@ -4610,7 +4621,7 @@ export default function Dashboard({
           </Tooltip>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`youth-max-bid-${result.playerId}`}>
-              {messages.seniorTransferSearchMaxBidAmountLabel}
+              {maxBidAmountCurrencyLabel}
             </label>
             <input
               id={`youth-max-bid-${result.playerId}`}

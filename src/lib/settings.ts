@@ -39,7 +39,13 @@ export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
 
 export type StoredDisplayCurrencySetting =
   | { mode: "default" }
-  | { mode: "override"; currencyName: string; currencyRate: number };
+  | {
+      mode: "override";
+      countryId?: number;
+      countryName?: string;
+      currencyName: string;
+      currencyRate: number;
+    };
 
 const DEFAULT_DISPLAY_CURRENCY_SETTING: StoredDisplayCurrencySetting = {
   mode: "default",
@@ -51,6 +57,8 @@ const isValidDisplayCurrencyOverride = (
   if (!value || typeof value !== "object") return false;
   const candidate = value as {
     mode?: unknown;
+    countryId?: unknown;
+    countryName?: unknown;
     currencyName?: unknown;
     currencyRate?: unknown;
   };
@@ -75,10 +83,25 @@ export function readDisplayCurrencySetting(): StoredDisplayCurrencySetting {
       return DEFAULT_DISPLAY_CURRENCY_SETTING;
     }
     if (isValidDisplayCurrencyOverride(parsed)) {
+      const parsedOverride = parsed as Extract<
+        StoredDisplayCurrencySetting,
+        { mode: "override" }
+      >;
       return {
         mode: "override",
-        currencyName: parsed.currencyName.trim(),
-        currencyRate: parsed.currencyRate,
+        countryId:
+          typeof parsedOverride.countryId === "number" &&
+          Number.isFinite(parsedOverride.countryId) &&
+          parsedOverride.countryId >= 0
+            ? parsedOverride.countryId
+            : undefined,
+        countryName:
+          typeof parsedOverride.countryName === "string" &&
+          parsedOverride.countryName.trim().length > 0
+            ? parsedOverride.countryName.trim()
+            : undefined,
+        currencyName: parsedOverride.currencyName.trim(),
+        currencyRate: parsedOverride.currencyRate,
       };
     }
     return DEFAULT_DISPLAY_CURRENCY_SETTING;
@@ -101,6 +124,17 @@ export function writeDisplayCurrencySetting(
       setting.mode === "override" && isValidDisplayCurrencyOverride(setting)
         ? {
             mode: "override" as const,
+            countryId:
+              typeof setting.countryId === "number" &&
+              Number.isFinite(setting.countryId) &&
+              setting.countryId >= 0
+                ? setting.countryId
+                : undefined,
+            countryName:
+              typeof setting.countryName === "string" &&
+              setting.countryName.trim().length > 0
+                ? setting.countryName.trim()
+                : undefined,
             currencyName: setting.currencyName.trim(),
             currencyRate: setting.currencyRate,
           }

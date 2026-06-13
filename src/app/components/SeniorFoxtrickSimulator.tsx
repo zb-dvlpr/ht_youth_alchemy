@@ -8,7 +8,11 @@ import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 import styles from "../page.module.css";
 import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import Tooltip from "./Tooltip";
-import { SEK_DISPLAY_CURRENCY, type DisplayCurrency } from "@/lib/currency";
+import {
+  getDisplayCurrencyLabel,
+  SEK_DISPLAY_CURRENCY,
+  type DisplayCurrency,
+} from "@/lib/currency";
 
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const FORM_MAX_LEVEL = 8;
@@ -221,6 +225,10 @@ export default function SeniorFoxtrickSimulator({
     Number.isFinite(displayCurrency.currencyRate) && displayCurrency.currencyRate > 0
       ? displayCurrency.currencyRate
       : SEK_DISPLAY_CURRENCY.currencyRate;
+  const wageInputLabel = messages.seniorFoxtrickSimulationWageLabel.replace(
+    "{{currency}}",
+    getDisplayCurrencyLabel(displayCurrency)
+  );
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [values, setValues] = useState<SimulatedValues>(() =>
@@ -592,7 +600,7 @@ export default function SeniorFoxtrickSimulator({
                 />
               </label>
               <label className={styles.simulationControlLabel}>
-                <span>{messages.seniorFoxtrickSimulationWageLabel}</span>
+                <span>{wageInputLabel}</span>
                 <input
                   className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"

@@ -12,12 +12,14 @@ import {
 import {
   buildCurrencyKey,
   buildDisplayCurrencyOptions,
+  buildCurrencyOptionKey,
+  buildDisplayCurrencyOptionLabel,
   formatSekCurrency,
   parseWorldDetailsCurrencies,
-  resolveCurrencyForCountry,
   SEK_DISPLAY_CURRENCY,
   type CurrencyMeta,
   type DisplayCurrency,
+  type DisplayCurrencyOption,
 } from "@/lib/currency";
 import {
   DISPLAY_CURRENCY_SETTINGS_EVENT,
@@ -28,7 +30,7 @@ import {
 
 const DISPLAY_CURRENCY_WORLDDETAILS_STORAGE_KEY =
   "ya_worlddetails_currencies_v1";
-const DISPLAY_CURRENCY_WORLDDETAILS_SCHEMA_VERSION = 1;
+const DISPLAY_CURRENCY_WORLDDETAILS_SCHEMA_VERSION = 2;
 const DISPLAY_CURRENCY_WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 
 type StoredCurrenciesCache = {
@@ -38,10 +40,10 @@ type StoredCurrenciesCache = {
 };
 
 type DisplayCurrencyContextValue = {
-  currencyOptions: DisplayCurrency[];
+  currencyOptions: DisplayCurrencyOption[];
   setting: StoredDisplayCurrencySetting;
   selectedOverride: DisplayCurrency | null;
-  setOverride: (currency: DisplayCurrency) => void;
+  setOverride: (currency: DisplayCurrencyOption) => void;
   clearOverride: () => void;
   resolveForCountry: (countryId: number | null | undefined) => DisplayCurrency;
   formatSek: (
@@ -61,6 +63,8 @@ const isValidCurrencyMeta = (value: unknown): value is CurrencyMeta => {
     typeof candidate.countryId === "number" &&
     Number.isFinite(candidate.countryId) &&
     candidate.countryId > 0 &&
+    typeof candidate.countryName === "string" &&
+    candidate.countryName.trim().length > 0 &&
     typeof candidate.currencyName === "string" &&
     candidate.currencyName.trim().length > 0 &&
     typeof candidate.currencyRate === "number" &&
@@ -165,9 +169,21 @@ export function DisplayCurrencyProvider({
 
   const selectedOverride = useMemo(() => {
     if (setting.mode !== "override") return null;
-    const key = buildCurrencyKey(setting.currencyName, setting.currencyRate);
+    const key =
+      typeof setting.countryId === "number" && setting.countryId >= 0
+        ? buildCurrencyOptionKey(
+            setting.countryId,
+            setting.currencyName,
+            setting.currencyRate
+          )
+        : buildCurrencyKey(setting.currencyName, setting.currencyRate);
     return (
-      currencyOptions.find((currency) => currency.key === key) ?? {
+      currencyOptions.find((currency) => currency.key === key) ??
+      currencyOptions.find(
+        (currency) =>
+          currency.currencyName === setting.currencyName &&
+          currency.currencyRate === setting.currencyRate
+      ) ?? {
         key,
         currencyName: setting.currencyName,
         currencyRate: setting.currencyRate,
@@ -178,19 +194,37 @@ export function DisplayCurrencyProvider({
   const resolveForCountry = useCallback(
     (countryId: number | null | undefined) => {
       if (selectedOverride) return selectedOverride;
-      const resolved = resolveCurrencyForCountry(currencies, countryId);
-      if (!resolved) return SEK_DISPLAY_CURRENCY;
+      if (!countryId || !Number.isFinite(countryId) || countryId <= 0) {
+        return SEK_DISPLAY_CURRENCY;
+      }
+      const countryCurrency = currencies.find(
+        (currency) => currency.countryId === countryId
+      );
+      if (!countryCurrency) return SEK_DISPLAY_CURRENCY;
+      const optionKey = buildCurrencyOptionKey(
+        countryCurrency.countryId,
+        countryCurrency.currencyName,
+        countryCurrency.currencyRate
+      );
       return (
-        currencyOptions.find((currency) => currency.key === resolved.key) ??
-        resolved
+        currencyOptions.find((currency) => currency.key === optionKey) ?? {
+          key: buildCurrencyKey(
+            countryCurrency.currencyName,
+            countryCurrency.currencyRate
+          ),
+          currencyName: countryCurrency.currencyName,
+          currencyRate: countryCurrency.currencyRate,
+        }
       );
     },
     [currencies, currencyOptions, selectedOverride]
   );
 
-  const setOverride = useCallback((currency: DisplayCurrency) => {
+  const setOverride = useCallback((currency: DisplayCurrencyOption) => {
     writeDisplayCurrencySetting({
       mode: "override",
+      countryId: "countryId" in currency ? currency.countryId : undefined,
+      countryName: "countryName" in currency ? currency.countryName : undefined,
       currencyName: currency.currencyName,
       currencyRate: currency.currencyRate,
     });
@@ -239,8 +273,15 @@ export function DisplayCurrencyProvider({
 export function useDisplayCurrency() {
   const context = useContext(DisplayCurrencyContext);
   if (!context) {
+    const fallbackOption = {
+      ...SEK_DISPLAY_CURRENCY,
+      key: buildCurrencyOptionKey(0, "SEK", 1),
+      countryId: 0,
+      countryName: "Sweden",
+      label: buildDisplayCurrencyOptionLabel("SEK", "Sweden", 1),
+    };
     return {
-      currencyOptions: [SEK_DISPLAY_CURRENCY],
+      currencyOptions: [fallbackOption],
       setting: { mode: "default" as const },
       selectedOverride: null,
       setOverride: () => undefined,

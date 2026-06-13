@@ -24,6 +24,7 @@ import { formatTimeRemaining } from "@/lib/datetime";
 import {
   displayAmountToSek,
   formatSekCurrency,
+  getDisplayCurrencyLabel,
   sekToDisplayAmount,
   type DisplayCurrency,
 } from "@/lib/currency";
@@ -445,6 +446,16 @@ const isTransferSearchDigitsInput = (
   if (typeof options?.maxValue !== "number") return true;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed <= options.maxValue;
+};
+
+export const formatTransferSearchCurrencyLabel = (
+  label: string,
+  displayCurrency: DisplayCurrency
+) => {
+  const currencyName = getDisplayCurrencyLabel(displayCurrency);
+  return label
+    .replace("{{currency}}", currencyName)
+    .replace(/\((?:the\s+)?display currency\)/gi, `(${currencyName})`);
 };
 
 const parseTransferSearchDraftInteger = (value: string): number | null => {
@@ -1283,6 +1294,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
   }, [countryMetaById, results]);
   const activeMobilePanel: TransferSearchMobilePanel =
     resultsViewMode === "table" ? "results" : mobilePanel;
+  const currencyName = getDisplayCurrencyLabel(displayCurrency);
+  const priceRangeLabel = formatTransferSearchCurrencyLabel(
+    messages.seniorTransferSearchPriceRangeLabel,
+    displayCurrency
+  );
+  const tablePriceLabel = `${messages.transferSearchTablePriceColumn} (${currencyName})`;
+  const tableWageLabel = `${messages.transferSearchTableWageColumn} (${currencyName})`;
+  const tableBidLabel = `${messages.transferSearchTableBidColumn} (${currencyName})`;
   const sortOptions = useMemo(
     () => [
       { value: "default", label: messages.transferSearchSortDefault },
@@ -1594,7 +1613,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     { key: "spec", label: messages.transferSearchTableSpecialtyColumn },
     { key: "inj", label: messages.transferSearchTableInjuryColumn, higherBetter: null },
     { key: "age", label: messages.transferSearchTableAgeColumn, higherBetter: false },
-    { key: "price", label: messages.transferSearchTablePriceColumn, higherBetter: false },
+    { key: "price", label: tablePriceLabel, higherBetter: false },
     { key: "tsi", label: "TSI", higherBetter: true },
     { key: "lead", label: messages.transferSearchTableLeadershipColumn, higherBetter: true },
     { key: "xp", label: messages.transferSearchTableExperienceColumn, higherBetter: true },
@@ -1610,9 +1629,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
     { key: "htms", label: messages.transferSearchTableHtmsColumn, higherBetter: true },
     { key: "ptsi", label: messages.transferSearchTablePsicoTsiColumn, higherBetter: true },
     { key: "pwage", label: messages.transferSearchTablePsicoWageColumn, higherBetter: true },
-    { key: "wage", label: messages.transferSearchTableWageColumn, higherBetter: false },
+    { key: "wage", label: tableWageLabel, higherBetter: false },
     { key: "deadline", label: messages.transferSearchTableDeadlineColumn, higherBetter: null },
-    { key: "bid", label: messages.transferSearchTableBidColumn, higherBetter: false },
+    { key: "bid", label: tableBidLabel, higherBetter: false },
   ] as const;
 
   const tableColumnStats = useMemo(() => {
@@ -1991,7 +2010,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 </div>
 
                 <div className={styles.transferSearchSection}>
-                  <div className={styles.infoLabel}>{messages.seniorTransferSearchPriceRangeLabel}</div>
+                  <div className={styles.infoLabel}>{priceRangeLabel}</div>
                   <div className={styles.transferSearchSimpleRange}>
                     <input
                       className={styles.transferSearchInput}

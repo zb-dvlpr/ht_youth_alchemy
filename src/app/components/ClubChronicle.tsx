@@ -7297,7 +7297,7 @@ export default function ClubChronicle({
         key: "estimate",
         label: messages.clubChronicleFinanceColumnEstimate,
         getValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
-          snapshot ? `${formatChppCurrencyFromSek(snapshot.estimatedSek)}*` : null,
+          snapshot ? formatChppCurrencyFromSek(snapshot.estimatedSek) : null,
         getSortValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
           snapshot?.estimatedSek ?? null,
       },
@@ -7882,8 +7882,7 @@ export default function ClubChronicle({
           ? value
           : Number(String(value).replace(/[^0-9.-]/g, ""));
       if (!Number.isFinite(numericValue)) return String(value);
-      const formatted = formatChppCurrencyFromSek(numericValue);
-      return fieldKey === "finance.estimate" ? `${formatted}*` : formatted;
+      return formatChppCurrencyFromSek(numericValue);
     },
     [formatChppCurrencyFromSek]
   );
@@ -18542,7 +18541,7 @@ type Form7LineupSnapshot = {
                   {
                     id: "estimate",
                     metric: messages.clubChronicleFinanceColumnEstimate,
-                    value: `${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`,
+                    value: formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek),
                   },
                 ]}
                 getRowKey={(row) => row.id}

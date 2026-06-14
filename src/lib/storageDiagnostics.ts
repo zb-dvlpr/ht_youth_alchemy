@@ -1,4 +1,8 @@
-import { estimateChronicleIndexedDbBytes } from "./chronicleIndexedDb";
+import {
+  collectChronicleIndexedDbDiagnostics,
+  estimateChronicleIndexedDbBytes,
+  type ChronicleIndexedDbStoreDiagnostics,
+} from "./chronicleIndexedDb";
 
 export type LocalStorageKeyUsage = {
   key: string;
@@ -12,6 +16,16 @@ export type LocalStorageDiagnostics = {
   localStorageKeys: LocalStorageKeyUsage[];
   error?: string | null;
 };
+
+export type IndexedDbDiagnostics = {
+  indexedDbBytes: number | null;
+  indexedDbFormatted: string | null;
+  indexedDbStores: ChronicleIndexedDbStoreDiagnostics[];
+  error?: string | null;
+};
+
+export type StorageManagementDiagnostics = LocalStorageDiagnostics &
+  IndexedDbDiagnostics;
 
 export type FeedbackStorageMetadata = {
   localStorageTotalBytes: number | null;
@@ -105,6 +119,59 @@ export function collectLocalStorageDiagnostics(): LocalStorageDiagnostics {
       error: error instanceof Error ? error.message : "localStorage read failed",
     };
   }
+}
+
+export async function collectIndexedDbDiagnostics(): Promise<IndexedDbDiagnostics> {
+  if (typeof window === "undefined") {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: "window unavailable",
+    };
+  }
+  if (typeof indexedDB === "undefined") {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: "IndexedDB unavailable",
+    };
+  }
+
+  try {
+    const indexedDbStores = await collectChronicleIndexedDbDiagnostics();
+    const indexedDbBytes = indexedDbStores.reduce(
+      (sum, store) => sum + store.bytes,
+      0
+    );
+    return {
+      indexedDbBytes,
+      indexedDbFormatted: formatBytes(indexedDbBytes),
+      indexedDbStores,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: error instanceof Error ? error.message : "IndexedDB read failed",
+    };
+  }
+}
+
+export async function collectStorageManagementDiagnostics(): Promise<StorageManagementDiagnostics> {
+  const localStorageDiagnostics = collectLocalStorageDiagnostics();
+  const indexedDbDiagnostics = await collectIndexedDbDiagnostics();
+  return {
+    ...localStorageDiagnostics,
+    ...indexedDbDiagnostics,
+    error:
+      [localStorageDiagnostics.error, indexedDbDiagnostics.error]
+        .filter(Boolean)
+        .join("; ") || null,
+  };
 }
 
 export function collectFeedbackStorageMetadata(): FeedbackStorageMetadata {

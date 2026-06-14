@@ -516,13 +516,21 @@ export const messagesPt: Messages = {
       "Importa um backup JSON exportado anteriormente e substitui as configurações locais e os estados em cache atuais do app.",
     settingsStorageManagementButton: "Gestao de armazenamento",
     settingsStorageManagementTitle: "Gestao de armazenamento",
+    settingsStorageManagementLocalStorageTitle: "Armazenamento local",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Armazenamento usado: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB usado: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Banco de dados",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Registros",
     settingsStorageManagementKeyColumn: "Chave",
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Acao",
     settingsStorageManagementWipeButton: "Apagar",
     settingsStorageManagementWipeAllButton: "Apagar tudo",
+    settingsStorageManagementWipeIndexedDbButton: "Apagar IndexedDB",
     settingsStorageManagementNoKeys: "Nenhuma chave localStorage encontrada.",
+    settingsStorageManagementNoIndexedDbRecords: "Nenhum registro IndexedDB encontrado.",
     settingsStorageManagementWipeConfirmTitle:
       "Apagar chave de armazenamento?",
     settingsStorageManagementWipeConfirmBody:
@@ -531,6 +539,9 @@ export const messagesPt: Messages = {
       "Apagar todas as chaves de armazenamento?",
     settingsStorageManagementWipeAllConfirmBody:
       "Isto removera permanentemente todas as chaves listadas atualmente em Gestao de armazenamento. Esta acao nao pode ser desfeita. Exporte seus dados primeiro se puder precisar deles depois.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "Apagar dados IndexedDB?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Isto removera permanentemente os dados do Cronica do clube do app em IndexedDB. As chaves localStorage nao serao afetadas. Esta acao nao pode ser desfeita.",
     settingsStorageManagementWipeSuccess:
       "Chave de armazenamento apagada: {{key}}",
     settingsStorageManagementWipeError:
@@ -539,7 +550,10 @@ export const messagesPt: Messages = {
       "Todas as chaves de armazenamento listadas foram apagadas.",
     settingsStorageManagementWipeAllError:
       "Nao foi possivel apagar todas as chaves de armazenamento listadas.",
+    settingsStorageManagementWipeIndexedDbSuccess: "Dados IndexedDB apagados.",
+    settingsStorageManagementWipeIndexedDbError: "Nao foi possivel apagar os dados IndexedDB.",
     settingsStorageManagementReadError: "Nao foi possivel ler localStorage.",
+    settingsStorageManagementIndexedDbReadError: "Nao foi possivel ler IndexedDB.",
     settingsMachineLearningTitle: "Aprendizado de máquina",
     settingsMachineLearningBody:
       "Snapshots de jogadores senior são aprendidos automaticamente por atualizações senior e detalhes de resultados do mercado.",

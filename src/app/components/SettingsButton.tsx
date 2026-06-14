@@ -88,11 +88,12 @@ import {
 } from "@/lib/reminders/storage";
 import { formatSekCurrency } from "@/lib/currency";
 import {
-  collectLocalStorageDiagnostics,
+  collectStorageManagementDiagnostics,
   collectStorageDiagnostics,
-  type LocalStorageDiagnostics,
+  type StorageManagementDiagnostics,
   type StorageDiagnostics,
 } from "@/lib/storageDiagnostics";
+import { wipeChronicleIndexedDbData } from "@/lib/chronicleIndexedDb";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -152,12 +153,14 @@ export default function SettingsButton({
   const [storageManagementLoading, setStorageManagementLoading] =
     useState(false);
   const [storageManagement, setStorageManagement] =
-    useState<LocalStorageDiagnostics | null>(null);
+    useState<StorageManagementDiagnostics | null>(null);
   const [pendingStorageWipeKey, setPendingStorageWipeKey] = useState<string | null>(
     null
   );
   const [storageWipePending, setStorageWipePending] = useState(false);
   const [pendingStorageWipeAll, setPendingStorageWipeAll] = useState(false);
+  const [pendingIndexedDbWipe, setPendingIndexedDbWipe] = useState(false);
+  const [indexedDbWipePending, setIndexedDbWipePending] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessDays, setStalenessDays] = useState(1);
@@ -713,15 +716,18 @@ export default function SettingsButton({
     void refreshStorageDiagnostics();
   };
 
-  const refreshStorageManagement = () => {
+  const refreshStorageManagement = async () => {
     setStorageManagementLoading(true);
     try {
-      setStorageManagement(collectLocalStorageDiagnostics());
+      setStorageManagement(await collectStorageManagementDiagnostics());
     } catch {
       setStorageManagement({
         localStorageBytes: null,
         localStorageFormatted: null,
         localStorageKeys: [],
+        indexedDbBytes: null,
+        indexedDbFormatted: null,
+        indexedDbStores: [],
         error: messages.settingsStorageManagementReadError,
       });
     } finally {
@@ -733,7 +739,7 @@ export default function SettingsButton({
     setGeneralSettingsOpen(false);
     setStorageManagementOpen(true);
     setStorageManagement(null);
-    refreshStorageManagement();
+    void refreshStorageManagement();
   };
 
   const handleConfirmStorageWipe = () => {
@@ -743,7 +749,7 @@ export default function SettingsButton({
     try {
       window.localStorage.removeItem(key);
       setPendingStorageWipeKey(null);
-      refreshStorageManagement();
+      void refreshStorageManagement();
       addNotification(
         messages.settingsStorageManagementWipeSuccess.replace("{{key}}", key)
       );
@@ -769,13 +775,29 @@ export default function SettingsButton({
     try {
       keysToRemove.forEach((key) => window.localStorage.removeItem(key));
       setPendingStorageWipeAll(false);
-      refreshStorageManagement();
+      void refreshStorageManagement();
       addNotification(messages.settingsStorageManagementWipeAllSuccess);
     } catch {
       addNotification(messages.settingsStorageManagementWipeAllError);
     } finally {
       setStorageWipePending(false);
     }
+  };
+
+  const handleConfirmIndexedDbWipe = () => {
+    setIndexedDbWipePending(true);
+    void (async () => {
+      try {
+        await wipeChronicleIndexedDbData();
+        setPendingIndexedDbWipe(false);
+        addNotification(messages.settingsStorageManagementWipeIndexedDbSuccess);
+        await refreshStorageManagement();
+      } catch {
+        addNotification(messages.settingsStorageManagementWipeIndexedDbError);
+      } finally {
+        setIndexedDbWipePending(false);
+      }
+    })();
   };
 
   const handleOpenLicenseEntry = () => {
@@ -1362,6 +1384,9 @@ export default function SettingsButton({
             {storageManagement ? (
               <>
                 <section className={styles.storageDiagnosticsSection}>
+                  <h3 className={styles.storageDiagnosticsHeading}>
+                    {messages.settingsStorageManagementLocalStorageTitle}
+                  </h3>
                   <p className={styles.storageDiagnosticsValue}>
                     {messages.settingsStorageManagementTotalUsed.replace(
                       "{{size}}",
@@ -1369,57 +1394,123 @@ export default function SettingsButton({
                         messages.unknownShort
                     )}
                   </p>
-                  {storageManagement.error ? (
+                  {storageManagement.localStorageBytes === null &&
+                  storageManagement.error ? (
                     <p className={styles.errorText}>
                       {messages.settingsStorageManagementReadError}
                     </p>
                   ) : null}
                 </section>
-                {storageManagement.localStorageKeys.length > 0 ? (
-                  <>
-                    <div className={styles.storageDiagnosticsTableWrap}>
-                      <table className={styles.storageDiagnosticsTable}>
-                        <thead>
-                          <tr>
-                            <th>{messages.settingsStorageManagementKeyColumn}</th>
-                            <th>{messages.settingsStorageManagementUsageColumn}</th>
-                            <th>{messages.settingsStorageManagementActionColumn}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {storageManagement.localStorageKeys.map((row) => (
-                            <tr key={row.key}>
-                              <td title={row.key}>{row.key}</td>
-                              <td>{row.formatted}</td>
-                              <td>
-                                <button
-                                  type="button"
-                                  className={styles.settingsDangerButton}
-                                  onClick={() => setPendingStorageWipeKey(row.key)}
-                                  aria-label={`${messages.settingsStorageManagementWipeButton}: ${row.key}`}
-                                >
-                                  {messages.settingsStorageManagementWipeButton}
-                                </button>
-                              </td>
+                <section className={styles.storageDiagnosticsSection}>
+                  {storageManagement.localStorageKeys.length > 0 ? (
+                    <>
+                      <div className={styles.storageDiagnosticsTableWrap}>
+                        <table className={styles.storageDiagnosticsTable}>
+                          <thead>
+                            <tr>
+                              <th>{messages.settingsStorageManagementKeyColumn}</th>
+                              <th>{messages.settingsStorageManagementUsageColumn}</th>
+                              <th>{messages.settingsStorageManagementActionColumn}</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.settingsDangerButton}
-                      onClick={() => setPendingStorageWipeAll(true)}
-                      disabled={storageManagementLoading || storageWipePending}
-                    >
-                      {messages.settingsStorageManagementWipeAllButton}
-                    </button>
-                  </>
-                ) : storageManagement.localStorageBytes !== null ? (
-                  <p className={styles.muted}>
-                    {messages.settingsStorageManagementNoKeys}
+                          </thead>
+                          <tbody>
+                            {storageManagement.localStorageKeys.map((row) => (
+                              <tr key={row.key}>
+                                <td title={row.key}>{row.key}</td>
+                                <td>{row.formatted}</td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className={styles.settingsDangerButton}
+                                    onClick={() => setPendingStorageWipeKey(row.key)}
+                                    aria-label={`${messages.settingsStorageManagementWipeButton}: ${row.key}`}
+                                  >
+                                    {messages.settingsStorageManagementWipeButton}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.settingsDangerButton}
+                        onClick={() => setPendingStorageWipeAll(true)}
+                        disabled={storageManagementLoading || storageWipePending}
+                      >
+                        {messages.settingsStorageManagementWipeAllButton}
+                      </button>
+                    </>
+                  ) : storageManagement.localStorageBytes !== null ? (
+                    <p className={styles.muted}>
+                      {messages.settingsStorageManagementNoKeys}
+                    </p>
+                  ) : null}
+                </section>
+                <section className={styles.storageDiagnosticsSection}>
+                  <h3 className={styles.storageDiagnosticsHeading}>
+                    {messages.settingsStorageManagementIndexedDbTitle}
+                  </h3>
+                  <p className={styles.storageDiagnosticsValue}>
+                    {messages.settingsStorageManagementIndexedDbTotalUsed.replace(
+                      "{{size}}",
+                      storageManagement.indexedDbFormatted ?? messages.unknownShort
+                    )}
                   </p>
-                ) : null}
+                  {storageManagement.indexedDbStores.length > 0 ? (
+                    <>
+                      <div className={styles.storageDiagnosticsTableWrap}>
+                        <table className={styles.storageDiagnosticsTable}>
+                          <thead>
+                            <tr>
+                              <th>
+                                {
+                                  messages.settingsStorageManagementIndexedDbDatabaseColumn
+                                }
+                              </th>
+                              <th>
+                                {messages.settingsStorageManagementIndexedDbStoreColumn}
+                              </th>
+                              <th>
+                                {
+                                  messages.settingsStorageManagementIndexedDbRecordsColumn
+                                }
+                              </th>
+                              <th>{messages.settingsStorageManagementUsageColumn}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {storageManagement.indexedDbStores.map((row) => (
+                              <tr key={`${row.databaseName}:${row.storeName}`}>
+                                <td title={row.databaseName}>{row.databaseName}</td>
+                                <td title={row.storeName}>{row.storeName}</td>
+                                <td>{row.recordCount}</td>
+                                <td>{row.formatted}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.settingsDangerButton}
+                        onClick={() => setPendingIndexedDbWipe(true)}
+                        disabled={storageManagementLoading || indexedDbWipePending}
+                      >
+                        {messages.settingsStorageManagementWipeIndexedDbButton}
+                      </button>
+                    </>
+                  ) : storageManagement.indexedDbBytes !== null ? (
+                    <p className={styles.muted}>
+                      {messages.settingsStorageManagementNoIndexedDbRecords}
+                    </p>
+                  ) : (
+                    <p className={styles.errorText}>
+                      {messages.settingsStorageManagementIndexedDbReadError}
+                    </p>
+                  )}
+                </section>
               </>
             ) : null}
           </div>
@@ -1436,7 +1527,7 @@ export default function SettingsButton({
             <button
               type="button"
               className={styles.confirmSubmit}
-              onClick={refreshStorageManagement}
+              onClick={() => void refreshStorageManagement()}
               disabled={storageManagementLoading}
             >
               {messages.settingsDebugStorageRefreshButton}
@@ -1519,6 +1610,42 @@ export default function SettingsButton({
         onClose={() => {
           if (storageWipePending) return;
           setPendingStorageWipeAll(false);
+        }}
+      />
+      <Modal
+        open={pendingIndexedDbWipe}
+        title={messages.settingsStorageManagementWipeIndexedDbConfirmTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>
+              {messages.settingsStorageManagementWipeIndexedDbConfirmBody}
+            </p>
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingIndexedDbWipe(false)}
+              disabled={indexedDbWipePending}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.settingsDangerButton}
+              onClick={handleConfirmIndexedDbWipe}
+              disabled={indexedDbWipePending}
+            >
+              {messages.settingsStorageManagementWipeIndexedDbButton}
+            </button>
+          </>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          if (indexedDbWipePending) return;
+          setPendingIndexedDbWipe(false);
         }}
       />
       <Modal

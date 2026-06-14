@@ -517,13 +517,21 @@ export const messagesFr: Messages = {
       "Importe une sauvegarde JSON précédemment exportée et remplace les paramètres locaux et états en cache actuels de l’application.",
     settingsStorageManagementButton: "Gestion du stockage",
     settingsStorageManagementTitle: "Gestion du stockage",
+    settingsStorageManagementLocalStorageTitle: "Stockage local",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Stockage utilisé : {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB utilise : {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Base",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Enregistrements",
     settingsStorageManagementKeyColumn: "Cle",
     settingsStorageManagementUsageColumn: "Utilisation",
     settingsStorageManagementActionColumn: "Action",
     settingsStorageManagementWipeButton: "Effacer",
     settingsStorageManagementWipeAllButton: "Tout effacer",
+    settingsStorageManagementWipeIndexedDbButton: "Effacer IndexedDB",
     settingsStorageManagementNoKeys: "Aucune cle localStorage trouvee.",
+    settingsStorageManagementNoIndexedDbRecords: "Aucun enregistrement IndexedDB trouve.",
     settingsStorageManagementWipeConfirmTitle: "Effacer la cle de stockage ?",
     settingsStorageManagementWipeConfirmBody:
       'Vous allez effacer "{{key}}" du stockage local. Une fois effacee, cette action ne peut pas etre annulee. Les donnees, parametres, caches ou etats stockes sous cette cle peuvent etre perdus.',
@@ -531,6 +539,9 @@ export const messagesFr: Messages = {
       "Effacer toutes les cles de stockage ?",
     settingsStorageManagementWipeAllConfirmBody:
       "Cela supprimera definitivement toutes les cles actuellement listees dans Gestion du stockage. Cette action ne peut pas etre annulee. Exportez d abord vos donnees si vous pourriez en avoir besoin plus tard.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "Effacer les donnees IndexedDB ?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Cela supprimera definitivement les donnees Chronique du club de l'app dans IndexedDB. Les cles localStorage ne sont pas touchees. Cette action ne peut pas etre annulee.",
     settingsStorageManagementWipeSuccess: "Cle de stockage effacee : {{key}}",
     settingsStorageManagementWipeError:
       "Impossible d effacer la cle de stockage : {{key}}",
@@ -538,7 +549,10 @@ export const messagesFr: Messages = {
       "Toutes les cles de stockage listees ont ete effacees.",
     settingsStorageManagementWipeAllError:
       "Impossible d effacer toutes les cles de stockage listees.",
+    settingsStorageManagementWipeIndexedDbSuccess: "Les donnees IndexedDB ont ete effacees.",
+    settingsStorageManagementWipeIndexedDbError: "Impossible d effacer les donnees IndexedDB.",
     settingsStorageManagementReadError: "Impossible de lire localStorage.",
+    settingsStorageManagementIndexedDbReadError: "Impossible de lire IndexedDB.",
     settingsMachineLearningTitle: "Apprentissage automatique",
     settingsMachineLearningBody:
       "Les instantanés de joueurs seniors sont appris automatiquement depuis les actualisations seniors et les détails des résultats du marché.",

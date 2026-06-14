@@ -517,13 +517,21 @@ export const messagesIt: Messages = {
       "Importa un backup JSON esportato in precedenza e sostituisce le impostazioni locali e gli stati in cache attuali dell’app.",
     settingsStorageManagementButton: "Gestione archiviazione",
     settingsStorageManagementTitle: "Gestione archiviazione",
+    settingsStorageManagementLocalStorageTitle: "Archiviazione locale",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Archiviazione usata: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB usato: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Database",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Record",
     settingsStorageManagementKeyColumn: "Chiave",
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Azione",
     settingsStorageManagementWipeButton: "Cancella",
     settingsStorageManagementWipeAllButton: "Cancella tutto",
+    settingsStorageManagementWipeIndexedDbButton: "Cancella IndexedDB",
     settingsStorageManagementNoKeys: "Nessuna chiave localStorage trovata.",
+    settingsStorageManagementNoIndexedDbRecords: "Nessun record IndexedDB trovato.",
     settingsStorageManagementWipeConfirmTitle:
       "Cancellare la chiave di archiviazione?",
     settingsStorageManagementWipeConfirmBody:
@@ -532,6 +540,9 @@ export const messagesIt: Messages = {
       "Cancellare tutte le chiavi di archiviazione?",
     settingsStorageManagementWipeAllConfirmBody:
       "Questo rimuovera definitivamente ogni chiave attualmente elencata in Gestione archiviazione. L azione non puo essere annullata. Esporta prima i dati se potresti averne bisogno in seguito.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "Cancellare i dati IndexedDB?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Questo rimuovera definitivamente i dati Club Chronicle dell'app in IndexedDB. Le chiavi localStorage non vengono modificate. L azione non puo essere annullata.",
     settingsStorageManagementWipeSuccess:
       "Chiave di archiviazione cancellata: {{key}}",
     settingsStorageManagementWipeError:
@@ -540,7 +551,10 @@ export const messagesIt: Messages = {
       "Tutte le chiavi di archiviazione elencate sono state cancellate.",
     settingsStorageManagementWipeAllError:
       "Impossibile cancellare tutte le chiavi di archiviazione elencate.",
+    settingsStorageManagementWipeIndexedDbSuccess: "Dati IndexedDB cancellati.",
+    settingsStorageManagementWipeIndexedDbError: "Impossibile cancellare i dati IndexedDB.",
     settingsStorageManagementReadError: "Impossibile leggere localStorage.",
+    settingsStorageManagementIndexedDbReadError: "Impossibile leggere IndexedDB.",
     settingsMachineLearningTitle: "Apprendimento automatico",
     settingsMachineLearningBody:
       "Gli snapshot dei giocatori senior vengono appresi automaticamente dagli aggiornamenti senior e dai dettagli dei risultati di mercato.",

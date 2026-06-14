@@ -332,19 +332,30 @@ export const messagesNl: Messages = {
     "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
   settingsStorageManagementButton: "Opslagbeheer",
   settingsStorageManagementTitle: "Opslagbeheer",
+  settingsStorageManagementLocalStorageTitle: "Lokale opslag",
+  settingsStorageManagementIndexedDbTitle: "IndexedDB",
   settingsStorageManagementTotalUsed: "Gebruikte opslag: {{size}}",
+  settingsStorageManagementIndexedDbTotalUsed: "IndexedDB-gebruik: {{size}}",
+  settingsStorageManagementIndexedDbDatabaseColumn: "Database",
+  settingsStorageManagementIndexedDbStoreColumn: "Store",
+  settingsStorageManagementIndexedDbRecordsColumn: "Records",
   settingsStorageManagementKeyColumn: "Sleutel",
   settingsStorageManagementUsageColumn: "Gebruik",
   settingsStorageManagementActionColumn: "Actie",
   settingsStorageManagementWipeButton: "Wissen",
   settingsStorageManagementWipeAllButton: "Alles wissen",
+  settingsStorageManagementWipeIndexedDbButton: "IndexedDB wissen",
   settingsStorageManagementNoKeys: "Geen localStorage-sleutels gevonden.",
+  settingsStorageManagementNoIndexedDbRecords: "Geen IndexedDB-records gevonden.",
   settingsStorageManagementWipeConfirmTitle: "Opslagsleutel wissen?",
   settingsStorageManagementWipeConfirmBody:
     'Je staat op het punt "{{key}}" uit lokale opslag te wissen. Na wissen kan dit niet ongedaan worden gemaakt. Appgegevens, instellingen, cache of status onder deze sleutel kunnen verloren gaan.',
   settingsStorageManagementWipeAllConfirmTitle: "Alle opslagsleutels wissen?",
   settingsStorageManagementWipeAllConfirmBody:
     "Dit verwijdert permanent elke sleutel die momenteel in Opslagbeheer staat. Dit kan niet ongedaan worden gemaakt. Exporteer eerst je gegevens als je ze later nodig kunt hebben.",
+  settingsStorageManagementWipeIndexedDbConfirmTitle: "IndexedDB-gegevens wissen?",
+  settingsStorageManagementWipeIndexedDbConfirmBody:
+    "Dit verwijdert permanent de Clubkroniek-gegevens van de app uit IndexedDB. localStorage-sleutels blijven ongewijzigd. Dit kan niet ongedaan worden gemaakt.",
   settingsStorageManagementWipeSuccess: "Opslagsleutel gewist: {{key}}",
   settingsStorageManagementWipeError:
     "Kon opslagsleutel niet wissen: {{key}}",
@@ -352,7 +363,10 @@ export const messagesNl: Messages = {
     "Alle vermelde opslagsleutels zijn gewist.",
   settingsStorageManagementWipeAllError:
     "Kon niet alle vermelde opslagsleutels wissen.",
+  settingsStorageManagementWipeIndexedDbSuccess: "IndexedDB-gegevens zijn gewist.",
+  settingsStorageManagementWipeIndexedDbError: "Kon IndexedDB-gegevens niet wissen.",
   settingsStorageManagementReadError: "Kon localStorage niet lezen.",
+  settingsStorageManagementIndexedDbReadError: "Kon IndexedDB niet lezen.",
   settingsMachineLearningTitle: "Machine learning",
   settingsMachineLearningBody:
     "Senior-spelerssnapshots worden automatisch geleerd uit seniorverversingen en details van transfermarktresultaten.",

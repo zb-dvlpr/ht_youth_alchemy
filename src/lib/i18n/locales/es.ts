@@ -515,13 +515,21 @@ export const messagesEs: Messages = {
       "Importa una copia de seguridad JSON exportada previamente y reemplaza los ajustes locales y el estado en caché actuales de la app.",
     settingsStorageManagementButton: "Gestionar almacenamiento",
     settingsStorageManagementTitle: "Gestionar almacenamiento",
+    settingsStorageManagementLocalStorageTitle: "Almacenamiento local",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Almacenamiento usado: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB usado: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Base de datos",
+    settingsStorageManagementIndexedDbStoreColumn: "Almacen",
+    settingsStorageManagementIndexedDbRecordsColumn: "Registros",
     settingsStorageManagementKeyColumn: "Clave",
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Accion",
     settingsStorageManagementWipeButton: "Borrar",
     settingsStorageManagementWipeAllButton: "Borrar todo",
+    settingsStorageManagementWipeIndexedDbButton: "Borrar IndexedDB",
     settingsStorageManagementNoKeys: "No se encontraron claves localStorage.",
+    settingsStorageManagementNoIndexedDbRecords: "No se encontraron registros IndexedDB.",
     settingsStorageManagementWipeConfirmTitle: "¿Borrar clave de almacenamiento?",
     settingsStorageManagementWipeConfirmBody:
       'Estas a punto de borrar "{{key}}" del almacenamiento local. Una vez borrada, esta accion no se puede deshacer. Pueden perderse datos, ajustes, cache o estado de la app almacenados bajo esta clave.',
@@ -529,6 +537,9 @@ export const messagesEs: Messages = {
       "¿Borrar todas las claves de almacenamiento?",
     settingsStorageManagementWipeAllConfirmBody:
       "Esto eliminara permanentemente todas las claves que aparecen actualmente en Gestionar almacenamiento. No se puede deshacer. Exporta tus datos primero si puedes necesitarlos mas tarde.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "¿Borrar datos IndexedDB?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Esto eliminara permanentemente los datos de Cronica del club de la app en IndexedDB. Las claves localStorage no se veran afectadas. No se puede deshacer.",
     settingsStorageManagementWipeSuccess:
       "Clave de almacenamiento borrada: {{key}}",
     settingsStorageManagementWipeError:
@@ -537,7 +548,10 @@ export const messagesEs: Messages = {
       "Se borraron todas las claves de almacenamiento listadas.",
     settingsStorageManagementWipeAllError:
       "No se pudieron borrar todas las claves de almacenamiento listadas.",
+    settingsStorageManagementWipeIndexedDbSuccess: "Datos IndexedDB borrados.",
+    settingsStorageManagementWipeIndexedDbError: "No se pudieron borrar los datos IndexedDB.",
     settingsStorageManagementReadError: "No se pudo leer localStorage.",
+    settingsStorageManagementIndexedDbReadError: "No se pudo leer IndexedDB.",
     settingsMachineLearningTitle: "Aprendizaje automático",
     settingsMachineLearningBody:
       "Las instantáneas de jugadores senior se aprenden automáticamente desde refrescos senior y detalles de resultados del mercado.",

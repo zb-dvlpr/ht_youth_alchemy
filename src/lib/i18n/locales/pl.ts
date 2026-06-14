@@ -332,13 +332,21 @@ export const messagesPl: Messages = {
     "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
   settingsStorageManagementButton: "Zarządzanie pamięcią",
   settingsStorageManagementTitle: "Zarządzanie pamięcią",
+  settingsStorageManagementLocalStorageTitle: "Pamięć lokalna",
+  settingsStorageManagementIndexedDbTitle: "IndexedDB",
   settingsStorageManagementTotalUsed: "Użyta pamięć: {{size}}",
+  settingsStorageManagementIndexedDbTotalUsed: "Użycie IndexedDB: {{size}}",
+  settingsStorageManagementIndexedDbDatabaseColumn: "Baza danych",
+  settingsStorageManagementIndexedDbStoreColumn: "Store",
+  settingsStorageManagementIndexedDbRecordsColumn: "Rekordy",
   settingsStorageManagementKeyColumn: "Klucz",
   settingsStorageManagementUsageColumn: "Użycie",
   settingsStorageManagementActionColumn: "Akcja",
   settingsStorageManagementWipeButton: "Wyczyść",
   settingsStorageManagementWipeAllButton: "Wyczyść wszystko",
+  settingsStorageManagementWipeIndexedDbButton: "Wyczyść IndexedDB",
   settingsStorageManagementNoKeys: "Nie znaleziono kluczy localStorage.",
+  settingsStorageManagementNoIndexedDbRecords: "Nie znaleziono rekordów IndexedDB.",
   settingsStorageManagementWipeConfirmTitle: "Wyczyścić klucz pamięci?",
   settingsStorageManagementWipeConfirmBody:
     'Zamierzasz wyczyścić "{{key}}" z pamięci lokalnej. Po wyczyszczeniu nie można tego cofnąć. Dane aplikacji, ustawienia, pamięć podręczna lub stan zapisane pod tym kluczem mogą zostać utracone.',
@@ -346,6 +354,9 @@ export const messagesPl: Messages = {
     "Wyczyścić wszystkie klucze pamięci?",
   settingsStorageManagementWipeAllConfirmBody:
     "To trwale usunie każdy klucz aktualnie widoczny w Zarządzaniu pamięcią. Tego nie można cofnąć. Najpierw wyeksportuj dane, jeśli mogą być potrzebne później.",
+  settingsStorageManagementWipeIndexedDbConfirmTitle: "Wyczyścić dane IndexedDB?",
+  settingsStorageManagementWipeIndexedDbConfirmBody:
+    "To trwale usunie dane Kroniki klubu aplikacji z IndexedDB. Klucze localStorage nie zostaną zmienione. Tego nie można cofnąć.",
   settingsStorageManagementWipeSuccess: "Wyczyszczono klucz pamięci: {{key}}",
   settingsStorageManagementWipeError:
     "Nie udało się wyczyścić klucza pamięci: {{key}}",
@@ -353,7 +364,10 @@ export const messagesPl: Messages = {
     "Wyczyszczono wszystkie wymienione klucze pamięci.",
   settingsStorageManagementWipeAllError:
     "Nie udało się wyczyścić wszystkich wymienionych kluczy pamięci.",
+  settingsStorageManagementWipeIndexedDbSuccess: "Dane IndexedDB zostały wyczyszczone.",
+  settingsStorageManagementWipeIndexedDbError: "Nie udało się wyczyścić danych IndexedDB.",
   settingsStorageManagementReadError: "Nie udało się odczytać localStorage.",
+  settingsStorageManagementIndexedDbReadError: "Nie udało się odczytać IndexedDB.",
   settingsMachineLearningTitle: "Uczenie maszynowe",
   settingsMachineLearningBody:
     "Migawki seniorów są uczone automatycznie z odświeżeń seniorów i szczegółów wyników rynku transferowego.",

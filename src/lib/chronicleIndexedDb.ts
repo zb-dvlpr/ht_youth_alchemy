@@ -2,6 +2,17 @@ const CHRONICLE_DB_NAME = "ht-alchemy-club-chronicle";
 const CHRONICLE_DB_VERSION = 1;
 const CHRONICLE_DATA_STORE = "tab-data";
 
+export const CHRONICLE_INDEXED_DB_NAME = CHRONICLE_DB_NAME;
+export const CHRONICLE_INDEXED_DB_STORE = CHRONICLE_DATA_STORE;
+
+export type ChronicleIndexedDbStoreDiagnostics = {
+  databaseName: string;
+  storeName: string;
+  recordCount: number;
+  bytes: number;
+  formatted: string;
+};
+
 export type ChronicleIndexedDbRecord<
   Cache = unknown,
   Updates = unknown,
@@ -104,31 +115,66 @@ export async function deleteChronicleDataRecord(tabId: string): Promise<void> {
   await runStoreRequest<undefined>("readwrite", (store) => store.delete(tabId));
 }
 
+const formatIndexedDbBytes = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  if (bytes < 1024) return `${Math.round(bytes)} B`;
+  const units = ["KB", "MB", "GB"] as const;
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
+  return `${value.toFixed(digits).replace(/\.0+$/, "")} ${units[unitIndex]}`;
+};
+
+export async function collectChronicleIndexedDbDiagnostics(): Promise<
+  ChronicleIndexedDbStoreDiagnostics[]
+> {
+  const db = await openChronicleDb();
+  return await new Promise((resolve, reject) => {
+    const transaction = db.transaction(CHRONICLE_DATA_STORE, "readonly");
+    const store = transaction.objectStore(CHRONICLE_DATA_STORE);
+    const request = store.openCursor();
+    let bytes = 0;
+    let recordCount = 0;
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) {
+        resolve([
+          {
+            databaseName: CHRONICLE_DB_NAME,
+            storeName: CHRONICLE_DATA_STORE,
+            recordCount,
+            bytes,
+            formatted: formatIndexedDbBytes(bytes),
+          },
+        ]);
+        return;
+      }
+      recordCount += 1;
+      try {
+        bytes += JSON.stringify(cursor.value).length * 2;
+      } catch {
+        // Skip records that cannot be estimated.
+      }
+      cursor.continue();
+    };
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB cursor failed"));
+  });
+}
+
 export async function estimateChronicleIndexedDbBytes(): Promise<number | null> {
   try {
-    const db = await openChronicleDb();
-    return await new Promise((resolve, reject) => {
-      const transaction = db.transaction(CHRONICLE_DATA_STORE, "readonly");
-      const store = transaction.objectStore(CHRONICLE_DATA_STORE);
-      const request = store.openCursor();
-      let bytes = 0;
-      request.onsuccess = () => {
-        const cursor = request.result;
-        if (!cursor) {
-          resolve(bytes);
-          return;
-        }
-        try {
-          bytes += JSON.stringify(cursor.value).length * 2;
-        } catch {
-          // Skip records that cannot be estimated.
-        }
-        cursor.continue();
-      };
-      request.onerror = () =>
-        reject(request.error ?? new Error("IndexedDB cursor failed"));
-    });
+    const stores = await collectChronicleIndexedDbDiagnostics();
+    return stores.reduce((sum, store) => sum + store.bytes, 0);
   } catch {
     return null;
   }
+}
+
+export async function wipeChronicleIndexedDbData(): Promise<void> {
+  await runStoreRequest<undefined>("readwrite", (store) => store.clear());
 }

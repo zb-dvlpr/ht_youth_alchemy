@@ -512,13 +512,21 @@ export const messagesDe: Messages = {
       "Importiert eine zuvor exportierte JSON-Sicherung und ersetzt die aktuellen lokalen App-Einstellungen und Cache-Zustände.",
     settingsStorageManagementButton: "Speicherverwaltung",
     settingsStorageManagementTitle: "Speicherverwaltung",
+    settingsStorageManagementLocalStorageTitle: "Lokaler Speicher",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Genutzter Speicher: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB genutzt: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Datenbank",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Eintraege",
     settingsStorageManagementKeyColumn: "Schluessel",
     settingsStorageManagementUsageColumn: "Nutzung",
     settingsStorageManagementActionColumn: "Aktion",
     settingsStorageManagementWipeButton: "Loeschen",
     settingsStorageManagementWipeAllButton: "Alle loeschen",
+    settingsStorageManagementWipeIndexedDbButton: "IndexedDB loeschen",
     settingsStorageManagementNoKeys: "Keine localStorage-Schluessel gefunden.",
+    settingsStorageManagementNoIndexedDbRecords: "Keine IndexedDB-Eintraege gefunden.",
     settingsStorageManagementWipeConfirmTitle: "Speicherschluessel loeschen?",
     settingsStorageManagementWipeConfirmBody:
       'Du bist dabei, "{{key}}" aus dem lokalen Speicher zu loeschen. Nach dem Loeschen kann dies nicht rueckgaengig gemacht werden. App-Daten, Einstellungen, Cache oder Status unter diesem Schluessel koennen verloren gehen.',
@@ -526,6 +534,9 @@ export const messagesDe: Messages = {
       "Alle Speicherschluessel loeschen?",
     settingsStorageManagementWipeAllConfirmBody:
       "Dadurch werden alle aktuell in der Speicherverwaltung aufgefuehrten Schluessel dauerhaft entfernt. Dies kann nicht rueckgaengig gemacht werden. Exportiere deine Daten zuerst, wenn du sie spaeter noch brauchst.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "IndexedDB-Daten loeschen?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Dadurch werden die Club-Chronik-Daten der App in IndexedDB dauerhaft entfernt. localStorage-Schluessel bleiben unveraendert. Dies kann nicht rueckgaengig gemacht werden.",
     settingsStorageManagementWipeSuccess: "Speicherschluessel geloescht: {{key}}",
     settingsStorageManagementWipeError:
       "Speicherschluessel konnte nicht geloescht werden: {{key}}",
@@ -533,7 +544,11 @@ export const messagesDe: Messages = {
       "Alle aufgefuehrten Speicherschluessel wurden geloescht.",
     settingsStorageManagementWipeAllError:
       "Nicht alle aufgefuehrten Speicherschluessel konnten geloescht werden.",
+    settingsStorageManagementWipeIndexedDbSuccess: "IndexedDB-Daten wurden geloescht.",
+    settingsStorageManagementWipeIndexedDbError:
+      "IndexedDB-Daten konnten nicht geloescht werden.",
     settingsStorageManagementReadError: "localStorage konnte nicht gelesen werden.",
+    settingsStorageManagementIndexedDbReadError: "IndexedDB konnte nicht gelesen werden.",
     settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
     settingsDebugStorageButton: "Speicher",
     settingsDebugStorageTitle: "Speicherdiagnose",

@@ -863,8 +863,8 @@ type ChronicleCache = {
 type ChronicleUpdateField = {
   fieldKey: string;
   label: string;
-  previous: string | null;
-  current: string | null;
+  previous: string | number | null;
+  current: string | number | null;
 };
 
 type ChronicleUpdates = {
@@ -3039,9 +3039,11 @@ const writeGlobalBaseline = (payload: ChronicleCache | null) => {
   }
 };
 
-const parseInjurySummaryEntries = (value: string | null | undefined) => {
+const parseInjurySummaryEntries = (
+  value: string | number | null | undefined
+) => {
   if (!value) return [] as Array<{ label: string; status: string; raw: string }>;
-  return value
+  return String(value)
     .split(/\s*,\s*/)
     .map((entry) => entry.trim())
     .filter(Boolean)
@@ -4924,8 +4926,8 @@ export default function ClubChronicle({
               {
                 fieldKey: "finance.estimate",
                 label: messages.clubChronicleFinanceColumnEstimate,
-                previous: `${formatChppCurrencyFromSek(120000)}*`,
-                current: `${formatChppCurrencyFromSek(95000)}*`,
+                previous: 120000,
+                current: 95000,
               },
               {
                 fieldKey: "transfer.listed",
@@ -7274,6 +7276,14 @@ export default function ClubChronicle({
     ]
   );
 
+  const formatChppCurrencyFromSek = useCallback(
+    (valueSek: number | null | undefined) =>
+      formatSekCurrency(valueSek, displayCurrency, {
+        fallback: messages.unknownShort,
+      }),
+    [displayCurrency.key, messages.unknownShort]
+  );
+
   const financeTableColumns = useMemo<
     ChronicleTableColumn<FinanceEstimateRow, FinanceEstimateSnapshot>[]
   >(
@@ -7295,6 +7305,7 @@ export default function ClubChronicle({
     [
       messages.clubChronicleColumnTeam,
       messages.clubChronicleFinanceColumnEstimate,
+      formatChppCurrencyFromSek,
     ]
   );
 
@@ -7698,6 +7709,7 @@ export default function ClubChronicle({
       messages.clubChronicleColumnTeam,
       messages.clubChronicleWagesColumnTotal,
       messages.clubChronicleWagesColumnTop11,
+      formatChppCurrencyFromSek,
     ]
   );
 
@@ -7772,10 +7784,11 @@ export default function ClubChronicle({
     ]
   );
   const formatUpdatesInjuryValue = useCallback(
-    (fieldKey: string, value: string | null | undefined) => {
+    (fieldKey: string, value: string | number | null | undefined) => {
       if (fieldKey !== "wages.injury" || value === null || value === undefined) {
         return value;
       }
+      const valueText = String(value);
       const subscriptToNormal: Record<string, string> = {
         "₀": "0",
         "₁": "1",
@@ -7796,7 +7809,7 @@ export default function ClubChronicle({
           .join("");
         return normalized === "999" ? "∞" : normalized;
       };
-      return value
+      return valueText
         .replace(/(?:✚|\+)\s*([₀₁₂₃₄₅₆₇₈₉₋]+)/g, (_match, weeksRaw: string) => {
           return `✚(${normalizeWeeks(weeksRaw)})`;
         })
@@ -7861,19 +7874,39 @@ export default function ClubChronicle({
     const priceSek = entry.priceSek ?? "";
     return `fallback:${transferType}:${playerId}:${deadline}:${priceSek}`;
   }, []);
+  const formatCurrencyUpdateValue = useCallback(
+    (fieldKey: string, value: string | number | null | undefined) => {
+      if (value === null || value === undefined || value === "") return null;
+      const numericValue =
+        typeof value === "number"
+          ? value
+          : Number(String(value).replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(numericValue)) return String(value);
+      const formatted = formatChppCurrencyFromSek(numericValue);
+      return fieldKey === "finance.estimate" ? `${formatted}*` : formatted;
+    },
+    [formatChppCurrencyFromSek]
+  );
   const renderUpdateValue = useCallback(
     (
       fieldKey: string,
-      value: string | null | undefined,
+      value: string | number | null | undefined,
       teamId: number | null | undefined,
       leagueLevelUnitId: number | null | undefined
     ) => {
-      const formatted = formatUpdatesInjuryValue(fieldKey, value);
+      const isCurrencyUpdate =
+        fieldKey === "finance.estimate" ||
+        fieldKey === "wages.total" ||
+        fieldKey === "wages.top11";
+      const formatted = isCurrencyUpdate
+        ? formatCurrencyUpdateValue(fieldKey, value)
+        : formatUpdatesInjuryValue(fieldKey, value);
       if (formatted === null || formatted === undefined || formatted === "") {
         return messages.unknownShort;
       }
+      const formattedText = String(formatted);
       if (!teamId) {
-        return formatted;
+        return formattedText;
       }
       if (
         fieldKey === "transfer.playersSold" ||
@@ -7896,9 +7929,9 @@ export default function ClubChronicle({
         const transferActivity = chronicleCache.teams[teamId]?.transferActivity;
         ingestTransferPrices(transferActivity?.current?.latestTransfers);
         ingestTransferPrices(transferActivity?.previous?.latestTransfers);
-        const entries = parseTransferUpdatePlayers(formatted);
+        const entries = parseTransferUpdatePlayers(formattedText);
         if (entries.length === 0) {
-          return formatted;
+          return formattedText;
         }
         return entries.map((entry, index) => (
           <span key={`${fieldKey}-${entry.playerId ?? entry.playerName ?? index}-${index}`}>
@@ -7946,7 +7979,7 @@ export default function ClubChronicle({
         };
         ingestPlayers(teamWages?.current?.players);
         ingestPlayers(teamWages?.previous?.players);
-        const entries = formatted.split(/\s*,\s*/).filter(Boolean);
+        const entries = formattedText.split(/\s*,\s*/).filter(Boolean);
         if (entries.length > 0) {
           return entries.map((entry, index) => {
             const match = entry.match(/^(.*)\s+(🩹|✚\([^)]+\))$/);
@@ -8016,7 +8049,7 @@ export default function ClubChronicle({
         }
       }
       if (!href) {
-        return formatted;
+        return formattedText;
       }
       return (
         <a
@@ -8025,12 +8058,14 @@ export default function ClubChronicle({
           target="_blank"
           rel="noreferrer"
         >
-          {formatted}
+          {formattedText}
         </a>
       );
     },
     [
       chronicleCache.teams,
+      formatChppCurrencyFromSek,
+      formatCurrencyUpdateValue,
       formatUpdatesInjuryValue,
       messages.unknownShort,
       parseTransferUpdatePlayers,
@@ -9192,11 +9227,6 @@ export default function ClubChronicle({
     return Number.isFinite(amount) ? amount : null;
   };
 
-  const formatChppCurrencyFromSek = (valueSek: number | null | undefined) =>
-    formatSekCurrency(valueSek, displayCurrency, {
-      fallback: messages.unknownShort,
-    });
-
   const hashText = (input: string): string => {
     let hash = 5381;
     for (let index = 0; index < input.length; index += 1) {
@@ -9506,8 +9536,8 @@ export default function ClubChronicle({
             {
               fieldKey: "finance.estimate",
               label: messages.clubChronicleFinanceColumnEstimate,
-              previous: `${formatChppCurrencyFromSek(previous.estimatedSek)}*`,
-              current: `${formatChppCurrencyFromSek(current.estimatedSek)}*`,
+              previous: previous.estimatedSek,
+              current: current.estimatedSek,
             },
           ]);
         }
@@ -9866,16 +9896,16 @@ export default function ClubChronicle({
             wageChanges.push({
               fieldKey: "wages.total",
               label: messages.clubChronicleWagesColumnTotal,
-              previous: formatChppCurrencyFromSek(previous.totalWagesSek),
-              current: formatChppCurrencyFromSek(current.totalWagesSek),
+              previous: previous.totalWagesSek,
+              current: current.totalWagesSek,
             });
           }
           if (previous.top11WagesSek !== current.top11WagesSek) {
             wageChanges.push({
               fieldKey: "wages.top11",
               label: messages.clubChronicleWagesColumnTop11,
-              previous: formatChppCurrencyFromSek(previous.top11WagesSek),
-              current: formatChppCurrencyFromSek(current.top11WagesSek),
+              previous: previous.top11WagesSek,
+              current: current.top11WagesSek,
             });
           }
           const previousInjury = buildInjurySummary(previous);
@@ -15831,7 +15861,13 @@ type Form7LineupSnapshot = {
             },
           ]
         : [],
-    [formatAgeWithDays, formatCoachMindset, formatCoachStatus, selectedCoachTeam]
+    [
+      formatAgeWithDays,
+      formatChppCurrencyFromSek,
+      formatCoachMindset,
+      formatCoachStatus,
+      selectedCoachTeam,
+    ]
   );
   const coachDetailsColumns = useMemo<
     ChronicleTableColumn<
@@ -16066,6 +16102,7 @@ type Form7LineupSnapshot = {
       messages.clubChronicleTransferListedPlayerColumn,
       messages.clubChronicleTransferListedTsiColumn,
       formatAgeWithDays,
+      formatChppCurrencyFromSek,
     ]
   );
 
@@ -16147,6 +16184,7 @@ type Form7LineupSnapshot = {
       messages.clubChronicleTransferHistoryPriceColumn,
       messages.clubChronicleTransferListedTsiColumn,
       formatAgeWithDays,
+      formatChppCurrencyFromSek,
     ]
   );
 
@@ -16358,6 +16396,7 @@ type Form7LineupSnapshot = {
       resolveChronicleMainSkillEstimationSortValue,
       formatAgeWithDays,
       messages.unknownShort,
+      formatChppCurrencyFromSek,
       messages.specialtyLabel,
       messages.specialtyNone,
       messages.specialtyTechnical,

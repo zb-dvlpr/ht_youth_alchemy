@@ -1045,7 +1045,9 @@ export default function YouthPlayerList({
                         nameRowRefs.current[player.YouthPlayerID] = node;
                       }}
                     >
-                      <span className={styles.playerName}>{fullName}</span>
+                      <span className={styles.playerName} title={fullName}>
+                        {fullName}
+                      </span>
                       {injuryStatus ? (
                         <span
                           className={styles.playerInjuryInline}

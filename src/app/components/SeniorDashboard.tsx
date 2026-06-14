@@ -18082,11 +18082,16 @@ const refreshDetailsForPlayers = async (
                         </span>
                       ) : null}
                       <span
-                        className={`${styles.playerNameRow} ${
+                        className={`${styles.playerNameRow} ${styles.seniorPlayerNameRow} ${
                           isNameSort ? styles.playerNameRowTruncate : ""
                         }`}
                       >
-                        <span className={styles.playerName}>{playerName}</span>
+                        <span
+                          className={`${styles.playerName} ${styles.seniorPlayerName}`}
+                          title={playerName}
+                        >
+                          {playerName}
+                        </span>
                         {originFlagEmoji ? (
                           <span
                             className={styles.transferSearchCardNationality}
@@ -22193,11 +22198,16 @@ const refreshDetailsForPlayers = async (
                           </span>
                         ) : null}
                         <span
-                          className={`${styles.playerNameRow} ${
+                          className={`${styles.playerNameRow} ${styles.seniorPlayerNameRow} ${
                             isNameSort ? styles.playerNameRowTruncate : ""
                           }`}
                         >
-                          <span className={styles.playerName}>{playerName}</span>
+                          <span
+                            className={`${styles.playerName} ${styles.seniorPlayerName}`}
+                            title={playerName}
+                          >
+                            {playerName}
+                          </span>
                           {originFlagEmoji ? (
                             <span
                               className={styles.transferSearchCardNationality}

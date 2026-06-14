@@ -7813,6 +7813,8 @@ html[data-theme="dark"] .spinner {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
+  padding-right: 4px;
+  box-sizing: border-box;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -7834,7 +7836,9 @@ html[data-theme="dark"] .spinner {
 }
 
 .seniorPlayerName {
+  display: block;
   flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .seniorPlayerNameRow .transferSearchCardNationality {
@@ -7885,35 +7889,9 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
-.playerSortMetric {
-  position: absolute;
-  right: 10px;
-  bottom: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  font-size: 11px;
-  color: #6f6354;
-  opacity: 0.9;
-  letter-spacing: 0.02em;
-  max-width: 42%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.playerSortMetricPill {
-  overflow: visible;
-  max-width: none;
-}
-
 .playerSortMetricYouth {
   color: #4b3f32;
   opacity: 1;
-  max-width: 58%;
-  overflow: visible;
-  text-overflow: clip;
 }
 
 .playerSortMetricUrgent {

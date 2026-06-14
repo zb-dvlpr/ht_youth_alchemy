@@ -841,7 +841,6 @@ export default function YouthPlayerList({
               player.YouthPlayerID
             );
             const hasNewMarker = newMarkerPlayerIdSet.has(player.YouthPlayerID);
-            const isNameSort = sortKey === "name";
             const injuryLevel = normalizeInjuryLevel(
               playerDetailsById?.get(player.YouthPlayerID)?.InjuryLevel ??
                 player.InjuryLevel
@@ -1022,19 +1021,6 @@ export default function YouthPlayerList({
                       draggable={!isExcluded}
                       aria-pressed={isSelected}
                     >
-                    {!isNameSort ? (
-                      <span
-                        className={`${styles.playerSortMetric} ${styles.playerSortMetricYouth} ${
-                          isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
-                        }`}
-                        style={promotionAgeMetricStyle(player)}
-                        ref={(node) => {
-                          sortValueRefs.current[player.YouthPlayerID] = node;
-                        }}
-                      >
-                        {metricNode}
-                      </span>
-                    ) : null}
                     <span
                       className={`${styles.playerNameRow}${
                         nameAgeOverlap[player.YouthPlayerID]
@@ -1107,11 +1093,17 @@ export default function YouthPlayerList({
                         </Tooltip>
                       ) : null}
                     </span>
-                    {isNameSort ? (
-                      <span className={styles.playerIndicators}>
-                        {metricNode}
-                      </span>
-                    ) : null}
+                    <span
+                      className={`${styles.playerIndicators} ${styles.playerSortMetricYouth} ${
+                        isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
+                      }`}
+                      style={promotionAgeMetricStyle(player)}
+                      ref={(node) => {
+                        sortValueRefs.current[player.YouthPlayerID] = node;
+                      }}
+                    >
+                      {metricNode}
+                    </span>
                     {isAssigned ? (
                       <span className={styles.assignedTag}>
                         {messages.assigned}

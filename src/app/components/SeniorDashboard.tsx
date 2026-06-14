@@ -18072,15 +18072,6 @@ const refreshDetailsForPlayers = async (
                       aria-pressed={isSelected}
                       onClick={() => handleSeniorListPlayerSelect(player.PlayerID, playerName)}
                     >
-                      {!isNameSort ? (
-                        <span
-                          className={`${styles.playerSortMetric} ${
-                            sortKey === "age" ? styles.playerSortMetricPill : ""
-                          }`}
-                        >
-                          {metricNode}
-                        </span>
-                      ) : null}
                       <span
                         className={`${styles.playerNameRow} ${styles.seniorPlayerNameRow} ${
                           isNameSort ? styles.playerNameRowTruncate : ""
@@ -18148,15 +18139,17 @@ const refreshDetailsForPlayers = async (
                           </span>
                         ) : null}
                       </span>
-                      {isNameSort ? (
-                        <span className={styles.playerIndicators}>
-                          {ageLabel && agePillClassName ? (
+                      <span className={styles.playerIndicators}>
+                        {isNameSort ? (
+                          ageLabel && agePillClassName ? (
                             <span className={`${styles.playerAgePill} ${agePillClassName}`}>
                               {ageLabel}
                             </span>
-                          ) : null}
-                        </span>
-                      ) : null}
+                          ) : null
+                        ) : (
+                          metricNode
+                        )}
+                      </span>
                     </button>
                   </Tooltip>
                 </div>
@@ -22188,15 +22181,6 @@ const refreshDetailsForPlayers = async (
                               : undefined
                           }
                         >
-                        {!isNameSort ? (
-                          <span
-                            className={`${styles.playerSortMetric} ${
-                              sortKey === "age" ? styles.playerSortMetricPill : ""
-                            }`}
-                          >
-                            {metricNode}
-                          </span>
-                        ) : null}
                         <span
                           className={`${styles.playerNameRow} ${styles.seniorPlayerNameRow} ${
                             isNameSort ? styles.playerNameRowTruncate : ""
@@ -22264,15 +22248,17 @@ const refreshDetailsForPlayers = async (
                             </span>
                           ) : null}
                         </span>
-                        {isNameSort ? (
-                          <span className={styles.playerIndicators}>
-                            {ageLabel && agePillClassName ? (
+                        <span className={styles.playerIndicators}>
+                          {isNameSort ? (
+                            ageLabel && agePillClassName ? (
                               <span className={`${styles.playerAgePill} ${agePillClassName}`}>
                                 {ageLabel}
                               </span>
-                            ) : null}
-                          </span>
-                        ) : null}
+                            ) : null
+                          ) : (
+                            metricNode
+                          )}
+                        </span>
                         </button>
                       </Tooltip>
                     </div>

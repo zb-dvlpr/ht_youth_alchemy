@@ -3,7 +3,9 @@ import {
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
 
-const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
+const CHRONICLE_STORAGE_SCHEMA_KEY = "ya_cc_storage_schema_v1";
+const CHRONICLE_STORAGE_SCHEMA_CURRENT = 2;
+const TABS_STORAGE_KEY = "ya_cc_tabs_v2";
 const LEGACY_WATCHLIST_STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 
 export const APP_SHELL_OPEN_TOOL_EVENT = "ya:app-shell-open-tool";
@@ -363,7 +365,14 @@ export function applyImportedChronicleWatchlists(
   payload: ImportChronicleTabs
 ) {
   if (typeof window === "undefined") return;
-  writeCompressedChronicleStorage(TABS_STORAGE_KEY, payload);
+  writeCompressedChronicleStorage(TABS_STORAGE_KEY, {
+    ...payload,
+    version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
+  });
+  window.localStorage.setItem(
+    CHRONICLE_STORAGE_SCHEMA_KEY,
+    String(CHRONICLE_STORAGE_SCHEMA_CURRENT)
+  );
   const activeTab =
     payload.tabs.find((tab) => tab.id === payload.activeTabId) ?? payload.tabs[0];
   if (activeTab) {

@@ -80,6 +80,12 @@ import {
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
 import {
+  readChronicleDataRecord,
+  writeChronicleDataRecord,
+  deleteChronicleDataRecord,
+  type ChronicleIndexedDbRecord,
+} from "@/lib/chronicleIndexedDb";
+import {
   estimateChronicleMainSkillFromWage,
   PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
   resolveChronicleDominantPlayingPosition,
@@ -160,6 +166,12 @@ type ChronicleTabsStorage = {
   activeTabId: string;
   tabs: ChronicleTabState[];
 };
+
+type ChronicleDataRecord = ChronicleIndexedDbRecord<
+  ChronicleCache,
+  ChronicleUpdates,
+  ChronicleGlobalUpdateEntry[]
+>;
 
 type StateUpdater<T> = T | ((prev: T) => T);
 
@@ -1332,11 +1344,21 @@ const ChroniclePanel = ({
 };
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
-const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
-const CACHE_KEY = "ya_cc_cache_v2";
-const UPDATES_KEY = "ya_cc_updates_v1";
-const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
-const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
+const CHRONICLE_STORAGE_SCHEMA_KEY = "ya_cc_storage_schema_v1";
+const CHRONICLE_STORAGE_SCHEMA_CURRENT = 2;
+const TABS_STORAGE_KEY_V1 = "ya_cc_tabs_v1";
+const TABS_STORAGE_KEY_V2 = "ya_cc_tabs_v2";
+const CACHE_KEY_V1 = "ya_cc_cache_v2";
+const UPDATES_KEY_V1 = "ya_cc_updates_v1";
+const GLOBAL_BASELINE_KEY_V1 = "ya_cc_global_baseline_v1";
+const GLOBAL_UPDATES_HISTORY_KEY_V1 = "ya_cc_global_updates_history_v1";
+const REDUNDANT_CHRONICLE_LOCAL_STORAGE_KEYS = [
+  TABS_STORAGE_KEY_V1,
+  CACHE_KEY_V1,
+  UPDATES_KEY_V1,
+  GLOBAL_BASELINE_KEY_V1,
+  GLOBAL_UPDATES_HISTORY_KEY_V1,
+] as const;
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const PANEL_VISIBILITY_KEY = "ya_cc_panel_visibility_v1";
 const TABLE_SORT_KEY = "ya_cc_table_sort_v1";
@@ -1587,9 +1609,173 @@ const buildChronicleTabState = (
   mobileMenuPosition: overrides?.mobileMenuPosition ?? { x: 16, y: 108 },
 });
 
+const stripChronicleTabDataPayload = (
+  tab: ChronicleTabState
+): ChronicleTabState => {
+  const {
+    updates: _updates,
+    globalUpdatesHistory: _globalUpdatesHistory,
+    globalBaselineCache: _globalBaselineCache,
+    ...uiState
+  } = tab;
+  return uiState as ChronicleTabState;
+};
+
+const buildChronicleTabsStoragePayload = (
+  activeTabId: string,
+  tabs: ChronicleTabState[]
+): ChronicleTabsStorage => ({
+  version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
+  activeTabId,
+  tabs: tabs.map(stripChronicleTabDataPayload),
+});
+
+const readChronicleStorageSchema = (): number => {
+  if (typeof window === "undefined") return 0;
+  const raw = window.localStorage.getItem(CHRONICLE_STORAGE_SCHEMA_KEY);
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : 0;
+};
+
+const needsChronicleStorageMigration = (): boolean => {
+  const schema = readChronicleStorageSchema();
+  return schema < CHRONICLE_STORAGE_SCHEMA_CURRENT;
+};
+
+const cleanupRedundantChronicleLocalStorage = () => {
+  if (typeof window === "undefined") return;
+  REDUNDANT_CHRONICLE_LOCAL_STORAGE_KEYS.forEach((key) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // retry on a later startup
+    }
+  });
+};
+
 const writeChronicleTabsStorage = (payload: ChronicleTabsStorage) => {
   if (typeof window === "undefined") return;
-  void writeCompressedChronicleStorage(TABS_STORAGE_KEY, payload);
+  void writeCompressedChronicleStorage(
+    TABS_STORAGE_KEY_V2,
+    buildChronicleTabsStoragePayload(payload.activeTabId, payload.tabs)
+  );
+};
+
+const normalizeChronicleTabsStorage = (
+  parsed: ChronicleTabsStorage,
+  messages: Messages,
+  preserveLegacyData: boolean
+): ChronicleTabsStorage => {
+  const tabs = Array.isArray(parsed?.tabs)
+    ? parsed.tabs
+        .map((tab, index) => {
+          const sanitizedBaseline = preserveLegacyData
+            ? sanitizeChronicleCachePayload(
+                tab?.globalBaselineCache &&
+                  typeof tab.globalBaselineCache === "object"
+                  ? pruneChronicleCache(tab.globalBaselineCache)
+                  : null
+              )
+            : { cache: null };
+          const normalized = buildChronicleTabState(messages, index + 1, {
+            id:
+              typeof tab?.id === "string" && tab.id.trim()
+                ? tab.id
+                : `tab-${index + 1}`,
+            name: typeof tab?.name === "string" ? tab.name : undefined,
+            supportedSelections:
+              tab?.supportedSelections &&
+              typeof tab.supportedSelections === "object"
+                ? tab.supportedSelections
+                : {},
+            ownLeagueSelections:
+              tab?.ownLeagueSelections &&
+              typeof tab.ownLeagueSelections === "object"
+                ? tab.ownLeagueSelections
+                : {},
+            ownLeagueTeamSelections:
+              tab?.ownLeagueTeamSelections &&
+              typeof tab.ownLeagueTeamSelections === "object"
+                ? tab.ownLeagueTeamSelections
+                : {},
+            manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
+            updates: preserveLegacyData ? tab?.updates ?? null : null,
+            globalUpdatesHistory:
+              preserveLegacyData && Array.isArray(tab?.globalUpdatesHistory)
+                ? tab.globalUpdatesHistory
+                : [],
+            globalBaselineCache: sanitizedBaseline.cache,
+            lastRefreshAt:
+              typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
+            lastComparedAt:
+              typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
+            lastHadChanges:
+              typeof tab?.lastHadChanges === "boolean" ? tab.lastHadChanges : true,
+            mobilePanelId: PANEL_IDS.includes(tab?.mobilePanelId as ChroniclePanelId)
+              ? (tab.mobilePanelId as ChroniclePanelId)
+              : PANEL_IDS[0],
+            mobileScreen:
+              tab?.mobileScreen === "watchlist" ||
+              tab?.mobileScreen === "latest-updates" ||
+              tab?.mobileScreen === "detail" ||
+              tab?.mobileScreen === "formations-matches" ||
+              tab?.mobileScreen === "panel"
+                ? tab.mobileScreen
+                : "panel",
+            mobileDetailKind:
+              tab?.mobileDetailKind === "league-performance" ||
+              tab?.mobileDetailKind === "press-announcements" ||
+              tab?.mobileDetailKind === "finance-estimate" ||
+              tab?.mobileDetailKind === "last-login" ||
+              tab?.mobileDetailKind === "coach" ||
+              tab?.mobileDetailKind === "power-ratings" ||
+              tab?.mobileDetailKind === "fanclub" ||
+              tab?.mobileDetailKind === "arena" ||
+              tab?.mobileDetailKind === "transfer-listed" ||
+              tab?.mobileDetailKind === "transfer-history" ||
+              tab?.mobileDetailKind === "formations-tactics" ||
+              tab?.mobileDetailKind === "likely-training" ||
+              tab?.mobileDetailKind === "tsi" ||
+              tab?.mobileDetailKind === "wages"
+                ? tab.mobileDetailKind
+                : null,
+            mobileDetailTeamId:
+              typeof tab?.mobileDetailTeamId === "number"
+                ? tab.mobileDetailTeamId
+                : null,
+            mobileMenuPosition:
+              tab?.mobileMenuPosition &&
+              typeof tab.mobileMenuPosition === "object" &&
+              Number.isFinite(Number(tab.mobileMenuPosition.x)) &&
+              Number.isFinite(Number(tab.mobileMenuPosition.y))
+                ? {
+                    x: Number(tab.mobileMenuPosition.x),
+                    y: Number(tab.mobileMenuPosition.y),
+                  }
+                : { x: 16, y: 108 },
+          });
+          return preserveLegacyData ? normalized : stripChronicleTabDataPayload(normalized);
+        })
+        .filter((tab) => tab.id)
+    : [];
+  if (tabs.length === 0) {
+    const initialTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
+    return {
+      version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
+      activeTabId: initialTab.id,
+      tabs: [stripChronicleTabDataPayload(initialTab)],
+    };
+  }
+  const activeTabId =
+    typeof parsed?.activeTabId === "string" &&
+    tabs.some((tab) => tab.id === parsed.activeTabId)
+      ? parsed.activeTabId
+      : tabs[0].id;
+  return {
+    version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
+    activeTabId,
+    tabs,
+  };
 };
 
 const resolveNextState = <T,>(current: T, updater: StateUpdater<T>): T =>
@@ -2876,19 +3062,11 @@ const readChronicleCache = (): ChronicleCache => {
   if (typeof window === "undefined") {
     return { version: 1, teams: {} };
   }
-  const parsed = readCompressedChronicleStorage<ChronicleCache>(CACHE_KEY);
+  const parsed = readCompressedChronicleStorage<ChronicleCache>(CACHE_KEY_V1);
   const sanitized = sanitizeChronicleCachePayload(parsed && parsed.teams ? parsed : null);
-  if (sanitized.didChange && sanitized.cache) {
-    writeChronicleCache(sanitized.cache);
-  }
   return sanitized.cache && sanitized.cache.teams
     ? sanitized.cache
     : { version: 1, teams: {} };
-};
-
-const writeChronicleCache = (payload: ChronicleCache) => {
-  if (typeof window === "undefined") return;
-  void writeCompressedChronicleStorage(CACHE_KEY, payload);
 };
 
 const stripLikelyTrainingConfidenceFromUpdates = (
@@ -2987,56 +3165,24 @@ const filterUpdatesByVisiblePanels = (
 const readChronicleUpdates = (): ChronicleUpdates | null => {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(UPDATES_KEY);
+    const raw = window.localStorage.getItem(UPDATES_KEY_V1);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ChronicleUpdates;
     if (!parsed || !parsed.teams) return null;
     const { updates, didChange } =
       stripLikelyTrainingConfidenceFromUpdates(parsed);
-    if (didChange) {
-      writeChronicleUpdates(updates);
-    }
-    return updates;
+    return didChange ? updates : parsed;
   } catch {
     return null;
-  }
-};
-
-const writeChronicleUpdates = (payload: ChronicleUpdates | null) => {
-  if (typeof window === "undefined") return;
-  try {
-    if (!payload) {
-      window.localStorage.removeItem(UPDATES_KEY);
-      return;
-    }
-    window.localStorage.setItem(UPDATES_KEY, JSON.stringify(payload));
-  } catch {
-    // ignore storage errors
   }
 };
 
 const readGlobalBaseline = (): ChronicleCache | null => {
   if (typeof window === "undefined") return null;
   const parsed =
-    readCompressedChronicleStorage<ChronicleCache>(GLOBAL_BASELINE_KEY);
+    readCompressedChronicleStorage<ChronicleCache>(GLOBAL_BASELINE_KEY_V1);
   const sanitized = sanitizeChronicleCachePayload(parsed && parsed.teams ? parsed : null);
-  if (sanitized.didChange && sanitized.cache) {
-    writeGlobalBaseline(sanitized.cache);
-  }
   return sanitized.cache && sanitized.cache.teams ? sanitized.cache : null;
-};
-
-const writeGlobalBaseline = (payload: ChronicleCache | null) => {
-  if (typeof window === "undefined") return;
-  try {
-    if (!payload) {
-      window.localStorage.removeItem(GLOBAL_BASELINE_KEY);
-      return;
-    }
-    writeCompressedChronicleStorage(GLOBAL_BASELINE_KEY, payload);
-  } catch {
-    // ignore storage errors
-  }
 };
 
 const parseInjurySummaryEntries = (
@@ -3145,7 +3291,7 @@ const readGlobalUpdatesHistory = (
 ): ChronicleGlobalUpdateEntry[] => {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(GLOBAL_UPDATES_HISTORY_KEY);
+    const raw = window.localStorage.getItem(GLOBAL_UPDATES_HISTORY_KEY_V1);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
     if (!Array.isArray(parsed)) return [];
@@ -3175,25 +3321,109 @@ const readGlobalUpdatesHistory = (
           !!entry.updates &&
           Object.keys(entry.updates.teams).length > 0
       );
-    if (didChange) {
-      writeGlobalUpdatesHistory(migrated);
-    }
     return migrated;
   } catch {
     return [];
   }
 };
 
-const writeGlobalUpdatesHistory = (payload: ChronicleGlobalUpdateEntry[]) => {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      GLOBAL_UPDATES_HISTORY_KEY,
-      JSON.stringify(payload)
-    );
-  } catch {
-    // ignore storage errors
+const buildChronicleDataRecord = (
+  tab: ChronicleTabState,
+  activeTabId: string,
+  legacyCache: ChronicleCache | null,
+  legacyBaseline: ChronicleCache | null,
+  legacyUpdates: ChronicleUpdates | null,
+  legacyUpdatesHistory: ChronicleGlobalUpdateEntry[]
+): ChronicleDataRecord => {
+  const isActive = tab.id === activeTabId;
+  const fallbackHistory = Array.isArray(tab.globalUpdatesHistory)
+    ? tab.globalUpdatesHistory
+    : [];
+  return {
+    tabId: tab.id,
+    cache: isActive ? legacyCache ?? null : null,
+    baseline: isActive
+      ? legacyBaseline ?? tab.globalBaselineCache ?? null
+      : tab.globalBaselineCache ?? null,
+    updates: isActive ? legacyUpdates ?? tab.updates ?? null : tab.updates ?? null,
+    updatesHistory: isActive
+      ? legacyUpdatesHistory.length > 0
+        ? legacyUpdatesHistory
+        : fallbackHistory
+      : fallbackHistory,
+    updatedAt: Date.now(),
+  };
+};
+
+const migrateChronicleStorageToIndexedDb = async (
+  messages: Messages,
+  healthyLabel: string
+): Promise<ChronicleTabsStorage | null> => {
+  if (typeof window === "undefined") return null;
+  const schema = readChronicleStorageSchema();
+  if (schema > CHRONICLE_STORAGE_SCHEMA_CURRENT) return null;
+  if (schema === CHRONICLE_STORAGE_SCHEMA_CURRENT) {
+    cleanupRedundantChronicleLocalStorage();
+    return null;
   }
+
+  const legacyTabsRaw = readCompressedChronicleStorage<ChronicleTabsStorage>(
+    TABS_STORAGE_KEY_V1
+  );
+  const legacyTabs = legacyTabsRaw
+    ? normalizeChronicleTabsStorage(legacyTabsRaw, messages, true)
+    : readChronicleTabsStorage(messages, healthyLabel);
+  const activeTabId = legacyTabs.activeTabId;
+  const legacyCache = readChronicleCache();
+  const legacyBaseline = readGlobalBaseline();
+  const legacyUpdates = readChronicleUpdates();
+  const legacyUpdatesHistory = readGlobalUpdatesHistory(healthyLabel);
+
+  const records = legacyTabs.tabs.map((tab) =>
+    buildChronicleDataRecord(
+      tab,
+      activeTabId,
+      legacyCache,
+      legacyBaseline,
+      legacyUpdates,
+      legacyUpdatesHistory
+    )
+  );
+
+  for (const record of records) {
+    await writeChronicleDataRecord(record);
+  }
+  for (const record of records) {
+    const verified = await readChronicleDataRecord<
+      ChronicleCache,
+      ChronicleUpdates,
+      ChronicleGlobalUpdateEntry[]
+    >(record.tabId);
+    if (!verified) {
+      throw new Error("Club Chronicle IndexedDB migration verification failed");
+    }
+  }
+
+  const uiStorage = buildChronicleTabsStoragePayload(activeTabId, legacyTabs.tabs);
+  const didWriteUiStorage = writeCompressedChronicleStorage(
+    TABS_STORAGE_KEY_V2,
+    uiStorage
+  );
+  const verifiedUiStorage =
+    didWriteUiStorage &&
+    readCompressedChronicleStorage<ChronicleTabsStorage>(TABS_STORAGE_KEY_V2);
+  if (
+    !verifiedUiStorage ||
+    verifiedUiStorage.version !== CHRONICLE_STORAGE_SCHEMA_CURRENT
+  ) {
+    throw new Error("Club Chronicle v2 tab storage migration failed");
+  }
+  window.localStorage.setItem(
+    CHRONICLE_STORAGE_SCHEMA_KEY,
+    String(CHRONICLE_STORAGE_SCHEMA_CURRENT)
+  );
+  cleanupRedundantChronicleLocalStorage();
+  return uiStorage;
 };
 
 const readChronicleTabsStorage = (
@@ -3202,121 +3432,31 @@ const readChronicleTabsStorage = (
 ): ChronicleTabsStorage => {
   if (typeof window === "undefined") {
     const initialTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
-    return { version: 1, activeTabId: initialTab.id, tabs: [initialTab] };
+    return {
+      version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
+      activeTabId: initialTab.id,
+      tabs: [initialTab],
+    };
   }
   try {
     const parsed = readCompressedChronicleStorage<ChronicleTabsStorage>(
-      TABS_STORAGE_KEY
+      TABS_STORAGE_KEY_V2
     );
     if (parsed) {
-      let didChange = false;
-      const tabs = Array.isArray(parsed?.tabs)
-        ? parsed.tabs
-            .map((tab, index) =>
-              {
-                const sanitizedBaseline = sanitizeChronicleCachePayload(
-                  tab?.globalBaselineCache &&
-                    typeof tab.globalBaselineCache === "object"
-                    ? pruneChronicleCache(tab.globalBaselineCache)
-                    : null
-                );
-                if (sanitizedBaseline.didChange) {
-                  didChange = true;
-                }
-                return buildChronicleTabState(messages, index + 1, {
-                  id:
-                    typeof tab?.id === "string" && tab.id.trim()
-                      ? tab.id
-                      : `tab-${index + 1}`,
-                  name: typeof tab?.name === "string" ? tab.name : undefined,
-                  supportedSelections:
-                    tab?.supportedSelections &&
-                    typeof tab.supportedSelections === "object"
-                      ? tab.supportedSelections
-                      : {},
-                  ownLeagueSelections:
-                    tab?.ownLeagueSelections &&
-                    typeof tab.ownLeagueSelections === "object"
-                      ? tab.ownLeagueSelections
-                      : {},
-                  ownLeagueTeamSelections:
-                    tab?.ownLeagueTeamSelections &&
-                    typeof tab.ownLeagueTeamSelections === "object"
-                      ? tab.ownLeagueTeamSelections
-                      : {},
-                  manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
-                  updates: tab?.updates ?? null,
-                  globalUpdatesHistory: Array.isArray(tab?.globalUpdatesHistory)
-                    ? tab.globalUpdatesHistory
-                    : [],
-                  globalBaselineCache: sanitizedBaseline.cache,
-                  lastRefreshAt:
-                    typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
-                  lastComparedAt:
-                    typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
-                  lastHadChanges:
-                    typeof tab?.lastHadChanges === "boolean"
-                      ? tab.lastHadChanges
-                      : true,
-                  mobilePanelId: PANEL_IDS.includes(tab?.mobilePanelId as ChroniclePanelId)
-                    ? (tab.mobilePanelId as ChroniclePanelId)
-                    : PANEL_IDS[0],
-                  mobileScreen:
-                    tab?.mobileScreen === "watchlist" ||
-                    tab?.mobileScreen === "latest-updates" ||
-                    tab?.mobileScreen === "detail" ||
-                    tab?.mobileScreen === "formations-matches" ||
-                    tab?.mobileScreen === "panel"
-                      ? tab.mobileScreen
-                      : "panel",
-                  mobileDetailKind:
-                    tab?.mobileDetailKind === "league-performance" ||
-                    tab?.mobileDetailKind === "press-announcements" ||
-                    tab?.mobileDetailKind === "finance-estimate" ||
-                    tab?.mobileDetailKind === "last-login" ||
-                    tab?.mobileDetailKind === "coach" ||
-                    tab?.mobileDetailKind === "power-ratings" ||
-                    tab?.mobileDetailKind === "fanclub" ||
-                    tab?.mobileDetailKind === "arena" ||
-                    tab?.mobileDetailKind === "transfer-listed" ||
-                    tab?.mobileDetailKind === "transfer-history" ||
-                    tab?.mobileDetailKind === "formations-tactics" ||
-                    tab?.mobileDetailKind === "likely-training" ||
-                    tab?.mobileDetailKind === "tsi" ||
-                    tab?.mobileDetailKind === "wages"
-                      ? tab.mobileDetailKind
-                      : null,
-                  mobileDetailTeamId:
-                    typeof tab?.mobileDetailTeamId === "number"
-                      ? tab.mobileDetailTeamId
-                      : null,
-                  mobileMenuPosition:
-                    tab?.mobileMenuPosition &&
-                    typeof tab.mobileMenuPosition === "object" &&
-                    Number.isFinite(Number(tab.mobileMenuPosition.x)) &&
-                    Number.isFinite(Number(tab.mobileMenuPosition.y))
-                      ? {
-                          x: Number(tab.mobileMenuPosition.x),
-                          y: Number(tab.mobileMenuPosition.y),
-                        }
-                      : { x: 16, y: 108 },
-                });
-              }
-            )
-            .filter((tab) => tab.id)
-        : [];
-      if (tabs.length > 0) {
-        const activeTabId =
-          typeof parsed?.activeTabId === "string" &&
-          tabs.some((tab) => tab.id === parsed.activeTabId)
-            ? parsed.activeTabId
-            : tabs[0].id;
-        const nextState = { version: 1, activeTabId, tabs };
-        if (didChange) {
-          writeChronicleTabsStorage(nextState);
-        }
-        return nextState;
-      }
+      const normalized = normalizeChronicleTabsStorage(parsed, messages, false);
+      if (normalized.tabs.length > 0) return normalized;
+    }
+  } catch {
+    // fall through to legacy storage
+  }
+
+  try {
+    const parsed = readCompressedChronicleStorage<ChronicleTabsStorage>(
+      TABS_STORAGE_KEY_V1
+    );
+    if (parsed) {
+      const normalized = normalizeChronicleTabsStorage(parsed, messages, true);
+      if (normalized.tabs.length > 0) return normalized;
     }
   } catch {
     // fall through to migration
@@ -3343,9 +3483,9 @@ const readChronicleTabsStorage = (
       : true,
   });
   const migrated = {
-    version: 1,
+    version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
     activeTabId: initialTab.id,
-    tabs: [initialTab],
+    tabs: [stripChronicleTabDataPayload(initialTab)],
   };
   writeChronicleTabsStorage(migrated);
   return migrated;
@@ -3742,8 +3882,12 @@ export default function ClubChronicle({
   const [ownLeagueTeamsReady, setOwnLeagueTeamsReady] = useState(false);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
-    pruneChronicleCache(readChronicleCache())
+    ({ version: 1, teams: {} })
   );
+  const [chronicleDataTabId, setChronicleDataTabId] = useState<string | null>(
+    null
+  );
+  const [chronicleDataHydrating, setChronicleDataHydrating] = useState(false);
   const [panelOrder, setPanelOrder] = useState<string[]>(() =>
     readPanelOrder()
   );
@@ -4053,6 +4197,14 @@ export default function ClubChronicle({
   const activeChronicleTabIdRef = useRef<string>(initialTabsState.activeTabId);
   const previousAnyRefreshingRef = useRef(false);
   const previousLastGlobalRefreshAtRef = useRef<number | null>(null);
+  const chronicleDataHydrationSeqRef = useRef(0);
+  const chronicleDataPersistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const chronicleDataRecordByTabIdRef = useRef<Map<string, ChronicleDataRecord>>(
+    new Map()
+  );
+  const loadedChronicleDataTabIdsRef = useRef<Set<string>>(new Set());
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshDataForTeamsRef = useRef<
     ((
@@ -4456,9 +4608,93 @@ export default function ClubChronicle({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const requestedTabId = resolvedActiveChronicleTabId;
+    const requestSeq = chronicleDataHydrationSeqRef.current + 1;
+    chronicleDataHydrationSeqRef.current = requestSeq;
+    let cancelled = false;
+    const cachedRecord = chronicleDataRecordByTabIdRef.current.get(requestedTabId);
+    if (cachedRecord) {
+      setChronicleCache(
+        pruneChronicleCache(cachedRecord.cache ?? { version: 1, teams: {} })
+      );
+      setChronicleDataTabId(requestedTabId);
+    } else if (chronicleDataTabId !== requestedTabId) {
+      setChronicleCache({ version: 1, teams: {} });
+      setChronicleDataTabId(null);
+    }
+    setChronicleDataHydrating(true);
+
+    void (async () => {
+      try {
+        const migratedState = await migrateChronicleStorageToIndexedDb(
+          messages,
+          messages.clubChronicleInjuryHealthy
+        );
+        if (cancelled || chronicleDataHydrationSeqRef.current !== requestSeq) {
+          return;
+        }
+        if (migratedState) {
+          setChronicleTabs(migratedState.tabs);
+          setActiveChronicleTabId(migratedState.activeTabId);
+        }
+        const tabIdToRead = migratedState?.activeTabId ?? requestedTabId;
+        const record = await readChronicleDataRecord<
+          ChronicleCache,
+          ChronicleUpdates,
+          ChronicleGlobalUpdateEntry[]
+        >(tabIdToRead);
+        if (cancelled || chronicleDataHydrationSeqRef.current !== requestSeq) {
+          return;
+        }
+        setChronicleCache(
+          pruneChronicleCache(record?.cache ?? { version: 1, teams: {} })
+        );
+        setChronicleDataTabId(tabIdToRead);
+        chronicleDataRecordByTabIdRef.current.set(tabIdToRead, {
+          tabId: tabIdToRead,
+          cache: record?.cache ?? null,
+          baseline: record?.baseline ?? null,
+          updates: record?.updates ?? null,
+          updatesHistory: Array.isArray(record?.updatesHistory)
+            ? record.updatesHistory
+            : [],
+          updatedAt: record?.updatedAt ?? Date.now(),
+        });
+        setChronicleTabs((prev) =>
+          prev.map((tab) =>
+            tab.id === tabIdToRead
+              ? {
+                  ...tab,
+                  updates: record?.updates ?? null,
+                  globalUpdatesHistory: Array.isArray(record?.updatesHistory)
+                    ? record.updatesHistory
+                    : [],
+                  globalBaselineCache: record?.baseline ?? null,
+                }
+              : tab
+          )
+        );
+        loadedChronicleDataTabIdsRef.current.add(tabIdToRead);
+      } catch {
+        // Keep the current shell/state. The old localStorage payload is left intact
+        // unless migration completed and schema was advanced.
+      } finally {
+        if (!cancelled && chronicleDataHydrationSeqRef.current === requestSeq) {
+          setChronicleDataHydrating(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [messages, messages.clubChronicleInjuryHealthy, resolvedActiveChronicleTabId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const flushChronicleTabsToStorage = () => {
       writeChronicleTabsStorage({
-        version: 1,
+        version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
         activeTabId: activeChronicleTabIdRef.current,
         tabs: chronicleTabsRef.current,
       });
@@ -4470,11 +4706,10 @@ export default function ClubChronicle({
         snapshot: ChronicleTabsStorage | null;
       }>;
       if (!customEvent.detail) return;
-      customEvent.detail.snapshot = {
-        version: 1,
-        activeTabId: activeChronicleTabIdRef.current,
-        tabs: chronicleTabsRef.current,
-      };
+      customEvent.detail.snapshot = buildChronicleTabsStoragePayload(
+        activeChronicleTabIdRef.current,
+        chronicleTabsRef.current
+      );
     };
     window.addEventListener(
       CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
@@ -5735,7 +5970,7 @@ export default function ClubChronicle({
 
   useEffect(() => {
     writeChronicleTabsStorage({
-      version: 1,
+      version: CHRONICLE_STORAGE_SCHEMA_CURRENT,
       activeTabId: activeChronicleTabId,
       tabs: chronicleTabs,
     });
@@ -5745,15 +5980,37 @@ export default function ClubChronicle({
       ownLeagueTeamSelections,
       manualTeams,
     });
-    writeChronicleUpdates(updates);
-    writeGlobalBaseline(globalBaselineCache);
-    writeGlobalUpdatesHistory(globalUpdatesHistory);
+    if (chronicleDataTabId === activeChronicleTabId) {
+      if (chronicleDataPersistTimerRef.current) {
+        clearTimeout(chronicleDataPersistTimerRef.current);
+      }
+      const tabId = activeChronicleTabId;
+      chronicleDataPersistTimerRef.current = setTimeout(() => {
+        const record: ChronicleDataRecord = {
+          tabId,
+          cache: pruneChronicleCache(chronicleCache),
+          baseline: globalBaselineCache,
+          updates,
+          updatesHistory: globalUpdatesHistory,
+          updatedAt: Date.now(),
+        };
+        chronicleDataRecordByTabIdRef.current.set(tabId, record);
+        void writeChronicleDataRecord<ChronicleCache, ChronicleUpdates>(record);
+      }, 400);
+    }
     if (lastGlobalRefreshAt !== null) {
       writeLastRefresh(lastGlobalRefreshAt);
     }
+    return () => {
+      if (chronicleDataPersistTimerRef.current) {
+        clearTimeout(chronicleDataPersistTimerRef.current);
+      }
+    };
   }, [
     activeChronicleTabId,
     chronicleTabs,
+    chronicleCache,
+    chronicleDataTabId,
     globalBaselineCache,
     globalUpdatesHistory,
     lastGlobalRefreshAt,
@@ -5905,7 +6162,15 @@ export default function ClubChronicle({
     );
     if (hasSnapshot) return;
     if (anyRefreshing || initialFetchRef.current) return;
-    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
+    if (
+      loading ||
+      isValidating ||
+      loadingOwnLeagueTeams ||
+      !ownLeagueTeamsReady ||
+      chronicleDataHydrating
+    ) {
+      return;
+    }
     initialFetchRef.current = true;
     triggerGlobalRefresh("manual");
   }, [
@@ -5916,12 +6181,21 @@ export default function ClubChronicle({
     loading,
     loadingOwnLeagueTeams,
     ownLeagueTeamsReady,
+    chronicleDataHydrating,
     triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
+    if (
+      loading ||
+      isValidating ||
+      loadingOwnLeagueTeams ||
+      !ownLeagueTeamsReady ||
+      chronicleDataHydrating
+    ) {
+      return;
+    }
     if (trackedTeams.length === 0) return;
     const trackedTeamIds = trackedTeams.map((team) => team.teamId);
     let lastRefresh = lastGlobalRefreshAt;
@@ -5952,13 +6226,22 @@ export default function ClubChronicle({
     isValidating,
     loadingOwnLeagueTeams,
     ownLeagueTeamsReady,
+    chronicleDataHydrating,
     triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!initializedRef.current) return;
-    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
+    if (
+      loading ||
+      isValidating ||
+      loadingOwnLeagueTeams ||
+      !ownLeagueTeamsReady ||
+      chronicleDataHydrating
+    ) {
+      return;
+    }
     if (trackedTeams.length === 0) return;
 
     const maybeRunStaleRefresh = () => {
@@ -6008,12 +6291,9 @@ export default function ClubChronicle({
     isValidating,
     loadingOwnLeagueTeams,
     ownLeagueTeamsReady,
+    chronicleDataHydrating,
     triggerGlobalRefresh,
   ]);
-
-  useEffect(() => {
-    writeChronicleCache(chronicleCache);
-  }, [chronicleCache]);
 
   useEffect(() => {
     const ownSeniorTeamIds = new Set(
@@ -6409,6 +6689,7 @@ export default function ClubChronicle({
 
   const handleConfirmDeleteTab = useCallback(() => {
     if (!pendingDeleteTabId) return;
+    const deletedTabId = pendingDeleteTabId;
     let nextActiveTabId: string | null = null;
     setChronicleTabs((prev) => {
       if (prev.length <= 1) {
@@ -6424,10 +6705,10 @@ export default function ClubChronicle({
         nextActiveTabId = fallbackTab.id;
         return [fallbackTab];
       }
-      const remaining = prev.filter((tab) => tab.id !== pendingDeleteTabId);
+      const remaining = prev.filter((tab) => tab.id !== deletedTabId);
       nextActiveTabId =
-        activeChronicleTabId === pendingDeleteTabId
-          ? remaining[Math.max(0, prev.findIndex((tab) => tab.id === pendingDeleteTabId) - 1)]
+        activeChronicleTabId === deletedTabId
+          ? remaining[Math.max(0, prev.findIndex((tab) => tab.id === deletedTabId) - 1)]
               ?.id ?? remaining[0]?.id ?? null
           : activeChronicleTabId;
       return remaining.map((tab, index) => ({
@@ -6438,6 +6719,8 @@ export default function ClubChronicle({
     if (nextActiveTabId) {
       setActiveChronicleTabId(nextActiveTabId);
     }
+    chronicleDataRecordByTabIdRef.current.delete(deletedTabId);
+    void deleteChronicleDataRecord(deletedTabId);
     setPendingDeleteTabId(null);
   }, [
     activeChronicleTabId,
@@ -11948,7 +12231,7 @@ type Form7LineupSnapshot = {
       if (detailFlagBackfillPendingRef.current.has(pendingKey)) return;
       detailFlagBackfillPendingRef.current.add(pendingKey);
       try {
-        const nextCache = pruneChronicleCache(readChronicleCache());
+        const nextCache = pruneChronicleCache(chronicleCache);
         const teamEntry = nextCache.teams[teamId];
         if (!teamEntry) return;
         const teamPlayers = await fetchTeamPlayers(teamId, {
@@ -13456,7 +13739,7 @@ type Form7LineupSnapshot = {
     chronicleStopRequestedRef.current = false;
     setRefreshingGlobal(true);
     try {
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       const stageCount = ongoingMatchesEnabled ? 8 : 7;
       const setStage = (
@@ -13604,7 +13887,7 @@ type Form7LineupSnapshot = {
         [...PANEL_IDS]
       );
       const baselineForDiff =
-        globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
+        globalBaselineCache ?? pruneChronicleCache(chronicleCache);
       const nextUpdates = collectTeamChanges(
         nextCache,
         [
@@ -13714,7 +13997,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusLeague);
       setGlobalRefreshProgressPct(15);
       setPanelProgress(["league-performance"], 15);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13748,7 +14031,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["press-announcements"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
       if (chronicleStopRequestedRef.current) return;
@@ -13777,7 +14060,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusLastLogin);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["last-login"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13814,7 +14097,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["coach"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13847,7 +14130,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["power-ratings"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13875,7 +14158,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["finance-estimate"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13908,7 +14191,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["fanclub"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13937,7 +14220,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusArena);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["arena"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -13970,7 +14253,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["transfer-market"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -14003,7 +14286,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["tsi"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -14036,7 +14319,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["wages"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -14071,7 +14354,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusFormations);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["formations-tactics", "team-attitude", "likely-training"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
       if (chronicleStopRequestedRef.current) return;
@@ -14170,7 +14453,7 @@ type Form7LineupSnapshot = {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusOngoingMatches);
       setGlobalRefreshProgressPct(20);
       setPanelProgress(["ongoing-matches"], 20);
-      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextCache = pruneChronicleCache(chronicleCache);
       await refreshOngoingMatchSnapshots(
         nextCache,
         trackedTeams,
@@ -14235,7 +14518,7 @@ type Form7LineupSnapshot = {
         await deleteLiveMatch(entry.matchId, entry.sourceSystem);
       });
       if (ongoingMatchesEnabled && trackedTeams.length > 0) {
-        const nextCache = pruneChronicleCache(readChronicleCache());
+        const nextCache = pruneChronicleCache(chronicleCache);
         await refreshOngoingMatchSnapshots(
           nextCache,
           trackedTeams,

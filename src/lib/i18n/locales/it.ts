@@ -209,6 +209,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_6_3_0:
+      "Rivista l'architettura di gestione della memoria per ridurre l'archiviazione locale ridondante e spostare i grandi payload di Club Chronicle in IndexedDB.",
     changelog_6_2_0:
       "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:

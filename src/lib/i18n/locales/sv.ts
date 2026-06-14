@@ -208,6 +208,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_3_0:
+      "Minneshanteringsarkitekturen har arbetats om for att minska redundant lokal lagring och flytta stora Club Chronicle-datapaket till IndexedDB.",
     changelog_6_2_0:
       "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:

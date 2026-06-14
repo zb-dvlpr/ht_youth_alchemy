@@ -696,6 +696,8 @@ export default function SettingsButton({
         localStorageBytes: null,
         localStorageFormatted: null,
         localStorageKeys: [],
+        indexedDbBytes: null,
+        indexedDbFormatted: null,
         error: messages.settingsDebugStorageError,
       });
     } finally {

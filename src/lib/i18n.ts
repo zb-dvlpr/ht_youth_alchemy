@@ -176,6 +176,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_6_3_0: string;
   changelog_6_2_0: string;
   changelog_6_1_0: string;
   changelog_6_0_0: string;

@@ -1,3 +1,5 @@
+import { estimateChronicleIndexedDbBytes } from "./chronicleIndexedDb";
+
 export type LocalStorageKeyUsage = {
   key: string;
   bytes: number;
@@ -27,6 +29,8 @@ export type StorageDiagnostics = {
   localStorageBytes: number | null;
   localStorageFormatted: string | null;
   localStorageKeys: LocalStorageKeyUsage[];
+  indexedDbBytes: number | null;
+  indexedDbFormatted: string | null;
   error?: string | null;
 };
 
@@ -55,6 +59,8 @@ const buildUnavailableDiagnostics = (error?: string): StorageDiagnostics => ({
   localStorageBytes: null,
   localStorageFormatted: null,
   localStorageKeys: [],
+  indexedDbBytes: null,
+  indexedDbFormatted: null,
   error: error ?? null,
 });
 
@@ -137,6 +143,7 @@ export async function collectStorageDiagnostics(): Promise<StorageDiagnostics> {
   }
 
   const localStorageDiagnostics = collectLocalStorageDiagnostics();
+  const indexedDbBytes = await estimateChronicleIndexedDbBytes();
 
   const originUsagePct =
     originUsageBytes !== null && originQuotaBytes !== null && originQuotaBytes > 0
@@ -154,6 +161,8 @@ export async function collectStorageDiagnostics(): Promise<StorageDiagnostics> {
     localStorageBytes: localStorageDiagnostics.localStorageBytes,
     localStorageFormatted: localStorageDiagnostics.localStorageFormatted,
     localStorageKeys: localStorageDiagnostics.localStorageKeys,
+    indexedDbBytes,
+    indexedDbFormatted: indexedDbBytes !== null ? formatBytes(indexedDbBytes) : null,
     error:
       [originError, localStorageDiagnostics.error].filter(Boolean).join("; ") ||
       null,

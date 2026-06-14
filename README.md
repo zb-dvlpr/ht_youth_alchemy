@@ -15,7 +15,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Hidden youth specialty detection from past match events
 - Match list with load/submit match orders
 - Club Chronicle panels for league, press, fan club, arena, formations/tactics, likely training, last logins, coach details, transfers, TSI, wages, and ongoing matches with Hattrick Live cleanup
-- Club Chronicle free/premium gating with resource-aware tracking limits, local license-key scaffolding, and non-destructive cached watchlists/tabs
+- Club Chronicle free/premium gating with resource-aware tracking limits, local license-key scaffolding, non-destructive cached watchlists/tabs, and IndexedDB-backed data payload storage
 - Club Chronicle own-league watchlists with per-team selection inside each league
 - Shared workflows with platform-aware UX evolution for distinct desktop and mobile ergonomics
 - Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`, `pl`, `nl`)

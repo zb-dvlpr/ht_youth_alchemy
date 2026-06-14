@@ -208,6 +208,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_4_0:
+      "Lade till spelarexkludering for ungdoms- och senioruppstallningar.",
     changelog_6_3_0:
       "Minneshanteringsarkitekturen har arbetats om for att minska redundant lokal lagring och flytta stora Club Chronicle-datapaket till IndexedDB.",
     changelog_6_2_0:
@@ -1740,6 +1742,9 @@ export const messagesSv: Messages = {
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
+    lineupExclusionTooltip: "Nar detta ar aktiverat tas spelaren inte med i nagon uppstallning.",
+    lineupExclusionExcludeLabel: "Exkludera {{player}} fran uppstallningsval",
+    lineupExclusionAllowLabel: "Lat {{player}} beaktas for uppstallningar",
     seniorPlayerListTitle: "Seniorspelare",
     seniorTransferSearchButtonLabel: "Hitta liknande spelare",
     seniorTransferSearchEditedButtonLabel:

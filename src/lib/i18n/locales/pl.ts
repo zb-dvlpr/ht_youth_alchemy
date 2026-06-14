@@ -465,6 +465,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_6_4_0:
+    "Dodano kontrolki wykluczania zawodnikow dla skladow juniorow i seniorow.",
   changelog_6_3_0:
     "Przebudowano architekture zarzadzania pamiecia, aby ograniczyc redundantne dane w localStorage i przeniesc duze ladunki Kroniki klubu do IndexedDB.",
   changelog_6_2_0:
@@ -1445,6 +1447,12 @@ export const messagesPl: Messages = {
   trainingSlotSecondary: "Drugorzędny",
   trainingSlotBoth: "Gł/dr",
   starPlayerLabel: "Ustaw gwiazdę",
+  lineupExclusionTooltip:
+    "Po wlaczeniu ten zawodnik nie bedzie brany pod uwage przy zadnym skladzie.",
+  lineupExclusionExcludeLabel:
+    "Wyklucz {{player}} z uwzgledniania w skladach",
+  lineupExclusionAllowLabel:
+    "Zezwol, aby {{player}} byl uwzgledniany w skladach",
   tacticLabel: "Taktyka",
   tacticNormal: "Normalna",
   tacticPressing: "Pressing",

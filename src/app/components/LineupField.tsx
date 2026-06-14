@@ -7,6 +7,7 @@ import { setDragGhost } from "@/lib/drag";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import Tooltip from "./Tooltip";
+import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
 
 export type LineupAssignments = Record<string, number | null>;
 export type LineupBehaviors = Record<string, number>;
@@ -46,6 +47,7 @@ type LineupFieldProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   playersById: Map<number, YouthPlayer>;
+  excludedPlayers?: ExcludedPlayersState;
   playerDetailsById?: Map<
     number,
     {
@@ -419,6 +421,7 @@ export default function LineupField({
   assignments,
   behaviors,
   playersById,
+  excludedPlayers = {},
   playerDetailsById,
   onAssign,
   onClear,
@@ -746,6 +749,7 @@ export default function LineupField({
     playerId: number,
     playerName: string
   ) => {
+    if (isPlayerExcluded(excludedPlayers, playerId)) return;
     if (event.pointerType === "mouse") return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -927,10 +931,12 @@ export default function LineupField({
           fromSlot?: string;
         };
         if (payload.type === "slot" && payload.fromSlot && onMove) {
+          if (isPlayerExcluded(excludedPlayers, payload.playerId)) return;
           onMove(payload.fromSlot, slotId);
           return;
         }
         if (allowExternalPlayerDrop && payload.type === "player" && payload.playerId) {
+          if (isPlayerExcluded(excludedPlayers, payload.playerId)) return;
           onAssign(slotId, payload.playerId);
           return;
         }
@@ -943,6 +949,7 @@ export default function LineupField({
     if (!allowExternalPlayerDrop) return;
     const playerId = Number(fallback);
     if (Number.isNaN(playerId)) return;
+    if (isPlayerExcluded(excludedPlayers, playerId)) return;
     onAssign(slotId, playerId);
   };
 
@@ -1268,6 +1275,15 @@ export default function LineupField({
                         }}
                         onDragStart={(event) => {
                           if (!dragPayload) return;
+                          if (
+                            isPlayerExcluded(
+                              excludedPlayers,
+                              assignedPlayer.YouthPlayerID
+                            )
+                          ) {
+                            event.preventDefault();
+                            return;
+                          }
                           isDragActive.current = true;
                           setDragGhost(event, {
                             label: formatName(assignedPlayer),
@@ -1497,6 +1513,15 @@ export default function LineupField({
                       }}
                       onDragStart={(event) => {
                         if (!dragPayload) return;
+                        if (
+                          isPlayerExcluded(
+                            excludedPlayers,
+                            assignedPlayer.YouthPlayerID
+                          )
+                        ) {
+                          event.preventDefault();
+                          return;
+                        }
                         isDragActive.current = true;
                         setDragGhost(event, {
                           label: formatName(assignedPlayer),

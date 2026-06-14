@@ -137,6 +137,13 @@ import {
 } from "@/lib/license";
 import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import {
+  isPlayerExcluded,
+  pruneYouthLineupExcludedPlayers,
+  readYouthLineupExcludedPlayers,
+  toggleYouthLineupExcludedPlayer,
+  type ExcludedPlayersState,
+} from "@/lib/lineupExclusions";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -1131,6 +1138,9 @@ export default function Dashboard({
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
+  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>(() =>
+    readYouthLineupExcludedPlayers()
+  );
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [ratingsResponseState, setRatingsResponseState] =
@@ -1812,6 +1822,50 @@ export default function Dashboard({
       ),
     [assignments]
   );
+
+  useEffect(() => {
+    const next = pruneYouthLineupExcludedPlayers(
+      playerList.map((player) => player.YouthPlayerID)
+    );
+    setExcludedPlayers(next);
+  }, [playerList]);
+
+  const removePlayerFromLineup = useCallback((playerId: number) => {
+    setAssignments((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.entries(next).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId) {
+          next[slot] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      Object.entries(assignments).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId && slot in next) {
+          delete next[slot];
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [assignments]);
+
+  const handleToggleExcludedPlayer = useCallback((playerId: number) => {
+    const next = toggleYouthLineupExcludedPlayer(playerId);
+    setExcludedPlayers(next);
+    if (isPlayerExcluded(next, playerId)) {
+      removePlayerFromLineup(playerId);
+      if (starPlayerId === playerId) {
+        setStarPlayerId(null);
+        setAutoSelectionApplied(false);
+      }
+    }
+  }, [removePlayerFromLineup, starPlayerId]);
 
   const captainId = useMemo(() => {
     const fieldSlots = [
@@ -4712,6 +4766,7 @@ export default function Dashboard({
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
+    if (isPlayerExcluded(excludedPlayers, playerId)) return;
     clearPendingYouthSubmittedLineupFeature();
     const clearedSlots = Object.entries(assignments)
       .filter(([, value]) => value === playerId)
@@ -4755,6 +4810,7 @@ export default function Dashboard({
       const next = { ...prev };
       const movingPlayer = next[fromSlot];
       if (!movingPlayer) return prev;
+      if (isPlayerExcluded(excludedPlayers, movingPlayer)) return prev;
       const targetPlayer = next[toSlot] ?? null;
       next[toSlot] = movingPlayer;
       next[fromSlot] = targetPlayer;
@@ -4787,7 +4843,9 @@ export default function Dashboard({
       "F_C",
       "F_L",
     ];
-    const ids = playerList.map((player) => player.YouthPlayerID);
+    const ids = playerList
+      .map((player) => player.YouthPlayerID)
+      .filter((playerId) => !isPlayerExcluded(excludedPlayers, playerId));
     const shuffledIds = [...ids].sort(() => Math.random() - 0.5);
     const keeperId = shuffledIds.shift() ?? null;
     const outfieldIds = shuffledIds.slice(0, 10);
@@ -6342,6 +6400,7 @@ export default function Dashboard({
     () =>
       playerList
         .filter((player) => {
+          if (isPlayerExcluded(excludedPlayers, player.YouthPlayerID)) return false;
           const details = playerDetailsById.get(player.YouthPlayerID);
           const injuryLevel = normalizeInjuryLevel(
             details?.InjuryLevel ?? player.InjuryLevel
@@ -6378,7 +6437,7 @@ export default function Dashboard({
             (player.PlayerSkills as OptimizerPlayer["skills"]) ??
             null,
         })),
-    [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
+    [excludedPlayers, hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(
@@ -7104,6 +7163,9 @@ export default function Dashboard({
       const excludedPlayerIds = Object.entries(assignments)
         .filter(([, playerId]) => playerId !== null)
         .map(([, playerId]) => Number(playerId));
+      Object.keys(excludedPlayers).forEach((playerId) => {
+        excludedPlayerIds.push(Number(playerId));
+      });
       return rankPlayersForYouthLineupSlot(
         optimizerPlayers,
         slotId as YouthLineupSlotId,
@@ -7123,6 +7185,7 @@ export default function Dashboard({
     },
     [
       assignments,
+      excludedPlayers,
       messages.ageYearsShort,
       messages.unknownShort,
       optimizerPlayers,
@@ -7290,6 +7353,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          excludedPlayers={excludedPlayers}
           onSortStart={() => {
             setOrderSource("list");
             setOrderedPlayerIds(null);
@@ -7326,6 +7390,7 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onToggleExcluded={handleToggleExcludedPlayer}
           onSelect={(playerId) => {
             trackYouthFeatureUsed("player_selected", "mobile");
             handleMobilePlayerSelect(playerId);
@@ -7554,6 +7619,7 @@ export default function Dashboard({
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersById}
+          excludedPlayers={excludedPlayers}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
@@ -8096,6 +8162,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          excludedPlayers={excludedPlayers}
           highlightStarSelection={highlightMissingStarSelection}
           onSortStart={() => {
             setOrderSource("list");
@@ -8133,6 +8200,7 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onToggleExcluded={handleToggleExcludedPlayer}
           onSelect={(playerId) => {
             trackYouthFeatureUsed("player_selected", "desktop");
             void handleSelect(playerId);
@@ -8310,6 +8378,7 @@ export default function Dashboard({
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersById}
+          excludedPlayers={excludedPlayers}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}

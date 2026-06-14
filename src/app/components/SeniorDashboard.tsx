@@ -129,6 +129,14 @@ import {
   readAppLicenseState,
 } from "@/lib/license";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import LineupExcludeButton from "./LineupExcludeButton";
+import {
+  isPlayerExcluded,
+  pruneSeniorLineupExcludedPlayers,
+  readSeniorLineupExcludedPlayers,
+  toggleSeniorLineupExcludedPlayer,
+  type ExcludedPlayersState,
+} from "@/lib/lineupExclusions";
 import { resolveOpponentTeam } from "@/lib/matches/visibility";
 
 type SeniorPlayer = {
@@ -3773,6 +3781,9 @@ export default function SeniorDashboard({
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
+  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>(() =>
+    readSeniorLineupExcludedPlayers()
+  );
   const [opponentCupStatusByTeamId, setOpponentCupStatusByTeamId] = useState<
     Record<number, boolean>
   >({});
@@ -5164,6 +5175,48 @@ export default function SeniorDashboard({
     () => new Map(players.map((player) => [player.PlayerID, player])),
     [players]
   );
+
+  useEffect(() => {
+    const next = pruneSeniorLineupExcludedPlayers(
+      players.map((player) => player.PlayerID)
+    );
+    setExcludedPlayers(next);
+  }, [players]);
+
+  const removeSeniorPlayerFromLineup = useCallback((playerId: number) => {
+    setAssignments((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.entries(next).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId) {
+          next[slot] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      Object.entries(assignments).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId && slot in next) {
+          delete next[slot];
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [assignments]);
+
+  const handleToggleSeniorExcludedPlayer = useCallback((playerId: number) => {
+    const next = toggleSeniorLineupExcludedPlayer(playerId);
+    setExcludedPlayers(next);
+    if (isPlayerExcluded(next, playerId)) {
+      removeSeniorPlayerFromLineup(playerId);
+      markSeniorLineupMutated();
+      clearSeniorAiSubmitLock();
+    }
+  }, [clearSeniorAiSubmitLock, markSeniorLineupMutated, removeSeniorPlayerFromLineup]);
   useEffect(() => {
     const detail: SeniorReminderContextEventDetail = {
       context: {
@@ -5499,15 +5552,22 @@ export default function SeniorDashboard({
       extraTimeBTeamRecentMatchState.status !== "ready" ||
       !extraTimeBTeamRecentMatchState.recentMatch
     ) {
-      return new Set(extraTimeHealthyPlayerIdSet);
+      return new Set(
+        Array.from(extraTimeHealthyPlayerIdSet).filter(
+          (playerId) => !isPlayerExcluded(excludedPlayers, playerId)
+        )
+      );
     }
     return new Set(
       Array.from(extraTimeHealthyPlayerIdSet).filter(
-        (playerId) => !extraTimeBTeamExcludedPlayerIds.has(playerId)
+        (playerId) =>
+          !extraTimeBTeamExcludedPlayerIds.has(playerId) &&
+          !isPlayerExcluded(excludedPlayers, playerId)
       )
     );
   }, [
     effectiveExtraTimeBTeamEnabled,
+    excludedPlayers,
     extraTimeBTeamExcludedPlayerIds,
     extraTimeBTeamRecentMatchState,
     extraTimeHealthyPlayerIdSet,
@@ -7457,6 +7517,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     player: SeniorPlayer,
     selectedMatchType: number | null
   ) => {
+    if (isPlayerExcluded(excludedPlayers, player.PlayerID)) return false;
     const injuryLevel = seniorAiInjuryLevelForPlayer(player);
     if (typeof injuryLevel === "number" && injuryLevel >= 1) return false;
     const isLeagueCupTarget =
@@ -7468,6 +7529,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   const isSeniorAiEligiblePlayer = (player: SeniorPlayer) => {
+    if (isPlayerExcluded(excludedPlayers, player.PlayerID)) return false;
     const injuryLevel = seniorAiInjuryLevelForPlayer(player);
     return (
       (typeof injuryLevel !== "number" || injuryLevel < 1) &&
@@ -9854,6 +9916,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     playerId: number,
     playerName: string
   ) => {
+    if (isPlayerExcluded(excludedPlayers, playerId)) {
+      event.preventDefault();
+      return;
+    }
     setDragGhost(event, {
       label: playerName,
       className: styles.dragGhost,
@@ -9886,6 +9952,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       }
     >();
     players.forEach((player) => {
+      if (isPlayerExcluded(excludedPlayers, player.PlayerID)) return;
       map.set(player.PlayerID, {
         YouthPlayerID: player.PlayerID,
         FirstName: player.FirstName,
@@ -9911,7 +9978,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       });
     });
     return map;
-  }, [detailsById, players]);
+  }, [detailsById, excludedPlayers, players]);
 
   const seniorPenaltyKickerIds = useMemo(() => {
     if (extraTimePreparedSubmission) {
@@ -12529,6 +12596,7 @@ const refreshDetailsForPlayers = async (
       );
       const eligiblePlayers = players
         .filter((player) => {
+          if (isPlayerExcluded(excludedPlayers, player.PlayerID)) return false;
           if (assignedPlayerIds.has(player.PlayerID)) return false;
           const injuryLevel = seniorAiInjuryLevelForPlayer(player);
           return typeof injuryLevel !== "number" || injuryLevel < 1;
@@ -12548,6 +12616,7 @@ const refreshDetailsForPlayers = async (
     },
     [
       assignments,
+      excludedPlayers,
       messages.ageYearsShort,
       messages.unknownShort,
       players,
@@ -17679,6 +17748,7 @@ const refreshDetailsForPlayers = async (
             const originFlagEmoji =
               panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
             const playerName = formatPlayerName(player);
+            const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
             const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
             const transferListing = seniorTransferListingForDetails(playerDetails);
             const isSelected = selectedId === player.PlayerID;
@@ -17987,10 +18057,18 @@ const refreshDetailsForPlayers = async (
             return (
               <li key={player.PlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
+                  <LineupExcludeButton
+                    playerName={playerName}
+                    excluded={isExcluded}
+                    onToggle={() => handleToggleSeniorExcludedPlayer(player.PlayerID)}
+                    messages={messages}
+                  />
                   <Tooltip content={messages.youthDragToLineupHint} fullWidth>
                     <button
                       type="button"
-                      className={styles.playerButton}
+                      className={`${styles.playerButton} ${
+                        isExcluded ? styles.lineupExcludedPlayerButton : ""
+                      }`}
                       aria-pressed={isSelected}
                       onClick={() => handleSeniorListPlayerSelect(player.PlayerID, playerName)}
                     >
@@ -18292,6 +18370,7 @@ const refreshDetailsForPlayers = async (
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersByIdForLineup}
+          excludedPlayers={excludedPlayers}
           playerDetailsById={new Map(
             Array.from(detailsById.entries()).map(([id, detail]) => [
               id,
@@ -18305,6 +18384,7 @@ const refreshDetailsForPlayers = async (
             ])
           )}
           onAssign={(slotId, playerId) => {
+            if (isPlayerExcluded(excludedPlayers, playerId)) return;
             const nextAssignments = { ...assignments };
             Object.keys(nextAssignments).forEach((key) => {
               if (nextAssignments[key] === playerId) {
@@ -18331,6 +18411,8 @@ const refreshDetailsForPlayers = async (
             );
           }}
           onMove={(fromSlot, toSlot) => {
+            const movingPlayerId = assignments[fromSlot] ?? null;
+            if (isPlayerExcluded(excludedPlayers, movingPlayerId)) return;
             const nextAssignments = {
               ...assignments,
               [toSlot]: assignments[fromSlot] ?? null,
@@ -21745,6 +21827,7 @@ const refreshDetailsForPlayers = async (
                 const originFlagEmoji =
                   panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
                 const playerName = formatPlayerName(player);
+                const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
                 const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
                 const transferListing = seniorTransferListingForDetails(playerDetails);
                 const isSelected = selectedId === player.PlayerID;
@@ -22073,15 +22156,23 @@ const refreshDetailsForPlayers = async (
                 return (
                   <li key={player.PlayerID} className={styles.listItem}>
                     <div className={styles.playerRow}>
+                      <LineupExcludeButton
+                        playerName={playerName}
+                        excluded={isExcluded}
+                        onToggle={() => handleToggleSeniorExcludedPlayer(player.PlayerID)}
+                        messages={messages}
+                      />
                       <Tooltip content={messages.youthDragToLineupHint} fullWidth>
                         <button
                           type="button"
-                          className={styles.playerButton}
+                          className={`${styles.playerButton} ${
+                            isExcluded ? styles.lineupExcludedPlayerButton : ""
+                          }`}
                           aria-pressed={isSelected}
                           onClick={() =>
                             handleSeniorListPlayerSelect(player.PlayerID, playerName)
                           }
-                          draggable={!mobileSeniorActive}
+                          draggable={!mobileSeniorActive && !isExcluded}
                           onDragStart={(event) =>
                             !mobileSeniorActive
                               ? handleSeniorPlayerDragStart(
@@ -22315,6 +22406,7 @@ const refreshDetailsForPlayers = async (
               assignments={assignments}
               behaviors={behaviors}
               playersById={playersByIdForLineup}
+              excludedPlayers={excludedPlayers}
               playerDetailsById={new Map(
                 Array.from(detailsById.entries()).map(([id, detail]) => [
                   id,
@@ -22328,6 +22420,7 @@ const refreshDetailsForPlayers = async (
                 ])
               )}
               onAssign={(slotId, playerId) => {
+                if (isPlayerExcluded(excludedPlayers, playerId)) return;
                 const nextAssignments = { ...assignments };
                 Object.keys(nextAssignments).forEach((key) => {
                   if (nextAssignments[key] === playerId) {
@@ -22354,6 +22447,8 @@ const refreshDetailsForPlayers = async (
                 );
               }}
               onMove={(fromSlot, toSlot) => {
+                const movingPlayerId = assignments[fromSlot] ?? null;
+                if (isPlayerExcluded(excludedPlayers, movingPlayerId)) return;
                 const nextAssignments = {
                   ...assignments,
                   [toSlot]: assignments[fromSlot] ?? null,

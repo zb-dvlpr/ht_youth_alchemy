@@ -209,6 +209,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_6_4_0:
+      "Ajout de controles d exclusion de joueurs pour les compositions jeunes et seniors.",
     changelog_6_3_0:
       "Refonte de l'architecture de gestion de la memoire pour reduire le stockage local redondant et deplacer les gros volumes de donnees de Chronique du club vers IndexedDB.",
     changelog_6_2_0:
@@ -1748,6 +1750,9 @@ export const messagesFr: Messages = {
     trainingSlotSecondary: "Secondaire",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Définir joueur star",
+    lineupExclusionTooltip: "Une fois active, ce joueur ne sera pris en compte pour aucune composition.",
+    lineupExclusionExcludeLabel: "Exclure {{player}} de la prise en compte pour les compositions",
+    lineupExclusionAllowLabel: "Autoriser {{player}} a etre pris en compte pour les compositions",
     seniorPlayerListTitle: "Joueurs seniors",
     seniorTransferSearchButtonLabel: "Trouver des joueurs similaires",
     seniorTransferSearchEditedButtonLabel:

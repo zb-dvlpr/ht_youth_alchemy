@@ -7681,6 +7681,74 @@ html[data-theme="dark"] .spinner {
   z-index: 4;
 }
 
+.lineupExcludeButton {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #c8bfb3;
+  border-radius: 8px;
+  background: #f7f4ef;
+  color: #786f64;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.lineupExcludeButton:hover {
+  background: #eee7dc;
+  transform: translateY(-1px);
+}
+
+.lineupExcludeButton:focus-visible {
+  outline: 2px solid #4f7cff;
+  outline-offset: 2px;
+}
+
+.lineupExcludeButtonActive {
+  background: #9f2f2f;
+  border-color: #7b1f1f;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(159, 47, 47, 0.18);
+}
+
+.lineupExcludeIcon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.lineupExcludeIconShape {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.lineupExcludeIconSymbol {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.lineupExcludeButtonActive .lineupExcludeIconShape {
+  fill: currentColor;
+}
+
+.lineupExcludeButtonActive .lineupExcludeIconSymbol {
+  stroke: #fff;
+}
+
+.lineupExcludedPlayerButton {
+  opacity: 0.62;
+}
+
 .playerButton {
   display: flex;
   flex-direction: column;

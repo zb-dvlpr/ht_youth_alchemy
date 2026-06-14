@@ -17,6 +17,8 @@ import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 import { parseChppDate } from "@/lib/chpp/utils";
 import { formatDateTime } from "@/lib/datetime";
+import LineupExcludeButton from "./LineupExcludeButton";
+import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -86,9 +88,11 @@ type YouthPlayerListProps = {
   assignedIds?: Set<number>;
   selectedId?: number | null;
   starPlayerId?: number | null;
+  excludedPlayers?: ExcludedPlayersState;
   highlightStarSelection?: boolean;
   dataHelpAnchor?: string;
   onToggleStar?: (playerId: number) => void;
+  onToggleExcluded?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
   onOrderChange?: (orderedIds: number[]) => void;
@@ -319,9 +323,11 @@ export default function YouthPlayerList({
   assignedIds,
   selectedId,
   starPlayerId,
+  excludedPlayers = {},
   highlightStarSelection = false,
   dataHelpAnchor,
   onToggleStar,
+  onToggleExcluded,
   onSelect,
   onAutoSelect,
   onOrderChange,
@@ -432,6 +438,10 @@ export default function YouthPlayerList({
     event: React.DragEvent<HTMLButtonElement>,
     playerId: number
   ) => {
+    if (isPlayerExcluded(excludedPlayers, playerId)) {
+      event.preventDefault();
+      return;
+    }
     const player = players.find((item) => item.YouthPlayerID === playerId);
     if (player) {
       setDragGhost(event, {
@@ -826,6 +836,10 @@ export default function YouthPlayerList({
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
             const isStar = starPlayerId === player.YouthPlayerID;
+            const isExcluded = isPlayerExcluded(
+              excludedPlayers,
+              player.YouthPlayerID
+            );
             const hasNewMarker = newMarkerPlayerIdSet.has(player.YouthPlayerID);
             const isNameSort = sortKey === "name";
             const injuryLevel = normalizeInjuryLevel(
@@ -982,10 +996,18 @@ export default function YouthPlayerList({
                       ★
                     </button>
                   </Tooltip>
+                  <LineupExcludeButton
+                    playerName={fullName}
+                    excluded={isExcluded}
+                    onToggle={() => onToggleExcluded?.(player.YouthPlayerID)}
+                    messages={messages}
+                  />
                   <Tooltip content={messages.youthDragToLineupHint} fullWidth>
                     <button
                       type="button"
-                      className={styles.playerButton}
+                      className={`${styles.playerButton} ${
+                        isExcluded ? styles.lineupExcludedPlayerButton : ""
+                      }`}
                       onClick={() => {
                         if (!onSelect) return;
                         if (selectedId === player.YouthPlayerID) return;
@@ -997,7 +1019,7 @@ export default function YouthPlayerList({
                       onDragStart={(event) =>
                         handleDragStart(event, player.YouthPlayerID)
                       }
-                      draggable
+                      draggable={!isExcluded}
                       aria-pressed={isSelected}
                     >
                     {!isNameSort ? (

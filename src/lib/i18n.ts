@@ -177,6 +177,10 @@ export type Messages = {
   updateRequiredBody: string;
   updateRequiredAction: string;
   changelog_6_3_0: string;
+  changelog_6_4_0: string;
+  lineupExclusionTooltip: string;
+  lineupExclusionExcludeLabel: string;
+  lineupExclusionAllowLabel: string;
   changelog_6_2_0: string;
   changelog_6_1_0: string;
   changelog_6_0_0: string;

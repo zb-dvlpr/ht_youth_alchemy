@@ -471,6 +471,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_6_4_0:
+  "Speleruitsluitingsknoppen toegevoegd voor jeugd- en senioropstellingen.",
   changelog_6_3_0:
     "De architectuur voor geheugenbeheer is herzien om redundante lokale opslag te verminderen en grote Clubkroniek-gegevens naar IndexedDB te verplaatsen.",
   changelog_6_2_0:
@@ -1451,6 +1453,9 @@ export const messagesNl: Messages = {
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",
   starPlayerLabel: "Sterspeler instellen",
+  lineupExclusionTooltip: "Wanneer ingeschakeld wordt deze speler voor geen enkele opstelling meegenomen.",
+  lineupExclusionExcludeLabel: "Sluit {{player}} uit van opstellingskeuzes",
+  lineupExclusionAllowLabel: "Laat {{player}} weer meetellen voor opstellingen",
   tacticLabel: "Tactiek",
   tacticNormal: "Normaal",
   tacticPressing: "Pressie",

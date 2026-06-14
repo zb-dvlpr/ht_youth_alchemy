@@ -208,6 +208,10 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_3_0:
+      "Se rehizo la arquitectura de gestion de memoria para reducir el almacenamiento local redundante y mover los grandes datos de Cronica del club a IndexedDB.",
+    changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:
       "Se introdujo un flujo completo para enviar y recuperar órdenes de alineación senior.",
     changelog_6_0_0:
@@ -439,6 +443,14 @@ export const messagesEs: Messages = {
       "Cuántas diferencias con cambios de refrescos globales se guardan y muestran en el historial de Últimas actualizaciones.",
     settingsGeneral: "General",
     settingsGeneralTitle: "Ajustes generales",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
     settingsReminders: "Recordatorios",
     settingsRemindersTitle: "Recordatorios",
     settingsRemindersEnableLabel: "Activar recordatorios",
@@ -503,13 +515,21 @@ export const messagesEs: Messages = {
       "Importa una copia de seguridad JSON exportada previamente y reemplaza los ajustes locales y el estado en caché actuales de la app.",
     settingsStorageManagementButton: "Gestionar almacenamiento",
     settingsStorageManagementTitle: "Gestionar almacenamiento",
+    settingsStorageManagementLocalStorageTitle: "Almacenamiento local",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Almacenamiento usado: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB usado: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Base de datos",
+    settingsStorageManagementIndexedDbStoreColumn: "Almacen",
+    settingsStorageManagementIndexedDbRecordsColumn: "Registros",
     settingsStorageManagementKeyColumn: "Clave",
     settingsStorageManagementUsageColumn: "Uso",
     settingsStorageManagementActionColumn: "Accion",
     settingsStorageManagementWipeButton: "Borrar",
     settingsStorageManagementWipeAllButton: "Borrar todo",
+    settingsStorageManagementWipeIndexedDbButton: "Borrar IndexedDB",
     settingsStorageManagementNoKeys: "No se encontraron claves localStorage.",
+    settingsStorageManagementNoIndexedDbRecords: "No se encontraron registros IndexedDB.",
     settingsStorageManagementWipeConfirmTitle: "¿Borrar clave de almacenamiento?",
     settingsStorageManagementWipeConfirmBody:
       'Estas a punto de borrar "{{key}}" del almacenamiento local. Una vez borrada, esta accion no se puede deshacer. Pueden perderse datos, ajustes, cache o estado de la app almacenados bajo esta clave.',
@@ -517,6 +537,9 @@ export const messagesEs: Messages = {
       "¿Borrar todas las claves de almacenamiento?",
     settingsStorageManagementWipeAllConfirmBody:
       "Esto eliminara permanentemente todas las claves que aparecen actualmente en Gestionar almacenamiento. No se puede deshacer. Exporta tus datos primero si puedes necesitarlos mas tarde.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "¿Borrar datos IndexedDB?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Esto eliminara permanentemente los datos de Cronica del club de la app en IndexedDB. Las claves localStorage no se veran afectadas. No se puede deshacer.",
     settingsStorageManagementWipeSuccess:
       "Clave de almacenamiento borrada: {{key}}",
     settingsStorageManagementWipeError:
@@ -525,7 +548,10 @@ export const messagesEs: Messages = {
       "Se borraron todas las claves de almacenamiento listadas.",
     settingsStorageManagementWipeAllError:
       "No se pudieron borrar todas las claves de almacenamiento listadas.",
+    settingsStorageManagementWipeIndexedDbSuccess: "Datos IndexedDB borrados.",
+    settingsStorageManagementWipeIndexedDbError: "No se pudieron borrar los datos IndexedDB.",
     settingsStorageManagementReadError: "No se pudo leer localStorage.",
+    settingsStorageManagementIndexedDbReadError: "No se pudo leer IndexedDB.",
     settingsMachineLearningTitle: "Aprendizaje automático",
     settingsMachineLearningBody:
       "Las instantáneas de jugadores senior se aprenden automáticamente desde refrescos senior y detalles de resultados del mercado.",
@@ -714,7 +740,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletPress:
       "Comunicados de prensa: ultimo comunicado y fecha de publicacion por equipo. Haz clic en una fila para abrir el texto completo con enlaces detectados.",
     clubChronicleHelpBulletFinance:
-      "Balance de transferencias: numero de compras, numero de ventas y saldo en EUR. Haz clic en una fila para ver el desglose detallado.",
+      "Balance de transferencias: numero de compras, numero de ventas y saldo en the display currency. Haz clic en una fila para ver el desglose detallado.",
     clubChronicleHelpBulletFanclub:
       "Club de fans: nombre y tamano. Haz clic en una fila para ver anterior/actual y la diferencia de tamano desde el ultimo valor cambiado.",
     clubChronicleHelpBulletArena:
@@ -730,7 +756,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletLikelyTraining:
       "Regimen de entrenamiento probable: inferido de formaciones recientes; los empates en confianza maxima se muestran juntos y marcados como inciertos. Haz clic en una fila para ver ranking completo de confianza y tamano de muestra.",
     clubChronicleHelpBulletWages:
-      "Salarios: salario total del equipo y top 11 en EUR. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias), salario y valoraciones guardadas de forma 7 con emoji del clima.",
+      "Salarios: salario total del equipo y top 11 en the display currency. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias), salario y valoraciones guardadas de forma 7 con emoji del clima.",
     clubChronicleHelpBulletLatestUpdates:
       "Ultimas actualizaciones conserva cambios por atributo agrupados por equipo, mantiene el ultimo diff global no vacio para consulta y permite cambiar entre refrescos guardados con cambios.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
@@ -1740,7 +1766,7 @@ export const messagesEs: Messages = {
     seniorTransferSearchAnySpecialtyLabel: "Cualquiera",
     seniorTransferSearchAgeRangeLabel: "Edad",
     seniorTransferSearchTsiRangeLabel: "TSI",
-    seniorTransferSearchPriceRangeLabel: "Precio (EUR)",
+    seniorTransferSearchPriceRangeLabel: "Precio ({{currency}})",
     seniorTransferSearchSearchButton: "Buscar",
     seniorTransferSearchCloseButton: "Cerrar",
     seniorTransferSearchLoading: "Buscando en el mercado de transferencias…",
@@ -1756,8 +1782,8 @@ export const messagesEs: Messages = {
     seniorTransferListedIndicatorLabel: "En venta",
     seniorTransferListedNoBidsYet: "Aun sin pujas",
     seniorTransferSearchSellerLabel: "Vendedor",
-    seniorTransferSearchBidAmountLabel: "Importe de puja (EUR)",
-    seniorTransferSearchMaxBidAmountLabel: "Puja maxima (EUR)",
+    seniorTransferSearchBidAmountLabel: "Importe de puja ({{currency}})",
+    seniorTransferSearchMaxBidAmountLabel: "Puja maxima ({{currency}})",
     seniorTransferSearchPlaceBidButton: "Pujar",
     seniorTransferSearchPlaceMaxBidButton: "Definir puja maxima",
     seniorTransferSearchSupporterOnlyTooltip:
@@ -1945,7 +1971,7 @@ export const messagesEs: Messages = {
       "Los valores de habilidades, edad, salario o TSI se han cambiado manualmente y ya no reflejan al jugador real.",
     seniorFoxtrickSimulationAgeYearsLabel: "Edad anos",
     seniorFoxtrickSimulationAgeDaysLabel: "Edad dias",
-    seniorFoxtrickSimulationWageLabel: "Salario (EUR)",
+    seniorFoxtrickSimulationWageLabel: "Salario ({{currency}})",
     seniorHtmsAbilityLabel: "Habilidad HTMS",
     seniorHtmsPotentialLabel: "Potencial HTMS",
     seniorPsicoTsiMainSkillLabel: "Habilidad principal",

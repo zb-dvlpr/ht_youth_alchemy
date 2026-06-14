@@ -205,7 +205,7 @@ export const messagesPl: Messages = {
   clubChronicleHelpBulletLeague:
     "Forma ligowa: tabela z pozycja, punktami, seria, pucharem, zmiana pozycji i bilansem bramek. Wartosc pucharu pochodzi z teamdetails i pokazuje Brak, gdy druzyna odpadla z pucharu. Kliknij wiersz, aby zobaczyc porownanie poprzedni/obecny dla kazdego atrybutu.",
   clubChronicleHelpBulletFinance:
-    "Bilans transferowy: liczba zakupow, liczba sprzedazy i saldo w EUR. Kliknij wiersz, aby zobaczyc szczegolowy rozklad wartosci.",
+    "Bilans transferowy: liczba zakupow, liczba sprzedazy i saldo in the display currency. Kliknij wiersz, aby zobaczyc szczegolowy rozklad wartosci.",
   clubChronicleFinancePanelTitle: "Bilans transferowy",
   clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Forma ligowa i puchar",
@@ -261,6 +261,14 @@ export const messagesPl: Messages = {
   settingsSeniorStalenessLabel: "Auto-odświeżanie po (dniach)",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
   settingsReminders: "Przypomnienia",
   settingsRemindersTitle: "Przypomnienia",
   settingsRemindersEnableLabel: "Włącz przypomnienia",
@@ -324,13 +332,21 @@ export const messagesPl: Messages = {
     "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
   settingsStorageManagementButton: "Zarządzanie pamięcią",
   settingsStorageManagementTitle: "Zarządzanie pamięcią",
+  settingsStorageManagementLocalStorageTitle: "Pamięć lokalna",
+  settingsStorageManagementIndexedDbTitle: "IndexedDB",
   settingsStorageManagementTotalUsed: "Użyta pamięć: {{size}}",
+  settingsStorageManagementIndexedDbTotalUsed: "Użycie IndexedDB: {{size}}",
+  settingsStorageManagementIndexedDbDatabaseColumn: "Baza danych",
+  settingsStorageManagementIndexedDbStoreColumn: "Store",
+  settingsStorageManagementIndexedDbRecordsColumn: "Rekordy",
   settingsStorageManagementKeyColumn: "Klucz",
   settingsStorageManagementUsageColumn: "Użycie",
   settingsStorageManagementActionColumn: "Akcja",
   settingsStorageManagementWipeButton: "Wyczyść",
   settingsStorageManagementWipeAllButton: "Wyczyść wszystko",
+  settingsStorageManagementWipeIndexedDbButton: "Wyczyść IndexedDB",
   settingsStorageManagementNoKeys: "Nie znaleziono kluczy localStorage.",
+  settingsStorageManagementNoIndexedDbRecords: "Nie znaleziono rekordów IndexedDB.",
   settingsStorageManagementWipeConfirmTitle: "Wyczyścić klucz pamięci?",
   settingsStorageManagementWipeConfirmBody:
     'Zamierzasz wyczyścić "{{key}}" z pamięci lokalnej. Po wyczyszczeniu nie można tego cofnąć. Dane aplikacji, ustawienia, pamięć podręczna lub stan zapisane pod tym kluczem mogą zostać utracone.',
@@ -338,6 +354,9 @@ export const messagesPl: Messages = {
     "Wyczyścić wszystkie klucze pamięci?",
   settingsStorageManagementWipeAllConfirmBody:
     "To trwale usunie każdy klucz aktualnie widoczny w Zarządzaniu pamięcią. Tego nie można cofnąć. Najpierw wyeksportuj dane, jeśli mogą być potrzebne później.",
+  settingsStorageManagementWipeIndexedDbConfirmTitle: "Wyczyścić dane IndexedDB?",
+  settingsStorageManagementWipeIndexedDbConfirmBody:
+    "To trwale usunie dane Kroniki klubu aplikacji z IndexedDB. Klucze localStorage nie zostaną zmienione. Tego nie można cofnąć.",
   settingsStorageManagementWipeSuccess: "Wyczyszczono klucz pamięci: {{key}}",
   settingsStorageManagementWipeError:
     "Nie udało się wyczyścić klucza pamięci: {{key}}",
@@ -345,7 +364,10 @@ export const messagesPl: Messages = {
     "Wyczyszczono wszystkie wymienione klucze pamięci.",
   settingsStorageManagementWipeAllError:
     "Nie udało się wyczyścić wszystkich wymienionych kluczy pamięci.",
+  settingsStorageManagementWipeIndexedDbSuccess: "Dane IndexedDB zostały wyczyszczone.",
+  settingsStorageManagementWipeIndexedDbError: "Nie udało się wyczyścić danych IndexedDB.",
   settingsStorageManagementReadError: "Nie udało się odczytać localStorage.",
+  settingsStorageManagementIndexedDbReadError: "Nie udało się odczytać IndexedDB.",
   settingsMachineLearningTitle: "Uczenie maszynowe",
   settingsMachineLearningBody:
     "Migawki seniorów są uczone automatycznie z odświeżeń seniorów i szczegółów wyników rynku transferowego.",
@@ -443,7 +465,11 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
-  changelog_6_1_0:
+  changelog_6_3_0:
+    "Przebudowano architekture zarzadzania pamiecia, aby ograniczyc redundantne dane w localStorage i przeniesc duze ladunki Kroniki klubu do IndexedDB.",
+  changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
+    changelog_6_1_0:
     "Wprowadzono pełny przepływ wysyłania i pobierania poleceń składu seniorów.",
   changelog_6_0_0:
     "Dodano globalny framework przypomnień z ustawieniami, ikoną, odkładaniem/ukrywaniem oraz eksportem/importem.",
@@ -626,7 +652,7 @@ export const messagesPl: Messages = {
   seniorTransferSearchAnySpecialtyLabel: "Dowolna",
   seniorTransferSearchAgeRangeLabel: "Wiek",
   seniorTransferSearchTsiRangeLabel: "TSI",
-  seniorTransferSearchPriceRangeLabel: "Cena (EUR)",
+  seniorTransferSearchPriceRangeLabel: "Cena ({{currency}})",
   seniorTransferSearchSearchButton: "Szukaj",
   seniorTransferSearchCloseButton: "Zamknij",
   seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",
@@ -643,8 +669,8 @@ export const messagesPl: Messages = {
   seniorTransferListedIndicatorLabel: "Wystawiony na liste transferowa",
   seniorTransferListedNoBidsYet: "Brak ofert",
   seniorTransferSearchSellerLabel: "Sprzedajacy",
-  seniorTransferSearchBidAmountLabel: "Kwota oferty (EUR)",
-  seniorTransferSearchMaxBidAmountLabel: "Maks. oferta (EUR)",
+  seniorTransferSearchBidAmountLabel: "Kwota oferty ({{currency}})",
+  seniorTransferSearchMaxBidAmountLabel: "Maks. oferta ({{currency}})",
   seniorTransferSearchPlaceBidButton: "Zloz oferte",
   seniorTransferSearchPlaceMaxBidButton: "Ustaw maks. oferte",
   seniorTransferSearchSupporterOnlyTooltip:
@@ -1058,7 +1084,7 @@ export const messagesPl: Messages = {
   clubChronicleHelpBulletTsi:
     "TSI: laczne TSI zespolu i TSI top 11. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), TSI oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleHelpBulletWages:
-    "Place: laczne place zespolu i place top 11 w EUR. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), placa oraz zapisana historia ocen forma 7 z emoji pogody.",
+    "Place: laczne place zespolu i place top 11 in the display currency. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), placa oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
   clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -1283,7 +1309,7 @@ export const messagesPl: Messages = {
     "Wartosci umiejetnosci, wieku, pensji lub TSI zostaly zmienione recznie i nie odzwierciedlaja juz prawdziwego zawodnika.",
   seniorFoxtrickSimulationAgeYearsLabel: "Wiek lata",
   seniorFoxtrickSimulationAgeDaysLabel: "Wiek dni",
-  seniorFoxtrickSimulationWageLabel: "Pensja (EUR)",
+  seniorFoxtrickSimulationWageLabel: "Pensja ({{currency}})",
   seniorHtmsAbilityLabel: "Umiejetnosc HTMS",
   seniorHtmsPotentialLabel: "Potencjal HTMS",
   seniorPsicoTsiMainSkillLabel: "Glowna umiejetnosc",

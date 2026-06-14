@@ -8,21 +8,25 @@ import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 import styles from "../page.module.css";
 import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import Tooltip from "./Tooltip";
+import {
+  getDisplayCurrencyLabel,
+  SEK_DISPLAY_CURRENCY,
+  type DisplayCurrency,
+} from "@/lib/currency";
 
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
-const CHPP_SEK_PER_EUR = 10;
 const FORM_MAX_LEVEL = 8;
 const STAMINA_MAX_LEVEL = 9;
 const SENIOR_SKILL_MAX_LEVEL = 20;
 const SIMULATION_MIN_AGE_DAYS = 17 * HATTRICK_AGE_DAYS_PER_YEAR;
 const SIMULATION_MAX_AGE_DAYS = 28 * HATTRICK_AGE_DAYS_PER_YEAR;
-const SIMULATION_MAX_WAGE_EUR = 100_000_000;
+const SIMULATION_MAX_WAGE_DISPLAY = 100_000_000;
 const SIMULATION_MAX_TSI = 10_000_000;
 
 type SimulatedValues = {
   ageYears: number;
   ageDays: number;
-  wageEur: number;
+  wageDisplay: number;
   tsi: number;
   form: number;
   stamina: number;
@@ -38,13 +42,13 @@ type SimulatedValues = {
 type SimulationControlDraft = {
   ageYears: string;
   ageDays: string;
-  wageEur: string;
+  wageDisplay: string;
   tsi: string;
 };
 
 type SimulationSkillKey = Exclude<
   keyof SimulatedValues,
-  "ageYears" | "ageDays" | "wageEur" | "tsi"
+  "ageYears" | "ageDays" | "wageDisplay" | "tsi"
 >;
 
 type SimulationSkillDefinition = {
@@ -121,6 +125,7 @@ const SKILL_ROWS: SimulationSkillDefinition[] = [
 type SeniorFoxtrickSimulatorProps = {
   input: SeniorPlayerMetricInput;
   messages: Messages;
+  displayCurrency?: DisplayCurrency;
   loyalty?: number | null;
   motherClubBonus?: boolean;
   editingBlocked?: boolean;
@@ -169,13 +174,16 @@ const formatSkillBonusDelta = (value: number) => {
   return `+${trimmed}`;
 };
 
-const buildInitialValues = (input: SeniorPlayerMetricInput): SimulatedValues => {
+const buildInitialValues = (
+  input: SeniorPlayerMetricInput,
+  displayCurrencyRate: number
+): SimulatedValues => {
   const age = agePartsFromTotalDays(clampAgeTotalDays(input.ageYears, input.ageDays));
   return {
     ...age,
-    wageEur:
+    wageDisplay:
       typeof input.salarySek === "number"
-        ? clamp(input.salarySek / CHPP_SEK_PER_EUR, 0, SIMULATION_MAX_WAGE_EUR)
+        ? clamp(input.salarySek / displayCurrencyRate, 0, SIMULATION_MAX_WAGE_DISPLAY)
         : 0,
     tsi: valueFromInput(input, "tsi", 0, SIMULATION_MAX_TSI),
     form: valueFromInput(input, "form", 1, FORM_MAX_LEVEL),
@@ -193,7 +201,7 @@ const buildInitialValues = (input: SeniorPlayerMetricInput): SimulatedValues => 
 const buildControlDraft = (values: SimulatedValues): SimulationControlDraft => ({
   ageYears: String(values.ageYears),
   ageDays: String(values.ageDays),
-  wageEur: String(values.wageEur),
+  wageDisplay: String(values.wageDisplay),
   tsi: String(values.tsi),
 });
 
@@ -204,6 +212,7 @@ const parseDraftNumber = (value: string) => (value === "" ? null : Number(value)
 export default function SeniorFoxtrickSimulator({
   input,
   messages,
+  displayCurrency = SEK_DISPLAY_CURRENCY,
   loyalty = null,
   motherClubBonus = false,
   editingBlocked = false,
@@ -212,11 +221,21 @@ export default function SeniorFoxtrickSimulator({
   onSimulationStateChange,
   barGradient,
 }: SeniorFoxtrickSimulatorProps) {
+  const displayCurrencyRate =
+    Number.isFinite(displayCurrency.currencyRate) && displayCurrency.currencyRate > 0
+      ? displayCurrency.currencyRate
+      : SEK_DISPLAY_CURRENCY.currencyRate;
+  const wageInputLabel = messages.seniorFoxtrickSimulationWageLabel.replace(
+    "{{currency}}",
+    getDisplayCurrencyLabel(displayCurrency)
+  );
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const [values, setValues] = useState<SimulatedValues>(() => buildInitialValues(input));
+  const [values, setValues] = useState<SimulatedValues>(() =>
+    buildInitialValues(input, displayCurrencyRate)
+  );
   const [controlDraft, setControlDraft] = useState<SimulationControlDraft>(() =>
-    buildControlDraft(buildInitialValues(input))
+    buildControlDraft(buildInitialValues(input, displayCurrencyRate))
   );
   const editingEnabled = !editingBlocked && editing;
   const effectiveDirty = editingEnabled && dirty;
@@ -228,7 +247,7 @@ export default function SeniorFoxtrickSimulator({
       ageYears: values.ageYears,
       ageDays: values.ageDays,
       tsi: values.tsi,
-      salarySek: values.wageEur * CHPP_SEK_PER_EUR,
+      salarySek: values.wageDisplay * displayCurrencyRate,
       form: values.form,
       stamina: values.stamina,
       keeper: values.keeper,
@@ -239,7 +258,7 @@ export default function SeniorFoxtrickSimulator({
       scoring: values.scoring,
       setPieces: values.setPieces,
     };
-  }, [editingEnabled, input, values]);
+  }, [displayCurrencyRate, editingEnabled, input, values]);
 
   useEffect(() => {
     onSimulationStateChange?.({
@@ -323,7 +342,7 @@ export default function SeniorFoxtrickSimulator({
   };
 
   const updateBoundedDraft = (
-    key: "wageEur" | "tsi",
+    key: "wageDisplay" | "tsi",
     rawValue: string,
     min: number,
     max: number
@@ -339,7 +358,7 @@ export default function SeniorFoxtrickSimulator({
     updateValue(key, clamp(parsed, min, max));
   };
 
-  const commitBoundedDraft = (key: "wageEur" | "tsi", min: number, max: number) => {
+  const commitBoundedDraft = (key: "wageDisplay" | "tsi", min: number, max: number) => {
     const parsed = parseDraftNumber(controlDraft[key]);
     const nextValue = clamp(parsed ?? values[key], min, max);
     updateValue(key, nextValue);
@@ -350,7 +369,7 @@ export default function SeniorFoxtrickSimulator({
   };
 
   const toggleEditing = (enabled: boolean) => {
-    const nextValues = buildInitialValues(input);
+    const nextValues = buildInitialValues(input, displayCurrencyRate);
     setEditing(enabled);
     setDirty(false);
     setValues(nextValues);
@@ -581,22 +600,22 @@ export default function SeniorFoxtrickSimulator({
                 />
               </label>
               <label className={styles.simulationControlLabel}>
-                <span>{messages.seniorFoxtrickSimulationWageLabel}</span>
+                <span>{wageInputLabel}</span>
                 <input
                   className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={controlDraft.wageEur}
+                  value={controlDraft.wageDisplay}
                   onChange={(event) =>
                     updateBoundedDraft(
-                      "wageEur",
+                      "wageDisplay",
                       event.currentTarget.value,
                       0,
-                      SIMULATION_MAX_WAGE_EUR
+                      SIMULATION_MAX_WAGE_DISPLAY
                     )
                   }
-                  onBlur={() => commitBoundedDraft("wageEur", 0, SIMULATION_MAX_WAGE_EUR)}
+                  onBlur={() => commitBoundedDraft("wageDisplay", 0, SIMULATION_MAX_WAGE_DISPLAY)}
                 />
               </label>
               <label className={styles.simulationControlLabel}>

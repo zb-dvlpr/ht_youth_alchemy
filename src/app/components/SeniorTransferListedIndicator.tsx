@@ -18,7 +18,7 @@ export type SeniorTransferListing = {
 type SeniorTransferListedIndicatorProps = {
   listing: SeniorTransferListing | null;
   messages: Messages;
-  formatEurFromSek: (value: number) => string;
+  formatSekValue: (value: number) => string;
   compact?: boolean;
   nested?: boolean;
 };
@@ -26,7 +26,7 @@ type SeniorTransferListedIndicatorProps = {
 export default function SeniorTransferListedIndicator({
   listing,
   messages,
-  formatEurFromSek,
+  formatSekValue,
   compact = false,
   nested = false,
 }: SeniorTransferListedIndicatorProps) {
@@ -49,7 +49,7 @@ export default function SeniorTransferListedIndicator({
             </span>
             <span className={styles.transferListedTooltipValue}>
               {typeof listing.askingPrice === "number" && Number.isFinite(listing.askingPrice)
-                ? formatEurFromSek(listing.askingPrice)
+                ? formatSekValue(listing.askingPrice)
                 : messages.unknownShort}
             </span>
           </div>
@@ -82,7 +82,7 @@ export default function SeniorTransferListedIndicator({
                   ) : (
                     listing.bidderTeamName ?? messages.unknownLabel
                   )}
-                  {`: ${formatEurFromSek(listing.highestBid as number)}`}
+                  {`: ${formatSekValue(listing.highestBid as number)}`}
                 </>
               ) : (
                 messages.seniorTransferListedNoBidsYet

@@ -109,8 +109,8 @@ const parseManualMarkdown = (markdown: string) => {
 };
 
 const MANUAL_MARKDOWN_WITH_TRANSFER_SEARCH_MOBILE_NOTE = MANUAL_MARKDOWN.replace(
-  "Bid amounts are handled in EUR in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row.",
-  "Bid amounts are handled in EUR in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row, and the transfer search modal uses a tighter layout so table results keep as much visible space as possible in both portrait and landscape while fallback notices stay fully readable and horizontal table scrolling remains available. In mobile landscape table mode, nonessential headings and notes are reduced so the table and the Back to cards and Close actions dominate the viewport."
+  "Bid amounts are handled in the active display currency in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row.",
+  "Bid amounts are handled in the active display currency in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row, and the transfer search modal uses a tighter layout so table results keep as much visible space as possible in both portrait and landscape while fallback notices stay fully readable and horizontal table scrolling remains available. In mobile landscape table mode, nonessential headings and notes are reduced so the table and the Back to cards and Close actions dominate the viewport."
 );
 
 const MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE =
@@ -119,10 +119,16 @@ const MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE =
     "If a team always plays 3-5-2 with the same tactic, that is information.\n  If they suddenly switch, that is also information.\n  If they have no pattern, congratulations, you are scouting chaos.\n\n  ### Team Attitude\n\n  The Team Attitude panel builds on that same formation baseline. It keeps only league matches played in the team’s most common formation, compares the team’s midfield rating across those matches, and labels each analyzed match as PIC, MOTS, or normal. For matches that look like PIC or MOTS, it checks lineup similarity against a league-only baseline squad built from same-formation league matches close to the team’s normal midfield level, starting within plus or minus 1 and widening to plus or minus 2 only if fewer than three league matches qualify. Low-overlap cases are downgraded to potentially PIC or potentially MOTS.\n\n  In the main panel you see only the latest detected non-normal instance and its date for each team. Clicking a team opens the analyzed match list with the match title, a subtler match datetime, score, HatStats total, match type, tactic, and inferred attitude."
   );
 
+const MANUAL_MARKDOWN_WITH_DISPLAY_CURRENCY_REACTIVITY_NOTE =
+  MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE.replace(
+    "- Display currency override for Youth, Senior, and Club Chronicle money displays",
+    "- Display currency override for Youth, Senior, and Club Chronicle money displays; visible money values update immediately when this setting changes"
+  );
+
 const MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION =
   isPremiumLicensingEnabled()
-    ? MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE
-    : MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE.replace(
+    ? MANUAL_MARKDOWN_WITH_DISPLAY_CURRENCY_REACTIVITY_NOTE
+    : MANUAL_MARKDOWN_WITH_DISPLAY_CURRENCY_REACTIVITY_NOTE.replace(
         /\n\n  ### License Settings[\s\S]*?(?=\n\n  ### Club Chronicle Watchlist Transfer)/,
         ""
       );

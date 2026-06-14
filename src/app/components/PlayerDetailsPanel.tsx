@@ -19,6 +19,11 @@ import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlaye
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
+import {
+  formatSekCurrency,
+  SEK_DISPLAY_CURRENCY,
+  type DisplayCurrency,
+} from "@/lib/currency";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -175,6 +180,7 @@ type PlayerDetailsPanelProps = {
   onPreviousPlayer?: () => void;
   onNextPlayer?: () => void;
   playerKind?: "youth" | "senior";
+  displayCurrency?: DisplayCurrency;
   skillMode?: "currentMax" | "single";
   maxSkillLevel?: number;
   activeTab?: PlayerDetailsPanelTab;
@@ -255,7 +261,6 @@ const SKILL_ROWS = [
   },
 ];
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
-const CHPP_SEK_PER_EUR = 10;
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
   "1": "₁",
@@ -378,20 +383,14 @@ const metricPillStyle = (
   };
 };
 
-const formatEurFromSek = (valueSek: number) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(valueSek / CHPP_SEK_PER_EUR);
-
 const formatSeniorWage = (
   valueSek: number | null,
   isAbroad: boolean | undefined,
-  messages: Messages
+  messages: Messages,
+  displayCurrency: DisplayCurrency
 ) => {
   if (valueSek === null || valueSek === undefined) return messages.unknownShort;
-  const base = formatEurFromSek(valueSek);
+  const base = formatSekCurrency(valueSek, displayCurrency);
   return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
 };
 
@@ -593,6 +592,7 @@ export default function PlayerDetailsPanel({
   onPreviousPlayer,
   onNextPlayer,
   playerKind = "youth",
+  displayCurrency = SEK_DISPLAY_CURRENCY,
   skillMode = "currentMax",
   maxSkillLevel = 8,
   activeTab,
@@ -624,6 +624,10 @@ export default function PlayerDetailsPanel({
   messages,
 }: PlayerDetailsPanelProps) {
   const { addNotification } = useNotifications();
+  const formatDisplayCurrencyFromSek = useCallback(
+    (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
+    [displayCurrency]
+  );
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
@@ -1309,7 +1313,7 @@ export default function PlayerDetailsPanel({
                 <SeniorTransferListedIndicator
                   listing={seniorTransferListing}
                   messages={messages}
-                  formatEurFromSek={formatEurFromSek}
+                  formatSekValue={formatDisplayCurrencyFromSek}
                   compact
                 />
               ) : null}
@@ -1550,13 +1554,14 @@ export default function PlayerDetailsPanel({
                 {formatSeniorWage(
                   seniorWageValue,
                   seniorIsAbroad,
-                  messages
+                  messages,
+                  displayCurrency
                 )}
               </div>
               {seniorPredictedWageDisplay ? (
                 <div className={styles.infoValueTiny}>
                   {messages.seniorMlPredictedWageLabel}:{" "}
-                  {formatEurFromSek(seniorPredictedWageDisplay.valueSek)}
+                  {formatDisplayCurrencyFromSek(seniorPredictedWageDisplay.valueSek)}
                   {seniorPredictedWageDisplay.diffPercent
                     ? ` (${messages.seniorMlPredictionDiffLabel} ${seniorPredictedWageDisplay.diffPercent})`
                     : ""}
@@ -1584,6 +1589,7 @@ export default function PlayerDetailsPanel({
               key={`${playerKind}-${detailsData.YouthPlayerID}`}
               input={seniorMetricInput ?? buildSeniorMetricInputFromDetails(detailsData)}
               messages={messages}
+              displayCurrency={displayCurrency}
               loyalty={detailsData.Loyalty ?? null}
               motherClubBonus={detailsData.MotherClubBonus}
               editingBlocked={seniorSimulationEditingBlocked}
@@ -2029,7 +2035,7 @@ export default function PlayerDetailsPanel({
                         <SeniorTransferListedIndicator
                           listing={rowTransferListing}
                           messages={messages}
-                          formatEurFromSek={formatEurFromSek}
+                          formatSekValue={formatDisplayCurrencyFromSek}
                           compact
                         />
                       ) : null}
@@ -2071,7 +2077,7 @@ export default function PlayerDetailsPanel({
                         <SeniorTransferListedIndicator
                           listing={rowTransferListing}
                           messages={messages}
-                          formatEurFromSek={formatEurFromSek}
+                          formatSekValue={formatDisplayCurrencyFromSek}
                           compact
                         />
                       ) : null}
@@ -2543,6 +2549,7 @@ export default function PlayerDetailsPanel({
           hasManualEdits={ratingsHasManualEdits}
           onManualRatingChange={onRatingsManualCellChange}
           manualEditedRatingsByPlayerId={ratingsManualEditsByPlayerId}
+          displayCurrency={displayCurrency}
         />
       )}
     </div>

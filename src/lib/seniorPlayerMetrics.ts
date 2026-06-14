@@ -42,7 +42,7 @@ const WEEKS_IN_SEASON = 16;
 const DAYS_IN_WEEK = 7;
 const DAYS_IN_SEASON = 112;
 const HTMS_TARGET_AGE = 28;
-const CHPP_SEK_PER_EUR = 10;
+const INTERNAL_SEK_PER_PSICO_WAGE_UNIT = 10;
 
 const WEEK_POINTS_PER_AGE: Record<number, number> = {
   17: 10,
@@ -193,7 +193,7 @@ export function calculatePsicoTsiMetrics(
 
   const salarySek =
     typeof input.salarySek === "number" && Number.isFinite(input.salarySek)
-      ? Math.floor(input.salarySek / CHPP_SEK_PER_EUR / (input.isAbroad ? 1.2 : 1))
+      ? Math.floor(input.salarySek / INTERNAL_SEK_PER_PSICO_WAGE_UNIT / (input.isAbroad ? 1.2 : 1))
       : 0;
   const prediction = foxtrickPsico.getPrediction(normalizedLevels, tsi, salarySek, ageYears);
   if (!prediction) return null;

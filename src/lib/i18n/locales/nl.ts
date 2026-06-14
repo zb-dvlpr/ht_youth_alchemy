@@ -205,7 +205,7 @@ export const messagesNl: Messages = {
   clubChronicleHelpBulletLeague:
     "Competitieprestaties: tabel met positie, punten, reeks, beker, positiewijziging en doelsaldo. De bekerwaarde komt uit teamdetails en toont Geen wanneer het team niet meer in de beker zit. Klik op een rij voor een vergelijking van vorig/huidig per attribuut.",
   clubChronicleHelpBulletFinance:
-    "Transferbalans: aantal aankopen, aantal verkopen en saldo in EUR. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
+    "Transferbalans: aantal aankopen, aantal verkopen en saldo in the display currency. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
   clubChronicleFinancePanelTitle: "Transferbalans",
   clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Competitieprestaties en beker",
@@ -261,6 +261,14 @@ export const messagesNl: Messages = {
   settingsSeniorStalenessLabel: "Automatisch verversen na (dagen)",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
   settingsReminders: "Herinneringen",
   settingsRemindersTitle: "Herinneringen",
   settingsRemindersEnableLabel: "Herinneringen inschakelen",
@@ -324,19 +332,30 @@ export const messagesNl: Messages = {
     "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
   settingsStorageManagementButton: "Opslagbeheer",
   settingsStorageManagementTitle: "Opslagbeheer",
+  settingsStorageManagementLocalStorageTitle: "Lokale opslag",
+  settingsStorageManagementIndexedDbTitle: "IndexedDB",
   settingsStorageManagementTotalUsed: "Gebruikte opslag: {{size}}",
+  settingsStorageManagementIndexedDbTotalUsed: "IndexedDB-gebruik: {{size}}",
+  settingsStorageManagementIndexedDbDatabaseColumn: "Database",
+  settingsStorageManagementIndexedDbStoreColumn: "Store",
+  settingsStorageManagementIndexedDbRecordsColumn: "Records",
   settingsStorageManagementKeyColumn: "Sleutel",
   settingsStorageManagementUsageColumn: "Gebruik",
   settingsStorageManagementActionColumn: "Actie",
   settingsStorageManagementWipeButton: "Wissen",
   settingsStorageManagementWipeAllButton: "Alles wissen",
+  settingsStorageManagementWipeIndexedDbButton: "IndexedDB wissen",
   settingsStorageManagementNoKeys: "Geen localStorage-sleutels gevonden.",
+  settingsStorageManagementNoIndexedDbRecords: "Geen IndexedDB-records gevonden.",
   settingsStorageManagementWipeConfirmTitle: "Opslagsleutel wissen?",
   settingsStorageManagementWipeConfirmBody:
     'Je staat op het punt "{{key}}" uit lokale opslag te wissen. Na wissen kan dit niet ongedaan worden gemaakt. Appgegevens, instellingen, cache of status onder deze sleutel kunnen verloren gaan.',
   settingsStorageManagementWipeAllConfirmTitle: "Alle opslagsleutels wissen?",
   settingsStorageManagementWipeAllConfirmBody:
     "Dit verwijdert permanent elke sleutel die momenteel in Opslagbeheer staat. Dit kan niet ongedaan worden gemaakt. Exporteer eerst je gegevens als je ze later nodig kunt hebben.",
+  settingsStorageManagementWipeIndexedDbConfirmTitle: "IndexedDB-gegevens wissen?",
+  settingsStorageManagementWipeIndexedDbConfirmBody:
+    "Dit verwijdert permanent de Clubkroniek-gegevens van de app uit IndexedDB. localStorage-sleutels blijven ongewijzigd. Dit kan niet ongedaan worden gemaakt.",
   settingsStorageManagementWipeSuccess: "Opslagsleutel gewist: {{key}}",
   settingsStorageManagementWipeError:
     "Kon opslagsleutel niet wissen: {{key}}",
@@ -344,7 +363,10 @@ export const messagesNl: Messages = {
     "Alle vermelde opslagsleutels zijn gewist.",
   settingsStorageManagementWipeAllError:
     "Kon niet alle vermelde opslagsleutels wissen.",
+  settingsStorageManagementWipeIndexedDbSuccess: "IndexedDB-gegevens zijn gewist.",
+  settingsStorageManagementWipeIndexedDbError: "Kon IndexedDB-gegevens niet wissen.",
   settingsStorageManagementReadError: "Kon localStorage niet lezen.",
+  settingsStorageManagementIndexedDbReadError: "Kon IndexedDB niet lezen.",
   settingsMachineLearningTitle: "Machine learning",
   settingsMachineLearningBody:
     "Senior-spelerssnapshots worden automatisch geleerd uit seniorverversingen en details van transfermarktresultaten.",
@@ -449,7 +471,11 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
-  changelog_6_1_0:
+  changelog_6_3_0:
+    "De architectuur voor geheugenbeheer is herzien om redundante lokale opslag te verminderen en grote Clubkroniek-gegevens naar IndexedDB te verplaatsen.",
+  changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
+    changelog_6_1_0:
     "Volledige flow toegevoegd voor het verzenden en ophalen van senior-opstellingsorders.",
   changelog_6_0_0:
     "Globaal herinneringenframework toegevoegd met instellingen, bel, snooze-/negeeropslag en export/import.",
@@ -632,7 +658,7 @@ export const messagesNl: Messages = {
   seniorTransferSearchAnySpecialtyLabel: "Elke",
   seniorTransferSearchAgeRangeLabel: "Leeftijd",
   seniorTransferSearchTsiRangeLabel: "TSI",
-  seniorTransferSearchPriceRangeLabel: "Prijs (EUR)",
+  seniorTransferSearchPriceRangeLabel: "Prijs ({{currency}})",
   seniorTransferSearchSearchButton: "Zoeken",
   seniorTransferSearchCloseButton: "Sluiten",
   seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",
@@ -649,8 +675,8 @@ export const messagesNl: Messages = {
   seniorTransferListedIndicatorLabel: "Op de transferlijst",
   seniorTransferListedNoBidsYet: "Nog geen biedingen",
   seniorTransferSearchSellerLabel: "Verkoper",
-  seniorTransferSearchBidAmountLabel: "Bodbedrag (EUR)",
-  seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",
+  seniorTransferSearchBidAmountLabel: "Bodbedrag ({{currency}})",
+  seniorTransferSearchMaxBidAmountLabel: "Maxbod ({{currency}})",
   seniorTransferSearchPlaceBidButton: "Bieden",
   seniorTransferSearchPlaceMaxBidButton: "Maxbod instellen",
   seniorTransferSearchSupporterOnlyTooltip:
@@ -1064,7 +1090,7 @@ export const messagesNl: Messages = {
   clubChronicleHelpBulletTsi:
     "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleHelpBulletWages:
-    "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
+    "Lonen: totale teamlonen en top-11-lonen in the display currency. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
   clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -1289,7 +1315,7 @@ export const messagesNl: Messages = {
     "Vaardigheids-, leeftijds-, loon- of TSI-waarden zijn handmatig gewijzigd en weerspiegelen niet meer de echte speler.",
   seniorFoxtrickSimulationAgeYearsLabel: "Leeftijd jaren",
   seniorFoxtrickSimulationAgeDaysLabel: "Leeftijd dagen",
-  seniorFoxtrickSimulationWageLabel: "Loon (EUR)",
+  seniorFoxtrickSimulationWageLabel: "Loon ({{currency}})",
   seniorHtmsAbilityLabel: "HTMS-vaardigheid",
   seniorHtmsPotentialLabel: "HTMS-potentieel",
   seniorPsicoTsiMainSkillLabel: "Hoofdvaardigheid",

@@ -208,6 +208,10 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_3_0:
+      "Minneshanteringsarkitekturen har arbetats om for att minska redundant lokal lagring och flytta stora Club Chronicle-datapaket till IndexedDB.",
+    changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:
       "Införde ett komplett flöde för att skicka och hämta senioruppställningsorder.",
     changelog_6_0_0:
@@ -437,6 +441,14 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
     settingsReminders: "Påminnelser",
     settingsRemindersTitle: "Påminnelser",
     settingsRemindersEnableLabel: "Aktivera påminnelser",
@@ -501,13 +513,21 @@ export const messagesSv: Messages = {
     settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
     settingsStorageManagementButton: "Lagringshantering",
     settingsStorageManagementTitle: "Lagringshantering",
+    settingsStorageManagementLocalStorageTitle: "Lokal lagring",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Anvand lagring: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB anvander: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Databas",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Poster",
     settingsStorageManagementKeyColumn: "Nyckel",
     settingsStorageManagementUsageColumn: "Anvandning",
     settingsStorageManagementActionColumn: "Atgard",
     settingsStorageManagementWipeButton: "Rensa",
     settingsStorageManagementWipeAllButton: "Rensa alla",
+    settingsStorageManagementWipeIndexedDbButton: "Rensa IndexedDB",
     settingsStorageManagementNoKeys: "Inga localStorage-nycklar hittades.",
+    settingsStorageManagementNoIndexedDbRecords: "Inga IndexedDB-poster hittades.",
     settingsStorageManagementWipeConfirmTitle: "Rensa lagringsnyckel?",
     settingsStorageManagementWipeConfirmBody:
       'Du ar pa vag att rensa "{{key}}" fran lokal lagring. Nar den har rensats kan detta inte angas. Appdata, installningar, cache eller status som lagras under nyckeln kan ga forlorade.',
@@ -515,6 +535,9 @@ export const messagesSv: Messages = {
       "Rensa alla lagringsnycklar?",
     settingsStorageManagementWipeAllConfirmBody:
       "Detta tar permanent bort varje nyckel som for narvarande listas i Lagringshantering. Detta kan inte angas. Exportera dina data forst om du kan behova dem senare.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "Rensa IndexedDB-data?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "Detta tar permanent bort appens Club Chronicle-data i IndexedDB. localStorage-nycklar paverkas inte. Detta kan inte angas.",
     settingsStorageManagementWipeSuccess: "Lagringsnyckel rensad: {{key}}",
     settingsStorageManagementWipeError:
       "Kunde inte rensa lagringsnyckel: {{key}}",
@@ -522,7 +545,10 @@ export const messagesSv: Messages = {
       "Alla listade lagringsnycklar har rensats.",
     settingsStorageManagementWipeAllError:
       "Kunde inte rensa alla listade lagringsnycklar.",
+    settingsStorageManagementWipeIndexedDbSuccess: "IndexedDB-data rensades.",
+    settingsStorageManagementWipeIndexedDbError: "Kunde inte rensa IndexedDB-data.",
     settingsStorageManagementReadError: "Kunde inte lasa localStorage.",
+    settingsStorageManagementIndexedDbReadError: "Kunde inte lasa IndexedDB.",
     settingsMachineLearningTitle: "Maskininlärning",
     settingsMachineLearningBody:
       "Senior-spelarsnapshots lärs in automatiskt från senioruppdateringar och detaljer i transfermarknadsresultat.",
@@ -706,7 +732,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletPress:
       "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
-      "Transferbalans: antal kop, antal forsaljningar och saldo i EUR. Klicka pa en rad for detaljerad uppdelning.",
+      "Transferbalans: antal kop, antal forsaljningar och saldo in the display currency. Klicka pa en rad for detaljerad uppdelning.",
     clubChronicleHelpBulletFanclub:
       "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
@@ -722,7 +748,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletLikelyTraining:
       "Trolig traningsinriktning: infererad fran senaste formationer; lika hogsta konfidens visas tillsammans och markeras som oklar. Klicka pa en rad for full konfidensrangordning och urvalsstorlek.",
     clubChronicleHelpBulletWages:
-      "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), lon och sparade form-7-matchbetyg med vaderemoji.",
+      "Loner: lagets total och top-11 loner in the display currency. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), lon och sparade form-7-matchbetyg med vaderemoji.",
     clubChronicleHelpBulletLatestUpdates:
       "Senaste uppdateringar behaller andringsgrupper per attribut och lag, sparar senaste icke-tomma globala diff for granskning och later dig byta mellan sparade uppdateringar med andringar.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
@@ -1729,7 +1755,7 @@ export const messagesSv: Messages = {
     seniorTransferSearchAnySpecialtyLabel: "Valfri",
     seniorTransferSearchAgeRangeLabel: "Alder",
     seniorTransferSearchTsiRangeLabel: "TSI",
-    seniorTransferSearchPriceRangeLabel: "Pris (EUR)",
+    seniorTransferSearchPriceRangeLabel: "Pris ({{currency}})",
     seniorTransferSearchSearchButton: "Sok",
     seniorTransferSearchCloseButton: "Stang",
     seniorTransferSearchLoading: "Soker pa transfermarknaden…",
@@ -1745,8 +1771,8 @@ export const messagesSv: Messages = {
     seniorTransferListedIndicatorLabel: "Transferlistad",
     seniorTransferListedNoBidsYet: "Inga bud an",
     seniorTransferSearchSellerLabel: "Saljare",
-    seniorTransferSearchBidAmountLabel: "Budbelopp (EUR)",
-    seniorTransferSearchMaxBidAmountLabel: "Maxbud (EUR)",
+    seniorTransferSearchBidAmountLabel: "Budbelopp ({{currency}})",
+    seniorTransferSearchMaxBidAmountLabel: "Maxbud ({{currency}})",
     seniorTransferSearchPlaceBidButton: "Lag bud",
     seniorTransferSearchPlaceMaxBidButton: "Satt maxbud",
     seniorTransferSearchSupporterOnlyTooltip:
@@ -1934,7 +1960,7 @@ export const messagesSv: Messages = {
       "Fardighets-, alder-, lone- eller TSI-varden har andrats manuellt och speglar inte langre den riktiga spelaren.",
     seniorFoxtrickSimulationAgeYearsLabel: "Alder ar",
     seniorFoxtrickSimulationAgeDaysLabel: "Alder dagar",
-    seniorFoxtrickSimulationWageLabel: "Lon (EUR)",
+    seniorFoxtrickSimulationWageLabel: "Lon ({{currency}})",
     seniorHtmsAbilityLabel: "HTMS-formaga",
     seniorHtmsPotentialLabel: "HTMS-potential",
     seniorPsicoTsiMainSkillLabel: "Huvudfardighet",

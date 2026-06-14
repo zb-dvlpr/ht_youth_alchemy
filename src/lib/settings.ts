@@ -34,6 +34,120 @@ export const YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY =
 export const GENERAL_SETTINGS_STORAGE_KEY = "ya_general_enable_scaling_v1";
 export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
 export const DEFAULT_GENERAL_ENABLE_SCALING = false;
+export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
+export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
+
+export type StoredDisplayCurrencySetting =
+  | { mode: "default" }
+  | {
+      mode: "override";
+      countryId?: number;
+      countryName?: string;
+      currencyName: string;
+      currencyRate: number;
+    };
+
+const DEFAULT_DISPLAY_CURRENCY_SETTING: StoredDisplayCurrencySetting = {
+  mode: "default",
+};
+
+const isValidDisplayCurrencyOverride = (
+  value: unknown
+): value is Extract<StoredDisplayCurrencySetting, { mode: "override" }> => {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as {
+    mode?: unknown;
+    countryId?: unknown;
+    countryName?: unknown;
+    currencyName?: unknown;
+    currencyRate?: unknown;
+  };
+  return (
+    candidate.mode === "override" &&
+    typeof candidate.currencyName === "string" &&
+    candidate.currencyName.trim().length > 0 &&
+    typeof candidate.currencyRate === "number" &&
+    Number.isFinite(candidate.currencyRate) &&
+    candidate.currencyRate > 0
+  );
+};
+
+export function readDisplayCurrencySetting(): StoredDisplayCurrencySetting {
+  if (typeof window === "undefined") return DEFAULT_DISPLAY_CURRENCY_SETTING;
+  try {
+    const stored = window.localStorage.getItem(DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_DISPLAY_CURRENCY_SETTING;
+    const parsed = JSON.parse(stored) as unknown;
+    if (!parsed || typeof parsed !== "object") return DEFAULT_DISPLAY_CURRENCY_SETTING;
+    if ((parsed as { mode?: unknown }).mode === "default") {
+      return DEFAULT_DISPLAY_CURRENCY_SETTING;
+    }
+    if (isValidDisplayCurrencyOverride(parsed)) {
+      const parsedOverride = parsed as Extract<
+        StoredDisplayCurrencySetting,
+        { mode: "override" }
+      >;
+      return {
+        mode: "override",
+        countryId:
+          typeof parsedOverride.countryId === "number" &&
+          Number.isFinite(parsedOverride.countryId) &&
+          parsedOverride.countryId >= 0
+            ? parsedOverride.countryId
+            : undefined,
+        countryName:
+          typeof parsedOverride.countryName === "string" &&
+          parsedOverride.countryName.trim().length > 0
+            ? parsedOverride.countryName.trim()
+            : undefined,
+        currencyName: parsedOverride.currencyName.trim(),
+        currencyRate: parsedOverride.currencyRate,
+      };
+    }
+    return DEFAULT_DISPLAY_CURRENCY_SETTING;
+  } catch {
+    return DEFAULT_DISPLAY_CURRENCY_SETTING;
+  }
+}
+
+export function dispatchDisplayCurrencySettingsEvent(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(DISPLAY_CURRENCY_SETTINGS_EVENT));
+}
+
+export function writeDisplayCurrencySetting(
+  setting: StoredDisplayCurrencySetting
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const normalized =
+      setting.mode === "override" && isValidDisplayCurrencyOverride(setting)
+        ? {
+            mode: "override" as const,
+            countryId:
+              typeof setting.countryId === "number" &&
+              Number.isFinite(setting.countryId) &&
+              setting.countryId >= 0
+                ? setting.countryId
+                : undefined,
+            countryName:
+              typeof setting.countryName === "string" &&
+              setting.countryName.trim().length > 0
+                ? setting.countryName.trim()
+                : undefined,
+            currencyName: setting.currencyName.trim(),
+            currencyRate: setting.currencyRate,
+          }
+        : DEFAULT_DISPLAY_CURRENCY_SETTING;
+    window.localStorage.setItem(
+      DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY,
+      JSON.stringify(normalized)
+    );
+  } catch {
+    // ignore storage errors
+  }
+  dispatchDisplayCurrencySettingsEvent();
+}
 
 export function readAllowTrainingUntilMaxedOut(): boolean {
   if (typeof window === "undefined") {

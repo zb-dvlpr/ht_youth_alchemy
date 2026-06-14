@@ -207,6 +207,10 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_3_0:
+      "Overhauled the memory management architecture to reduce redundant local storage usage and move large Club Chronicle data payloads to IndexedDB.",
+    changelog_6_2_0:
+      "Added app-wide display currency support for Youth, Senior, and Club Chronicle money displays.",
     changelog_6_1_0:
       "Introduced full-blown senior lineup order submission and retrieval flow",
     changelog_6_0_0:
@@ -421,6 +425,14 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsDisplayCurrencyTitle: "Display currency",
+    settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
+    settingsDisplayCurrencyCurrentDefault: "Current: Default",
+    settingsDisplayCurrencyCurrentOverride: "Current: {{currency}}",
+    settingsDisplayCurrencySelectLabel: "Currency",
+    settingsDisplayCurrencyDefaultButton: "Default",
+    settingsDisplayCurrencyUnavailable: "Currency metadata unavailable",
+    settingsDisplayCurrencyRateLabel: "{{currency}} (1 = {{rate}} SEK)",
     settingsReminders: "Reminders",
     settingsRemindersTitle: "Reminders",
     settingsRemindersEnableLabel: "Enable reminders",
@@ -484,25 +496,39 @@ export const messagesEn: Messages = {
       "Import a previously exported JSON backup and replace the current local app settings and cached state.",
     settingsStorageManagementButton: "Storage management",
     settingsStorageManagementTitle: "Storage management",
+    settingsStorageManagementLocalStorageTitle: "Local storage",
+    settingsStorageManagementIndexedDbTitle: "IndexedDB",
     settingsStorageManagementTotalUsed: "Total storage used: {{size}}",
+    settingsStorageManagementIndexedDbTotalUsed: "IndexedDB used: {{size}}",
+    settingsStorageManagementIndexedDbDatabaseColumn: "Database",
+    settingsStorageManagementIndexedDbStoreColumn: "Store",
+    settingsStorageManagementIndexedDbRecordsColumn: "Records",
     settingsStorageManagementKeyColumn: "Key",
     settingsStorageManagementUsageColumn: "Usage",
     settingsStorageManagementActionColumn: "Action",
     settingsStorageManagementWipeButton: "Wipe",
     settingsStorageManagementWipeAllButton: "Wipe all",
+    settingsStorageManagementWipeIndexedDbButton: "Wipe IndexedDB",
     settingsStorageManagementNoKeys: "No localStorage keys found.",
+    settingsStorageManagementNoIndexedDbRecords: "No IndexedDB records found.",
     settingsStorageManagementWipeConfirmTitle: "Wipe storage key?",
     settingsStorageManagementWipeConfirmBody:
       'You are about to wipe "{{key}}" from local storage. Once wiped, this cannot be undone. App data, settings, cache, or state stored under this key may be lost.',
     settingsStorageManagementWipeAllConfirmTitle: "Wipe all storage keys?",
     settingsStorageManagementWipeAllConfirmBody:
       "This will permanently remove every key currently listed in Storage Management. This cannot be undone. Export your data first if you may need it later.",
+    settingsStorageManagementWipeIndexedDbConfirmTitle: "Wipe IndexedDB data?",
+    settingsStorageManagementWipeIndexedDbConfirmBody:
+      "This will permanently remove the app's Club Chronicle IndexedDB data. Local storage keys are not affected. This cannot be undone.",
     settingsStorageManagementWipeSuccess: "Storage key wiped: {{key}}",
     settingsStorageManagementWipeError: "Could not wipe storage key: {{key}}",
     settingsStorageManagementWipeAllSuccess: "All listed storage keys were wiped.",
     settingsStorageManagementWipeAllError:
       "Could not wipe all listed storage keys.",
+    settingsStorageManagementWipeIndexedDbSuccess: "IndexedDB data was wiped.",
+    settingsStorageManagementWipeIndexedDbError: "Could not wipe IndexedDB data.",
     settingsStorageManagementReadError: "Could not read localStorage.",
+    settingsStorageManagementIndexedDbReadError: "Could not read IndexedDB.",
     settingsMachineLearningTitle: "Machine learning",
     settingsMachineLearningBody:
       "Senior player snapshots are learned automatically from own senior refreshes and transfer market result details.",
@@ -672,7 +698,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletPress:
       "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
     clubChronicleHelpBulletFinance:
-      "Transfer balance: buy count, sale count, and balance in EUR. Click a row for detailed value breakdowns.",
+      "Transfer balance: buy count, sale count, and balance in the display currency. Click a row for detailed value breakdowns.",
     clubChronicleHelpBulletFanclub:
       "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
     clubChronicleHelpBulletArena:
@@ -688,7 +714,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletLikelyTraining:
       "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
+      "Wages: team total wages and top-11 wages in the display currency. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team, retains the latest non-empty global-refresh diff for review, and lets you switch between saved changed refreshes.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -1684,7 +1710,7 @@ export const messagesEn: Messages = {
     seniorTransferSearchAnySpecialtyLabel: "Any",
     seniorTransferSearchAgeRangeLabel: "Age",
     seniorTransferSearchTsiRangeLabel: "TSI",
-    seniorTransferSearchPriceRangeLabel: "Price (EUR)",
+    seniorTransferSearchPriceRangeLabel: "Price ({{currency}})",
     seniorTransferSearchSearchButton: "Search",
     seniorTransferSearchCloseButton: "Close",
     seniorTransferSearchLoading: "Searching transfer market…",
@@ -1700,8 +1726,8 @@ export const messagesEn: Messages = {
     seniorTransferListedIndicatorLabel: "Transfer listed",
     seniorTransferListedNoBidsYet: "No bids yet",
     seniorTransferSearchSellerLabel: "Seller",
-    seniorTransferSearchBidAmountLabel: "Bid amount (EUR)",
-    seniorTransferSearchMaxBidAmountLabel: "Max bid (EUR)",
+    seniorTransferSearchBidAmountLabel: "Bid amount ({{currency}})",
+    seniorTransferSearchMaxBidAmountLabel: "Max bid ({{currency}})",
     seniorTransferSearchPlaceBidButton: "Place bid",
     seniorTransferSearchPlaceMaxBidButton: "Set max bid",
     seniorTransferSearchSupporterOnlyTooltip:
@@ -1887,7 +1913,7 @@ export const messagesEn: Messages = {
       "Skill, age, wage, or TSI values have been manually changed and no longer reflect the actual player.",
     seniorFoxtrickSimulationAgeYearsLabel: "Age years",
     seniorFoxtrickSimulationAgeDaysLabel: "Age days",
-    seniorFoxtrickSimulationWageLabel: "Wage (EUR)",
+    seniorFoxtrickSimulationWageLabel: "Wage ({{currency}})",
     seniorHtmsAbilityLabel: "HTMS ability",
     seniorHtmsPotentialLabel: "HTMS potential",
     seniorPsicoTsiMainSkillLabel: "Main skill",

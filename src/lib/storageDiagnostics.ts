@@ -1,3 +1,9 @@
+import {
+  collectChronicleIndexedDbDiagnostics,
+  estimateChronicleIndexedDbBytes,
+  type ChronicleIndexedDbStoreDiagnostics,
+} from "./chronicleIndexedDb";
+
 export type LocalStorageKeyUsage = {
   key: string;
   bytes: number;
@@ -10,6 +16,16 @@ export type LocalStorageDiagnostics = {
   localStorageKeys: LocalStorageKeyUsage[];
   error?: string | null;
 };
+
+export type IndexedDbDiagnostics = {
+  indexedDbBytes: number | null;
+  indexedDbFormatted: string | null;
+  indexedDbStores: ChronicleIndexedDbStoreDiagnostics[];
+  error?: string | null;
+};
+
+export type StorageManagementDiagnostics = LocalStorageDiagnostics &
+  IndexedDbDiagnostics;
 
 export type FeedbackStorageMetadata = {
   localStorageTotalBytes: number | null;
@@ -27,6 +43,8 @@ export type StorageDiagnostics = {
   localStorageBytes: number | null;
   localStorageFormatted: string | null;
   localStorageKeys: LocalStorageKeyUsage[];
+  indexedDbBytes: number | null;
+  indexedDbFormatted: string | null;
   error?: string | null;
 };
 
@@ -55,6 +73,8 @@ const buildUnavailableDiagnostics = (error?: string): StorageDiagnostics => ({
   localStorageBytes: null,
   localStorageFormatted: null,
   localStorageKeys: [],
+  indexedDbBytes: null,
+  indexedDbFormatted: null,
   error: error ?? null,
 });
 
@@ -101,6 +121,59 @@ export function collectLocalStorageDiagnostics(): LocalStorageDiagnostics {
   }
 }
 
+export async function collectIndexedDbDiagnostics(): Promise<IndexedDbDiagnostics> {
+  if (typeof window === "undefined") {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: "window unavailable",
+    };
+  }
+  if (typeof indexedDB === "undefined") {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: "IndexedDB unavailable",
+    };
+  }
+
+  try {
+    const indexedDbStores = await collectChronicleIndexedDbDiagnostics();
+    const indexedDbBytes = indexedDbStores.reduce(
+      (sum, store) => sum + store.bytes,
+      0
+    );
+    return {
+      indexedDbBytes,
+      indexedDbFormatted: formatBytes(indexedDbBytes),
+      indexedDbStores,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      indexedDbBytes: null,
+      indexedDbFormatted: null,
+      indexedDbStores: [],
+      error: error instanceof Error ? error.message : "IndexedDB read failed",
+    };
+  }
+}
+
+export async function collectStorageManagementDiagnostics(): Promise<StorageManagementDiagnostics> {
+  const localStorageDiagnostics = collectLocalStorageDiagnostics();
+  const indexedDbDiagnostics = await collectIndexedDbDiagnostics();
+  return {
+    ...localStorageDiagnostics,
+    ...indexedDbDiagnostics,
+    error:
+      [localStorageDiagnostics.error, indexedDbDiagnostics.error]
+        .filter(Boolean)
+        .join("; ") || null,
+  };
+}
+
 export function collectFeedbackStorageMetadata(): FeedbackStorageMetadata {
   const diagnostics = collectLocalStorageDiagnostics();
   return {
@@ -137,6 +210,7 @@ export async function collectStorageDiagnostics(): Promise<StorageDiagnostics> {
   }
 
   const localStorageDiagnostics = collectLocalStorageDiagnostics();
+  const indexedDbBytes = await estimateChronicleIndexedDbBytes();
 
   const originUsagePct =
     originUsageBytes !== null && originQuotaBytes !== null && originQuotaBytes > 0
@@ -154,6 +228,8 @@ export async function collectStorageDiagnostics(): Promise<StorageDiagnostics> {
     localStorageBytes: localStorageDiagnostics.localStorageBytes,
     localStorageFormatted: localStorageDiagnostics.localStorageFormatted,
     localStorageKeys: localStorageDiagnostics.localStorageKeys,
+    indexedDbBytes,
+    indexedDbFormatted: indexedDbBytes !== null ? formatBytes(indexedDbBytes) : null,
     error:
       [originError, localStorageDiagnostics.error].filter(Boolean).join("; ") ||
       null,

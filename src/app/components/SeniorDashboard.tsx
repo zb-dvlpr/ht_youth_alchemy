@@ -80,11 +80,20 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
+  formatTransferSearchCurrencyLabel,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
+import {
+  displayAmountToSek,
+  formatSekCurrency,
+  getDisplayCurrencyLabel,
+  sekToDisplayAmount,
+  type DisplayCurrency,
+} from "@/lib/currency";
+import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import SeniorTransferListedIndicator, {
@@ -350,6 +359,8 @@ type SeniorDashboardProps = {
     teamId: number;
     teamName: string;
     leagueId?: number | null;
+    countryId?: number | null;
+    isPrimaryClub?: boolean;
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
@@ -368,6 +379,8 @@ type SeniorTeamOption = {
   teamId: number;
   teamName: string;
   leagueId?: number | null;
+  countryId?: number | null;
+  isPrimaryClub?: boolean;
   teamGender: "male" | "female" | null;
 };
 
@@ -493,7 +506,6 @@ const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
-const CHPP_SEK_PER_EUR = 10;
 const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
 const SKILL_KEYS = [
   "KeeperSkill",
@@ -611,8 +623,8 @@ type TransferSearchFilters = {
   ageMaxDays: string;
   tsiMin: string;
   tsiMax: string;
-  priceMinEur: string;
-  priceMaxEur: string;
+  priceMinDisplay: string;
+  priceMaxDisplay: string;
 };
 
 type TransferSearchResult = {
@@ -648,8 +660,8 @@ type TransferSearchResult = {
 };
 
 type TransferSearchBidDraft = {
-  bidEur: string;
-  maxBidEur: string;
+  bidDisplay: string;
+  maxBidDisplay: string;
 };
 
 const FIELD_SLOT_ORDER = [
@@ -1673,8 +1685,8 @@ const buildInitialTransferSearchFilters = (
     ageMaxDays: String(ageMax.days),
     tsiMin: "",
     tsiMax: "",
-    priceMinEur: "",
-    priceMaxEur: "",
+    priceMinDisplay: "",
+    priceMaxDisplay: "",
   };
 };
 
@@ -1854,8 +1866,8 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
     ageMaxDays: String(normalizedMaxAge.days),
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
-    priceMinEur: String(filters.priceMinEur ?? "").trim(),
-    priceMaxEur: String(filters.priceMaxEur ?? "").trim(),
+    priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
+    priceMaxDisplay: String(filters.priceMaxDisplay ?? "").trim(),
   };
 };
 
@@ -1869,7 +1881,10 @@ const parseOptionalTransferSearchNonNegativeInteger = (
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 };
 
-const buildTransferSearchParams = (filters: TransferSearchFilters) => {
+const buildTransferSearchParams = (
+  filters: TransferSearchFilters,
+  displayCurrency: DisplayCurrency
+) => {
   const normalized = normalizeTransferSearchFilters(filters);
   const params = new URLSearchParams({
     ageMin: normalized.ageMinYears,
@@ -1904,17 +1919,19 @@ const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     params.set("tsiMax", String(tsiMax));
   }
 
-  const priceMinEur = parseOptionalTransferSearchNonNegativeInteger(
-    normalized.priceMinEur
+  const priceMinDisplay = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMinDisplay
   );
-  const priceMaxEur = parseOptionalTransferSearchNonNegativeInteger(
-    normalized.priceMaxEur
+  const priceMaxDisplay = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMaxDisplay
   );
-  if (priceMinEur !== null) {
-    params.set("priceMin", String(priceMinEur * CHPP_SEK_PER_EUR));
+  if (priceMinDisplay !== null) {
+    const priceMinSek = displayAmountToSek(priceMinDisplay, displayCurrency);
+    if (priceMinSek !== null) params.set("priceMin", String(priceMinSek));
   }
-  if (priceMaxEur !== null) {
-    params.set("priceMax", String(priceMaxEur * CHPP_SEK_PER_EUR));
+  if (priceMaxDisplay !== null) {
+    const priceMaxSek = displayAmountToSek(priceMaxDisplay, displayCurrency);
+    if (priceMaxSek !== null) params.set("priceMax", String(priceMaxSek));
   }
 
   return params;
@@ -1981,8 +1998,8 @@ const normalizeTransferSearchBidDrafts = (value: unknown): Record<number, Transf
     if (!draft || typeof draft !== "object") return;
     const node = draft as Record<string, unknown>;
     next[parsedPlayerId] = {
-      bidEur: typeof node.bidEur === "string" ? node.bidEur : "",
-      maxBidEur: typeof node.maxBidEur === "string" ? node.maxBidEur : "",
+      bidDisplay: typeof node.bidDisplay === "string" ? node.bidDisplay : "",
+      maxBidDisplay: typeof node.maxBidDisplay === "string" ? node.maxBidDisplay : "",
     };
   });
   return next;
@@ -1994,29 +2011,31 @@ const formatTransferSearchPlayerName = (player: TransferSearchResult) =>
     .filter(Boolean)
     .join(" ");
 
-const eurToSek = (value: string) => {
-  const normalized = value.replace(",", ".").trim();
-  const parsed = Number(normalized);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return Math.round(parsed * CHPP_SEK_PER_EUR);
-};
+const displayToSek = (value: string, displayCurrency: DisplayCurrency) =>
+  displayAmountToSek(value.replace(",", ".").trim(), displayCurrency);
 
-const buildTransferSearchMinimumBidEur = (result: TransferSearchResult) => {
+const buildTransferSearchMinimumBidSek = (result: TransferSearchResult) => {
   if (typeof result.highestBidSek === "number" && result.highestBidSek > 0) {
     const nextBidSek = Math.max(
-      result.highestBidSek + 1000 * CHPP_SEK_PER_EUR,
+      result.highestBidSek + 1000,
       Math.ceil(result.highestBidSek * 1.02)
     );
-    return Math.ceil(nextBidSek / CHPP_SEK_PER_EUR);
+    return nextBidSek;
   }
   if (typeof result.askingPriceSek === "number" && result.askingPriceSek > 0) {
-    return Math.ceil(result.askingPriceSek / CHPP_SEK_PER_EUR);
+    return result.askingPriceSek;
   }
   return 1000;
 };
 
-const formatTransferSearchBidDraftEur = (valueEur: number | string) =>
-  typeof valueEur === "string" ? valueEur : String(valueEur);
+const formatTransferSearchBidDraftDisplay = (
+  valueSek: number | string,
+  displayCurrency: DisplayCurrency
+) => {
+  if (typeof valueSek === "string") return valueSek;
+  const displayAmount = sekToDisplayAmount(valueSek, displayCurrency);
+  return displayAmount === null ? "" : String(Math.ceil(displayAmount));
+};
 
 const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) => {
   if (typeof value !== "string") return null;
@@ -2926,13 +2945,6 @@ const seniorBarGradient = (
   return `linear-gradient(90deg, ${startColor}, ${endColor})`;
 };
 
-const formatEurFromSek = (valueSek: number) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(valueSek / CHPP_SEK_PER_EUR);
-
 const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
   if (
     typeof actualSek !== "number" ||
@@ -3685,6 +3697,7 @@ export default function SeniorDashboard({
   const isDevBuild = process.env.NODE_ENV !== "production";
   const showSetBestLineupDebugModal = isDevBuild;
   const { addNotification } = useNotifications();
+  const { resolveForCountry } = useDisplayCurrency();
   const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
   const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
     initialSeniorTeamId
@@ -4170,6 +4183,11 @@ export default function SeniorDashboard({
   const resolvedSeniorTeamId = useMemo(
     () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
     [activeSeniorTeamId, activeSeniorTeamOption]
+  );
+  const displayCurrency = resolveForCountry(activeSeniorTeamOption?.countryId ?? null);
+  const formatDisplayCurrencyFromSek = useCallback(
+    (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
+    [displayCurrency]
   );
   const ownSeniorTeamGeneralInfo = isSeniorTeamGeneralInfo(
     seniorTeamGeneralInfo,
@@ -12069,7 +12087,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setTransferSearchItemCount(null);
 
     const execute = async (filtersToRun: TransferSearchFilters) => {
-      const params = buildTransferSearchParams(filtersToRun);
+      const params = buildTransferSearchParams(filtersToRun, displayCurrency);
       const { response, payload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
@@ -12201,8 +12219,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setTransferSearchBidDrafts((prev) => ({
       ...prev,
       [playerId]: {
-        bidEur: prev[playerId]?.bidEur ?? "",
-        maxBidEur: prev[playerId]?.maxBidEur ?? "",
+        bidDisplay: prev[playerId]?.bidDisplay ?? "",
+        maxBidDisplay: prev[playerId]?.maxBidDisplay ?? "",
         [key]: value,
       },
     }));
@@ -12213,8 +12231,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
     bidKind: keyof TransferSearchBidDraft
   ) => {
     if (!resolvedSeniorTeamId) return;
-    const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
-    const amountSek = eurToSek(draft[bidKind]);
+    const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
+    const amountSek = displayToSek(draft[bidKind], displayCurrency);
     if (!amountSek) {
       addNotification(messages.seniorTransferSearchBidMissingAmount);
       return;
@@ -12223,7 +12241,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setTransferSearchBidPendingPlayerId(result.playerId);
     try {
       const requestBody =
-        bidKind === "bidEur"
+        bidKind === "bidDisplay"
           ? { playerId: result.playerId, teamId: resolvedSeniorTeamId, bidAmount: amountSek }
           : { playerId: result.playerId, teamId: resolvedSeniorTeamId, maxBidAmount: amountSek };
       const { response, payload } = await fetchChppJson<{
@@ -12272,6 +12290,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   }, [
     addNotification,
+    displayCurrency,
     fetchPlayerDetailsById,
     messages.seniorTransferSearchBidFailed,
     messages.seniorTransferSearchBidMissingAmount,
@@ -12285,12 +12304,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
       if (!resolvedSeniorTeamId) return;
-      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
-      if (typeof minimumBidEur !== "number") {
+      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+      if (typeof minimumBidSek !== "number") {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
         return;
       }
-      updateTransferSearchBidDraft(result.playerId, "bidEur", String(minimumBidEur));
+      updateTransferSearchBidDraft(
+        result.playerId,
+        "bidDisplay",
+        formatTransferSearchBidDraftDisplay(minimumBidSek, displayCurrency)
+      );
       setTransferSearchBidPendingPlayerId(result.playerId);
       try {
         const { response, payload } = await fetchChppJson<{
@@ -12302,7 +12325,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
           body: JSON.stringify({
             playerId: result.playerId,
             teamId: resolvedSeniorTeamId,
-            bidAmount: minimumBidEur * CHPP_SEK_PER_EUR,
+            bidAmount: minimumBidSek,
           }),
         });
         if (!response.ok || payload?.error) {
@@ -12344,6 +12367,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     },
     [
       addNotification,
+      displayCurrency,
       fetchPlayerDetailsById,
       messages.seniorTransferSearchBidFailed,
       messages.seniorTransferSearchBidMissingAmount,
@@ -16665,7 +16689,7 @@ const refreshDetailsForPlayers = async (
     value: number | string | boolean | null
   ) => {
     if (value === null || value === undefined) return messages.unknownShort;
-    if (key === "salary" && typeof value === "number") return formatEurFromSek(value);
+    if (key === "salary" && typeof value === "number") return formatDisplayCurrencyFromSek(value);
     if (key === "motherClubBonus" && typeof value === "boolean") {
       return value ? "✓" : "—";
     }
@@ -16792,7 +16816,7 @@ const refreshDetailsForPlayers = async (
           : specialtyValue === 0
             ? messages.specialtyNone
             : specialtyName(specialtyValue) ?? messages.unknownShort;
-      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
       const nationalityText =
         typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
           ? resultDetails.NativeCountryName.trim()
@@ -16846,11 +16870,11 @@ const refreshDetailsForPlayers = async (
               : null,
         priceDisplay:
           typeof priceSek === "number" && priceSek >= 0
-            ? formatEurFromSek(priceSek)
+            ? formatDisplayCurrencyFromSek(priceSek)
             : messages.unknownShort,
-        priceValueEur:
+        priceValueSek:
           typeof priceSek === "number" && priceSek >= 0
-            ? priceSek / CHPP_SEK_PER_EUR
+            ? priceSek
             : null,
         tsi: metricInput.tsi ?? null,
         leadership: result.leadership,
@@ -16882,19 +16906,20 @@ const refreshDetailsForPlayers = async (
         wageDisplay:
           adjustedSalary === null || adjustedSalary === undefined
             ? messages.unknownShort
-            : formatEurFromSek(adjustedSalary),
-        wageValueEur:
+            : formatDisplayCurrencyFromSek(adjustedSalary),
+        wageValueSek:
           adjustedSalary === null || adjustedSalary === undefined
             ? null
-            : adjustedSalary / CHPP_SEK_PER_EUR,
+            : adjustedSalary,
         wageIncludesForeignBonus: foreignForSelectedTeam === true,
         deadline: result.deadline,
         deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
-        minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
+        minBidSek: typeof minimumBidSek === "number" ? minimumBidSek : null,
       };
     },
     [
       detailsById,
+      formatDisplayCurrencyFromSek,
       getTransferSearchSortMetricInput,
       messages,
       selectedSeniorLeagueId,
@@ -16904,23 +16929,35 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
+      let changed = false;
       const next = { ...prev };
       transferSearchResults.forEach((result) => {
-        const existing = next[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+        const existing = next[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
+        const bidDisplay = formatTransferSearchBidDraftDisplay(
+          buildTransferSearchMinimumBidSek(result),
+          displayCurrency
+        );
+        if (
+          existing.bidDisplay === bidDisplay &&
+          next[result.playerId]?.maxBidDisplay === existing.maxBidDisplay
+        ) {
+          return;
+        }
+        changed = true;
         next[result.playerId] = {
-          bidEur: formatTransferSearchBidDraftEur(buildTransferSearchMinimumBidEur(result)),
-          maxBidEur: existing.maxBidEur,
+          bidDisplay,
+          maxBidDisplay: existing.maxBidDisplay,
         };
       });
-      return next;
+      return changed ? next : prev;
     });
-  }, [transferSearchResults]);
+  }, [displayCurrency, transferSearchResults]);
   const renderTransferSearchResultCard = useCallback((
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
   ) => {
     const resultDetails = detailsById.get(result.playerId) ?? null;
-    const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+    const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
     const playerName = formatTransferSearchPlayerName(result);
     const displayPriceSek =
@@ -16931,6 +16968,16 @@ const refreshDetailsForPlayers = async (
       typeof result.highestBidSek === "number" && result.highestBidSek > 0
         ? messages.seniorTransferSearchHighestBidLabel
         : messages.clubChronicleTransferListedAskingPriceColumn;
+    const currencyName = getDisplayCurrencyLabel(displayCurrency);
+    const displayPriceCurrencyLabel = `${displayPriceLabel} (${currencyName})`;
+    const bidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchBidAmountLabel,
+      displayCurrency
+    );
+    const maxBidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchMaxBidAmountLabel,
+      displayCurrency
+    );
     const deadlineDate = parseChppDate(result.deadline ?? undefined);
     const seniorSkillLevelLabels = messages.seniorSkillLevelLabels
       .split("|")
@@ -17136,7 +17183,7 @@ const refreshDetailsForPlayers = async (
           {adjustedSalary !== null ? (
             <span className={styles.metaItem}>
               {messages.seniorWageLabel}:{" "}
-              {`${formatEurFromSek(adjustedSalary)}${
+              {`${formatDisplayCurrencyFromSek(adjustedSalary)}${
                 foreignForSelectedTeam === true ? "*" : ""
               }`}
             </span>
@@ -17145,7 +17192,7 @@ const refreshDetailsForPlayers = async (
             {adjustedPredictedSalary !== null ? (
               <p className={styles.infoValueTiny}>
                 {messages.seniorMlPredictedWageLabel}:{" "}
-                {`${formatEurFromSek(adjustedPredictedSalary)}${
+                {`${formatDisplayCurrencyFromSek(adjustedPredictedSalary)}${
                   foreignForSelectedTeam === true ? "*" : ""
                 }`}
                 {predictedSalaryDiffPercent
@@ -17160,10 +17207,10 @@ const refreshDetailsForPlayers = async (
             ) : null}
           </div>
           <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{displayPriceLabel}</div>
+            <div className={styles.infoLabel}>{displayPriceCurrencyLabel}</div>
             <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
               {displayPriceSek !== null
-                ? formatEurFromSek(displayPriceSek)
+                ? formatDisplayCurrencyFromSek(displayPriceSek)
                 : messages.unknownShort}
             </div>
           </div>
@@ -17237,13 +17284,14 @@ const refreshDetailsForPlayers = async (
           key={`${result.playerId}-${Boolean(resultDetails)}`}
           input={seniorMetricInput}
           messages={messages}
+          displayCurrency={displayCurrency}
           barGradient={seniorBarGradient}
         />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`bid-${result.playerId}`}>
-              {messages.seniorTransferSearchBidAmountLabel}
+              {bidAmountCurrencyLabel}
             </label>
             <input
               id={`bid-${result.playerId}`}
@@ -17251,9 +17299,9 @@ const refreshDetailsForPlayers = async (
               type="number"
               min="0"
               step="1"
-              value={draft.bidEur}
+              value={draft.bidDisplay}
               onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "bidEur", event.target.value)
+                updateTransferSearchBidDraft(result.playerId, "bidDisplay", event.target.value)
               }
               disabled={!transferSearchCanBid || pending}
             />
@@ -17266,7 +17314,7 @@ const refreshDetailsForPlayers = async (
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
               onClick={() => {
-                void submitTransferBid(result, "bidEur");
+                void submitTransferBid(result, "bidDisplay");
               }}
               disabled={!transferSearchCanBid || pending}
             >
@@ -17275,7 +17323,7 @@ const refreshDetailsForPlayers = async (
           </Tooltip>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`max-bid-${result.playerId}`}>
-              {messages.seniorTransferSearchMaxBidAmountLabel}
+              {maxBidAmountCurrencyLabel}
             </label>
             <input
               id={`max-bid-${result.playerId}`}
@@ -17283,9 +17331,9 @@ const refreshDetailsForPlayers = async (
               type="number"
               min="0"
               step="1"
-              value={draft.maxBidEur}
+              value={draft.maxBidDisplay}
               onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "maxBidEur", event.target.value)
+                updateTransferSearchBidDraft(result.playerId, "maxBidDisplay", event.target.value)
               }
               disabled={!transferSearchCanBid || pending}
             />
@@ -17298,7 +17346,7 @@ const refreshDetailsForPlayers = async (
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
               onClick={() => {
-                void submitTransferBid(result, "maxBidEur");
+                void submitTransferBid(result, "maxBidDisplay");
               }}
               disabled={!transferSearchCanBid || pending}
             >
@@ -17310,7 +17358,7 @@ const refreshDetailsForPlayers = async (
     );
   }, [
     detailsById,
-    formatEurFromSek,
+    formatDisplayCurrencyFromSek,
     messages,
     selectedSeniorLeagueId,
     specialtyName,
@@ -17527,6 +17575,7 @@ const refreshDetailsForPlayers = async (
         trackSeniorFeatureUsed("edit_skills_age_wage_tsi_toggled")
       }
       messages={messages}
+          displayCurrency={displayCurrency}
     />
   );
 
@@ -17774,7 +17823,7 @@ const refreshDetailsForPlayers = async (
                       }`}
                       style={metricPillStyle(wageValue, wageRange.min, wageRange.max, true)}
                     >
-                      {wageValue !== null ? formatEurFromSek(wageValue) : messages.unknownShort}
+                      {wageValue !== null ? formatDisplayCurrencyFromSek(wageValue) : messages.unknownShort}
                     </span>
                   );
                 case "form":
@@ -18005,7 +18054,7 @@ const refreshDetailsForPlayers = async (
                           <SeniorTransferListedIndicator
                             listing={transferListing}
                             messages={messages}
-                            formatEurFromSek={formatEurFromSek}
+                            formatSekValue={formatDisplayCurrencyFromSek}
                             compact
                             nested
                           />
@@ -18159,6 +18208,7 @@ const refreshDetailsForPlayers = async (
           showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
           onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
           messages={messages}
+          displayCurrency={displayCurrency}
         />
       </div>
     ) : mobileSeniorView === "ratingsMatrix" ? (
@@ -18233,6 +18283,7 @@ const refreshDetailsForPlayers = async (
           showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
           onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
           messages={messages}
+          displayCurrency={displayCurrency}
         />
       </div>
     ) : mobileSeniorView === "lineupOptimizer" ? (
@@ -18587,6 +18638,7 @@ const refreshDetailsForPlayers = async (
         selectedPlayerName={transferSearchSelectedPlayerName}
         selectedPlayerDetailPills={transferSearchSelectedPlayerDetailPills}
         filters={transferSearchFilters}
+        displayCurrency={displayCurrency}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
         onUpdateFilterField={updateTransferSearchFilterField}
@@ -21851,7 +21903,7 @@ const refreshDetailsForPlayers = async (
                             true
                           )}
                         >
-                          {wageValue !== null ? formatEurFromSek(wageValue) : messages.unknownShort}
+                          {wageValue !== null ? formatDisplayCurrencyFromSek(wageValue) : messages.unknownShort}
                         </span>
                       );
                     case "form":
@@ -22100,7 +22152,7 @@ const refreshDetailsForPlayers = async (
                             <SeniorTransferListedIndicator
                               listing={transferListing}
                               messages={messages}
-                              formatEurFromSek={formatEurFromSek}
+                              formatSekValue={formatDisplayCurrencyFromSek}
                               compact
                               nested
                             />
@@ -22249,6 +22301,7 @@ const refreshDetailsForPlayers = async (
               trackSeniorFeatureUsed("edit_skills_age_wage_tsi_toggled")
             }
             messages={messages}
+          displayCurrency={displayCurrency}
           />
           )}
         </div>

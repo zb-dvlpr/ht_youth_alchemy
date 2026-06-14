@@ -33,12 +33,12 @@ import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import TransferSearchModal, {
   ageToTotalDays,
-  buildTransferSearchMinimumBidEur,
+  buildTransferSearchMinimumBidSek,
   buildTransferSearchParams,
-  CHPP_SEK_PER_EUR,
   clampTransferSkillValue,
-  eurToSek,
-  formatTransferSearchBidDraftEur,
+  displayToSek,
+  formatTransferSearchCurrencyLabel,
+  formatTransferSearchBidDraftDisplay,
   formatTransferSearchPlayerName,
   normalizeTransferSearchFilters,
   normalizeTransferSearchResults,
@@ -55,6 +55,8 @@ import TransferSearchModal, {
   type TransferSearchSkillKey,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
+import { formatSekCurrency, getDisplayCurrencyLabel } from "@/lib/currency";
+import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import {
   POSITION_COLUMNS,
   normalizeMatchRoleId,
@@ -784,8 +786,8 @@ const normalizeTransferSearchBidDrafts = (
     if (!draft || typeof draft !== "object") return;
     const node = draft as Record<string, unknown>;
     next[parsedPlayerId] = {
-      bidEur: typeof node.bidEur === "string" ? node.bidEur : "",
-      maxBidEur: typeof node.maxBidEur === "string" ? node.maxBidEur : "",
+      bidDisplay: typeof node.bidDisplay === "string" ? node.bidDisplay : "",
+      maxBidDisplay: typeof node.maxBidDisplay === "string" ? node.maxBidDisplay : "",
     };
   });
   return next;
@@ -1031,6 +1033,7 @@ export default function Dashboard({
   initialLoadDetails = null,
   initialAuthError = false,
 }: DashboardProps) {
+  const { resolveForCountry } = useDisplayCurrency();
   const trackYouthFeatureUsed = useCallback(
     (feature: YouthFeatureAnalyticsName, source: YouthFeatureAnalyticsSource) => {
       trackAnalyticsEvent("youth_feature_used", {
@@ -1555,6 +1558,7 @@ export default function Dashboard({
     () => activeYouthTeamId ?? activeYouthTeamOption?.youthTeamId ?? null,
     [activeYouthTeamId, activeYouthTeamOption]
   );
+  const displayCurrency = resolveForCountry(activeYouthTeamOption?.countryId ?? null);
   const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
     number | null
@@ -1865,12 +1869,10 @@ export default function Dashboard({
         ? formatPlayerName(selectedPlayer)
         : null;
 
-  const formatEurFromSek = (valueSek: number) =>
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(valueSek / CHPP_SEK_PER_EUR);
+  const formatDisplayCurrencyFromSek = useCallback(
+    (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
+    [displayCurrency]
+  );
 
   const transferSearchBarGradient = (
     value: number | null,
@@ -1991,8 +1993,8 @@ export default function Dashboard({
       ageMaxDays: String(ageMax.days),
       tsiMin: "",
       tsiMax: "",
-      priceMinEur: "",
-      priceMaxEur: "",
+      priceMinDisplay: "",
+      priceMaxDisplay: "",
     });
   };
 
@@ -3862,7 +3864,7 @@ export default function Dashboard({
     setTransferSearchItemCount(null);
 
     const execute = async (filtersToRun: TransferSearchFilters) => {
-      const params = buildTransferSearchParams(filtersToRun);
+      const params = buildTransferSearchParams(filtersToRun, displayCurrency);
       const { response, payload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
@@ -4005,8 +4007,8 @@ export default function Dashboard({
     setTransferSearchBidDrafts((prev) => ({
       ...prev,
       [playerId]: {
-        bidEur: prev[playerId]?.bidEur ?? "",
-        maxBidEur: prev[playerId]?.maxBidEur ?? "",
+        bidDisplay: prev[playerId]?.bidDisplay ?? "",
+        maxBidDisplay: prev[playerId]?.maxBidDisplay ?? "",
         [key]: value,
       },
     }));
@@ -4018,10 +4020,10 @@ export default function Dashboard({
   ) => {
     if (!resolvedSeniorTeamId) return;
     const draft = transferSearchBidDrafts[result.playerId] ?? {
-      bidEur: "",
-      maxBidEur: "",
+      bidDisplay: "",
+      maxBidDisplay: "",
     };
-    const amountSek = eurToSek(draft[bidKind]);
+    const amountSek = displayToSek(draft[bidKind], displayCurrency);
     if (!amountSek) {
       addNotification(messages.seniorTransferSearchBidMissingAmount);
       return;
@@ -4030,7 +4032,7 @@ export default function Dashboard({
     setTransferSearchBidPendingPlayerId(result.playerId);
     try {
       const requestBody =
-        bidKind === "bidEur"
+        bidKind === "bidDisplay"
           ? {
               playerId: result.playerId,
               teamId: resolvedSeniorTeamId,
@@ -4070,6 +4072,7 @@ export default function Dashboard({
     }
   }, [
     addNotification,
+    displayCurrency,
     messages.seniorTransferSearchBidFailed,
     messages.seniorTransferSearchBidMissingAmount,
     messages.seniorTransferSearchBidPlaced,
@@ -4079,12 +4082,16 @@ export default function Dashboard({
 
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
-      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
-      if (typeof minimumBidEur !== "number") {
+      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+      if (typeof minimumBidSek !== "number") {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
         return;
       }
-      updateTransferSearchBidDraft(result.playerId, "bidEur", String(minimumBidEur));
+      updateTransferSearchBidDraft(
+        result.playerId,
+        "bidDisplay",
+        formatTransferSearchBidDraftDisplay(minimumBidSek, displayCurrency)
+      );
       setTransferSearchBidPendingPlayerId(result.playerId);
       try {
         const { response, payload } = await fetchChppJson<{
@@ -4096,7 +4103,7 @@ export default function Dashboard({
           body: JSON.stringify({
             playerId: result.playerId,
             teamId: resolvedSeniorTeamId,
-            bidAmount: minimumBidEur * CHPP_SEK_PER_EUR,
+            bidAmount: minimumBidSek,
           }),
         });
         if (!response.ok || payload?.error) {
@@ -4121,6 +4128,7 @@ export default function Dashboard({
     },
     [
       addNotification,
+      displayCurrency,
       messages.seniorTransferSearchBidFailed,
       messages.seniorTransferSearchBidMissingAmount,
       messages.seniorTransferSearchBidPlaced,
@@ -4139,19 +4147,29 @@ export default function Dashboard({
 
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
+      let changed = false;
       const next = { ...prev };
       transferSearchResults.forEach((result) => {
-        const existing = next[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+        const existing = next[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
+        const bidDisplay = formatTransferSearchBidDraftDisplay(
+          buildTransferSearchMinimumBidSek(result),
+          displayCurrency
+        );
+        if (
+          existing.bidDisplay === bidDisplay &&
+          next[result.playerId]?.maxBidDisplay === existing.maxBidDisplay
+        ) {
+          return;
+        }
+        changed = true;
         next[result.playerId] = {
-          bidEur: formatTransferSearchBidDraftEur(
-            buildTransferSearchMinimumBidEur(result)
-          ),
-          maxBidEur: existing.maxBidEur,
+          bidDisplay,
+          maxBidDisplay: existing.maxBidDisplay,
         };
       });
-      return next;
+      return changed ? next : prev;
     });
-  }, [transferSearchResults]);
+  }, [displayCurrency, transferSearchResults]);
 
   const specialtyName = useCallback((value?: number | null) => {
     switch (value) {
@@ -4245,7 +4263,7 @@ export default function Dashboard({
           : specialtyValue === 0
             ? messages.specialtyNone
             : specialtyName(specialtyValue) ?? messages.unknownShort;
-      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
       const nationalityText =
         typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
           ? resultDetails.NativeCountryName.trim()
@@ -4302,11 +4320,11 @@ export default function Dashboard({
               : null,
         priceDisplay:
           typeof priceSek === "number" && priceSek >= 0
-            ? formatEurFromSek(priceSek)
+            ? formatDisplayCurrencyFromSek(priceSek)
             : messages.unknownShort,
-        priceValueEur:
+        priceValueSek:
           typeof priceSek === "number" && priceSek >= 0
-            ? priceSek / CHPP_SEK_PER_EUR
+            ? priceSek
             : null,
         tsi: metricInput.tsi ?? null,
         leadership: result.leadership,
@@ -4337,20 +4355,20 @@ export default function Dashboard({
           : null,
         wageDisplay:
           typeof adjustedSalary === "number"
-            ? formatEurFromSek(adjustedSalary)
+            ? formatDisplayCurrencyFromSek(adjustedSalary)
             : messages.unknownShort,
-        wageValueEur:
+        wageValueSek:
           typeof adjustedSalary === "number"
-            ? adjustedSalary / CHPP_SEK_PER_EUR
+            ? adjustedSalary
             : null,
         wageIncludesForeignBonus: foreignForSelectedTeam === true,
         deadline: result.deadline,
         deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
-        minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
+        minBidSek: typeof minimumBidSek === "number" ? minimumBidSek : null,
       };
     },
     [
-      formatEurFromSek,
+      formatDisplayCurrencyFromSek,
       getTransferSearchSortMetricInput,
       messages.specialtyNone,
       messages.unknownShort,
@@ -4365,7 +4383,7 @@ export default function Dashboard({
     countryMeta: TransferSearchResolvedCountryMeta | null
   ) => {
     const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
-    const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+    const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
     const playerName = formatTransferSearchPlayerName(result);
     const displayPriceSek =
@@ -4376,6 +4394,16 @@ export default function Dashboard({
       typeof result.highestBidSek === "number" && result.highestBidSek > 0
         ? messages.seniorTransferSearchHighestBidLabel
         : messages.clubChronicleTransferListedAskingPriceColumn;
+    const currencyName = getDisplayCurrencyLabel(displayCurrency);
+    const displayPriceCurrencyLabel = `${displayPriceLabel} (${currencyName})`;
+    const bidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchBidAmountLabel,
+      displayCurrency
+    );
+    const maxBidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
+      messages.seniorTransferSearchMaxBidAmountLabel,
+      displayCurrency
+    );
     const deadlineDate = parseChppDate(result.deadline ?? undefined);
     const resultSpecialty = resultDetails?.Specialty ?? result.specialty;
     const resultSpecialtyName =
@@ -4473,7 +4501,7 @@ export default function Dashboard({
               ) : null}
               {adjustedSalary !== null ? (
                 <span className={styles.metaItem}>
-                  {messages.seniorWageLabel}: {formatEurFromSek(adjustedSalary)}
+                  {messages.seniorWageLabel}: {formatDisplayCurrencyFromSek(adjustedSalary)}
                   {foreignForSelectedTeam === true ? "*" : ""}
                 </span>
               ) : null}
@@ -4485,10 +4513,10 @@ export default function Dashboard({
             ) : null}
           </div>
           <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{displayPriceLabel}</div>
+            <div className={styles.infoLabel}>{displayPriceCurrencyLabel}</div>
             <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
               {displayPriceSek !== null
-                ? formatEurFromSek(displayPriceSek)
+                ? formatDisplayCurrencyFromSek(displayPriceSek)
                 : messages.unknownShort}
             </div>
           </div>
@@ -4554,13 +4582,14 @@ export default function Dashboard({
           key={`${result.playerId}-${Boolean(resultDetails)}`}
           input={seniorMetricInput}
           messages={messages}
+          displayCurrency={displayCurrency}
           barGradient={transferSearchBarGradient}
         />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`youth-bid-${result.playerId}`}>
-              {messages.seniorTransferSearchBidAmountLabel}
+              {bidAmountCurrencyLabel}
             </label>
             <input
               id={`youth-bid-${result.playerId}`}
@@ -4568,9 +4597,9 @@ export default function Dashboard({
               type="number"
               min="0"
               step="1"
-              value={draft.bidEur}
+              value={draft.bidDisplay}
               onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "bidEur", event.target.value)
+                updateTransferSearchBidDraft(result.playerId, "bidDisplay", event.target.value)
               }
               disabled={!transferSearchCanBid || pending}
             />
@@ -4583,7 +4612,7 @@ export default function Dashboard({
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
               onClick={() => {
-                void submitTransferBid(result, "bidEur");
+                void submitTransferBid(result, "bidDisplay");
               }}
               disabled={!transferSearchCanBid || pending}
             >
@@ -4592,7 +4621,7 @@ export default function Dashboard({
           </Tooltip>
           <div className={styles.transferSearchBidField}>
             <label className={styles.infoLabel} htmlFor={`youth-max-bid-${result.playerId}`}>
-              {messages.seniorTransferSearchMaxBidAmountLabel}
+              {maxBidAmountCurrencyLabel}
             </label>
             <input
               id={`youth-max-bid-${result.playerId}`}
@@ -4600,9 +4629,9 @@ export default function Dashboard({
               type="number"
               min="0"
               step="1"
-              value={draft.maxBidEur}
+              value={draft.maxBidDisplay}
               onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "maxBidEur", event.target.value)
+                updateTransferSearchBidDraft(result.playerId, "maxBidDisplay", event.target.value)
               }
               disabled={!transferSearchCanBid || pending}
             />
@@ -4615,7 +4644,7 @@ export default function Dashboard({
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
               onClick={() => {
-                void submitTransferBid(result, "maxBidEur");
+                void submitTransferBid(result, "maxBidDisplay");
               }}
               disabled={!transferSearchCanBid || pending}
             >
@@ -4626,7 +4655,7 @@ export default function Dashboard({
       </article>
     );
   }, [
-    formatEurFromSek,
+    formatDisplayCurrencyFromSek,
     messages,
     selectedSeniorLeagueId,
     specialtyName,
@@ -7244,6 +7273,7 @@ export default function Dashboard({
           activeTab="details"
           showTabs={false}
           messages={messages}
+          displayCurrency={displayCurrency}
         />
       </div>
     ) : mobileYouthPlayerScreen === "list" ? (
@@ -7441,6 +7471,7 @@ export default function Dashboard({
           showTabs={false}
           extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
           messages={messages}
+          displayCurrency={displayCurrency}
         />
       </div>
     ) : mobileYouthView === "ratingsMatrix" ? (
@@ -7514,6 +7545,7 @@ export default function Dashboard({
           showTabs={false}
           extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
           messages={messages}
+          displayCurrency={displayCurrency}
         />
       </div>
     ) : mobileYouthView === "lineupOptimizer" ? (
@@ -7632,6 +7664,7 @@ export default function Dashboard({
         selectedPlayerDetailPills={selectedTransferSearchPlayerDetailPills}
         selectedPlayerDetailPillsInline
         filters={transferSearchFilters}
+        displayCurrency={displayCurrency}
         skillSlotCount={4}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
@@ -8262,6 +8295,7 @@ export default function Dashboard({
                 setActiveDetailsTab(tab);
               }}
               messages={messages}
+          displayCurrency={displayCurrency}
             />
           </>
         )}

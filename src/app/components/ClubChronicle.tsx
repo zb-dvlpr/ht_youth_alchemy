@@ -1630,6 +1630,44 @@ const buildChronicleTabsStoragePayload = (
   tabs: tabs.map(stripChronicleTabDataPayload),
 });
 
+const normalizeChronicleTabRuntimeState = (
+  tab: Partial<ChronicleTabState>,
+  messages: Messages,
+  index: number
+): ChronicleTabState =>
+  buildChronicleTabState(messages, index + 1, {
+    ...tab,
+    id:
+      typeof tab.id === "string" && tab.id.trim()
+        ? tab.id
+        : `tab-${index + 1}`,
+    name: typeof tab.name === "string" ? tab.name : undefined,
+    supportedSelections:
+      tab.supportedSelections && typeof tab.supportedSelections === "object"
+        ? tab.supportedSelections
+        : {},
+    ownLeagueSelections:
+      tab.ownLeagueSelections && typeof tab.ownLeagueSelections === "object"
+        ? tab.ownLeagueSelections
+        : {},
+    ownLeagueTeamSelections:
+      tab.ownLeagueTeamSelections && typeof tab.ownLeagueTeamSelections === "object"
+        ? tab.ownLeagueTeamSelections
+        : {},
+    manualTeams: Array.isArray(tab.manualTeams) ? tab.manualTeams : [],
+    updates: tab.updates ?? null,
+    globalUpdatesHistory: Array.isArray(tab.globalUpdatesHistory)
+      ? tab.globalUpdatesHistory
+      : [],
+    globalBaselineCache: tab.globalBaselineCache ?? null,
+    lastRefreshAt:
+      typeof tab.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
+    lastComparedAt:
+      typeof tab.lastComparedAt === "number" ? tab.lastComparedAt : null,
+    lastHadChanges:
+      typeof tab.lastHadChanges === "boolean" ? tab.lastHadChanges : true,
+  });
+
 const readChronicleStorageSchema = (): number => {
   if (typeof window === "undefined") return 0;
   const raw = window.localStorage.getItem(CHRONICLE_STORAGE_SCHEMA_KEY);
@@ -3423,7 +3461,7 @@ const migrateChronicleStorageToIndexedDb = async (
     String(CHRONICLE_STORAGE_SCHEMA_CURRENT)
   );
   cleanupRedundantChronicleLocalStorage();
-  return uiStorage;
+  return normalizeChronicleTabsStorage(uiStorage, messages, false);
 };
 
 const readChronicleTabsStorage = (
@@ -3488,7 +3526,7 @@ const readChronicleTabsStorage = (
     tabs: [stripChronicleTabDataPayload(initialTab)],
   };
   writeChronicleTabsStorage(migrated);
-  return migrated;
+  return normalizeChronicleTabsStorage(migrated, messages, false);
 };
 
 const readPanelOrder = (): string[] => {
@@ -4328,22 +4366,34 @@ export default function ClubChronicle({
   const updateActiveChronicleTab = useCallback(
     (updater: StateUpdater<ChronicleTabState>) => {
       setChronicleTabs((prev) =>
-        prev.map((tab) =>
-          tab.id === activeChronicleTab.id
-            ? resolveNextState(tab, updater)
-            : tab
-        )
+        prev.map((tab, index) => {
+          if (tab.id !== activeChronicleTab.id) return tab;
+          const normalized = normalizeChronicleTabRuntimeState(
+            tab,
+            messages,
+            index
+          );
+          return normalizeChronicleTabRuntimeState(
+            resolveNextState(normalized, updater),
+            messages,
+            index
+          );
+        })
       );
     },
-    [activeChronicleTab.id]
+    [activeChronicleTab.id, messages]
   );
-  const supportedSelections = activeChronicleTab.supportedSelections;
-  const ownLeagueSelections = activeChronicleTab.ownLeagueSelections;
-  const ownLeagueTeamSelections = activeChronicleTab.ownLeagueTeamSelections;
-  const manualTeams = activeChronicleTab.manualTeams;
-  const updates = activeChronicleTab.updates;
-  const globalUpdatesHistory = activeChronicleTab.globalUpdatesHistory;
-  const globalBaselineCache = activeChronicleTab.globalBaselineCache;
+  const supportedSelections = activeChronicleTab.supportedSelections ?? {};
+  const ownLeagueSelections = activeChronicleTab.ownLeagueSelections ?? {};
+  const ownLeagueTeamSelections = activeChronicleTab.ownLeagueTeamSelections ?? {};
+  const manualTeams = Array.isArray(activeChronicleTab.manualTeams)
+    ? activeChronicleTab.manualTeams
+    : [];
+  const updates = activeChronicleTab.updates ?? null;
+  const globalUpdatesHistory = Array.isArray(activeChronicleTab.globalUpdatesHistory)
+    ? activeChronicleTab.globalUpdatesHistory
+    : [];
+  const globalBaselineCache = activeChronicleTab.globalBaselineCache ?? null;
   const lastGlobalRefreshAt = activeChronicleTab.lastRefreshAt;
   const lastGlobalComparedAt = activeChronicleTab.lastComparedAt;
   const lastGlobalHadChanges = activeChronicleTab.lastHadChanges;

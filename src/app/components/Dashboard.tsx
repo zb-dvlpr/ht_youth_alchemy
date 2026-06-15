@@ -140,7 +140,6 @@ import { trackAnalyticsEvent } from "@/lib/analytics";
 import {
   isPlayerExcluded,
   pruneYouthLineupExcludedPlayers,
-  readYouthLineupExcludedPlayers,
   toggleYouthLineupExcludedPlayer,
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
@@ -1138,9 +1137,7 @@ export default function Dashboard({
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
-  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>(() =>
-    readYouthLineupExcludedPlayers()
-  );
+  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>({});
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [ratingsResponseState, setRatingsResponseState] =

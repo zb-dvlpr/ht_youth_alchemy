@@ -484,7 +484,7 @@ export const messagesNl: Messages = {
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
     changelog_6_5_0:
-      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
+      "Improved OAuth token error handling.",
   changelog_6_4_0:
   "Speleruitsluitingsknoppen toegevoegd voor jeugd- en senioropstellingen.",
   changelog_6_3_0:

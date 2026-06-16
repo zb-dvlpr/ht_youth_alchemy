@@ -121,6 +121,15 @@ html[data-mobile-shell="true"] .scaleContainer {
   flex-wrap: wrap;
 }
 
+.chppAccessActions a,
+.chppAccessActions button,
+.chppAccessDevClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .chppAccessDevClose {
   justify-self: center;
   border: none;
@@ -4579,16 +4588,26 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   }
 
   .chppAccessActions {
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr;
     justify-content: stretch;
   }
 
+  .chppAccessActions a,
+  .chppAccessActions button,
   .chppAccessActions .confirmCancel,
   .chppAccessActions .confirmSubmit {
     width: 100%;
     min-height: 44px;
     justify-content: center;
+    text-align: center;
+  }
+
+  .chppAccessDevClose {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
   }
 
   .chronicleTsiWagesDetailTable .chronicleTableHeader {

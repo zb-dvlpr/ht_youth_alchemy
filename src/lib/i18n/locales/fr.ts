@@ -222,7 +222,7 @@ export const messagesFr: Messages = {
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
     changelog_6_5_0:
-      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
+      "Improved OAuth token error handling.",
     changelog_6_4_0:
       "Ajout de controles d exclusion de joueurs pour les compositions jeunes et seniors.",
     changelog_6_3_0:

@@ -478,7 +478,7 @@ export const messagesPl: Messages = {
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
     changelog_6_5_0:
-      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
+      "Improved OAuth token error handling.",
   changelog_6_4_0:
     "Dodano kontrolki wykluczania zawodnikow dla skladow juniorow i seniorow.",
   changelog_6_3_0:

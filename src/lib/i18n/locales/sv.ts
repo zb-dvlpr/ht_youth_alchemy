@@ -221,7 +221,7 @@ export const messagesSv: Messages = {
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
     changelog_6_5_0:
-      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
+      "Improved OAuth token error handling.",
     changelog_6_4_0:
       "Lade till spelarexkludering for ungdoms- och senioruppstallningar.",
     changelog_6_3_0:

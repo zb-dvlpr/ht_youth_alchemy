@@ -13459,15 +13459,12 @@ const refreshDetailsForPlayers = async (
 
   const ensureRequiredScopes = async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -13493,7 +13490,8 @@ const refreshDetailsForPlayers = async (
         setScopeReconnectModalOpen(true);
         return false;
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }

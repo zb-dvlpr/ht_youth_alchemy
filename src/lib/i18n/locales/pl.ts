@@ -107,6 +107,18 @@ export const messagesPl: Messages = {
   mobileToolsLabel: "Narzędzia",
   mobileHelpLabel: "Pomoc",
   mobilePlayerListLabel: "Lista zawodników",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
   helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
   helpOptimizerLocationYouth:
     "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
@@ -465,6 +477,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_6_5_0:
+      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
   changelog_6_4_0:
     "Dodano kontrolki wykluczania zawodnikow dla skladow juniorow i seniorow.",
   changelog_6_3_0:

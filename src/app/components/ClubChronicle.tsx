@@ -5394,15 +5394,12 @@ export default function ClubChronicle({
 
   const ensureRefreshScopes = useCallback(async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -5425,7 +5422,8 @@ export default function ClubChronicle({
         return false;
       }
       return true;
-    } catch {
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }

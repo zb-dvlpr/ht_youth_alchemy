@@ -14,6 +14,7 @@ import {
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
+import ChppAccessGate from "./ChppAccessGate";
 import { DisplayCurrencyProvider } from "./DisplayCurrencyProvider";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
@@ -33,7 +34,14 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
-import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
+import {
+  CHPP_ACCESS_BLOCKED_EVENT,
+  ChppAccessBlockedError,
+  type ChppAccessBlockedDetail,
+  fetchChppJson,
+  reconnectChppWithTokenReset,
+  writeChppDebugOauthErrorMode,
+} from "@/lib/chpp/client";
 import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   BUY_COFFEE_PROMPT_OPEN_EVENT,
@@ -258,6 +266,8 @@ export default function AppShell({
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
   const [buyCoffeePromptSource, setBuyCoffeePromptSource] =
     useState<BuyCoffeePromptSource>("unknown");
+  const [chppAccessBlock, setChppAccessBlock] =
+    useState<ChppAccessBlockedDetail | null>(null);
   const [buyCoffeePromptState, setBuyCoffeePromptState] =
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
@@ -307,15 +317,12 @@ export default function AppShell({
 
   const ensureRefreshScopes = async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -338,7 +345,8 @@ export default function AppShell({
         return false;
       }
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAccessBlockedError) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }
@@ -375,6 +383,26 @@ export default function AppShell({
 
   useEffect(() => {
     runStartupStorageHousekeeping();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleChppAccessBlocked = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as ChppAccessBlockedDetail | undefined)
+          : undefined;
+      if (!detail) return;
+      setChppAccessBlock(detail);
+      setMobileLauncherOpen(false);
+      setBuyCoffeePromptOpen(false);
+      setScopeReconnectModalOpen(false);
+      setReminderBatchItems([]);
+      setPendingReminderActionConfirmation(null);
+    };
+    window.addEventListener(CHPP_ACCESS_BLOCKED_EVENT, handleChppAccessBlocked);
+    return () =>
+      window.removeEventListener(CHPP_ACCESS_BLOCKED_EVENT, handleChppAccessBlocked);
   }, []);
 
   useEffect(() => {
@@ -1635,6 +1663,36 @@ export default function AppShell({
       <div className={styles.mobileNavActions}>{reminderBell}</div>
     </div>
   ) : null;
+
+  if (chppAccessBlock) {
+    return (
+      <DisplayCurrencyProvider>
+        <ReminderBellSlotProvider bell={reminderBell}>
+        <div className={styles.shellFrame} data-mobile-layout="false">
+          <div className={styles.shellTopBar} ref={shellTopBarRef}>
+            {headerChildren}
+          </div>
+          <ChppAccessGate
+            messages={messages}
+            kind={chppAccessBlock.kind}
+            statusCode={chppAccessBlock.statusCode ?? null}
+            reason={chppAccessBlock.reason ?? null}
+            details={chppAccessBlock.details ?? null}
+            simulated={chppAccessBlock.simulated}
+            onCloseSimulation={
+              chppAccessBlock.simulated
+                ? () => {
+                    writeChppDebugOauthErrorMode("off");
+                    setChppAccessBlock(null);
+                  }
+                : undefined
+            }
+          />
+        </div>
+        </ReminderBellSlotProvider>
+      </DisplayCurrencyProvider>
+    );
+  }
 
   return (
     <DisplayCurrencyProvider>

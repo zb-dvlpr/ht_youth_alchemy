@@ -104,7 +104,7 @@ import {
   calculatePsicoTsiMetrics,
 } from "@/lib/seniorPlayerMetrics";
 import {
-  CHPP_AUTH_REQUIRED_EVENT,
+  dispatchChppAccessBlocked,
   type ChppDebugOauthErrorMode,
   ChppAuthRequiredError,
   fetchChppJson,
@@ -112,6 +112,7 @@ import {
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
+import { getChppHttpStatusReason } from "@/lib/chpp/httpStatusReasons";
 import { mapWithConcurrency } from "@/lib/async";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import {
@@ -344,7 +345,6 @@ type DashboardProps = {
   isConnected: boolean;
   initialLoadError?: string | null;
   initialLoadDetails?: string | null;
-  initialAuthError?: boolean;
 };
 
 type ManagerCompendiumResponse = {
@@ -1042,7 +1042,6 @@ export default function Dashboard({
   isConnected,
   initialLoadError = null,
   initialLoadDetails = null,
-  initialAuthError = false,
 }: DashboardProps) {
   const { resolveForCountry } = useDisplayCurrency();
   const trackYouthFeatureUsed = useCallback(
@@ -1090,11 +1089,6 @@ export default function Dashboard({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authError, setAuthError] = useState(initialAuthError);
-  const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
-  const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
-    null
-  );
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
   const [premiumUnlocked, setPremiumUnlocked] = useState(() =>
@@ -1302,7 +1296,6 @@ export default function Dashboard({
     null
   );
   const staleRefreshAttemptedRef = useRef(false);
-  const lastAuthNotificationAtRef = useRef(0);
   const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
     null
   );
@@ -2576,10 +2569,10 @@ export default function Dashboard({
       }
       if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
       if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
-      if (parsed.playerList && (players.length === 0 || initialAuthError)) {
+      if (parsed.playerList && players.length === 0) {
         setPlayerList(parsed.playerList);
       }
-      if (parsed.matchesState && initialAuthError) {
+      if (parsed.matchesState && players.length === 0) {
         setMatchesState(parsed.matchesState);
       }
       if (parsed.hiddenSpecialtyByPlayerId) {
@@ -3199,35 +3192,6 @@ export default function Dashboard({
     restoredStorageKey,
     storageKey,
   ]);
-
-  useEffect(() => {
-    if (!initialAuthError) return;
-    setAuthError(true);
-    setAuthErrorDetails(initialLoadDetails ?? null);
-  }, [initialAuthError, initialLoadDetails]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleAuthRequired = (event: Event) => {
-      const detail =
-        event instanceof CustomEvent
-          ? (event.detail as { details?: string; debugDetails?: string } | undefined)
-          : undefined;
-      setAuthError(true);
-      setAuthErrorDetails(detail?.details ?? messages.connectHint);
-      setAuthErrorDebugDetails(
-        process.env.NODE_ENV !== "production" ? detail?.debugDetails ?? null : null
-      );
-      const now = Date.now();
-      if (now - lastAuthNotificationAtRef.current > 3000) {
-        addNotification(messages.notificationReauthRequired);
-        lastAuthNotificationAtRef.current = now;
-      }
-    };
-    window.addEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
-    return () =>
-      window.removeEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
-  }, [addNotification, messages.connectHint, messages.notificationReauthRequired]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -5380,15 +5344,12 @@ export default function Dashboard({
 
   const ensureRefreshScopes = async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -5411,7 +5372,8 @@ export default function Dashboard({
         return false;
       }
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }
@@ -7755,7 +7717,7 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardStack}>
-      {loadError && !authError ? (
+      {loadError ? (
         <div className={styles.errorBox}>
           <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
           <p className={styles.errorText}>{loadError}</p>
@@ -7814,41 +7776,6 @@ export default function Dashboard({
         }}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
-      />
-      <Modal
-        open={authError}
-        title={messages.authExpiredTitle}
-        body={
-          <div>
-            <p>{messages.authExpiredBody}</p>
-            {authErrorDetails ? (
-              <p className={styles.errorDetails}>{authErrorDetails}</p>
-            ) : null}
-            {process.env.NODE_ENV !== "production" && authErrorDebugDetails ? (
-              <pre className={styles.errorDetails}>{authErrorDebugDetails}</pre>
-            ) : null}
-          </div>
-        }
-        actions={
-          <div className={styles.confirmActions}>
-            <button
-              type="button"
-              className={styles.confirmCancel}
-              onClick={() => setAuthError(false)}
-            >
-              {messages.authExpiredDismiss}
-            </button>
-            <button
-              type="button"
-              className={styles.confirmSubmit}
-              onClick={() => {
-                void reconnectChppWithTokenReset();
-              }}
-            >
-              {messages.authExpiredAction}
-            </button>
-          </div>
-        }
       />
       <Modal
         open={Boolean(serviceErrorModal)}
@@ -8518,6 +8445,16 @@ export default function Dashboard({
                     const nextMode = event.target.value as ChppDebugOauthErrorMode;
                     setDebugOauthErrorMode(nextMode);
                     writeChppDebugOauthErrorMode(nextMode);
+                    if (process.env.NODE_ENV !== "production" && nextMode !== "off") {
+                      const statusCode = nextMode === "4xx" ? 429 : 503;
+                      dispatchChppAccessBlocked({
+                        kind:
+                          nextMode === "4xx" ? "client-error" : "server-error",
+                        statusCode,
+                        reason: getChppHttpStatusReason(statusCode),
+                        simulated: true,
+                      });
+                    }
                     addNotification(
                       `${messages.notificationDebugOauthMode} ${
                         nextMode === "4xx"

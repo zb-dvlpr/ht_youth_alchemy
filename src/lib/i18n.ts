@@ -88,6 +88,18 @@ export type Messages = {
   mobileToolsLabel: string;
   mobileHelpLabel: string;
   mobilePlayerListLabel: string;
+  chppAccessLogoAlt: string;
+  chppAccessAuthorizationTitle: string;
+  chppAccessAuthorizationBody: string;
+  chppAccessConnectAction: string;
+  chppAccessClientProblemTitle: string;
+  chppAccessServerProblemTitle: string;
+  chppAccessStatusLabel: string;
+  chppAccessServerProblemBody: string;
+  chppAccessReportAction: string;
+  chppAccessReauthorizeAction: string;
+  chppAccessDevCloseSimulation: string;
+  chppAccessUnknownReason: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;
@@ -176,6 +188,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_6_5_0: string;
   changelog_6_3_0: string;
   changelog_6_4_0: string;
   lineupExclusionTooltip: string;

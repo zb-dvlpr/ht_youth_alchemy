@@ -2,11 +2,27 @@ import {
   extractSeasonFromManagerCompendiumPayload,
   writeGlobalSeason,
 } from "@/lib/season";
+import {
+  type ChppAccessProblemKind,
+  getChppHttpStatusReason,
+  isChppClientProblemStatus,
+  isChppServerProblemStatus,
+} from "@/lib/chpp/httpStatusReasons";
 
 export const CHPP_AUTH_REQUIRED_EVENT = "chpp:auth-required";
+export const CHPP_ACCESS_BLOCKED_EVENT = "chpp:access-blocked";
 export const CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY =
   "ya_debug_oauth_error_mode_v1";
 export type ChppDebugOauthErrorMode = "off" | "4xx" | "5xx";
+
+export type ChppAccessBlockedDetail = {
+  kind: ChppAccessProblemKind;
+  statusCode?: number;
+  reason?: string;
+  details?: string | null;
+  debugDetails?: string | null;
+  simulated?: boolean;
+};
 
 const CHPP_AUTH_MARKERS = [
   "missing chpp access token",
@@ -18,6 +34,16 @@ export class ChppAuthRequiredError extends Error {
   constructor(message = "Missing CHPP access token. Re-auth required.") {
     super(message);
     this.name = "ChppAuthRequiredError";
+  }
+}
+
+export class ChppAccessBlockedError extends ChppAuthRequiredError {
+  detail: ChppAccessBlockedDetail;
+
+  constructor(detail: ChppAccessBlockedDetail) {
+    super(detail.details ?? detail.reason ?? "CHPP access is blocked.");
+    this.name = "ChppAccessBlockedError";
+    this.detail = detail;
   }
 }
 
@@ -79,6 +105,15 @@ export function dispatchChppAuthRequired(
   );
 }
 
+export function dispatchChppAccessBlocked(detail: ChppAccessBlockedDetail) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(CHPP_ACCESS_BLOCKED_EVENT, {
+      detail,
+    })
+  );
+}
+
 export function readChppDebugOauthErrorMode(): ChppDebugOauthErrorMode {
   if (typeof window === "undefined") return "off";
   try {
@@ -125,6 +160,60 @@ const asUrlString = (input: RequestInfo | URL): string => {
   return String(input);
 };
 
+const resolveStatusCode = (payload: unknown, response: Response) => {
+  const meta = getAuthMeta(payload);
+  if (typeof meta.statusCode === "number" && Number.isFinite(meta.statusCode)) {
+    return meta.statusCode;
+  }
+  return response.status;
+};
+
+const isMissingLocalChppAuthPayload = (payload: unknown) => {
+  const meta = getAuthMeta(payload);
+  const markerText = [meta.code, meta.error, meta.details, meta.data]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return (
+    meta.code === "CHPP_AUTH_MISSING" ||
+    markerText.includes("missing chpp access token")
+  );
+};
+
+const buildAccessBlockedDetail = (
+  payload: unknown,
+  response: Response
+): ChppAccessBlockedDetail | null => {
+  const meta = getAuthMeta(payload);
+  if (isMissingLocalChppAuthPayload(payload)) {
+    const details =
+      meta.details ?? meta.error ?? "Missing CHPP access token. Re-auth required.";
+    return {
+      kind: "missing-token",
+      details,
+      debugDetails:
+        process.env.NODE_ENV !== "production"
+          ? [meta.debugDetails, meta.data].filter(Boolean).join("\n") || null
+          : null,
+    };
+  }
+
+  const statusCode = resolveStatusCode(payload, response);
+  if (!isChppClientProblemStatus(statusCode) && !isChppServerProblemStatus(statusCode)) {
+    return null;
+  }
+  return {
+    kind: isChppServerProblemStatus(statusCode) ? "server-error" : "client-error",
+    statusCode,
+    reason: getChppHttpStatusReason(statusCode),
+    details: meta.details ?? meta.error ?? null,
+    debugDetails:
+      process.env.NODE_ENV !== "production"
+        ? [meta.debugDetails, meta.data].filter(Boolean).join("\n") || null
+        : null,
+  };
+};
+
 export async function fetchChppJson<T = unknown>(
   input: RequestInfo | URL,
   init?: RequestInit
@@ -146,16 +235,18 @@ export async function fetchChppJson<T = unknown>(
   if (requestUrl.includes("/api/chpp/managercompendium")) {
     writeGlobalSeason(extractSeasonFromManagerCompendiumPayload(payload));
   }
-  if (isChppAuthErrorPayload(payload, response)) {
-    const meta = getAuthMeta(payload);
-    const userFacingDetails =
-      meta.details ?? meta.error ?? "Missing CHPP access token. Re-auth required.";
-    const debugDetails =
-      process.env.NODE_ENV !== "production"
-        ? [meta.debugDetails, meta.data].filter(Boolean).join("\n")
-        : null;
-    dispatchChppAuthRequired(userFacingDetails, debugDetails);
-    throw new ChppAuthRequiredError(userFacingDetails);
+  if (requestUrl.includes("/api/chpp/")) {
+    const blockedDetail = buildAccessBlockedDetail(payload, response);
+    if (blockedDetail) {
+      dispatchChppAccessBlocked(blockedDetail);
+      if (blockedDetail.kind === "missing-token") {
+        dispatchChppAuthRequired(
+          blockedDetail.details,
+          blockedDetail.debugDetails
+        );
+      }
+      throw new ChppAccessBlockedError(blockedDetail);
+    }
   }
   return { response, payload };
 }

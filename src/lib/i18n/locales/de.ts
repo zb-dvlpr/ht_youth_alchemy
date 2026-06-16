@@ -93,6 +93,18 @@ export const messagesDe: Messages = {
     mobileToolsLabel: "Werkzeuge",
     mobileHelpLabel: "Hilfe",
     mobilePlayerListLabel: "Spielerliste",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -209,6 +221,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_6_5_0:
+      "Centralized CHPP access blocking for missing authorization, 4xx/5xx OAuth/CHPP failures, and development simulated blockers.",
     changelog_6_4_0:
       "Spielerausschluss-Steuerungen fuer Jugend- und Senioraufstellungen hinzugefuegt.",
     changelog_6_3_0:

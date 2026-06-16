@@ -35,6 +35,103 @@ html[data-mobile-shell="true"] .scaleContainer {
   min-height: 100%;
 }
 
+.chppAccessGate {
+  min-height: min(720px, calc(100dvh - 48px));
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+}
+
+.chppAccessCard {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 18px;
+  padding: 30px;
+  border: 1px solid rgba(58, 48, 34, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 252, 247, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 18px 44px rgba(37, 31, 24, 0.12);
+}
+
+.chppAccessLogo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.chppAccessLogoImage {
+  display: block;
+  width: min(140px, 42vw);
+  height: auto;
+  object-fit: contain;
+}
+
+.chppAccessTitle {
+  margin: 0;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 28px;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #1b1a17;
+}
+
+.chppAccessBody,
+.chppAccessReason,
+.chppAccessDetails {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #40382f;
+}
+
+.chppAccessStatus {
+  padding: 12px 14px;
+  border: 1px solid rgba(58, 48, 34, 0.14);
+  border-radius: 8px;
+  background: #f4efe7;
+  color: #544639;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chppAccessStatus strong {
+  color: #1f1b16;
+  font-size: 16px;
+}
+
+.chppAccessReason {
+  font-weight: 700;
+}
+
+.chppAccessDetails {
+  padding: 12px 14px;
+  border-left: 3px solid #c45f3b;
+  background: rgba(196, 95, 59, 0.08);
+  color: #5b2d1f;
+}
+
+.chppAccessActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chppAccessDevClose {
+  justify-self: center;
+  border: none;
+  background: transparent;
+  color: #6a5c4e;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .brandRow {
   display: flex;
   align-items: baseline;
@@ -4460,6 +4557,40 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 @media (max-width: 900px) {
+  .chppAccessGate {
+    min-height: calc(100dvh - 32px);
+    padding: 24px 0;
+  }
+
+  .chppAccessCard {
+    padding: 22px;
+  }
+
+  .chppAccessLogo {
+    margin-bottom: 0;
+  }
+
+  .chppAccessLogoImage {
+    width: min(104px, 48vw);
+  }
+
+  .chppAccessTitle {
+    font-size: 24px;
+  }
+
+  .chppAccessActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
+  .chppAccessActions .confirmCancel,
+  .chppAccessActions .confirmSubmit {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
   .chronicleTsiWagesDetailTable .chronicleTableHeader {
     grid-template-columns: var(
       --cc-template-mobile,

@@ -34,6 +34,7 @@ import {
   hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
+import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   readSeniorDebugManagerUserId,
@@ -134,7 +135,7 @@ import {
   isPlayerExcluded,
   pruneSeniorLineupExcludedPlayers,
   readSeniorLineupExcludedPlayers,
-  toggleSeniorLineupExcludedPlayer,
+  setSeniorLineupExcludedPlayer,
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
 import { resolveOpponentTeam } from "@/lib/matches/visibility";
@@ -425,6 +426,9 @@ type ManagerCompendiumResponse = {
   data?: {
     HattrickData?: {
       Manager?: {
+        UserId?: number | string;
+        UserID?: number | string;
+        Loginname?: string;
         Teams?: {
           Team?: ManagerCompendiumTeam | ManagerCompendiumTeam[];
         };
@@ -3781,9 +3785,13 @@ export default function SeniorDashboard({
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
-  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>(() =>
-    readSeniorLineupExcludedPlayers()
-  );
+  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>({});
+  const [lineupExclusionsUserKey, setLineupExclusionsUserKey] =
+    useState<string>("default");
+  const excludedPlayersRef = useRef<ExcludedPlayersState>({});
+  useEffect(() => {
+    excludedPlayersRef.current = excludedPlayers;
+  }, [excludedPlayers]);
   const [opponentCupStatusByTeamId, setOpponentCupStatusByTeamId] = useState<
     Record<number, boolean>
   >({});
@@ -4195,6 +4203,10 @@ export default function SeniorDashboard({
     () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
     [activeSeniorTeamId, activeSeniorTeamOption]
   );
+  const resolvedSeniorTeamIdRef = useRef<number | null>(resolvedSeniorTeamId);
+  useEffect(() => {
+    resolvedSeniorTeamIdRef.current = resolvedSeniorTeamId;
+  }, [resolvedSeniorTeamId]);
   const displayCurrency = resolveForCountry(activeSeniorTeamOption?.countryId ?? null);
   const formatDisplayCurrencyFromSek = useCallback(
     (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
@@ -5177,11 +5189,22 @@ export default function SeniorDashboard({
   );
 
   useEffect(() => {
-    const next = pruneSeniorLineupExcludedPlayers(
-      players.map((player) => player.PlayerID)
-    );
-    setExcludedPlayers(next);
-  }, [players]);
+    if (!resolvedSeniorTeamId) {
+      setExcludedPlayers({});
+      return;
+    }
+    let cancelled = false;
+    void readSeniorLineupExcludedPlayers({
+      teamId: resolvedSeniorTeamId,
+      userKey: lineupExclusionsUserKey,
+    }).then((next) => {
+      if (cancelled) return;
+      setExcludedPlayers(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [lineupExclusionsUserKey, resolvedSeniorTeamId]);
 
   const removeSeniorPlayerFromLineup = useCallback((playerId: number) => {
     setAssignments((prev) => {
@@ -5209,14 +5232,38 @@ export default function SeniorDashboard({
   }, [assignments]);
 
   const handleToggleSeniorExcludedPlayer = useCallback((playerId: number) => {
-    const next = toggleSeniorLineupExcludedPlayer(playerId);
-    setExcludedPlayers(next);
-    if (isPlayerExcluded(next, playerId)) {
+    const teamId = resolvedSeniorTeamId;
+    if (!teamId) return;
+    const playerExcluded = !isPlayerExcluded(excludedPlayersRef.current, playerId);
+    const optimisticNext = { ...excludedPlayersRef.current };
+    if (playerExcluded) {
+      optimisticNext[playerId] = true;
+    } else {
+      delete optimisticNext[playerId];
+    }
+    excludedPlayersRef.current = optimisticNext;
+    setExcludedPlayers(optimisticNext);
+    void setSeniorLineupExcludedPlayer({
+      teamId,
+      userKey: lineupExclusionsUserKey,
+      playerId,
+      excluded: playerExcluded,
+    }).then((next) => {
+      if (resolvedSeniorTeamIdRef.current !== teamId) return;
+      setExcludedPlayers(next);
+    });
+    if (playerExcluded) {
       removeSeniorPlayerFromLineup(playerId);
       markSeniorLineupMutated();
       clearSeniorAiSubmitLock();
     }
-  }, [clearSeniorAiSubmitLock, markSeniorLineupMutated, removeSeniorPlayerFromLineup]);
+  }, [
+    clearSeniorAiSubmitLock,
+    lineupExclusionsUserKey,
+    markSeniorLineupMutated,
+    removeSeniorPlayerFromLineup,
+    resolvedSeniorTeamId,
+  ]);
   useEffect(() => {
     const detail: SeniorReminderContextEventDetail = {
       context: {
@@ -11694,6 +11741,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const applyManagerCompendiumTeams = useCallback(
     async (userId?: string | null) => {
       const payload = await fetchManagerCompendium(userId);
+      const managerIdentity = extractManagerIdentityFromManagerCompendium(payload.data);
+      setLineupExclusionsUserKey(managerIdentity?.userId ?? "default");
       const teams = extractSeniorTeams(payload);
       setSeniorTeams(teams);
       setSelectedSeniorTeamId((current) => {
@@ -13180,6 +13229,16 @@ const refreshDetailsForPlayers = async (
       }
 
       setPlayers(nextPlayers);
+      if (effectiveTeamId) {
+        void pruneSeniorLineupExcludedPlayers({
+          teamId: effectiveTeamId,
+          userKey: lineupExclusionsUserKey,
+          currentPlayerIds: nextPlayers.map((player) => player.PlayerID),
+        }).then((next) => {
+          if (resolvedSeniorTeamIdRef.current !== effectiveTeamId) return;
+          setExcludedPlayers(next);
+        });
+      }
       setMatchesState(nextMatches);
       setLatestFetchedRatingsResponse(nextRatings);
       if (ratingsOverwriteManualEditsEnabled) {

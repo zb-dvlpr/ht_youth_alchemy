@@ -129,6 +129,7 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -140,7 +141,8 @@ import { trackAnalyticsEvent } from "@/lib/analytics";
 import {
   isPlayerExcluded,
   pruneYouthLineupExcludedPlayers,
-  toggleYouthLineupExcludedPlayer,
+  readYouthLineupExcludedPlayers,
+  setYouthLineupExcludedPlayer,
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
 
@@ -349,6 +351,9 @@ type ManagerCompendiumResponse = {
   data?: {
     HattrickData?: {
       Manager?: {
+        UserId?: number | string;
+        UserID?: number | string;
+        Loginname?: string;
         Teams?: {
           Team?: ManagerTeam | ManagerTeam[];
         };
@@ -1138,6 +1143,12 @@ export default function Dashboard({
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>({});
+  const [lineupExclusionsUserKey, setLineupExclusionsUserKey] =
+    useState<string>("default");
+  const excludedPlayersRef = useRef<ExcludedPlayersState>({});
+  useEffect(() => {
+    excludedPlayersRef.current = excludedPlayers;
+  }, [excludedPlayers]);
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [ratingsResponseState, setRatingsResponseState] =
@@ -1565,6 +1576,10 @@ export default function Dashboard({
     () => activeYouthTeamId ?? activeYouthTeamOption?.youthTeamId ?? null,
     [activeYouthTeamId, activeYouthTeamOption]
   );
+  const resolvedYouthTeamIdRef = useRef<number | null>(resolvedYouthTeamId);
+  useEffect(() => {
+    resolvedYouthTeamIdRef.current = resolvedYouthTeamId;
+  }, [resolvedYouthTeamId]);
   const displayCurrency = resolveForCountry(activeYouthTeamOption?.countryId ?? null);
   const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
@@ -1821,11 +1836,22 @@ export default function Dashboard({
   );
 
   useEffect(() => {
-    const next = pruneYouthLineupExcludedPlayers(
-      playerList.map((player) => player.YouthPlayerID)
-    );
-    setExcludedPlayers(next);
-  }, [playerList]);
+    if (!resolvedYouthTeamId) {
+      setExcludedPlayers({});
+      return;
+    }
+    let cancelled = false;
+    void readYouthLineupExcludedPlayers({
+      teamId: resolvedYouthTeamId,
+      userKey: lineupExclusionsUserKey,
+    }).then((next) => {
+      if (cancelled) return;
+      setExcludedPlayers(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [lineupExclusionsUserKey, resolvedYouthTeamId]);
 
   const removePlayerFromLineup = useCallback((playerId: number) => {
     setAssignments((prev) => {
@@ -1853,16 +1879,39 @@ export default function Dashboard({
   }, [assignments]);
 
   const handleToggleExcludedPlayer = useCallback((playerId: number) => {
-    const next = toggleYouthLineupExcludedPlayer(playerId);
-    setExcludedPlayers(next);
-    if (isPlayerExcluded(next, playerId)) {
+    const teamId = resolvedYouthTeamId;
+    if (!teamId) return;
+    const playerExcluded = !isPlayerExcluded(excludedPlayersRef.current, playerId);
+    const optimisticNext = { ...excludedPlayersRef.current };
+    if (playerExcluded) {
+      optimisticNext[playerId] = true;
+    } else {
+      delete optimisticNext[playerId];
+    }
+    excludedPlayersRef.current = optimisticNext;
+    setExcludedPlayers(optimisticNext);
+    void setYouthLineupExcludedPlayer({
+      teamId,
+      userKey: lineupExclusionsUserKey,
+      playerId,
+      excluded: playerExcluded,
+    }).then((next) => {
+      if (resolvedYouthTeamIdRef.current !== teamId) return;
+      setExcludedPlayers(next);
+    });
+    if (playerExcluded) {
       removePlayerFromLineup(playerId);
       if (starPlayerId === playerId) {
         setStarPlayerId(null);
         setAutoSelectionApplied(false);
       }
     }
-  }, [removePlayerFromLineup, starPlayerId]);
+  }, [
+    lineupExclusionsUserKey,
+    removePlayerFromLineup,
+    resolvedYouthTeamId,
+    starPlayerId,
+  ]);
 
   const captainId = useMemo(() => {
     const fieldSlots = [
@@ -6004,6 +6053,16 @@ export default function Dashboard({
       }
       if (playersUpdated) {
         setPlayerList(nextPlayersSnapshot);
+        if (youthTeamId) {
+          void pruneYouthLineupExcludedPlayers({
+            teamId: youthTeamId,
+            userKey: lineupExclusionsUserKey,
+            currentPlayerIds: nextPlayersSnapshot.map((player) => player.YouthPlayerID),
+          }).then((next) => {
+            if (resolvedYouthTeamIdRef.current !== youthTeamId) return;
+            setExcludedPlayers(next);
+          });
+        }
         setLoadError(null);
         setLoadErrorDetails(null);
         setSelectedId(nextSelectedId);
@@ -6340,6 +6399,8 @@ export default function Dashboard({
         throw new Error(payload?.error ?? "Failed to fetch manager compendium");
       }
       if (!payload) throw new Error("Failed to fetch manager compendium");
+      const managerIdentity = extractManagerIdentityFromManagerCompendium(payload.data);
+      setLineupExclusionsUserKey(managerIdentity?.userId ?? "default");
       const teams = extractYouthTeams(payload);
       setYouthTeams(teams);
       if (teams.length > 1) {

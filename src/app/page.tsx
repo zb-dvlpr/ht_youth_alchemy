@@ -370,11 +370,11 @@ export default async function Home() {
 
   if (!isConnected) {
     return (
-      <main className={styles.main} data-app-main="true">
-        <ViewportScaler />
-        <div className={styles.scaleContainer} data-scale-container="true">
-          <ChppAccessGate messages={messages} kind="missing-token" />
-        </div>
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} kind="missing-token" />
       </main>
     );
   }
@@ -383,11 +383,11 @@ export default async function Home() {
   const managerAccessProblem = resolveInitialAccessProblem(managerResponse);
   if (managerAccessProblem) {
     return (
-      <main className={styles.main} data-app-main="true">
-        <ViewportScaler />
-        <div className={styles.scaleContainer} data-scale-container="true">
-          <ChppAccessGate messages={messages} {...managerAccessProblem} />
-        </div>
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} {...managerAccessProblem} />
       </main>
     );
   }
@@ -416,11 +416,11 @@ export default async function Home() {
     resolveInitialAccessProblem(ratingsResponse);
   if (initialAccessProblem) {
     return (
-      <main className={styles.main} data-app-main="true">
-        <ViewportScaler />
-        <div className={styles.scaleContainer} data-scale-container="true">
-          <ChppAccessGate messages={messages} {...initialAccessProblem} />
-        </div>
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} {...initialAccessProblem} />
       </main>
     );
   }

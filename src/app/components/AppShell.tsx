@@ -741,6 +741,7 @@ export default function AppShell({
       setReminderBatchItems([]);
       return;
     }
+    if (chppAccessBlock) return;
     if (!reminderEvaluation.newlyDueToSurface.length) return;
     reminderEvaluation.newlyDueToSurface.forEach((item) => {
       surfacedReminderTriggerKeysThisSessionRef.current.add(
@@ -749,6 +750,7 @@ export default function AppShell({
     });
     setReminderBatchItems(reminderEvaluation.due);
   }, [
+    chppAccessBlock,
     reminderEvaluation.due,
     reminderEvaluation.newlyDueToSurface,
     reminderStorageState.preferences.enabled,
@@ -961,6 +963,7 @@ export default function AppShell({
     if (typeof window === "undefined") return;
     const latestVersion = changelogEntries[0]?.version ?? null;
     if (!latestVersion) return;
+    if (chppAccessBlock) return;
     try {
       const previous = window.localStorage.getItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY);
       if (!previous) {
@@ -975,10 +978,11 @@ export default function AppShell({
     } catch {
       // ignore storage errors
     }
-  }, [changelogEntries]);
+  }, [changelogEntries, chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     try {
       const raw = window.localStorage.getItem(BUY_COFFEE_PROMPT_STORAGE_KEY);
       if (!raw) {
@@ -1023,15 +1027,16 @@ export default function AppShell({
         cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
       });
     }
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     const timer = window.setTimeout(() => {
       setBuyCoffeeSessionReady(true);
     }, BUY_COFFEE_INITIAL_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
@@ -1118,6 +1123,7 @@ export default function AppShell({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     if (!buyCoffeePromptState) return;
     if (!buyCoffeeSessionReady) return;
     if (buyCoffeePromptOpen) return;
@@ -1141,6 +1147,7 @@ export default function AppShell({
     buyCoffeePromptOpen,
     buyCoffeePromptState,
     buyCoffeeSessionReady,
+    chppAccessBlock,
     scopeReconnectModalOpen,
     seniorRefreshing,
     showChangelog,
@@ -1150,6 +1157,7 @@ export default function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = (event: Event) => {
+      if (chppAccessBlock) return;
       const source =
         event instanceof CustomEvent
           ? parseBuyCoffeePromptSource(
@@ -1166,7 +1174,7 @@ export default function AppShell({
       window.removeEventListener(BUY_COFFEE_PROMPT_OPEN_EVENT, handler);
       window.removeEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
     };
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1667,28 +1675,25 @@ export default function AppShell({
   if (chppAccessBlock) {
     return (
       <DisplayCurrencyProvider>
-        <ReminderBellSlotProvider bell={reminderBell}>
-        <div className={styles.shellFrame} data-mobile-layout="false">
-          <div className={styles.shellTopBar} ref={shellTopBarRef}>
-            {headerChildren}
+        <ReminderBellSlotProvider bell={null}>
+          <div className={styles.chppAccessPage}>
+            <ChppAccessGate
+              messages={messages}
+              kind={chppAccessBlock.kind}
+              statusCode={chppAccessBlock.statusCode ?? null}
+              reason={chppAccessBlock.reason ?? null}
+              details={chppAccessBlock.details ?? null}
+              simulated={chppAccessBlock.simulated}
+              onCloseSimulation={
+                chppAccessBlock.simulated
+                  ? () => {
+                      writeChppDebugOauthErrorMode("off");
+                      setChppAccessBlock(null);
+                    }
+                  : undefined
+              }
+            />
           </div>
-          <ChppAccessGate
-            messages={messages}
-            kind={chppAccessBlock.kind}
-            statusCode={chppAccessBlock.statusCode ?? null}
-            reason={chppAccessBlock.reason ?? null}
-            details={chppAccessBlock.details ?? null}
-            simulated={chppAccessBlock.simulated}
-            onCloseSimulation={
-              chppAccessBlock.simulated
-                ? () => {
-                    writeChppDebugOauthErrorMode("off");
-                    setChppAccessBlock(null);
-                  }
-                : undefined
-            }
-          />
-        </div>
         </ReminderBellSlotProvider>
       </DisplayCurrencyProvider>
     );

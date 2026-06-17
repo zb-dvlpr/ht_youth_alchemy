@@ -93,6 +93,18 @@ export const messagesPt: Messages = {
     mobileToolsLabel: "Ferramentas",
     mobileHelpLabel: "Ajuda",
     mobilePlayerListLabel: "Lista de jogadores",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
       "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
@@ -209,6 +221,10 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Adicionados controlos de exclusao de jogadores para escalacoes jovens e senior.",
     changelog_6_3_0:
       "A arquitetura de gestao de memoria foi reformulada para reduzir armazenamento local redundante e mover grandes dados do Cronica do clube para IndexedDB.",
     changelog_6_2_0:
@@ -1753,6 +1769,9 @@ export const messagesPt: Messages = {
     trainingSlotSecondary: "Secundário",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jogador estrela",
+    lineupExclusionTooltip: "Quando ativado, este jogador nao sera considerado para nenhuma escalacao.",
+    lineupExclusionExcludeLabel: "Excluir {{player}} da consideracao para escalacoes",
+    lineupExclusionAllowLabel: "Permitir que {{player}} seja considerado para escalacoes",
     seniorPlayerListTitle: "Jogadores seniores",
     seniorTransferSearchButtonLabel: "Encontrar jogadores semelhantes",
     seniorTransferSearchEditedButtonLabel:

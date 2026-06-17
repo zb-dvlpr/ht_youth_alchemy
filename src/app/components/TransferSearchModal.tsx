@@ -20,6 +20,7 @@ import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import { parseChppDate } from "@/lib/chpp/utils";
+import { fetchChppJson } from "@/lib/chpp/client";
 import { formatTimeRemaining } from "@/lib/datetime";
 import {
   displayAmountToSek,
@@ -1233,10 +1234,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     void Promise.all(
       countryIds.map(async (countryId) => {
         try {
-          const response = await fetch(`/api/chpp/worlddetails?countryId=${countryId}`, {
-            cache: "no-store",
-          });
-          const payload = (await response.json()) as {
+          const { response, payload } = await fetchChppJson<{
             data?: {
               HattrickData?: {
                 LeagueList?: {
@@ -1245,7 +1243,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
               };
             };
             error?: string;
-          };
+          }>(`/api/chpp/worlddetails?countryId=${countryId}`, {
+            cache: "no-store",
+          });
           if (!response.ok || payload?.error) return null;
           const rawLeague = payload?.data?.HattrickData?.LeagueList?.League;
           const leagues = Array.isArray(rawLeague) ? rawLeague : rawLeague ? [rawLeague] : [];

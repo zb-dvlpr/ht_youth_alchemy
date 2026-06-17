@@ -27,6 +27,7 @@ import {
   writeDisplayCurrencySetting,
   type StoredDisplayCurrencySetting,
 } from "@/lib/settings";
+import { fetchChppJson } from "@/lib/chpp/client";
 
 const DISPLAY_CURRENCY_WORLDDETAILS_STORAGE_KEY =
   "ya_worlddetails_currencies_v1";
@@ -130,11 +131,10 @@ export function DisplayCurrencyProvider({
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetch("/api/chpp/worlddetails", {
+        const { response, payload } = await fetchChppJson("/api/chpp/worlddetails", {
           cache: "no-store",
         });
         if (!response.ok) return;
-        const payload = (await response.json()) as unknown;
         const parsed = parseWorldDetailsCurrencies(payload);
         if (!parsed.length || cancelled) return;
         writeCachedCurrencies(parsed);

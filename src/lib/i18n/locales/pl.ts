@@ -107,6 +107,18 @@ export const messagesPl: Messages = {
   mobileToolsLabel: "Narzędzia",
   mobileHelpLabel: "Pomoc",
   mobilePlayerListLabel: "Lista zawodników",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
   helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
   helpOptimizerLocationYouth:
     "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
@@ -465,6 +477,10 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+  changelog_6_4_0:
+    "Dodano kontrolki wykluczania zawodnikow dla skladow juniorow i seniorow.",
   changelog_6_3_0:
     "Przebudowano architekture zarzadzania pamiecia, aby ograniczyc redundantne dane w localStorage i przeniesc duze ladunki Kroniki klubu do IndexedDB.",
   changelog_6_2_0:
@@ -1445,6 +1461,12 @@ export const messagesPl: Messages = {
   trainingSlotSecondary: "Drugorzędny",
   trainingSlotBoth: "Gł/dr",
   starPlayerLabel: "Ustaw gwiazdę",
+  lineupExclusionTooltip:
+    "Po wlaczeniu ten zawodnik nie bedzie brany pod uwage przy zadnym skladzie.",
+  lineupExclusionExcludeLabel:
+    "Wyklucz {{player}} z uwzgledniania w skladach",
+  lineupExclusionAllowLabel:
+    "Zezwol, aby {{player}} byl uwzgledniany w skladach",
   tacticLabel: "Taktyka",
   tacticNormal: "Normalna",
   tacticPressing: "Pressing",

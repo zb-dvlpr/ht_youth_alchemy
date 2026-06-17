@@ -93,6 +93,18 @@ export const messagesIt: Messages = {
     mobileToolsLabel: "Strumenti",
     mobileHelpLabel: "Aiuto",
     mobilePlayerListLabel: "Lista giocatori",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Cronaca del club",
     clubChronicleBody:
       "La Cronaca del club arriverà presto. Qui seguirai cosa fanno le squadre senior.",
@@ -209,6 +221,10 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Aggiunti controlli di esclusione giocatore per le formazioni giovanili e senior.",
     changelog_6_3_0:
       "Rivista l'architettura di gestione della memoria per ridurre l'archiviazione locale ridondante e spostare i grandi payload di Club Chronicle in IndexedDB.",
     changelog_6_2_0:
@@ -1755,6 +1771,9 @@ export const messagesIt: Messages = {
     trainingSlotSecondary: "Secondario",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Imposta giocatore stella",
+    lineupExclusionTooltip: "Quando attivo, questo giocatore non verra considerato per nessuna formazione.",
+    lineupExclusionExcludeLabel: "Escludi {{player}} dalla considerazione per le formazioni",
+    lineupExclusionAllowLabel: "Consenti a {{player}} di essere considerato per le formazioni",
     seniorPlayerListTitle: "Giocatori senior",
     seniorTransferSearchButtonLabel: "Trova giocatori simili",
     seniorTransferSearchEditedButtonLabel:

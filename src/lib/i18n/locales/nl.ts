@@ -107,6 +107,18 @@ export const messagesNl: Messages = {
   mobileToolsLabel: "Tools",
   mobileHelpLabel: "Help",
   mobilePlayerListLabel: "Spelerslijst",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
   helpOptimizerLocationTitle: "Waar je de optimizer vindt",
   helpOptimizerLocationYouth:
     "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop in de opstellingskop.",
@@ -471,6 +483,10 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+  changelog_6_4_0:
+  "Speleruitsluitingsknoppen toegevoegd voor jeugd- en senioropstellingen.",
   changelog_6_3_0:
     "De architectuur voor geheugenbeheer is herzien om redundante lokale opslag te verminderen en grote Clubkroniek-gegevens naar IndexedDB te verplaatsen.",
   changelog_6_2_0:
@@ -1451,6 +1467,9 @@ export const messagesNl: Messages = {
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",
   starPlayerLabel: "Sterspeler instellen",
+  lineupExclusionTooltip: "Wanneer ingeschakeld wordt deze speler voor geen enkele opstelling meegenomen.",
+  lineupExclusionExcludeLabel: "Sluit {{player}} uit van opstellingskeuzes",
+  lineupExclusionAllowLabel: "Laat {{player}} weer meetellen voor opstellingen",
   tacticLabel: "Tactiek",
   tacticNormal: "Normaal",
   tacticPressing: "Pressie",

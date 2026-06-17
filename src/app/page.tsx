@@ -14,6 +14,7 @@ import SeasonBootstrap from "./components/SeasonBootstrap";
 import SeniorMlBackfillBootstrap from "./components/SeniorMlBackfillBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
+import ChppAccessGate from "./components/ChppAccessGate";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
 import ReminderBellSlot from "./components/reminders/ReminderBellSlot";
 import MobileManualButton from "./components/MobileManualButton";
@@ -26,6 +27,12 @@ import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import { isPremiumLicensingEnabled } from "@/lib/license";
+import {
+  type ChppAccessProblemKind,
+  getChppHttpStatusReason,
+  isChppClientProblemStatus,
+  isChppServerProblemStatus,
+} from "@/lib/chpp/httpStatusReasons";
 import type { MatchesResponse } from "./components/UpcomingMatches";
 import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
@@ -77,6 +84,20 @@ type ManagerCompendiumResponse = {
   details?: string;
   code?: string;
   statusCode?: number;
+};
+
+type ChppInitialErrorPayload = {
+  error?: string;
+  details?: string;
+  code?: string;
+  statusCode?: number;
+};
+
+type ChppInitialAccessProblem = {
+  kind: ChppAccessProblemKind;
+  statusCode?: number | null;
+  reason?: string | null;
+  details?: string | null;
 };
 
 type ManagerTeam = {
@@ -186,7 +207,7 @@ async function getMatches(teamId?: number | null): Promise<MatchesResponse> {
 
 async function getRatings(
   teamId?: number | null
-): Promise<RatingsMatrixResponse | null> {
+): Promise<RatingsMatrixResponse | ChppInitialErrorPayload | null> {
   try {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
@@ -202,7 +223,6 @@ async function getRatings(
       }
     );
 
-    if (!response.ok) return null;
     return response.json();
   } catch {
     return null;
@@ -293,17 +313,87 @@ function extractSeniorTeams(response: ManagerCompendiumResponse): SeniorTeamOpti
   }, []);
 }
 
+function resolveInitialAccessProblem(
+  payload: unknown
+): ChppInitialAccessProblem | null {
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as ChppInitialErrorPayload;
+  const markerText = [
+    record.code,
+    record.error,
+    record.details,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  if (
+    record.code === "CHPP_AUTH_MISSING" ||
+    markerText.includes("missing chpp access token")
+  ) {
+    return {
+      kind: "missing-token",
+      details:
+        record.details ??
+        record.error ??
+        "Missing CHPP access token. Re-auth required.",
+    };
+  }
+  const statusCode = record.statusCode;
+  if (typeof statusCode !== "number" || !Number.isFinite(statusCode)) {
+    return null;
+  }
+  if (!isChppClientProblemStatus(statusCode) && !isChppServerProblemStatus(statusCode)) {
+    return null;
+  }
+  return {
+    kind: isChppServerProblemStatus(statusCode) ? "server-error" : "client-error",
+    statusCode,
+    reason: getChppHttpStatusReason(statusCode),
+    details: record.details ?? record.error ?? null,
+  };
+}
+
+function isRatingsMatrixResponse(
+  payload: RatingsMatrixResponse | ChppInitialErrorPayload | null
+): payload is RatingsMatrixResponse {
+  return Boolean(payload && Array.isArray((payload as RatingsMatrixResponse).players));
+}
+
 export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
   const messages = getMessages(locale);
-  const isConnected = Boolean(cookieStore.get("chpp_access_token")?.value);
+  const token = cookieStore.get("chpp_access_token")?.value;
+  const secret = cookieStore.get("chpp_access_secret")?.value;
+  const isConnected = Boolean(token && secret);
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
+
+  if (!isConnected) {
+    return (
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} kind="missing-token" />
+      </main>
+    );
+  }
 
   const managerResponse = await getManagerCompendium();
+  const managerAccessProblem = resolveInitialAccessProblem(managerResponse);
+  if (managerAccessProblem) {
+    return (
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} {...managerAccessProblem} />
+      </main>
+    );
+  }
   const managerIdentity = extractManagerIdentityFromManagerCompendium(
     managerResponse.data
   );
-  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const youthTeams = extractYouthTeams(managerResponse);
   const seniorTeams = extractSeniorTeams(managerResponse);
   const primarySeniorTeamCountryId =
@@ -320,18 +410,27 @@ export default async function Home() {
       getRatings(defaultYouthTeamId),
     ]);
 
-  const tokenError =
-    playersResponse.code?.startsWith("CHPP_AUTH") ||
-    playersResponse.error?.includes("Missing CHPP access token") ||
-    playersResponse.details?.includes("Missing CHPP access token") ||
-    playersResponse.error?.includes("Re-auth") ||
-    playersResponse.details?.includes("Re-auth") ||
-    playersResponse.error?.includes("authorization expired") ||
-    playersResponse.details?.includes("authorization expired");
+  const initialAccessProblem =
+    resolveInitialAccessProblem(playersResponse) ??
+    resolveInitialAccessProblem(matchesResponse) ??
+    resolveInitialAccessProblem(ratingsResponse);
+  if (initialAccessProblem) {
+    return (
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} {...initialAccessProblem} />
+      </main>
+    );
+  }
 
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer
   );
+  const resolvedRatingsResponse = isRatingsMatrixResponse(ratingsResponse)
+    ? ratingsResponse
+    : null;
 
   return (
     <main className={styles.main} data-app-main="true">
@@ -468,17 +567,14 @@ export default async function Home() {
               <Dashboard
                 players={players}
                 matchesResponse={matchesResponse}
-                ratingsResponse={ratingsResponse}
+                ratingsResponse={resolvedRatingsResponse}
                 initialYouthTeams={youthTeams}
                 initialYouthTeamId={defaultYouthTeamId}
                 appVersion={pkg.version}
                 messages={messages}
                 isConnected={isConnected}
                 initialLoadError={playersResponse.error ?? null}
-                initialLoadDetails={
-                  tokenError ? messages.connectHint : playersResponse.details ?? null
-                }
-                initialAuthError={Boolean(tokenError)}
+                initialLoadDetails={playersResponse.details ?? null}
               />
             </AppShell>
           </SupporterStatusProvider>

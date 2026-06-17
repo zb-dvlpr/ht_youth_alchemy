@@ -93,6 +93,18 @@ export const messagesDe: Messages = {
     mobileToolsLabel: "Werkzeuge",
     mobileHelpLabel: "Hilfe",
     mobilePlayerListLabel: "Spielerliste",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -209,6 +221,10 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Spielerausschluss-Steuerungen fuer Jugend- und Senioraufstellungen hinzugefuegt.",
     changelog_6_3_0:
       "Die Speicherverwaltungsarchitektur wurde ueberarbeitet, um redundante lokale Speicherung zu reduzieren und grosse Club-Chronik-Daten nach IndexedDB zu verschieben.",
     changelog_6_2_0:
@@ -1734,6 +1750,9 @@ export const messagesDe: Messages = {
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Starspieler festlegen",
+    lineupExclusionTooltip: "Wenn aktiviert, wird dieser Spieler fuer keine Aufstellung beruecksichtigt.",
+    lineupExclusionExcludeLabel: "{{player}} von Aufstellungsberuecksichtigung ausschliessen",
+    lineupExclusionAllowLabel: "{{player}} wieder fuer Aufstellungen beruecksichtigen",
     seniorPlayerListTitle: "Senior-Spieler",
     seniorTransferSearchButtonLabel: "Ahnliche Spieler finden",
     seniorTransferSearchEditedButtonLabel:

@@ -92,6 +92,18 @@ export const messagesEn: Messages = {
     mobileToolsLabel: "Tools",
     mobileHelpLabel: "Help",
     mobilePlayerListLabel: "Player list",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
       "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
@@ -207,6 +219,10 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Added player exclusion controls for youth and senior lineups.",
     changelog_6_3_0:
       "Overhauled the memory management architecture to reduce redundant local storage usage and move large Club Chronicle data payloads to IndexedDB.",
     changelog_6_2_0:
@@ -1696,6 +1712,9 @@ export const messagesEn: Messages = {
     trainingSlotSecondary: "Secondary",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Set star player",
+    lineupExclusionTooltip: "When enabled, this player will be disregarded from consideration for any lineup.",
+    lineupExclusionExcludeLabel: "Exclude {{player}} from lineup consideration",
+    lineupExclusionAllowLabel: "Allow {{player}} to be considered for lineups",
     seniorPlayerListTitle: "Senior players",
     seniorTransferSearchButtonLabel: "Find similar players",
     seniorTransferSearchEditedButtonLabel:

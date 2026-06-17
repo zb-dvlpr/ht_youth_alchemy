@@ -104,7 +104,7 @@ import {
   calculatePsicoTsiMetrics,
 } from "@/lib/seniorPlayerMetrics";
 import {
-  CHPP_AUTH_REQUIRED_EVENT,
+  dispatchChppAccessBlocked,
   type ChppDebugOauthErrorMode,
   ChppAuthRequiredError,
   fetchChppJson,
@@ -112,6 +112,7 @@ import {
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
+import { getChppHttpStatusReason } from "@/lib/chpp/httpStatusReasons";
 import { mapWithConcurrency } from "@/lib/async";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import {
@@ -129,6 +130,7 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -137,6 +139,13 @@ import {
 } from "@/lib/license";
 import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import {
+  isPlayerExcluded,
+  pruneYouthLineupExcludedPlayers,
+  readYouthLineupExcludedPlayers,
+  setYouthLineupExcludedPlayer,
+  type ExcludedPlayersState,
+} from "@/lib/lineupExclusions";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -336,13 +345,15 @@ type DashboardProps = {
   isConnected: boolean;
   initialLoadError?: string | null;
   initialLoadDetails?: string | null;
-  initialAuthError?: boolean;
 };
 
 type ManagerCompendiumResponse = {
   data?: {
     HattrickData?: {
       Manager?: {
+        UserId?: number | string;
+        UserID?: number | string;
+        Loginname?: string;
         Teams?: {
           Team?: ManagerTeam | ManagerTeam[];
         };
@@ -1031,7 +1042,6 @@ export default function Dashboard({
   isConnected,
   initialLoadError = null,
   initialLoadDetails = null,
-  initialAuthError = false,
 }: DashboardProps) {
   const { resolveForCountry } = useDisplayCurrency();
   const trackYouthFeatureUsed = useCallback(
@@ -1079,11 +1089,6 @@ export default function Dashboard({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authError, setAuthError] = useState(initialAuthError);
-  const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
-  const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
-    null
-  );
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
   const [premiumUnlocked, setPremiumUnlocked] = useState(() =>
@@ -1131,6 +1136,13 @@ export default function Dashboard({
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
+  const [excludedPlayers, setExcludedPlayers] = useState<ExcludedPlayersState>({});
+  const [lineupExclusionsUserKey, setLineupExclusionsUserKey] =
+    useState<string>("default");
+  const excludedPlayersRef = useRef<ExcludedPlayersState>({});
+  useEffect(() => {
+    excludedPlayersRef.current = excludedPlayers;
+  }, [excludedPlayers]);
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [ratingsResponseState, setRatingsResponseState] =
@@ -1284,7 +1296,6 @@ export default function Dashboard({
     null
   );
   const staleRefreshAttemptedRef = useRef(false);
-  const lastAuthNotificationAtRef = useRef(0);
   const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
     null
   );
@@ -1558,6 +1569,10 @@ export default function Dashboard({
     () => activeYouthTeamId ?? activeYouthTeamOption?.youthTeamId ?? null,
     [activeYouthTeamId, activeYouthTeamOption]
   );
+  const resolvedYouthTeamIdRef = useRef<number | null>(resolvedYouthTeamId);
+  useEffect(() => {
+    resolvedYouthTeamIdRef.current = resolvedYouthTeamId;
+  }, [resolvedYouthTeamId]);
   const displayCurrency = resolveForCountry(activeYouthTeamOption?.countryId ?? null);
   const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
@@ -1812,6 +1827,84 @@ export default function Dashboard({
       ),
     [assignments]
   );
+
+  useEffect(() => {
+    if (!resolvedYouthTeamId) {
+      setExcludedPlayers({});
+      return;
+    }
+    let cancelled = false;
+    void readYouthLineupExcludedPlayers({
+      teamId: resolvedYouthTeamId,
+      userKey: lineupExclusionsUserKey,
+    }).then((next) => {
+      if (cancelled) return;
+      setExcludedPlayers(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [lineupExclusionsUserKey, resolvedYouthTeamId]);
+
+  const removePlayerFromLineup = useCallback((playerId: number) => {
+    setAssignments((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.entries(next).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId) {
+          next[slot] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      Object.entries(assignments).forEach(([slot, assignedId]) => {
+        if (Number(assignedId) === playerId && slot in next) {
+          delete next[slot];
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [assignments]);
+
+  const handleToggleExcludedPlayer = useCallback((playerId: number) => {
+    const teamId = resolvedYouthTeamId;
+    if (!teamId) return;
+    const playerExcluded = !isPlayerExcluded(excludedPlayersRef.current, playerId);
+    const optimisticNext = { ...excludedPlayersRef.current };
+    if (playerExcluded) {
+      optimisticNext[playerId] = true;
+    } else {
+      delete optimisticNext[playerId];
+    }
+    excludedPlayersRef.current = optimisticNext;
+    setExcludedPlayers(optimisticNext);
+    void setYouthLineupExcludedPlayer({
+      teamId,
+      userKey: lineupExclusionsUserKey,
+      playerId,
+      excluded: playerExcluded,
+    }).then((next) => {
+      if (resolvedYouthTeamIdRef.current !== teamId) return;
+      setExcludedPlayers(next);
+    });
+    if (playerExcluded) {
+      removePlayerFromLineup(playerId);
+      if (starPlayerId === playerId) {
+        setStarPlayerId(null);
+        setAutoSelectionApplied(false);
+      }
+    }
+  }, [
+    lineupExclusionsUserKey,
+    removePlayerFromLineup,
+    resolvedYouthTeamId,
+    starPlayerId,
+  ]);
 
   const captainId = useMemo(() => {
     const fieldSlots = [
@@ -2476,10 +2569,10 @@ export default function Dashboard({
       }
       if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
       if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
-      if (parsed.playerList && (players.length === 0 || initialAuthError)) {
+      if (parsed.playerList && players.length === 0) {
         setPlayerList(parsed.playerList);
       }
-      if (parsed.matchesState && initialAuthError) {
+      if (parsed.matchesState && players.length === 0) {
         setMatchesState(parsed.matchesState);
       }
       if (parsed.hiddenSpecialtyByPlayerId) {
@@ -3099,35 +3192,6 @@ export default function Dashboard({
     restoredStorageKey,
     storageKey,
   ]);
-
-  useEffect(() => {
-    if (!initialAuthError) return;
-    setAuthError(true);
-    setAuthErrorDetails(initialLoadDetails ?? null);
-  }, [initialAuthError, initialLoadDetails]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleAuthRequired = (event: Event) => {
-      const detail =
-        event instanceof CustomEvent
-          ? (event.detail as { details?: string; debugDetails?: string } | undefined)
-          : undefined;
-      setAuthError(true);
-      setAuthErrorDetails(detail?.details ?? messages.connectHint);
-      setAuthErrorDebugDetails(
-        process.env.NODE_ENV !== "production" ? detail?.debugDetails ?? null : null
-      );
-      const now = Date.now();
-      if (now - lastAuthNotificationAtRef.current > 3000) {
-        addNotification(messages.notificationReauthRequired);
-        lastAuthNotificationAtRef.current = now;
-      }
-    };
-    window.addEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
-    return () =>
-      window.removeEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
-  }, [addNotification, messages.connectHint, messages.notificationReauthRequired]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -4712,6 +4776,7 @@ export default function Dashboard({
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
+    if (isPlayerExcluded(excludedPlayers, playerId)) return;
     clearPendingYouthSubmittedLineupFeature();
     const clearedSlots = Object.entries(assignments)
       .filter(([, value]) => value === playerId)
@@ -4755,6 +4820,7 @@ export default function Dashboard({
       const next = { ...prev };
       const movingPlayer = next[fromSlot];
       if (!movingPlayer) return prev;
+      if (isPlayerExcluded(excludedPlayers, movingPlayer)) return prev;
       const targetPlayer = next[toSlot] ?? null;
       next[toSlot] = movingPlayer;
       next[fromSlot] = targetPlayer;
@@ -4787,7 +4853,9 @@ export default function Dashboard({
       "F_C",
       "F_L",
     ];
-    const ids = playerList.map((player) => player.YouthPlayerID);
+    const ids = playerList
+      .map((player) => player.YouthPlayerID)
+      .filter((playerId) => !isPlayerExcluded(excludedPlayers, playerId));
     const shuffledIds = [...ids].sort(() => Math.random() - 0.5);
     const keeperId = shuffledIds.shift() ?? null;
     const outfieldIds = shuffledIds.slice(0, 10);
@@ -5276,15 +5344,12 @@ export default function Dashboard({
 
   const ensureRefreshScopes = async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -5307,7 +5372,8 @@ export default function Dashboard({
         return false;
       }
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }
@@ -5949,6 +6015,16 @@ export default function Dashboard({
       }
       if (playersUpdated) {
         setPlayerList(nextPlayersSnapshot);
+        if (youthTeamId) {
+          void pruneYouthLineupExcludedPlayers({
+            teamId: youthTeamId,
+            userKey: lineupExclusionsUserKey,
+            currentPlayerIds: nextPlayersSnapshot.map((player) => player.YouthPlayerID),
+          }).then((next) => {
+            if (resolvedYouthTeamIdRef.current !== youthTeamId) return;
+            setExcludedPlayers(next);
+          });
+        }
         setLoadError(null);
         setLoadErrorDetails(null);
         setSelectedId(nextSelectedId);
@@ -6285,6 +6361,8 @@ export default function Dashboard({
         throw new Error(payload?.error ?? "Failed to fetch manager compendium");
       }
       if (!payload) throw new Error("Failed to fetch manager compendium");
+      const managerIdentity = extractManagerIdentityFromManagerCompendium(payload.data);
+      setLineupExclusionsUserKey(managerIdentity?.userId ?? "default");
       const teams = extractYouthTeams(payload);
       setYouthTeams(teams);
       if (teams.length > 1) {
@@ -6342,6 +6420,7 @@ export default function Dashboard({
     () =>
       playerList
         .filter((player) => {
+          if (isPlayerExcluded(excludedPlayers, player.YouthPlayerID)) return false;
           const details = playerDetailsById.get(player.YouthPlayerID);
           const injuryLevel = normalizeInjuryLevel(
             details?.InjuryLevel ?? player.InjuryLevel
@@ -6378,7 +6457,7 @@ export default function Dashboard({
             (player.PlayerSkills as OptimizerPlayer["skills"]) ??
             null,
         })),
-    [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
+    [excludedPlayers, hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(
@@ -7104,6 +7183,9 @@ export default function Dashboard({
       const excludedPlayerIds = Object.entries(assignments)
         .filter(([, playerId]) => playerId !== null)
         .map(([, playerId]) => Number(playerId));
+      Object.keys(excludedPlayers).forEach((playerId) => {
+        excludedPlayerIds.push(Number(playerId));
+      });
       return rankPlayersForYouthLineupSlot(
         optimizerPlayers,
         slotId as YouthLineupSlotId,
@@ -7123,6 +7205,7 @@ export default function Dashboard({
     },
     [
       assignments,
+      excludedPlayers,
       messages.ageYearsShort,
       messages.unknownShort,
       optimizerPlayers,
@@ -7290,6 +7373,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          excludedPlayers={excludedPlayers}
           onSortStart={() => {
             setOrderSource("list");
             setOrderedPlayerIds(null);
@@ -7326,6 +7410,7 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onToggleExcluded={handleToggleExcludedPlayer}
           onSelect={(playerId) => {
             trackYouthFeatureUsed("player_selected", "mobile");
             handleMobilePlayerSelect(playerId);
@@ -7554,6 +7639,7 @@ export default function Dashboard({
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersById}
+          excludedPlayers={excludedPlayers}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
@@ -7631,7 +7717,7 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardStack}>
-      {loadError && !authError ? (
+      {loadError ? (
         <div className={styles.errorBox}>
           <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
           <p className={styles.errorText}>{loadError}</p>
@@ -7690,41 +7776,6 @@ export default function Dashboard({
         }}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
-      />
-      <Modal
-        open={authError}
-        title={messages.authExpiredTitle}
-        body={
-          <div>
-            <p>{messages.authExpiredBody}</p>
-            {authErrorDetails ? (
-              <p className={styles.errorDetails}>{authErrorDetails}</p>
-            ) : null}
-            {process.env.NODE_ENV !== "production" && authErrorDebugDetails ? (
-              <pre className={styles.errorDetails}>{authErrorDebugDetails}</pre>
-            ) : null}
-          </div>
-        }
-        actions={
-          <div className={styles.confirmActions}>
-            <button
-              type="button"
-              className={styles.confirmCancel}
-              onClick={() => setAuthError(false)}
-            >
-              {messages.authExpiredDismiss}
-            </button>
-            <button
-              type="button"
-              className={styles.confirmSubmit}
-              onClick={() => {
-                void reconnectChppWithTokenReset();
-              }}
-            >
-              {messages.authExpiredAction}
-            </button>
-          </div>
-        }
       />
       <Modal
         open={Boolean(serviceErrorModal)}
@@ -8096,6 +8147,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          excludedPlayers={excludedPlayers}
           highlightStarSelection={highlightMissingStarSelection}
           onSortStart={() => {
             setOrderSource("list");
@@ -8133,6 +8185,7 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onToggleExcluded={handleToggleExcludedPlayer}
           onSelect={(playerId) => {
             trackYouthFeatureUsed("player_selected", "desktop");
             void handleSelect(playerId);
@@ -8310,6 +8363,7 @@ export default function Dashboard({
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersById}
+          excludedPlayers={excludedPlayers}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
@@ -8391,6 +8445,16 @@ export default function Dashboard({
                     const nextMode = event.target.value as ChppDebugOauthErrorMode;
                     setDebugOauthErrorMode(nextMode);
                     writeChppDebugOauthErrorMode(nextMode);
+                    if (process.env.NODE_ENV !== "production" && nextMode !== "off") {
+                      const statusCode = nextMode === "4xx" ? 429 : 503;
+                      dispatchChppAccessBlocked({
+                        kind:
+                          nextMode === "4xx" ? "client-error" : "server-error",
+                        statusCode,
+                        reason: getChppHttpStatusReason(statusCode),
+                        simulated: true,
+                      });
+                    }
                     addNotification(
                       `${messages.notificationDebugOauthMode} ${
                         nextMode === "4xx"

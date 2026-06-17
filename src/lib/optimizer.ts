@@ -256,6 +256,76 @@ function skillValues(player: OptimizerPlayer, skill: SkillKey) {
   };
 }
 
+function totalAgeDays(player: OptimizerPlayer): number | null {
+  const age = typeof player.age === "number" ? player.age : null;
+  const ageDays = typeof player.ageDays === "number" ? player.ageDays : 0;
+  return age !== null ? age * 112 + ageDays : null;
+}
+
+function keeperSelectionValues(player: OptimizerPlayer) {
+  const current = toNumber(player.skills?.KeeperSkill) ?? 0;
+  const max = toNumber(player.skills?.KeeperSkillMax) ?? 0;
+  return {
+    current,
+    max,
+    score: current + max,
+  };
+}
+
+function findBestFallbackKeeperBySkill(
+  players: OptimizerPlayer[],
+  usedPlayers: Set<number>
+): OptimizerPlayer | null {
+  const candidates = players.filter((player) => !usedPlayers.has(player.id));
+  candidates.sort((left, right) => {
+    const leftKeeper = keeperSelectionValues(left);
+    const rightKeeper = keeperSelectionValues(right);
+
+    if (rightKeeper.score !== leftKeeper.score) {
+      return rightKeeper.score - leftKeeper.score;
+    }
+    if (rightKeeper.current !== leftKeeper.current) {
+      return rightKeeper.current - leftKeeper.current;
+    }
+    if (rightKeeper.max !== leftKeeper.max) {
+      return rightKeeper.max - leftKeeper.max;
+    }
+
+    const leftAgeDays = totalAgeDays(left);
+    const rightAgeDays = totalAgeDays(right);
+    if (
+      leftAgeDays !== null &&
+      rightAgeDays !== null &&
+      leftAgeDays !== rightAgeDays
+    ) {
+      return leftAgeDays - rightAgeDays;
+    }
+    if (leftAgeDays === null && rightAgeDays !== null) return 1;
+    if (leftAgeDays !== null && rightAgeDays === null) return -1;
+
+    return left.id - right.id;
+  });
+
+  return candidates[0] ?? null;
+}
+
+function fillFallbackKeeperBySkillWhenNotTrainingSlot(
+  lineup: LineupAssignments,
+  players: OptimizerPlayer[],
+  usedPlayers: Set<number>,
+  primarySlots: Set<FieldSlotId>,
+  secondarySlots: Set<FieldSlotId>
+) {
+  if (lineup.KP) return;
+  if (primarySlots.has("KP") || secondarySlots.has("KP")) return;
+
+  const keeper = findBestFallbackKeeperBySkill(players, usedPlayers);
+  if (!keeper) return;
+
+  lineup.KP = keeper.id;
+  usedPlayers.add(keeper.id);
+}
+
 function resolveTrainingPreferences(
   preferences?: Partial<TrainingPreferences>
 ): TrainingPreferences {
@@ -1490,16 +1560,6 @@ export function optimizeLineupForStar(
     }
   });
 
-  if (!lineup.KP && hasLineupCapacity(lineup)) {
-    const nextKeeper =
-      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
-      secondaryRanking?.ordered.find((entry) => !usedPlayers.has(entry.playerId));
-    if (nextKeeper) {
-      lineup.KP = nextKeeper.playerId;
-      usedPlayers.add(nextKeeper.playerId);
-    }
-  }
-
   if (secondarySkill) {
     const secondaryOrder = [...secondarySlots].filter((slot) => !(slot in lineup));
     let secondaryIndex = 0;
@@ -1520,6 +1580,14 @@ export function optimizeLineupForStar(
       secondaryIndex += 1;
     }
   }
+
+  fillFallbackKeeperBySkillWhenNotTrainingSlot(
+    lineup,
+    players,
+    usedPlayers,
+    primarySlots,
+    secondarySlots
+  );
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -1726,15 +1794,13 @@ export function optimizeRevealPrimaryCurrent(
     }
   }
 
-  if (!lineup.KP) {
-    const nextKeeper =
-      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
-      secondaryRanking?.ordered.find((entry) => !usedPlayers.has(entry.playerId));
-    if (nextKeeper) {
-      lineup.KP = nextKeeper.playerId;
-      usedPlayers.add(nextKeeper.playerId);
-    }
-  }
+  fillFallbackKeeperBySkillWhenNotTrainingSlot(
+    lineup,
+    players,
+    usedPlayers,
+    primarySlots,
+    secondarySlots
+  );
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -1946,15 +2012,13 @@ export function optimizeRevealSecondaryMax(
     }
   });
 
-  if (!lineup.KP) {
-    const nextKeeper =
-      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
-      secondaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId));
-    if (nextKeeper) {
-      lineup.KP = nextKeeper.playerId;
-      usedPlayers.add(nextKeeper.playerId);
-    }
-  }
+  fillFallbackKeeperBySkillWhenNotTrainingSlot(
+    lineup,
+    players,
+    usedPlayers,
+    primarySlots,
+    secondarySlots
+  );
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -2275,15 +2339,13 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     );
   }
 
-  if (!lineup.KP) {
-    const nextKeeper =
-      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
-      secondaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId));
-    if (nextKeeper) {
-      lineup.KP = nextKeeper.playerId;
-      usedPlayers.add(nextKeeper.playerId);
-    }
-  }
+  fillFallbackKeeperBySkillWhenNotTrainingSlot(
+    lineup,
+    players,
+    usedPlayers,
+    primarySlots,
+    secondarySlots
+  );
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -2476,32 +2538,13 @@ export function optimizeByRatings(
     }
   }
 
-  if (!lineup.KP) {
-    const keeperCandidates = players.filter((player) => !usedPlayers.has(player.id));
-    keeperCandidates.sort((a, b) => {
-      const aTier = trainingPriorityTier(
-        a,
-        slotTrainingSkills("KP", primary, secondary),
-        allowTrainingUntilMaxedOut
-      );
-      const bTier = trainingPriorityTier(
-        b,
-        slotTrainingSkills("KP", primary, secondary),
-        allowTrainingUntilMaxedOut
-      );
-      if (aTier !== bTier) return aTier - bTier;
-      const aRating = ratingForSlot(ratingsByPlayer, a.id, "KP");
-      const bRating = ratingForSlot(ratingsByPlayer, b.id, "KP");
-      if (aRating === null && bRating === null) return 0;
-      if (aRating === null) return 1;
-      if (bRating === null) return -1;
-      return bRating - aRating;
-    });
-    if (keeperCandidates[0]) {
-      lineup.KP = keeperCandidates[0].id;
-      usedPlayers.add(keeperCandidates[0].id);
-    }
-  }
+  fillFallbackKeeperBySkillWhenNotTrainingSlot(
+    lineup,
+    players,
+    usedPlayers,
+    primarySlots,
+    secondarySlots
+  );
 
   const totalSlotsNeeded = 11;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));

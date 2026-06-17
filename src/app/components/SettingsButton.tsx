@@ -19,10 +19,12 @@ import {
   type AnalyticsConsent,
 } from "@/lib/analyticsConsent";
 import {
+  dispatchChppAccessBlocked,
   type ChppDebugOauthErrorMode,
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
+import { getChppHttpStatusReason } from "@/lib/chpp/httpStatusReasons";
 import {
   ALGORITHM_SETTINGS_EVENT,
   readAllowTrainingUntilMaxedOut,
@@ -627,6 +629,15 @@ export default function SettingsButton({
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
     setDebugOauthErrorMode(mode);
     writeChppDebugOauthErrorMode(mode);
+    if (isDev && mode !== "off") {
+      const statusCode = mode === "4xx" ? 429 : 503;
+      dispatchChppAccessBlocked({
+        kind: mode === "4xx" ? "client-error" : "server-error",
+        statusCode,
+        reason: getChppHttpStatusReason(statusCode),
+        simulated: true,
+      });
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT, {

@@ -93,6 +93,18 @@ export const messagesSv: Messages = {
     mobileToolsLabel: "Verktyg",
     mobileHelpLabel: "Hjälp",
     mobilePlayerListLabel: "Spelarlista",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
@@ -208,6 +220,10 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Lade till spelarexkludering for ungdoms- och senioruppstallningar.",
     changelog_6_3_0:
       "Minneshanteringsarkitekturen har arbetats om for att minska redundant lokal lagring och flytta stora Club Chronicle-datapaket till IndexedDB.",
     changelog_6_2_0:
@@ -1740,6 +1756,9 @@ export const messagesSv: Messages = {
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
+    lineupExclusionTooltip: "Nar detta ar aktiverat tas spelaren inte med i nagon uppstallning.",
+    lineupExclusionExcludeLabel: "Exkludera {{player}} fran uppstallningsval",
+    lineupExclusionAllowLabel: "Lat {{player}} beaktas for uppstallningar",
     seniorPlayerListTitle: "Seniorspelare",
     seniorTransferSearchButtonLabel: "Hitta liknande spelare",
     seniorTransferSearchEditedButtonLabel:

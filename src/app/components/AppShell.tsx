@@ -14,6 +14,7 @@ import {
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
+import ChppAccessGate from "./ChppAccessGate";
 import { DisplayCurrencyProvider } from "./DisplayCurrencyProvider";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
@@ -33,7 +34,14 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
-import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
+import {
+  CHPP_ACCESS_BLOCKED_EVENT,
+  ChppAccessBlockedError,
+  type ChppAccessBlockedDetail,
+  fetchChppJson,
+  reconnectChppWithTokenReset,
+  writeChppDebugOauthErrorMode,
+} from "@/lib/chpp/client";
 import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   BUY_COFFEE_PROMPT_OPEN_EVENT,
@@ -258,6 +266,8 @@ export default function AppShell({
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
   const [buyCoffeePromptSource, setBuyCoffeePromptSource] =
     useState<BuyCoffeePromptSource>("unknown");
+  const [chppAccessBlock, setChppAccessBlock] =
+    useState<ChppAccessBlockedDetail | null>(null);
   const [buyCoffeePromptState, setBuyCoffeePromptState] =
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
@@ -307,15 +317,12 @@ export default function AppShell({
 
   const ensureRefreshScopes = async () => {
     try {
-      const response = await fetch("/api/chpp/oauth/check-token", {
+      const { response, payload } = await fetchChppJson<{
+        permissions?: string[];
+        raw?: string;
+      }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            permissions?: string[];
-            raw?: string;
-          }
-        | null;
       if (!response.ok) {
         setScopeReconnectModalOpen(true);
         return false;
@@ -338,7 +345,8 @@ export default function AppShell({
         return false;
       }
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAccessBlockedError) return false;
       setScopeReconnectModalOpen(true);
       return false;
     }
@@ -375,6 +383,26 @@ export default function AppShell({
 
   useEffect(() => {
     runStartupStorageHousekeeping();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleChppAccessBlocked = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as ChppAccessBlockedDetail | undefined)
+          : undefined;
+      if (!detail) return;
+      setChppAccessBlock(detail);
+      setMobileLauncherOpen(false);
+      setBuyCoffeePromptOpen(false);
+      setScopeReconnectModalOpen(false);
+      setReminderBatchItems([]);
+      setPendingReminderActionConfirmation(null);
+    };
+    window.addEventListener(CHPP_ACCESS_BLOCKED_EVENT, handleChppAccessBlocked);
+    return () =>
+      window.removeEventListener(CHPP_ACCESS_BLOCKED_EVENT, handleChppAccessBlocked);
   }, []);
 
   useEffect(() => {
@@ -713,6 +741,7 @@ export default function AppShell({
       setReminderBatchItems([]);
       return;
     }
+    if (chppAccessBlock) return;
     if (!reminderEvaluation.newlyDueToSurface.length) return;
     reminderEvaluation.newlyDueToSurface.forEach((item) => {
       surfacedReminderTriggerKeysThisSessionRef.current.add(
@@ -721,6 +750,7 @@ export default function AppShell({
     });
     setReminderBatchItems(reminderEvaluation.due);
   }, [
+    chppAccessBlock,
     reminderEvaluation.due,
     reminderEvaluation.newlyDueToSurface,
     reminderStorageState.preferences.enabled,
@@ -933,6 +963,7 @@ export default function AppShell({
     if (typeof window === "undefined") return;
     const latestVersion = changelogEntries[0]?.version ?? null;
     if (!latestVersion) return;
+    if (chppAccessBlock) return;
     try {
       const previous = window.localStorage.getItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY);
       if (!previous) {
@@ -947,10 +978,11 @@ export default function AppShell({
     } catch {
       // ignore storage errors
     }
-  }, [changelogEntries]);
+  }, [changelogEntries, chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     try {
       const raw = window.localStorage.getItem(BUY_COFFEE_PROMPT_STORAGE_KEY);
       if (!raw) {
@@ -995,15 +1027,16 @@ export default function AppShell({
         cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
       });
     }
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     const timer = window.setTimeout(() => {
       setBuyCoffeeSessionReady(true);
     }, BUY_COFFEE_INITIAL_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
@@ -1090,6 +1123,7 @@ export default function AppShell({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (chppAccessBlock) return;
     if (!buyCoffeePromptState) return;
     if (!buyCoffeeSessionReady) return;
     if (buyCoffeePromptOpen) return;
@@ -1113,6 +1147,7 @@ export default function AppShell({
     buyCoffeePromptOpen,
     buyCoffeePromptState,
     buyCoffeeSessionReady,
+    chppAccessBlock,
     scopeReconnectModalOpen,
     seniorRefreshing,
     showChangelog,
@@ -1122,6 +1157,7 @@ export default function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = (event: Event) => {
+      if (chppAccessBlock) return;
       const source =
         event instanceof CustomEvent
           ? parseBuyCoffeePromptSource(
@@ -1138,7 +1174,7 @@ export default function AppShell({
       window.removeEventListener(BUY_COFFEE_PROMPT_OPEN_EVENT, handler);
       window.removeEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
     };
-  }, []);
+  }, [chppAccessBlock]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1635,6 +1671,33 @@ export default function AppShell({
       <div className={styles.mobileNavActions}>{reminderBell}</div>
     </div>
   ) : null;
+
+  if (chppAccessBlock) {
+    return (
+      <DisplayCurrencyProvider>
+        <ReminderBellSlotProvider bell={null}>
+          <div className={styles.chppAccessPage}>
+            <ChppAccessGate
+              messages={messages}
+              kind={chppAccessBlock.kind}
+              statusCode={chppAccessBlock.statusCode ?? null}
+              reason={chppAccessBlock.reason ?? null}
+              details={chppAccessBlock.details ?? null}
+              simulated={chppAccessBlock.simulated}
+              onCloseSimulation={
+                chppAccessBlock.simulated
+                  ? () => {
+                      writeChppDebugOauthErrorMode("off");
+                      setChppAccessBlock(null);
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        </ReminderBellSlotProvider>
+      </DisplayCurrencyProvider>
+    );
+  }
 
   return (
     <DisplayCurrencyProvider>

@@ -2,6 +2,9 @@ const HATTRICK_BASE_URL = "https://www.hattrick.org";
 
 const buildGotoUrl = (path: string) => `${HATTRICK_BASE_URL}/goto.ashx?path=${path}`;
 
+export const hattrickHelpContactUrl = () =>
+  buildGotoUrl("/Help/Contact.aspx?InfoInstanceID=2");
+
 export const hattrickPlayerUrl = (playerId: number | string) =>
   buildGotoUrl(`/Club/Players/Player.aspx?playerId=${playerId}`);
 

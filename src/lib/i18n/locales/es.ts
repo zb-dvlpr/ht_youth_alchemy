@@ -93,6 +93,18 @@ export const messagesEs: Messages = {
     mobileToolsLabel: "Herramientas",
     mobileHelpLabel: "Ayuda",
     mobilePlayerListLabel: "Lista de jugadores",
+    chppAccessLogoAlt: "Alchemy logo",
+    chppAccessAuthorizationTitle: "Hattrick authorization required",
+    chppAccessAuthorizationBody: "Authorization from Hattrick is required to use this app.",
+    chppAccessConnectAction: "Connect",
+    chppAccessClientProblemTitle: "Client-side problem",
+    chppAccessServerProblemTitle: "Server-side problem",
+    chppAccessStatusLabel: "HTTP status",
+    chppAccessServerProblemBody: "There is a problem with Hattrick CHPP. You can report this to Hattrick or try re-authorizing your connection.",
+    chppAccessReportAction: "Report",
+    chppAccessReauthorizeAction: "Re-authorize",
+    chppAccessDevCloseSimulation: "Close simulated view",
+    chppAccessUnknownReason: "Unknown CHPP access problem.",
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
       "La Crónica del club llegará pronto. Este espacio seguirá lo que hacen los equipos sénior.",
@@ -208,6 +220,10 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_5_0:
+      "Improved OAuth token error handling.",
+    changelog_6_4_0:
+      "Se agregaron controles de exclusion de jugadores para alineaciones juveniles y senior.",
     changelog_6_3_0:
       "Se rehizo la arquitectura de gestion de memoria para reducir el almacenamiento local redundante y mover los grandes datos de Cronica del club a IndexedDB.",
     changelog_6_2_0:
@@ -1751,6 +1767,9 @@ export const messagesEs: Messages = {
     trainingSlotSecondary: "Secundario",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jugador estrella",
+    lineupExclusionTooltip: "Cuando esta activado, este jugador no se tendra en cuenta para ninguna alineacion.",
+    lineupExclusionExcludeLabel: "Excluir a {{player}} de la consideracion para alineaciones",
+    lineupExclusionAllowLabel: "Permitir que {{player}} se considere para alineaciones",
     seniorPlayerListTitle: "Jugadores senior",
     seniorTransferSearchButtonLabel: "Encontrar jugadores similares",
     seniorTransferSearchEditedButtonLabel:

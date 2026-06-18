@@ -12,23 +12,19 @@ type ThemeToggleProps = {
 type ThemeMode = "light" | "dark";
 
 const THEME_STORAGE_KEY = "ya_theme";
+const DEFAULT_THEME_MODE: ThemeMode = "light";
 
 export default function ThemeToggle({ messages }: ThemeToggleProps) {
-  const [mode, setMode] = useState<ThemeMode>("light");
+  const [mode, setMode] = useState<ThemeMode>(DEFAULT_THEME_MODE);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
     const nextMode: ThemeMode =
       stored === "dark" || stored === "light"
         ? (stored as ThemeMode)
-        : prefersDark
-        ? "dark"
-        : "light";
+        : DEFAULT_THEME_MODE;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(nextMode);
     document.documentElement.dataset.theme = nextMode;

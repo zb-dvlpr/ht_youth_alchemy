@@ -19,6 +19,8 @@ import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlaye
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
+import OriginFlag from "./OriginFlag";
+import type { OriginFlagDisplay } from "@/lib/originFlag";
 import {
   formatSekCurrency,
   SEK_DISPLAY_CURRENCY,
@@ -60,7 +62,7 @@ export type YouthPlayerDetails = {
   NativeCountryName?: string;
   NativeLeagueID?: number;
   OriginName?: string;
-  OriginFlagEmoji?: string;
+  OriginFlagDisplay?: OriginFlagDisplay;
   Specialty?: number;
   InjuryLevel?: number;
   Form?: number;
@@ -1289,15 +1291,8 @@ export default function PlayerDetailsPanel({
                   )}
                 </h4>
               )}
-              {playerKind === "senior" && detailsData.OriginName ? (
-                <Tooltip content={detailsData.OriginName}>
-                  <span
-                    className={styles.playerOriginFlag}
-                    aria-label={detailsData.OriginName}
-                  >
-                    {detailsData.OriginFlagEmoji ?? detailsData.OriginName}
-                  </span>
-                </Tooltip>
+              {playerKind === "senior" && detailsData.OriginFlagDisplay ? (
+                <OriginFlag display={detailsData.OriginFlagDisplay} />
               ) : null}
               {playerKind === "senior" && detailsData.MotherClubBonus ? (
                 <Tooltip content={messages.motherClubBonusTooltip}>

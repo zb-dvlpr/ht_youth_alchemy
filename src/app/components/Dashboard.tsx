@@ -55,6 +55,7 @@ import TransferSearchModal, {
   type TransferSearchSkillKey,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
+import OriginFlag from "./OriginFlag";
 import { formatSekCurrency, getDisplayCurrencyLabel } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import {
@@ -4354,7 +4355,7 @@ export default function Dashboard({
       const psico = calculatePsicoTsiMetrics(metricInput);
       return {
         nationality: nationalityText,
-        nationalityFlag: null,
+        originFlagDisplay: null,
         nationalityTitle: nationalityText,
         name: formatTransferSearchPlayerName(result),
         specialty,
@@ -4546,9 +4547,10 @@ export default function Dashboard({
                 {playerName}
               </a>
               {countryMeta ? (
-                <span className={styles.transferSearchCardNationality} title={countryMeta.name}>
-                  {countryMeta.display}
-                </span>
+                <OriginFlag
+                  display={countryMeta.flagDisplay}
+                  className={styles.transferSearchCardNationality}
+                />
               ) : null}
             </h4>
             <PlayerStatementQuote statement={resultDetails?.Statement} />
@@ -7769,6 +7771,9 @@ export default function Dashboard({
         onResultsViewModeChange={setTransferSearchResultsViewMode}
         getSortMetricInput={getTransferSearchSortMetricInput}
         getTableRowData={getTransferSearchTableRowData}
+        getNativeLeagueId={(result) =>
+          transferSearchDetailsById[result.playerId]?.NativeLeagueID
+        }
         canQuickBid={transferSearchCanBid && Boolean(resolvedSeniorTeamId)}
         quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
         onQuickBid={(result) => {

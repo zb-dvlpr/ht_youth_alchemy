@@ -8038,6 +8038,22 @@ html[data-theme="dark"] .spinner {
   font-size: 18px;
 }
 
+.playerOriginTextBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6em;
+  padding: 0.12em 0.4em;
+  border: 1px solid #dfcfb7;
+  border-radius: 999px;
+  background: #f3ede4;
+  color: #4f4333;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
 .specialtyDiscoveryLink {
   display: inline-flex;
   align-items: center;

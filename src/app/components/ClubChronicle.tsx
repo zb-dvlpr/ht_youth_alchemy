@@ -108,6 +108,11 @@ import {
 } from "@/lib/license";
 import MobileChronicleMenu from "./MobileChronicleMenu";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
+import OriginFlag from "./OriginFlag";
+import {
+  resolveLeagueOriginFlagDisplay,
+  type OriginFlagDisplay,
+} from "@/lib/originFlag";
 
 type SupportedTeam = {
   teamId: number;
@@ -378,8 +383,7 @@ type TsiSnapshot = {
   players: {
     playerId: number;
     playerName: string | null;
-    originFlagEmoji?: string | null;
-    originCountryName?: string | null;
+    originFlagDisplay?: OriginFlagDisplay | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -445,8 +449,7 @@ type TsiPlayerRow = {
   teamId: number;
   playerId: number;
   playerName: string | null;
-  originFlagEmoji?: string | null;
-  originCountryName?: string | null;
+  originFlagDisplay?: OriginFlagDisplay | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -474,8 +477,7 @@ type WagesSnapshot = {
   players: {
     playerId: number;
     playerName: string | null;
-    originFlagEmoji?: string | null;
-    originCountryName?: string | null;
+    originFlagDisplay?: OriginFlagDisplay | null;
     wageIncludesForeignBonus?: boolean;
     playerNumber: number | null;
     age: number | null;
@@ -740,8 +742,7 @@ type WagesPlayerRow = {
   teamId: number;
   playerId: number;
   playerName: string | null;
-  originFlagEmoji?: string | null;
-  originCountryName?: string | null;
+  originFlagDisplay?: OriginFlagDisplay | null;
   wageIncludesForeignBonus?: boolean;
   playerNumber: number | null;
   age: number | null;
@@ -4257,10 +4258,10 @@ export default function ClubChronicle({
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
   const leagueOriginFlagCacheRef = useRef<
-    Map<number, { flagEmoji: string | null; countryName: string | null }>
+    Map<number, OriginFlagDisplay | undefined>
   >(new Map());
   const leagueOriginFlagPendingRef = useRef<
-    Promise<Map<number, { flagEmoji: string | null; countryName: string | null }>> | null
+    Promise<Map<number, OriginFlagDisplay | undefined>> | null
   >(
     null
   );
@@ -9240,15 +9241,6 @@ export default function ClubChronicle({
     return null;
   };
 
-  const countryCodeToFlagEmoji = (value: unknown): string | null => {
-    if (typeof value !== "string") return null;
-    const code = value.trim().toUpperCase();
-    if (!/^[A-Z]{2}$/.test(code)) return null;
-    return Array.from(code)
-      .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
-      .join("");
-  };
-
   const parsePositionChangeNode = (value: unknown): string | null => {
     const numericValue = parseNumberNode(value);
     if (numericValue === 0) return "-";
@@ -9355,14 +9347,23 @@ export default function ClubChronicle({
         );
         leagues.forEach((league) => {
           const leagueId = parseNumberNode(league?.LeagueID);
+          const leagueName = parseStringNode(league?.LeagueName);
           const country = league?.Country as RawNode | undefined;
-          if (!leagueId || !Number.isFinite(leagueId) || leagueId <= 0) return;
+          if (
+            !leagueId ||
+            !Number.isFinite(leagueId) ||
+            leagueId <= 0 ||
+            !leagueName
+          ) {
+            return;
+          }
           leagueOriginFlagCacheRef.current.set(
             leagueId,
-            {
-              flagEmoji: countryCodeToFlagEmoji(country?.CountryCode),
-              countryName: parseStringNode(country?.CountryName),
-            }
+            resolveLeagueOriginFlagDisplay(
+              leagueId,
+              leagueName,
+              parseStringNode(country?.CountryCode) ?? undefined
+            )
           );
         });
         return leagueOriginFlagCacheRef.current;
@@ -10959,8 +10960,7 @@ export default function ClubChronicle({
 type TeamPlayerSnapshot = {
   playerId: number;
   playerName: string | null;
-  originFlagEmoji?: string | null;
-  originCountryName?: string | null;
+  originFlagDisplay?: OriginFlagDisplay | null;
   wageIncludesForeignBonus?: boolean;
   playerNumber: number | null;
   age: number | null;
@@ -11188,8 +11188,7 @@ type Form7LineupSnapshot = {
       players.push({
         playerId,
         playerName: playerName || null,
-        originFlagEmoji: originInfo?.flagEmoji ?? null,
-        originCountryName: originInfo?.countryName ?? null,
+        originFlagDisplay: originInfo,
         wageIncludesForeignBonus:
           wageIncludesForeignBonusByPlayerId.get(playerId) ?? false,
         motherClubBonus: motherClubBonusByPlayerId.get(playerId) ?? false,
@@ -12150,8 +12149,7 @@ type Form7LineupSnapshot = {
     const normalizedPlayers = players.map((player) => ({
       playerId: player.playerId,
       playerName: player.playerName,
-      originFlagEmoji: player.originFlagEmoji ?? null,
-      originCountryName: player.originCountryName ?? null,
+      originFlagDisplay: player.originFlagDisplay ?? null,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -12183,8 +12181,7 @@ type Form7LineupSnapshot = {
     const normalizedPlayers = players.map((player) => ({
       playerId: player.playerId,
       playerName: player.playerName,
-      originFlagEmoji: player.originFlagEmoji ?? null,
-      originCountryName: player.originCountryName ?? null,
+      originFlagDisplay: player.originFlagDisplay ?? null,
       wageIncludesForeignBonus: player.wageIncludesForeignBonus ?? false,
       playerNumber: player.playerNumber,
       age: player.age,
@@ -12221,7 +12218,7 @@ type Form7LineupSnapshot = {
       );
       if (coveredPlayerIds.size < team.snapshot.players.length) return true;
       return team.snapshot.players.some(
-        (player) => !player.originFlagEmoji || !player.originCountryName
+        (player) => !player.originFlagDisplay
       );
     },
     []
@@ -13373,8 +13370,7 @@ type Form7LineupSnapshot = {
             []).map((player) => ({
             playerId: player.playerId,
             playerName: player.playerName,
-            originFlagEmoji: player.originFlagEmoji ?? null,
-            originCountryName: player.originCountryName ?? null,
+            originFlagDisplay: player.originFlagDisplay ?? null,
             playerNumber: player.playerNumber ?? null,
             age: player.age,
             ageDays: player.ageDays,
@@ -16549,13 +16545,10 @@ type Form7LineupSnapshot = {
               >
                 {playerName ?? `${playerId}`}
               </a>
-              {snapshot?.originFlagEmoji ? (
-                <Tooltip content={snapshot.originCountryName ?? messages.unknownShort}>
-                  <span aria-hidden="true" className={styles.chronicleInjuryInline}>
-                    {snapshot.originFlagEmoji}
-                  </span>
-                </Tooltip>
-              ) : null}
+              <OriginFlag
+                display={snapshot?.originFlagDisplay}
+                className={styles.chronicleInjuryInline}
+              />
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>
                   <span
@@ -16800,13 +16793,10 @@ type Form7LineupSnapshot = {
               >
                 {playerName ?? `${playerId}`}
               </a>
-              {snapshot?.originFlagEmoji ? (
-                <Tooltip content={snapshot.originCountryName ?? messages.unknownShort}>
-                  <span aria-hidden="true" className={styles.chronicleInjuryInline}>
-                    {snapshot.originFlagEmoji}
-                  </span>
-                </Tooltip>
-              ) : null}
+              <OriginFlag
+                display={snapshot?.originFlagDisplay}
+                className={styles.chronicleInjuryInline}
+              />
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>
                   <span

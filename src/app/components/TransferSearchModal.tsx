@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type ReactNode,
@@ -31,7 +32,12 @@ import {
 } from "@/lib/currency";
 import Modal from "./Modal";
 import Tooltip from "./Tooltip";
+import OriginFlag from "./OriginFlag";
 import styles from "../page.module.css";
+import {
+  resolveLeagueOriginFlagDisplay,
+  type OriginFlagDisplay,
+} from "@/lib/originFlag";
 
 export const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 export const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
@@ -129,7 +135,7 @@ export type TransferSearchResultsViewMode = "cards" | "table";
 
 export type TransferSearchTableRowData = {
   nationality: string;
-  nationalityFlag?: string | null;
+  originFlagDisplay?: OriginFlagDisplay | null;
   nationalityTitle?: string;
   name: string;
   specialty: string;
@@ -207,6 +213,7 @@ type TransferSearchModalProps = {
   onResultsViewModeChange: (mode: TransferSearchResultsViewMode) => void;
   getSortMetricInput?: (result: TransferSearchResult) => SeniorPlayerMetricInput;
   getTableRowData?: (result: TransferSearchResult) => TransferSearchTableRowData;
+  getNativeLeagueId?: (result: TransferSearchResult) => number | null | undefined;
   canQuickBid?: boolean;
   quickBidPendingPlayerId?: number | null;
   onQuickBid?: (result: TransferSearchResult) => void;
@@ -250,12 +257,12 @@ type TransferSearchMobilePanel = "criteria" | "results" | "summary";
 type TransferSearchTableSortDirection = "best" | "reverse";
 type TransferSearchCountryMeta = {
   name: string;
-  flagEmoji: string | null;
+  flagDisplay?: OriginFlagDisplay;
 };
 
 export type TransferSearchResolvedCountryMeta = {
   name: string;
-  display: string;
+  flagDisplay?: OriginFlagDisplay;
 };
 
 const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
@@ -336,15 +343,6 @@ const getTransferSearchSortValue = (
 const formatTransferSearchTableMetric = (value: number | null, fractionDigits = 0) => {
   if (typeof value !== "number" || Number.isNaN(value)) return null;
   return fractionDigits > 0 ? value.toFixed(fractionDigits) : String(Math.round(value));
-};
-
-const countryCodeToFlagEmoji = (input: unknown): string | null => {
-  if (typeof input !== "string") return null;
-  const code = input.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code)) return null;
-  return Array.from(code)
-    .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
-    .join("");
 };
 
 const formatTransferSearchCountryFallback = (countryName: string | null | undefined) => {
@@ -1140,6 +1138,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   onResultsViewModeChange,
   getSortMetricInput,
   getTableRowData,
+  getNativeLeagueId,
   canQuickBid,
   quickBidPendingPlayerId,
   onQuickBid,
@@ -1169,6 +1168,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const [countryMetaById, setCountryMetaById] = useState<Record<number, TransferSearchCountryMeta>>(
     {}
   );
+  const [leagueFlagDisplayById, setLeagueFlagDisplayById] = useState<
+    Record<number, OriginFlagDisplay>
+  >({});
+  const worlddetailsRequestedRef = useRef(false);
+  const worlddetailsLoadedRef = useRef(false);
+  const hasTransferSearchResults = results.length > 0;
   const marketSummary = useMemo(
     () => buildTransferSearchMarketSummary(results),
     [results]
@@ -1219,79 +1224,78 @@ const TransferSearchModal = memo(function TransferSearchModal({
     return validated;
   }, [draftFields, filters, filtersDraftKey, onUpdateFilterField]);
   useEffect(() => {
-    const countryIds = Array.from(
-      new Set(
-        results
-          .map((result) => result.nativeCountryId)
-          .filter((countryId): countryId is number =>
-            typeof countryId === "number" && Number.isFinite(countryId) && countryId > 0
-          )
-      )
-    ).filter((countryId) => !countryMetaById[countryId]);
-    if (countryIds.length === 0) return;
+    if (
+      !hasTransferSearchResults ||
+      worlddetailsRequestedRef.current ||
+      worlddetailsLoadedRef.current
+    ) {
+      return;
+    }
 
     let cancelled = false;
-    void Promise.all(
-      countryIds.map(async (countryId) => {
-        try {
-          const { response, payload } = await fetchChppJson<{
-            data?: {
-              HattrickData?: {
-                LeagueList?: {
-                  League?: Record<string, unknown> | Array<Record<string, unknown>>;
-                };
+    worlddetailsRequestedRef.current = true;
+    void (async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              LeagueList?: {
+                League?: Record<string, unknown> | Array<Record<string, unknown>>;
               };
             };
-            error?: string;
-          }>(`/api/chpp/worlddetails?countryId=${countryId}`, {
-            cache: "no-store",
-          });
-          if (!response.ok || payload?.error) return null;
-          const rawLeague = payload?.data?.HattrickData?.LeagueList?.League;
-          const leagues = Array.isArray(rawLeague) ? rawLeague : rawLeague ? [rawLeague] : [];
-          for (const league of leagues) {
-            const country =
-              league && typeof league === "object" && league.Country && typeof league.Country === "object"
-                ? (league.Country as Record<string, unknown>)
-                : null;
-            const resolvedId = Number(country?.CountryID);
-            const name =
-              typeof country?.CountryName === "string" ? country.CountryName.trim() : "";
-            const flagEmoji = countryCodeToFlagEmoji(country?.CountryCode);
-            if (resolvedId === countryId && name) {
-              return {
-                countryId,
-                meta: {
-                  name,
-                  flagEmoji,
-                },
-              };
-            }
+          };
+          error?: string;
+        }>("/api/chpp/worlddetails", { cache: "no-store" });
+        if (!response.ok || payload?.error || cancelled) return;
+        const rawLeague = payload?.data?.HattrickData?.LeagueList?.League;
+        const leagues = Array.isArray(rawLeague) ? rawLeague : rawLeague ? [rawLeague] : [];
+        const nextCountryMetaById: Record<number, TransferSearchCountryMeta> = {};
+        const nextLeagueFlagDisplayById: Record<number, OriginFlagDisplay> = {};
+        leagues.forEach((league) => {
+          const leagueId = Number(league?.LeagueID);
+          const leagueName =
+            typeof league?.LeagueName === "string" ? league.LeagueName.trim() : "";
+          const country =
+            league?.Country && typeof league.Country === "object"
+              ? (league.Country as Record<string, unknown>)
+              : null;
+          const countryId = Number(country?.CountryID);
+          const countryName =
+            typeof country?.CountryName === "string" ? country.CountryName.trim() : "";
+          const countryCode =
+            typeof country?.CountryCode === "string" ? country.CountryCode : undefined;
+          if (!Number.isFinite(leagueId) || leagueId <= 0 || !leagueName) return;
+          const flagDisplay = resolveLeagueOriginFlagDisplay(
+            leagueId,
+            leagueName,
+            countryCode
+          );
+          if (flagDisplay) nextLeagueFlagDisplayById[leagueId] = flagDisplay;
+          if (
+            Number.isFinite(countryId) &&
+            countryId > 0 &&
+            countryName &&
+            !nextCountryMetaById[countryId]
+          ) {
+            nextCountryMetaById[countryId] = { name: countryName, flagDisplay };
           }
-          return null;
-        } catch {
-          return null;
-        }
-      })
-    ).then((entries) => {
-      if (cancelled) return;
-      const updates = entries.filter(
-        (entry): entry is { countryId: number; meta: TransferSearchCountryMeta } => Boolean(entry)
-      );
-      if (updates.length === 0) return;
-      setCountryMetaById((prev) => {
-        const next = { ...prev };
-        updates.forEach(({ countryId, meta }) => {
-          next[countryId] = meta;
         });
-        return next;
-      });
-    });
+        if (cancelled) return;
+        setCountryMetaById(nextCountryMetaById);
+        setLeagueFlagDisplayById(nextLeagueFlagDisplayById);
+        worlddetailsLoadedRef.current = true;
+      } catch {
+        // Origin indicators remain absent when worlddetails is unavailable.
+      }
+    })();
 
     return () => {
       cancelled = true;
+      if (!worlddetailsLoadedRef.current) {
+        worlddetailsRequestedRef.current = false;
+      }
     };
-  }, [countryMetaById, results]);
+  }, [hasTransferSearchResults]);
   const activeMobilePanel: TransferSearchMobilePanel =
     resultsViewMode === "table" ? "results" : mobilePanel;
   const currencyName = getDisplayCurrencyLabel(displayCurrency);
@@ -1369,7 +1373,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
           data:
             getTableRowData?.(result) ?? {
               nationality: "—",
-              nationalityFlag: null,
+              originFlagDisplay: null,
               nationalityTitle: undefined,
               name: formatTransferSearchPlayerName(result),
               specialty:
@@ -2205,16 +2209,24 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                     typeof result.nativeCountryId === "number"
                                       ? countryMetaById[result.nativeCountryId]
                                       : undefined;
+                                  const nativeLeagueId = getNativeLeagueId?.(result);
+                                  const originFlagDisplay =
+                                    (typeof nativeLeagueId === "number"
+                                      ? leagueFlagDisplayById[nativeLeagueId]
+                                      : undefined) ??
+                                    data.originFlagDisplay ??
+                                    countryMeta?.flagDisplay;
                                   const nationalityTitle =
+                                    originFlagDisplay?.label ??
                                     countryMeta?.name ??
                                     data.nationalityTitle ??
                                     formatTransferSearchCountryFallback(data.nationality);
-                                  const nationalityDisplay =
-                                    countryMeta?.flagEmoji ??
-                                    data.nationalityFlag ??
-                                    nationalityTitle;
                                   return renderTablePill(
-                                    <span title={nationalityTitle}>{nationalityDisplay}</span>,
+                                    originFlagDisplay ? (
+                                      <OriginFlag display={originFlagDisplay} />
+                                    ) : (
+                                      <span title={nationalityTitle}>{nationalityTitle}</span>
+                                    ),
                                     { neutral: true }
                                   );
                                 })()}
@@ -2349,12 +2361,20 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         typeof result.nativeCountryId === "number"
                           ? countryMetaById[result.nativeCountryId]
                           : undefined;
+                      const nativeLeagueId = getNativeLeagueId?.(result);
+                      const flagDisplay =
+                        (typeof nativeLeagueId === "number"
+                          ? leagueFlagDisplayById[nativeLeagueId]
+                          : undefined) ?? countryMeta?.flagDisplay;
                       return renderResultCard(
                         result,
-                        countryMeta
+                        countryMeta || flagDisplay
                           ? {
-                              name: countryMeta.name,
-                              display: countryMeta.flagEmoji ?? countryMeta.name,
+                              name:
+                                flagDisplay?.label ??
+                                countryMeta?.name ??
+                                messages.unknownShort,
+                              flagDisplay,
                             }
                           : null
                       );

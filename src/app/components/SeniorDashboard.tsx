@@ -69,7 +69,15 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 import MobileToolMenu, { type MobileToolView as SeniorMobileView } from "./MobileToolMenu";
-import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
+import PlayerDetailsPanel, {
+  type PlayerDetailsPanelTab,
+} from "./PlayerDetailsPanel";
+import OriginFlag from "./OriginFlag";
+import {
+  isOriginFlagDisplay,
+  resolveLeagueOriginFlagDisplay,
+  type OriginFlagDisplay,
+} from "@/lib/originFlag";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, {
   type LoadedLineupOrders,
@@ -235,7 +243,7 @@ type SeniorLeagueOrigin = {
   leagueName: string;
   trainingDate: string;
   countryCode?: string;
-  flagEmoji?: string;
+  flagDisplay?: OriginFlagDisplay;
 };
 
 type SeniorLeagueOriginsCache = {
@@ -510,7 +518,7 @@ const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION = 1;
 const LEAGUE_ORIGINS_STORAGE_KEY = "ya_senior_worlddetails_league_origins_v1";
-const LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION = 2;
+const LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION = 3;
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
@@ -1400,15 +1408,6 @@ const parseSkill = (value: unknown): number | null => {
   return null;
 };
 
-const countryCodeToFlagEmoji = (input: unknown): string | undefined => {
-  if (typeof input !== "string") return undefined;
-  const code = input.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code)) return undefined;
-  return Array.from(code)
-    .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
-    .join("");
-};
-
 const parseWorlddetailsDateTime = (value: unknown): string | null => {
   if (typeof value === "string") {
     const trimmed = value.trim();
@@ -1445,13 +1444,17 @@ const normalizeWorlddetailsLeagues = (input: unknown): SeniorLeagueOrigin[] => {
         : null;
     const countryCode =
       typeof country?.CountryCode === "string" ? country.CountryCode.trim() : undefined;
-    const flagEmoji = countryCodeToFlagEmoji(countryCode);
+    const flagDisplay = resolveLeagueOriginFlagDisplay(
+      leagueId,
+      leagueName,
+      countryCode
+    );
     origins.push({
       leagueId,
       leagueName,
       trainingDate,
       ...(countryCode ? { countryCode } : {}),
-      ...(flagEmoji ? { flagEmoji } : {}),
+      ...(flagDisplay ? { flagDisplay } : {}),
     });
   });
   return origins;
@@ -1466,7 +1469,11 @@ const isSeniorLeagueOrigin = (value: unknown): value is SeniorLeagueOrigin => {
     typeof origin.leagueName === "string" &&
     origin.leagueName.trim().length > 0 &&
     typeof origin.trainingDate === "string" &&
-    origin.trainingDate.trim().length > 0
+    origin.trainingDate.trim().length > 0 &&
+    (origin.countryCode === undefined ||
+      (typeof origin.countryCode === "string" &&
+        origin.countryCode.trim().length > 0)) &&
+    (origin.flagDisplay === undefined || isOriginFlagDisplay(origin.flagDisplay))
   );
 };
 
@@ -4959,7 +4966,7 @@ export default function SeniorDashboard({
         ArrivalDate?: string;
         NativeLeagueID?: number;
         OriginName?: string;
-        OriginFlagEmoji?: string;
+        OriginFlagDisplay?: OriginFlagDisplay;
         Specialty?: number;
         InjuryLevel?: number;
         Form?: number;
@@ -5022,7 +5029,7 @@ export default function SeniorDashboard({
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         NativeLeagueID: detail.NativeLeagueID,
         OriginName: origin?.leagueName,
-        OriginFlagEmoji: origin?.flagEmoji,
+        OriginFlagDisplay: origin?.flagDisplay,
         Specialty: detail.Specialty ?? fallback?.Specialty,
         InjuryLevel: detail.InjuryLevel ?? fallback?.InjuryLevel,
         Form: detail.Form ?? fallback?.Form,
@@ -16966,7 +16973,10 @@ const refreshDetailsForPlayers = async (
       const psico = calculatePsicoTsiMetrics(metricInput);
       return {
         nationality: nationalityText,
-        nationalityFlag: null,
+        originFlagDisplay:
+          typeof resultDetails?.NativeLeagueID === "number"
+            ? leagueOriginsById[resultDetails.NativeLeagueID]?.flagDisplay ?? null
+            : null,
         nationalityTitle: nationalityText,
         name: formatTransferSearchPlayerName(result),
         specialty,
@@ -17047,6 +17057,7 @@ const refreshDetailsForPlayers = async (
       detailsById,
       formatDisplayCurrencyFromSek,
       getTransferSearchSortMetricInput,
+      leagueOriginsById,
       messages,
       selectedSeniorLeagueId,
       specialtyName,
@@ -17283,9 +17294,10 @@ const refreshDetailsForPlayers = async (
                 {playerName}
               </a>
               {countryMeta ? (
-                <span className={styles.transferSearchCardNationality} title={countryMeta.name}>
-                  {countryMeta.display}
-                </span>
+                <OriginFlag
+                  display={countryMeta.flagDisplay}
+                  className={styles.transferSearchCardNationality}
+                />
               ) : null}
             </h4>
             <PlayerStatementQuote statement={resultDetails?.Statement} />
@@ -17802,8 +17814,8 @@ const refreshDetailsForPlayers = async (
         <ul className={styles.list}>
           {orderedListPlayers.map((player) => {
             const playerDetails = detailsById.get(player.PlayerID);
-            const originFlagEmoji =
-              panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
+            const originFlagDisplay =
+              panelDetailsById.get(player.PlayerID)?.OriginFlagDisplay ?? null;
             const playerName = formatPlayerName(player);
             const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
             const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
@@ -18140,13 +18152,11 @@ const refreshDetailsForPlayers = async (
                         >
                           {playerName}
                         </span>
-                        {originFlagEmoji ? (
-                          <span
+                        {originFlagDisplay ? (
+                          <OriginFlag
+                            display={originFlagDisplay}
                             className={styles.transferSearchCardNationality}
-                            aria-hidden="true"
-                          >
-                            {originFlagEmoji}
-                          </span>
+                          />
                         ) : null}
                         {injuryLabel ? (
                           <span
@@ -18790,6 +18800,9 @@ const refreshDetailsForPlayers = async (
         onResultsViewModeChange={setTransferSearchResultsViewMode}
         getSortMetricInput={getTransferSearchSortMetricInput}
         getTableRowData={getTransferSearchTableRowData}
+        getNativeLeagueId={(result) =>
+          detailsById.get(result.playerId)?.NativeLeagueID
+        }
         canQuickBid={transferSearchCanBid}
         quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
         onQuickBid={(result) => {
@@ -21879,8 +21892,8 @@ const refreshDetailsForPlayers = async (
             <ul className={styles.list}>
               {orderedListPlayers.map((player) => {
                 const playerDetails = detailsById.get(player.PlayerID);
-                const originFlagEmoji =
-                  panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
+                const originFlagDisplay =
+                  panelDetailsById.get(player.PlayerID)?.OriginFlagDisplay ?? null;
                 const playerName = formatPlayerName(player);
                 const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
                 const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
@@ -22249,13 +22262,11 @@ const refreshDetailsForPlayers = async (
                           >
                             {playerName}
                           </span>
-                          {originFlagEmoji ? (
-                            <span
+                          {originFlagDisplay ? (
+                            <OriginFlag
+                              display={originFlagDisplay}
                               className={styles.transferSearchCardNationality}
-                              aria-hidden="true"
-                            >
-                              {originFlagEmoji}
-                            </span>
+                            />
                           ) : null}
                           {injuryLabel ? (
                             <span

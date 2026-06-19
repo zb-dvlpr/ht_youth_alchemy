@@ -8,6 +8,10 @@ import {
   fetchChppXml,
   getChppAuth,
 } from "@/lib/chpp/server";
+import {
+  assertSameOrigin,
+  InvalidOriginError,
+} from "@/lib/security/origin";
 
 const TRAINING_VERSION = "2.2";
 
@@ -45,6 +49,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
+
     const body = (await request.json().catch(() => null)) as
       | {
           teamId?: unknown;
@@ -110,6 +116,12 @@ export async function POST(request: Request) {
     const { parsed, rawXml } = await fetchChppXml(auth, params);
     return NextResponse.json({ data: parsed, raw: rawXml });
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json(
+        { error: "Invalid request origin." },
+        { status: error.status }
+      );
+    }
     if (error instanceof ChppPermissionError) {
       return NextResponse.json(
         {

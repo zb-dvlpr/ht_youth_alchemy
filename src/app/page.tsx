@@ -33,6 +33,10 @@ import {
   isChppClientProblemStatus,
   isChppServerProblemStatus,
 } from "@/lib/chpp/httpStatusReasons";
+import {
+  CHPP_SESSION_COOKIE,
+  openChppSession,
+} from "@/lib/chpp/session-cookie";
 import type { MatchesResponse } from "./components/UpcomingMatches";
 import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
@@ -363,9 +367,9 @@ export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
   const messages = getMessages(locale);
-  const token = cookieStore.get("chpp_access_token")?.value;
-  const secret = cookieStore.get("chpp_access_secret")?.value;
-  const isConnected = Boolean(token && secret);
+  const isConnected = Boolean(
+    openChppSession(cookieStore.get(CHPP_SESSION_COOKIE)?.value)
+  );
   const premiumLicensingEnabled = isPremiumLicensingEnabled();
 
   if (!isConnected) {

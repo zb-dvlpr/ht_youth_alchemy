@@ -3,6 +3,10 @@ import { XMLParser } from "fast-xml-parser";
 import { getChppEnv } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
 import {
+  CHPP_SESSION_COOKIE,
+  openChppSession,
+} from "@/lib/chpp/session-cookie";
+import {
   getMissingChppPermissions,
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
@@ -76,14 +80,19 @@ export async function getChppAuth(): Promise<ChppAuth> {
   const client = createNodeOAuthClient(consumerKey, consumerSecret, callbackUrl);
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("chpp_access_token")?.value;
-  const accessSecret = cookieStore.get("chpp_access_secret")?.value;
+  const session = openChppSession(
+    cookieStore.get(CHPP_SESSION_COOKIE)?.value
+  );
 
-  if (!accessToken || !accessSecret) {
+  if (!session) {
     throw new ChppAuthError();
   }
 
-  return { client, accessToken, accessSecret };
+  return {
+    client,
+    accessToken: session.accessToken,
+    accessSecret: session.accessSecret,
+  };
 }
 
 export async function fetchChppXml(

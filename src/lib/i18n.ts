@@ -100,6 +100,17 @@ export type Messages = {
   chppAccessReauthorizeAction: string;
   chppAccessDevCloseSimulation: string;
   chppAccessUnknownReason: string;
+  chppPermissionSelectionTitle: string;
+  chppPermissionSelectionIntro: string;
+  chppPermissionPlaceBidLabel: string;
+  chppPermissionPlaceBidDescription: string;
+  chppPermissionSetMatchOrderLabel: string;
+  chppPermissionSetMatchOrderDescription: string;
+  chppPermissionSetTrainingLabel: string;
+  chppPermissionSetTrainingDescription: string;
+  chppMissingPlaceBidTooltip: string;
+  chppMissingSetMatchOrderTooltip: string;
+  chppMissingSetTrainingTooltip: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;
@@ -188,6 +199,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_6_6_0: string;
   changelog_6_5_0: string;
   changelog_6_3_0: string;
   changelog_6_4_0: string;

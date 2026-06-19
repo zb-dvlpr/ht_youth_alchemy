@@ -119,6 +119,24 @@ export const messagesNl: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "CHPP-machtigingen kiezen",
+    chppPermissionSelectionIntro:
+      "Basistoegang tot het jeugdteam wordt automatisch aangevraagd. Je kunt kiezen welke optionele schrijfmachtigingen je wilt verlenen. Je kunt later opnieuw verbinden om ze te wijzigen.",
+    chppPermissionPlaceBidLabel: "Bod plaatsen",
+    chppPermissionPlaceBidDescription:
+      "Hiermee kun je bieden op spelers op de transfermarkt, bijvoorbeeld via Vergelijkbare spelers zoeken of Spelerswaarde schatten.",
+    chppPermissionSetMatchOrderLabel: "Wedstrijdorders instellen",
+    chppPermissionSetMatchOrderDescription:
+      "Hiermee kun je opstellingen naar Hattrick versturen.",
+    chppPermissionSetTrainingLabel: "Training instellen",
+    chppPermissionSetTrainingDescription:
+      "Hiermee kun je het trainingsprogramma van het seniorenteam wijzigen.",
+    chppMissingPlaceBidTooltip:
+      "Om deze functie te gebruiken, moet het CHPP-token zijn verkregen met de machtiging Bod plaatsen.",
+    chppMissingSetMatchOrderTooltip:
+      "Om deze functie te gebruiken, heeft het CHPP-token de machtiging Wedstrijdorders instellen nodig.",
+    chppMissingSetTrainingTooltip:
+      "Om deze functie te gebruiken, heeft het CHPP-token de machtiging Training instellen nodig.",
   helpOptimizerLocationTitle: "Waar je de optimizer vindt",
   helpOptimizerLocationYouth:
     "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop in de opstellingskop.",
@@ -483,6 +501,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_6_6_0:
+      "Door de gebruiker gekozen CHPP-tokenmachtigingen toegevoegd, zodat managers bij het verbinden optionele schrijfmachtigingen kunnen selecteren.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
   changelog_6_4_0:

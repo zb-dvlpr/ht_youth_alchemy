@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "../page.module.css";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
-import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
-import { parseExtendedPermissionsFromCheckToken } from "@/lib/chpp/permissions";
+import { useChppPermissions } from "./ChppPermissionsProvider";
 
 type ConnectedStatusProps = {
   messages: Messages;
@@ -17,44 +16,12 @@ export default function ConnectedStatus({
   messages,
   variant = "default",
 }: ConnectedStatusProps) {
-  const [permissions, setPermissions] = useState<string[] | null>(null);
+  const { loading, permissions } = useChppPermissions();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const analyticsSource: "desktop_header" | "mobile_header" =
     variant === "buttonOnly" ? "mobile_header" : "desktop_header";
 
-  useEffect(() => {
-    let isActive = true;
-    const load = async () => {
-      try {
-        const { response, payload } = await fetchChppJson<{
-          raw?: string;
-          permissions?: string[];
-        }>("/api/chpp/oauth/check-token?skipPermissionCheck=1",
-          {
-            cache: "no-store",
-          }
-        );
-        if (!response.ok) return;
-        const list = Array.isArray(payload?.permissions)
-          ? payload.permissions
-          : parseExtendedPermissionsFromCheckToken(payload?.raw ?? "");
-        if (isActive) {
-          setPermissions(list);
-        }
-      } catch (error) {
-        if (error instanceof ChppAuthRequiredError) return;
-        if (isActive) {
-          setPermissions(null);
-        }
-      }
-    };
-    load();
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  const permissionsText = permissions
+  const permissionsText = !loading
     ? permissions.length
       ? permissions.join(", ")
       : messages.permissionsNone

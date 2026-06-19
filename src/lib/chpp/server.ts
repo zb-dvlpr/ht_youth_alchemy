@@ -9,7 +9,6 @@ import {
 import {
   getMissingChppPermissions,
   parseExtendedPermissionsFromCheckToken,
-  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
 import { createNodeOAuthClient, getProtectedResource, postProtectedResource } from "@/lib/chpp/node-oauth";
 
@@ -38,7 +37,20 @@ export class ChppPermissionError extends ChppAuthError {
   missingPermissions: string[];
 
   constructor(missingPermissions: string[]) {
-    super("CHPP authorization expired. Re-auth required.");
+    const permissionLabels: Record<string, string> = {
+      place_bid: "Place bid",
+      set_matchorder: "Set match order",
+      set_training: "Set training",
+      manage_youthplayers: "Manage youth players",
+    };
+    const labels = missingPermissions.map(
+      (permission) => permissionLabels[permission] ?? permission
+    );
+    super(
+      `This action requires the ${labels.join(
+        ", "
+      )} CHPP permission${labels.length === 1 ? "" : "s"}. Reconnect CHPP to grant access.`
+    );
     this.missingPermissions = missingPermissions;
   }
 }
@@ -126,7 +138,7 @@ export async function fetchChppTokenCheck(auth: ChppAuth) {
 
 export async function assertChppPermissions(
   auth: ChppAuth,
-  requiredPermissions: readonly string[] = REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+  requiredPermissions?: readonly string[],
   grantedPermissions?: readonly string[]
 ) {
   const permissionsToValidate =

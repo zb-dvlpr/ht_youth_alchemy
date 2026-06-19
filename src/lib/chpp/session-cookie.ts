@@ -8,7 +8,7 @@ export const CHPP_SESSION_COOKIE =
 export const CHPP_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 * 16;
 
 type ChppSessionPayload = {
-  v: 1;
+  v: 2;
   accessToken: string;
   accessSecret: string;
   iat: number;
@@ -38,7 +38,7 @@ export function sealChppSession(input: {
 }) {
   const now = Math.floor(Date.now() / 1000);
   const payload: ChppSessionPayload = {
-    v: 1,
+    v: 2,
     accessToken: input.accessToken,
     accessSecret: input.accessSecret,
     iat: now,
@@ -89,7 +89,7 @@ export function openChppSession(
       plaintext.toString("utf8")
     ) as Partial<ChppSessionPayload>;
 
-    if (parsed.v !== 1) return null;
+    if (parsed.v !== 2) return null;
     if (typeof parsed.accessToken !== "string" || !parsed.accessToken) {
       return null;
     }
@@ -107,7 +107,7 @@ export function openChppSession(
     if (parsed.exp <= now) return null;
 
     return {
-      v: 1,
+      v: 2,
       accessToken: parsed.accessToken,
       accessSecret: parsed.accessSecret,
       iat: parsed.iat,

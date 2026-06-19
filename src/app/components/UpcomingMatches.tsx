@@ -29,6 +29,7 @@ import {
   type MatchReminderContextEventDetail,
   type MatchReminderScope,
 } from "@/lib/reminders/matches";
+import { useChppPermissions } from "./ChppPermissionsProvider";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -812,6 +813,7 @@ function renderMatch(
   submitEnabledMatchId?: number | null,
   submitRestrictedTooltip?: ReactNode,
   canSubmitToHattrick?: boolean,
+  canSetMatchOrder?: boolean,
   submitUnavailableTooltip?: ReactNode,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string,
@@ -835,12 +837,15 @@ function renderMatch(
     Boolean(teamId) &&
     isUpcoming &&
     hasLineup &&
+    canSetMatchOrder !== false &&
     canSubmitToHattrick !== false &&
     (!submitMatchRestrictionActive || submitEnabledMatchId === matchId);
   const submitRestrictedByOtherMatch =
     submitMatchRestrictionActive && submitEnabledMatchId !== matchId;
   const submitRestrictedBySupporter =
     isUpcoming && hasLineup && canSubmitToHattrick === false;
+  const submitRestrictedByPermission =
+    isUpcoming && hasLineup && canSetMatchOrder === false;
   const ordersSet = hasExistingOrders(match);
   const canLoad = Boolean(teamId) && isUpcoming && ordersSet;
   const statusText =
@@ -1009,7 +1014,9 @@ function renderMatch(
           </Tooltip>
           <Tooltip
             content={
-              submitRestrictedBySupporter && submitUnavailableTooltip
+              submitRestrictedByPermission
+                ? messages.chppMissingSetMatchOrderTooltip
+                : submitRestrictedBySupporter && submitUnavailableTooltip
                 ? submitUnavailableTooltip
                 : submitRestrictedByOtherMatch && submitRestrictedTooltip
                 ? submitRestrictedTooltip
@@ -1137,6 +1144,9 @@ export default function UpcomingMatches({
   onAnalyticsFeature,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
+  const { loading: permissionsLoading, hasPermission } = useChppPermissions();
+  const canSetMatchOrder =
+    !permissionsLoading && hasPermission("set_matchorder");
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
   const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
@@ -1245,6 +1255,7 @@ export default function UpcomingMatches({
       ? matchById.get(submitEnabledMatchId)
       : undefined;
   const canSubmitMatchId = (matchId: number) =>
+    canSetMatchOrder &&
     canSubmitToHattrick !== false &&
     (!submitRestrictionActive || submitEnabledMatchId === matchId);
   const confirmMatch = confirmMatchId ? matchById.get(confirmMatchId) : undefined;
@@ -1697,6 +1708,7 @@ export default function UpcomingMatches({
               submitEnabledMatchId,
               submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
               canSubmitToHattrick,
+              canSetMatchOrder,
               submitUnavailableTooltip,
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined,
@@ -1748,6 +1760,7 @@ export default function UpcomingMatches({
                 submitEnabledMatchId,
                 submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
                 canSubmitToHattrick,
+                canSetMatchOrder,
                 submitUnavailableTooltip,
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined,

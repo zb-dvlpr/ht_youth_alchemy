@@ -4,77 +4,119 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const repoRoot = path.resolve(__dirname, "..");
-
-const REQUIRED_PERMISSIONS = [
-  "set_matchorder",
-  "manage_youthplayers",
-  "set_training",
-];
-
-const REQUESTED_ONLY_PERMISSIONS = ["place_bid"];
-
+const MANDATORY_PERMISSIONS = ["manage_youthplayers"];
+const OPTIONAL_PERMISSIONS = ["place_bid", "set_matchorder", "set_training"];
 const read = (relativePath) =>
   fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
-
 const errors = [];
 
 const permissionsSource = read("src/lib/chpp/permissions.ts");
-for (const permission of REQUIRED_PERMISSIONS) {
+if (!permissionsSource.includes("MANDATORY_CHPP_EXTENDED_PERMISSIONS")) {
+  errors.push("Missing MANDATORY_CHPP_EXTENDED_PERMISSIONS baseline.");
+}
+if (!permissionsSource.includes("OPTIONAL_CHPP_EXTENDED_PERMISSIONS")) {
+  errors.push("Missing OPTIONAL_CHPP_EXTENDED_PERMISSIONS allowlist.");
+}
+if (!permissionsSource.includes("normalizeOptionalChppPermissions")) {
+  errors.push("Missing optional CHPP permission normalizer.");
+}
+if (!permissionsSource.includes("buildRequestedChppPermissions")) {
+  errors.push("Missing mandatory-plus-optional permission builder.");
+}
+if (!permissionsSource.includes("buildChppScopeParam")) {
+  errors.push("Missing mandatory CHPP scope builder.");
+}
+for (const permission of MANDATORY_PERMISSIONS) {
   if (!permissionsSource.includes(`"${permission}"`)) {
-    errors.push(
-      `Missing required CHPP permission "${permission}" in src/lib/chpp/permissions.ts`
-    );
+    errors.push(`Missing mandatory CHPP permission "${permission}".`);
   }
 }
-for (const permission of REQUESTED_ONLY_PERMISSIONS) {
+for (const permission of OPTIONAL_PERMISSIONS) {
   if (!permissionsSource.includes(`"${permission}"`)) {
-    errors.push(
-      `Missing requested CHPP permission "${permission}" in src/lib/chpp/permissions.ts`
-    );
+    errors.push(`Missing optional CHPP permission "${permission}".`);
   }
 }
 
 const oauthStartSource = read("src/app/api/chpp/oauth/start/route.ts");
-if (!oauthStartSource.includes("toChppScopeParam(")) {
+if (!oauthStartSource.includes("normalizeOptionalChppPermissions(")) {
+  errors.push("OAuth start route does not normalize requested permissions.");
+}
+if (!oauthStartSource.includes("buildChppScopeParam(selectedPermissions)")) {
   errors.push(
-    "OAuth start route no longer builds scope from toChppScopeParam()."
+    "OAuth start route does not combine mandatory permissions with validated optional permissions."
   );
 }
-if (!oauthStartSource.includes("&scope=")) {
-  errors.push("OAuth start route no longer appends a scope query parameter.");
+if (!permissionsSource.includes("...MANDATORY_CHPP_EXTENDED_PERMISSIONS")) {
+  errors.push("Requested CHPP scope does not include the mandatory baseline.");
 }
 
 const checkTokenSource = read("src/app/api/chpp/oauth/check-token/route.ts");
-if (!checkTokenSource.includes("assertChppPermissions(")) {
-  errors.push("OAuth check-token route no longer enforces required permissions.");
+if (!checkTokenSource.includes("assertChppPermissions(auth, undefined, permissions)")) {
+  errors.push("OAuth check-token route does not enforce mandatory permissions.");
+}
+if (!checkTokenSource.includes('get("skipPermissionCheck") === "1"')) {
+  errors.push("OAuth check-token route no longer supports skipPermissionCheck.");
 }
 
-const playerDetailsSource = read("src/app/api/chpp/playerdetails/route.ts");
-if (!playerDetailsSource.includes('assertChppPermissions(auth, ["place_bid"])')) {
-  errors.push("Player details route no longer enforces place_bid permission for bidding.");
+const routeChecks = [
+  [
+    "src/app/api/chpp/playerdetails/route.ts",
+    'assertChppPermissions(auth, ["place_bid"])',
+    "Player details route no longer enforces place_bid permission.",
+  ],
+  [
+    "src/app/api/chpp/matchorders/route.ts",
+    'assertChppPermissions(auth, ["set_matchorder"])',
+    "Match orders route no longer enforces set_matchorder permission.",
+  ],
+  [
+    "src/app/api/chpp/training/route.ts",
+    'assertChppPermissions(auth, ["set_training"])',
+    "Training route no longer enforces set_training permission.",
+  ],
+  [
+    "src/app/api/chpp/youth/player-details/route.ts",
+    'assertChppPermissions(auth, ["manage_youthplayers"])',
+    "Youth player details route no longer enforces manage_youthplayers permission.",
+  ],
+];
+for (const [file, marker, message] of routeChecks) {
+  if (!read(file).includes(marker)) errors.push(message);
 }
 
-const matchordersSource = read("src/app/api/chpp/matchorders/route.ts");
-if (!matchordersSource.includes('assertChppPermissions(auth, ["set_matchorder"])')) {
-  errors.push("Match orders route no longer enforces set_matchorder permission.");
+const accessGateSource = read("src/app/components/ChppAccessGate.tsx");
+if (!accessGateSource.includes("OPTIONAL_CHPP_PERMISSION_OPTIONS.map")) {
+  errors.push("Connection UI does not render the optional permission options.");
+}
+if (accessGateSource.includes('permission: "manage_youthplayers"')) {
+  errors.push("Connection UI incorrectly exposes manage_youthplayers as optional.");
 }
 
-const youthDetailsSource = read("src/app/api/chpp/youth/player-details/route.ts");
+const i18nSource = read("src/lib/i18n.ts");
+for (const key of [
+  "chppPermissionSelectionIntro",
+  "chppMissingPlaceBidTooltip",
+  "chppMissingSetMatchOrderTooltip",
+  "chppMissingSetTrainingTooltip",
+]) {
+  if (!i18nSource.includes(`${key}: string`)) {
+    errors.push(`Missing i18n message key ${key}.`);
+  }
+}
+const englishMessagesSource = read("src/lib/i18n/locales/en.ts");
 if (
-  !youthDetailsSource.includes(
-    'assertChppPermissions(auth, ["manage_youthplayers"])'
+  !englishMessagesSource.includes(
+    "Core youth-team access will be requested automatically."
   )
 ) {
   errors.push(
-    "Youth player details route no longer enforces manage_youthplayers permission for unlock."
+    "Permission-selection copy does not explain the automatic core youth-team permission."
   );
 }
 
 if (errors.length > 0) {
   console.error("CHPP permission regression check failed:");
-  for (const error of errors) {
-    console.error(`- ${error}`);
-  }
+  for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
 

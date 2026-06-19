@@ -3,7 +3,7 @@
 Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows. It includes dedicated youth and senior team optimization tools for evaluating players, building lineups, and managing match orders, plus Club Chronicle insights for tracked teams.
 
 ## Core capabilities
-- CHPP OAuth connection to Hattrick
+- CHPP OAuth connection to Hattrick with user-selected optional write permissions
 - Multi-team youth and senior support for managers with multiple clubs/academies
 - Youth player list, player details, ratings/skills matrices, and lineup optimization
 - Youth transfer value estimates from revealed maximum potential
@@ -60,9 +60,10 @@ npm run dev
 Open `http://localhost:3000`.
 
 ## OAuth flow (local)
-1. Visit `http://localhost:3000/api/chpp/oauth/start`
-2. Authorize in Hattrick
-3. Return to app root
+1. Open `http://localhost:3000`
+2. Select any optional CHPP write permissions
+3. Connect and authorize in Hattrick
+4. Return to app root
 
 Useful OAuth endpoints:
 - `GET /api/chpp/oauth/debug`

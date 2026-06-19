@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import styles from "../page.module.css";
 import { MANUAL_MARKDOWN } from "./manualMarkdown";
+import { MANUAL_CHPP_PERMISSIONS_MARKDOWN } from "./manualChppPermissionsMarkdown";
 import Modal from "./Modal";
 import { isPremiumLicensingEnabled } from "@/lib/license";
 
@@ -134,7 +135,7 @@ const MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION =
       );
 
 const { blocks: manualBlocks, toc: manualToc } = parseManualMarkdown(
-  MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION
+  `${MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION}\n\n${MANUAL_CHPP_PERMISSIONS_MARKDOWN}`
 );
 
 const renderHeading = (block: Extract<ManualBlock, { type: "heading" }>) => {

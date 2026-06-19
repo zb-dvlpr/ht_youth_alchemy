@@ -104,6 +104,24 @@ export const messagesEn: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "Choose CHPP permissions",
+    chppPermissionSelectionIntro:
+      "Core youth-team access will be requested automatically. You can choose which optional write permissions to grant. You can reconnect later to change them.",
+    chppPermissionPlaceBidLabel: "Place bid",
+    chppPermissionPlaceBidDescription:
+      "Allows you to place bids on players found on the transfer market, for example via Find Similar Players or Estimate Player Value.",
+    chppPermissionSetMatchOrderLabel: "Set match order",
+    chppPermissionSetMatchOrderDescription:
+      "Allows you to submit lineups to Hattrick.",
+    chppPermissionSetTrainingLabel: "Set training",
+    chppPermissionSetTrainingDescription:
+      "Allows you to change the senior team’s training regimen.",
+    chppMissingPlaceBidTooltip:
+      "To use this functionality, the CHPP token must be acquired with the Place bid permission.",
+    chppMissingSetMatchOrderTooltip:
+      "To use this functionality, the Set match order permission is required for the CHPP token.",
+    chppMissingSetTrainingTooltip:
+      "To use this functionality, the Set training permission is required for the CHPP token.",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
       "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
@@ -219,6 +237,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_6_0:
+      "Added user-defined CHPP token permissions, allowing managers to choose optional write permissions during connection.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
     changelog_6_4_0:

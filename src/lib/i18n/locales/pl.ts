@@ -119,6 +119,24 @@ export const messagesPl: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "Wybierz uprawnienia CHPP",
+    chppPermissionSelectionIntro:
+      "Podstawowy dostęp do drużyny młodzieżowej zostanie zażądany automatycznie. Możesz wybrać opcjonalne uprawnienia do zapisu, które chcesz przyznać. Możesz połączyć się ponownie później, aby je zmienić.",
+    chppPermissionPlaceBidLabel: "Złóż ofertę",
+    chppPermissionPlaceBidDescription:
+      "Pozwala składać oferty za zawodników na rynku transferowym, na przykład przez Znajdź podobnych zawodników lub Oszacuj wartość zawodnika.",
+    chppPermissionSetMatchOrderLabel: "Ustaw polecenia meczowe",
+    chppPermissionSetMatchOrderDescription:
+      "Pozwala wysyłać składy do Hattricka.",
+    chppPermissionSetTrainingLabel: "Ustaw trening",
+    chppPermissionSetTrainingDescription:
+      "Pozwala zmieniać trening drużyny seniorów.",
+    chppMissingPlaceBidTooltip:
+      "Aby użyć tej funkcji, token CHPP musi zostać uzyskany z uprawnieniem Złóż ofertę.",
+    chppMissingSetMatchOrderTooltip:
+      "Aby użyć tej funkcji, token CHPP wymaga uprawnienia Ustaw polecenia meczowe.",
+    chppMissingSetTrainingTooltip:
+      "Aby użyć tej funkcji, token CHPP wymaga uprawnienia Ustaw trening.",
   helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
   helpOptimizerLocationYouth:
     "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
@@ -477,6 +495,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_6_6_0:
+      "Dodano uprawnienia tokenu CHPP definiowane przez użytkownika, pozwalające menedżerom wybierać opcjonalne uprawnienia do zapisu podczas łączenia.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
   changelog_6_4_0:

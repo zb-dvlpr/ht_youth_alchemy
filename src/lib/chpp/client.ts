@@ -137,7 +137,9 @@ export function writeChppDebugOauthErrorMode(mode: ChppDebugOauthErrorMode) {
   }
 }
 
-export async function reconnectChppWithTokenReset() {
+export async function reconnectChppWithTokenReset(
+  permissions?: readonly string[]
+) {
   try {
     await fetch("/api/chpp/oauth/invalidate-token", {
       method: "POST",
@@ -147,7 +149,16 @@ export async function reconnectChppWithTokenReset() {
     // Best effort only; continue to reconnect flow.
   }
   if (typeof window !== "undefined") {
-    window.location.href = "/api/chpp/oauth/start";
+    if (permissions) {
+      const search = new URLSearchParams();
+      if (permissions.length > 0) {
+        search.set("permissions", permissions.join(","));
+      }
+      const query = search.toString();
+      window.location.href = `/api/chpp/oauth/start${query ? `?${query}` : ""}`;
+      return;
+    }
+    window.location.href = "/";
   }
 }
 

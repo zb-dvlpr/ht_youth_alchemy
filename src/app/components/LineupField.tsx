@@ -1416,21 +1416,21 @@ export default function LineupField({
                   {messages.resetLineup}
                 </button>
               ) : null}
-              {onRandomize ? (
-                <button
-                  type="button"
-                  className={styles.lineupButton}
-                  onClick={onRandomize}
-                >
-                  {messages.randomizeLineup}
-                </button>
-              ) : null}
               {showBottomRightTactic
                 ? renderTacticControl(styles.tacticOverlayBottomRight)
                 : null}
             </div>
-            {lineupActionsRightContent ? (
+            {onRandomize || lineupActionsRightContent ? (
               <div className={styles.lineupActionsRight}>
+                {onRandomize ? (
+                  <button
+                    type="button"
+                    className={styles.lineupButton}
+                    onClick={onRandomize}
+                  >
+                    {messages.randomizeLineup}
+                  </button>
+                ) : null}
                 {lineupActionsRightContent}
               </div>
             ) : null}

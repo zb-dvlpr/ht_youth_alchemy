@@ -114,6 +114,54 @@ if (
   );
 }
 
+const sessionCookieSource = read("src/lib/chpp/session-cookie.ts");
+const invalidateTokenSource = read(
+  "src/app/api/chpp/oauth/invalidate-token/route.ts"
+);
+for (const cookieName of [
+  "__Host-ya_chpp_session",
+  "ya_chpp_session",
+  "chpp_access_token",
+  "chpp_access_secret",
+  "chpp_req_token",
+  "chpp_req_secret",
+]) {
+  if (!sessionCookieSource.includes(`"${cookieName}"`)) {
+    errors.push(`CHPP logout does not clear "${cookieName}".`);
+  }
+}
+if (
+  !sessionCookieSource.includes(
+    "response.cookies.set(CHPP_PRODUCTION_SESSION_COOKIE"
+  ) ||
+  !sessionCookieSource.includes("secure: true")
+) {
+  errors.push(
+    "Production CHPP session-cookie clearing does not explicitly use Secure."
+  );
+}
+if (!sessionCookieSource.includes("maxAge: 0")) {
+  errors.push("CHPP logout does not explicitly expire cookies with maxAge 0.");
+}
+if (
+  invalidateTokenSource.includes("cookieStore.delete(CHPP_SESSION_COOKIE)")
+) {
+  errors.push(
+    "CHPP invalidate-token route still relies on cookieStore.delete for the session cookie."
+  );
+}
+if (
+  !invalidateTokenSource.includes("clearChppSessionCookies(response);") ||
+  !invalidateTokenSource.includes("return response;")
+) {
+  errors.push(
+    "CHPP invalidate-token route does not clear cookies on its returned response."
+  );
+}
+if (/export\s+async\s+function\s+GET\b/.test(invalidateTokenSource)) {
+  errors.push("CHPP token invalidation must remain POST-only.");
+}
+
 if (errors.length > 0) {
   console.error("CHPP permission regression check failed:");
   for (const error of errors) console.error(`- ${error}`);

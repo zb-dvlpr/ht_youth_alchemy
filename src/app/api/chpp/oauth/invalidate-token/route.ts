@@ -4,6 +4,7 @@ import { getChppEnv } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
 import {
   CHPP_SESSION_COOKIE,
+  clearChppSessionCookies,
   openChppSession,
 } from "@/lib/chpp/session-cookie";
 import {
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
   );
 
   let raw: string | null = null;
+  let upstreamTokenInvalidated = false;
   let invalidationFailed = false;
 
   if (session) {
@@ -50,6 +52,7 @@ export async function POST(request: Request) {
         session.accessToken,
         session.accessSecret
       );
+      upstreamTokenInvalidated = true;
     } catch {
       invalidationFailed = true;
     }
@@ -57,19 +60,22 @@ export async function POST(request: Request) {
     invalidationFailed = true;
   }
 
-  cookieStore.delete(CHPP_SESSION_COOKIE);
-  cookieStore.delete("chpp_access_token");
-  cookieStore.delete("chpp_access_secret");
-  cookieStore.delete("chpp_req_token");
-  cookieStore.delete("chpp_req_secret");
+  const response = invalidationFailed
+    ? NextResponse.json({
+        ok: false,
+        localSessionCleared: true,
+        upstreamTokenInvalidated,
+        error: "Failed to invalidate token",
+        details:
+          "CHPP token invalidation failed or no active session was found.",
+      })
+    : NextResponse.json({
+        ok: true,
+        localSessionCleared: true,
+        upstreamTokenInvalidated,
+        raw,
+      });
 
-  if (invalidationFailed) {
-    return NextResponse.json({
-      ok: false,
-      error: "Failed to invalidate token",
-      details: "CHPP token invalidation failed or no active session was found.",
-    });
-  }
-
-  return NextResponse.json({ ok: true, raw });
+  clearChppSessionCookies(response);
+  return response;
 }

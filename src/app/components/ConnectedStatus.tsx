@@ -35,9 +35,23 @@ export default function ConnectedStatus({
     });
     setIsDisconnecting(true);
     try {
-      await fetch("/api/chpp/oauth/invalidate-token", { method: "POST" });
-    } finally {
+      const response = await fetch("/api/chpp/oauth/invalidate-token", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        localSessionCleared?: boolean;
+      } | null;
+
+      if (!response.ok || payload?.localSessionCleared !== true) {
+        setIsDisconnecting(false);
+        return;
+      }
+
       window.location.reload();
+    } catch {
+      setIsDisconnecting(false);
     }
   };
 

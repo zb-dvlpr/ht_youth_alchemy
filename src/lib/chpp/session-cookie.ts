@@ -1,9 +1,13 @@
 import crypto from "node:crypto";
+import type { NextResponse } from "next/server";
+
+export const CHPP_PRODUCTION_SESSION_COOKIE = "__Host-ya_chpp_session";
+export const CHPP_DEVELOPMENT_SESSION_COOKIE = "ya_chpp_session";
 
 export const CHPP_SESSION_COOKIE =
   process.env.NODE_ENV === "production"
-    ? "__Host-ya_chpp_session"
-    : "ya_chpp_session";
+    ? CHPP_PRODUCTION_SESSION_COOKIE
+    : CHPP_DEVELOPMENT_SESSION_COOKIE;
 
 export const CHPP_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 * 16;
 
@@ -125,3 +129,34 @@ export const chppSessionCookieOptions = {
   path: "/",
   maxAge: CHPP_SESSION_MAX_AGE_SECONDS,
 };
+
+export function clearChppSessionCookies(response: NextResponse) {
+  const commonOptions = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  };
+
+  response.cookies.set(CHPP_PRODUCTION_SESSION_COOKIE, "", {
+    ...commonOptions,
+    secure: true,
+  });
+  response.cookies.set(CHPP_DEVELOPMENT_SESSION_COOKIE, "", {
+    ...commonOptions,
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  for (const name of [
+    "chpp_access_token",
+    "chpp_access_secret",
+    "chpp_req_token",
+    "chpp_req_secret",
+  ]) {
+    response.cookies.set(name, "", {
+      ...commonOptions,
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
+}

@@ -12,6 +12,10 @@ import {
 } from "@/lib/chpp/server";
 import { getChppEnv } from "@/lib/chpp/env";
 import { createOAuthClient, toAuthHeader } from "@/lib/chpp/oauth";
+import {
+  assertSameOrigin,
+  InvalidOriginError,
+} from "@/lib/security/origin";
 
 const MATCHORDERS_VERSION = "3.1";
 
@@ -25,6 +29,8 @@ type MatchOrdersRequest = {
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
+
     const payload = (await request.json().catch(() => null)) as
       | MatchOrdersRequest
       | null;
@@ -103,6 +109,12 @@ export async function POST(request: Request) {
     const parsed = parseChppXml(rawXml);
     return NextResponse.json({ data: parsed, raw: rawXml });
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json(
+        { error: "Invalid request origin." },
+        { status: error.status }
+      );
+    }
     if (error instanceof ChppPermissionError) {
       return NextResponse.json(
         {

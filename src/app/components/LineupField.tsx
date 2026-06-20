@@ -8,6 +8,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import Tooltip from "./Tooltip";
 import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
+import { useChppPermissions } from "./ChppPermissionsProvider";
 
 export type LineupAssignments = Record<string, number | null>;
 export type LineupBehaviors = Record<string, number>;
@@ -467,6 +468,9 @@ export default function LineupField({
   messages,
   allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
+  const { loading: permissionsLoading, hasPermission } = useChppPermissions();
+  const canSetTraining =
+    !permissionsLoading && hasPermission("set_training");
   const [optimizeOpen, setOptimizeOpen] = useState(false);
   const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
   const [emptySlotPickerSlotId, setEmptySlotPickerSlotId] = useState<string | null>(
@@ -714,14 +718,20 @@ export default function LineupField({
                       {trainingTypeLabelForValue?.(value) ?? String(value)}
                     </div>
                     {!isActive ? (
-                      <Tooltip content={messages.trainingSetButtonTooltip}>
+                      <Tooltip
+                        content={
+                          canSetTraining
+                            ? messages.trainingSetButtonTooltip
+                            : messages.chppMissingSetTrainingTooltip
+                        }
+                      >
                         <button
                           type="button"
                           className={styles.lineupTrainingTypeSetButton}
-                          disabled={trainingTypeSetPending}
+                          disabled={trainingTypeSetPending || !canSetTraining}
                           onClick={(event) => {
                             event.stopPropagation();
-                            if (trainingTypeSetPending) return;
+                            if (trainingTypeSetPending || !canSetTraining) return;
                             void onTrainingTypeSet?.(value);
                           }}
                         >
@@ -1406,21 +1416,21 @@ export default function LineupField({
                   {messages.resetLineup}
                 </button>
               ) : null}
-              {onRandomize ? (
-                <button
-                  type="button"
-                  className={styles.lineupButton}
-                  onClick={onRandomize}
-                >
-                  {messages.randomizeLineup}
-                </button>
-              ) : null}
               {showBottomRightTactic
                 ? renderTacticControl(styles.tacticOverlayBottomRight)
                 : null}
             </div>
-            {lineupActionsRightContent ? (
+            {onRandomize || lineupActionsRightContent ? (
               <div className={styles.lineupActionsRight}>
+                {onRandomize ? (
+                  <button
+                    type="button"
+                    className={styles.lineupButton}
+                    onClick={onRandomize}
+                  >
+                    {messages.randomizeLineup}
+                  </button>
+                ) : null}
                 {lineupActionsRightContent}
               </div>
             ) : null}

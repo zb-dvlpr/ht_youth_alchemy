@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
 import { createNodeOAuthClient, getAccessToken } from "@/lib/chpp/node-oauth";
+import {
+  CHPP_SESSION_COOKIE,
+  chppSessionCookieOptions,
+  sealChppSession,
+} from "@/lib/chpp/session-cookie";
 
 export async function GET(request: Request) {
   try {
@@ -42,16 +47,15 @@ export async function GET(request: Request) {
             ? {}
             : {
               debug: {
-                requestUrl: request.url,
+                requestPath: new URL(request.url).pathname,
                 callbackUrl,
                 requestHost: request.headers.get("host"),
                 forwardedProto: request.headers.get("x-forwarded-proto"),
                 hasRequestTokenCookie: Boolean(requestToken),
                 hasRequestSecretCookie: Boolean(requestSecret),
                 requestTokenMatches: requestToken === oauthToken,
-                  oauthToken,
-                },
-              }),
+              },
+            }),
         },
         { status: 400 }
       );
@@ -64,21 +68,18 @@ export async function GET(request: Request) {
       oauthVerifier
     );
 
-    cookieStore.set("chpp_access_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365 * 20,
+    const session = sealChppSession({
+      accessToken: token,
+      accessSecret: secret,
     });
-    cookieStore.set("chpp_access_secret", secret, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365 * 20,
-    });
+    cookieStore.set(
+      CHPP_SESSION_COOKIE,
+      session,
+      chppSessionCookieOptions
+    );
 
+    cookieStore.delete("chpp_access_token");
+    cookieStore.delete("chpp_access_secret");
     cookieStore.delete("chpp_req_token");
     cookieStore.delete("chpp_req_secret");
 
@@ -90,12 +91,18 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error: "OAuth callback failed",
-        details: error instanceof Error ? error.message : String(error),
         ...(process.env.NODE_ENV === "production"
           ? {}
           : {
+              details:
+                error instanceof Error &&
+                (error.message === "Missing CHPP_COOKIE_SECRET" ||
+                  error.message ===
+                    "CHPP_COOKIE_SECRET must be 32 bytes base64-encoded")
+                  ? error.message
+                  : "OAuth callback failed",
               debug: {
-                requestUrl: request.url,
+                requestPath: new URL(request.url).pathname,
                 callbackUrl: resolveChppCallbackUrl({
                   requestUrl: request.url,
                   host: request.headers.get("host"),

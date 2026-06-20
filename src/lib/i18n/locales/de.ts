@@ -105,6 +105,24 @@ export const messagesDe: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "CHPP-Berechtigungen auswählen",
+    chppPermissionSelectionIntro:
+      "Der grundlegende Zugriff auf das Jugendteam wird automatisch angefordert. Du kannst auswählen, welche optionalen Schreibberechtigungen du gewähren möchtest. Du kannst dich später erneut verbinden, um sie zu ändern.",
+    chppPermissionPlaceBidLabel: "Gebot abgeben",
+    chppPermissionPlaceBidDescription:
+      "Ermöglicht dir, auf Spieler auf dem Transfermarkt zu bieten, zum Beispiel über Ähnliche Spieler finden oder Spielerwert schätzen.",
+    chppPermissionSetMatchOrderLabel: "Matchaufstellung festlegen",
+    chppPermissionSetMatchOrderDescription:
+      "Ermöglicht dir, Aufstellungen an Hattrick zu übermitteln.",
+    chppPermissionSetTrainingLabel: "Training festlegen",
+    chppPermissionSetTrainingDescription:
+      "Ermöglicht dir, das Trainingsprogramm der Seniorenmannschaft zu ändern.",
+    chppMissingPlaceBidTooltip:
+      "Für diese Funktion muss das CHPP-Token mit der Berechtigung Gebot abgeben erworben worden sein.",
+    chppMissingSetMatchOrderTooltip:
+      "Für diese Funktion benötigt das CHPP-Token die Berechtigung Matchaufstellung festlegen.",
+    chppMissingSetTrainingTooltip:
+      "Für diese Funktion benötigt das CHPP-Token die Berechtigung Training festlegen.",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -221,6 +239,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_6_6_0:
+      "Benutzerdefinierte CHPP-Token-Berechtigungen hinzugefügt, damit Manager beim Verbinden optionale Schreibberechtigungen auswählen können.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
     changelog_6_4_0:

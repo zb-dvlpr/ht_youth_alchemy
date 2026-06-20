@@ -105,6 +105,24 @@ export const messagesSv: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "Välj CHPP-behörigheter",
+    chppPermissionSelectionIntro:
+      "Grundläggande åtkomst till ungdomslaget begärs automatiskt. Du kan välja vilka valfria skrivbehörigheter du vill ge. Du kan ansluta igen senare för att ändra dem.",
+    chppPermissionPlaceBidLabel: "Lägg bud",
+    chppPermissionPlaceBidDescription:
+      "Låter dig lägga bud på spelare på transfermarknaden, till exempel via Hitta liknande spelare eller Uppskatta spelarvärde.",
+    chppPermissionSetMatchOrderLabel: "Ange matchorder",
+    chppPermissionSetMatchOrderDescription:
+      "Låter dig skicka laguppställningar till Hattrick.",
+    chppPermissionSetTrainingLabel: "Ange träning",
+    chppPermissionSetTrainingDescription:
+      "Låter dig ändra seniorlagets träningsupplägg.",
+    chppMissingPlaceBidTooltip:
+      "För att använda den här funktionen måste CHPP-token ha hämtats med behörigheten Lägg bud.",
+    chppMissingSetMatchOrderTooltip:
+      "För att använda den här funktionen krävs behörigheten Ange matchorder för CHPP-token.",
+    chppMissingSetTrainingTooltip:
+      "För att använda den här funktionen krävs behörigheten Ange träning för CHPP-token.",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
@@ -220,6 +238,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_6_0:
+      "Lade till användardefinierade CHPP-tokenbehörigheter så att managers kan välja valfria skrivbehörigheter vid anslutning.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
     changelog_6_4_0:

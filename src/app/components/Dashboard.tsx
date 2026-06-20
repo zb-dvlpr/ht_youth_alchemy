@@ -100,6 +100,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import { useSupporterStatus } from "./SupporterStatusProvider";
+import { useChppPermissions } from "./ChppPermissionsProvider";
 import {
   calculateHtmsMetrics,
   calculatePsicoTsiMetrics,
@@ -126,11 +127,6 @@ import {
   type YouthPromotionReminderContextEventDetail,
 } from "@/lib/reminders/youthPromotion";
 import { setDragGhost } from "@/lib/drag";
-import {
-  getMissingChppPermissions,
-  parseExtendedPermissionsFromCheckToken,
-  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-} from "@/lib/chpp/permissions";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import {
   APP_LICENSE_EVENT,
@@ -1124,6 +1120,8 @@ export default function Dashboard({
   const [transferSearchBidPendingPlayerId, setTransferSearchBidPendingPlayerId] =
     useState<number | null>(null);
   const { isSupporter } = useSupporterStatus();
+  const { loading: permissionsLoading, hasPermission } = useChppPermissions();
+  const canPlaceBid = !permissionsLoading && hasPermission("place_bid");
   const transferSearchRequestIdRef = useRef(0);
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
@@ -4083,7 +4081,7 @@ export default function Dashboard({
     result: TransferSearchResult,
     bidKind: keyof TransferSearchBidDraft
   ) => {
-    if (!resolvedSeniorTeamId) return;
+    if (!resolvedSeniorTeamId || !canPlaceBid) return;
     const draft = transferSearchBidDrafts[result.playerId] ?? {
       bidDisplay: "",
       maxBidDisplay: "",
@@ -4137,6 +4135,7 @@ export default function Dashboard({
     }
   }, [
     addNotification,
+    canPlaceBid,
     displayCurrency,
     messages.seniorTransferSearchBidFailed,
     messages.seniorTransferSearchBidMissingAmount,
@@ -4147,6 +4146,7 @@ export default function Dashboard({
 
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
+      if (!canPlaceBid) return;
       const minimumBidSek = buildTransferSearchMinimumBidSek(result);
       if (typeof minimumBidSek !== "number") {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
@@ -4193,6 +4193,7 @@ export default function Dashboard({
     },
     [
       addNotification,
+      canPlaceBid,
       displayCurrency,
       messages.seniorTransferSearchBidFailed,
       messages.seniorTransferSearchBidMissingAmount,
@@ -4268,7 +4269,7 @@ export default function Dashboard({
     messages.specialtyUnpredictable,
   ]);
   const transferSearchCanBid =
-    isSupporter && Boolean(resolvedSeniorTeamId);
+    isSupporter && canPlaceBid && Boolean(resolvedSeniorTeamId);
 
   const getTransferSearchSortMetricInput = useCallback(
     (result: TransferSearchResult) => {
@@ -4671,7 +4672,11 @@ export default function Dashboard({
             />
           </div>
           <Tooltip
-            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            content={
+              !canPlaceBid
+                ? messages.chppMissingPlaceBidTooltip
+                : messages.seniorTransferSearchSupporterOnlyTooltip
+            }
             disabled={transferSearchCanBid}
           >
             <button
@@ -4703,7 +4708,11 @@ export default function Dashboard({
             />
           </div>
           <Tooltip
-            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            content={
+              !canPlaceBid
+                ? messages.chppMissingPlaceBidTooltip
+                : messages.seniorTransferSearchSupporterOnlyTooltip
+            }
             disabled={transferSearchCanBid}
           >
             <button
@@ -5346,30 +5355,13 @@ export default function Dashboard({
 
   const ensureRefreshScopes = async () => {
     try {
-      const { response, payload } = await fetchChppJson<{
+      const { response } = await fetchChppJson<{
         permissions?: string[];
         raw?: string;
       }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
       if (!response.ok) {
-        setScopeReconnectModalOpen(true);
-        return false;
-      }
-      const grantedPermissions = Array.isArray(payload?.permissions)
-        ? payload.permissions
-        : [];
-      const missingPermissions = getMissingChppPermissions(
-        grantedPermissions,
-        REQUIRED_CHPP_EXTENDED_PERMISSIONS
-      );
-      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
-      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
-      const scopeTokens = hasScopeTag
-        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
-        : [];
-      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
-      if (missingPermissions.length > 0 || missingDefaultScope) {
         setScopeReconnectModalOpen(true);
         return false;
       }
@@ -7775,6 +7767,11 @@ export default function Dashboard({
           transferSearchDetailsById[result.playerId]?.NativeLeagueID
         }
         canQuickBid={transferSearchCanBid && Boolean(resolvedSeniorTeamId)}
+        quickBidUnavailableTooltip={
+          !canPlaceBid
+            ? messages.chppMissingPlaceBidTooltip
+            : messages.seniorTransferSearchSupporterOnlyTooltip
+        }
         quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
         onQuickBid={(result) => {
           void placeTransferQuickBid(result);

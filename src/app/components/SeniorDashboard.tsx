@@ -59,6 +59,7 @@ import { readReminderStorageState } from "@/lib/reminders/storage";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { useSupporterStatus } from "./SupporterStatusProvider";
+import { useChppPermissions } from "./ChppPermissionsProvider";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
@@ -114,11 +115,6 @@ import {
   matchRoleIdToPositionKey,
   positionLabel,
 } from "@/lib/positions";
-import {
-  getMissingChppPermissions,
-  parseExtendedPermissionsFromCheckToken,
-  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-} from "@/lib/chpp/permissions";
 import { readGlobalSeason } from "@/lib/season";
 import {
   captureSeniorEncounteredPlayer,
@@ -3935,6 +3931,9 @@ export default function SeniorDashboard({
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const { isSupporter } = useSupporterStatus();
+  const { loading: permissionsLoading, hasPermission } = useChppPermissions();
+  const canPlaceBid = !permissionsLoading && hasPermission("place_bid");
+  const canSetTraining = !permissionsLoading && hasPermission("set_training");
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
   const [transferSearchSourcePlayerId, setTransferSearchSourcePlayerId] = useState<number | null>(
     null
@@ -11944,7 +11943,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   const handleSetTrainingType = async (nextTrainingType: number) => {
-    if (trainingTypeSetPending) return;
+    if (trainingTypeSetPending || !canSetTraining) return;
     if (nextTrainingType === trainingType) return;
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return;
@@ -12353,7 +12352,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     result: TransferSearchResult,
     bidKind: keyof TransferSearchBidDraft
   ) => {
-    if (!resolvedSeniorTeamId) return;
+    if (!resolvedSeniorTeamId || !canPlaceBid) return;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
     const amountSek = displayToSek(draft[bidKind], displayCurrency);
     if (!amountSek) {
@@ -12413,6 +12412,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   }, [
     addNotification,
+    canPlaceBid,
     displayCurrency,
     fetchPlayerDetailsById,
     messages.seniorTransferSearchBidFailed,
@@ -12426,7 +12426,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
-      if (!resolvedSeniorTeamId) return;
+      if (!resolvedSeniorTeamId || !canPlaceBid) return;
       const minimumBidSek = buildTransferSearchMinimumBidSek(result);
       if (typeof minimumBidSek !== "number") {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
@@ -12490,6 +12490,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     },
     [
       addNotification,
+      canPlaceBid,
       displayCurrency,
       fetchPlayerDetailsById,
       messages.seniorTransferSearchBidFailed,
@@ -13466,34 +13467,13 @@ const refreshDetailsForPlayers = async (
 
   const ensureRequiredScopes = async () => {
     try {
-      const { response, payload } = await fetchChppJson<{
+      const { response } = await fetchChppJson<{
         permissions?: string[];
         raw?: string;
       }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
       if (!response.ok) {
-        setScopeReconnectModalOpen(true);
-        return false;
-      }
-      const grantedPermissions = Array.isArray(payload?.permissions)
-        ? payload.permissions
-        : [];
-      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
-      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
-      const scopeTokens = hasScopeTag
-        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
-        : [];
-      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
-      const requiredPermissions = [
-        ...REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-        ...(isSupporter ? (["place_bid"] as const) : []),
-      ];
-      const missingPermissions = getMissingChppPermissions(
-        grantedPermissions,
-        requiredPermissions
-      );
-      if (missingPermissions.length > 0 || missingDefaultScope) {
         setScopeReconnectModalOpen(true);
         return false;
       }
@@ -16831,7 +16811,7 @@ const refreshDetailsForPlayers = async (
     }
     return String(value);
   };
-  const transferSearchCanBid = isSupporter;
+  const transferSearchCanBid = isSupporter && canPlaceBid;
   const specialtyName = useCallback((value?: number | null) => {
     switch (value) {
       case 0:
@@ -17445,7 +17425,11 @@ const refreshDetailsForPlayers = async (
             />
           </div>
           <Tooltip
-            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            content={
+              !canPlaceBid
+                ? messages.chppMissingPlaceBidTooltip
+                : messages.seniorTransferSearchSupporterOnlyTooltip
+            }
             disabled={transferSearchCanBid}
           >
             <button
@@ -17477,7 +17461,11 @@ const refreshDetailsForPlayers = async (
             />
           </div>
           <Tooltip
-            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            content={
+              !canPlaceBid
+                ? messages.chppMissingPlaceBidTooltip
+                : messages.seniorTransferSearchSupporterOnlyTooltip
+            }
             disabled={transferSearchCanBid}
           >
             <button
@@ -18804,6 +18792,11 @@ const refreshDetailsForPlayers = async (
           detailsById.get(result.playerId)?.NativeLeagueID
         }
         canQuickBid={transferSearchCanBid}
+        quickBidUnavailableTooltip={
+          !canPlaceBid
+            ? messages.chppMissingPlaceBidTooltip
+            : messages.seniorTransferSearchSupporterOnlyTooltip
+        }
         quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
         onQuickBid={(result) => {
           void placeTransferQuickBid(result);
@@ -20303,14 +20296,20 @@ const refreshDetailsForPlayers = async (
                                   {obtainedTrainingRegimenLabel(value)}
                                 </button>
                                 {!isActive ? (
-                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                  <Tooltip
+                                    content={
+                                      canSetTraining
+                                        ? messages.trainingSetButtonTooltip
+                                        : messages.chppMissingSetTrainingTooltip
+                                    }
+                                  >
                                     <button
                                       type="button"
                                       className={styles.lineupTrainingTypeSetButton}
-                                      disabled={trainingTypeSetPending}
+                                      disabled={trainingTypeSetPending || !canSetTraining}
                                       onClick={(event) => {
                                         event.stopPropagation();
-                                        if (trainingTypeSetPending) return;
+                                        if (trainingTypeSetPending || !canSetTraining) return;
                                         void handleSetTrainingType(value);
                                       }}
                                     >
@@ -20624,14 +20623,20 @@ const refreshDetailsForPlayers = async (
                                   {obtainedTrainingRegimenLabel(value)}
                                 </button>
                                 {!isActive ? (
-                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                  <Tooltip
+                                    content={
+                                      canSetTraining
+                                        ? messages.trainingSetButtonTooltip
+                                        : messages.chppMissingSetTrainingTooltip
+                                    }
+                                  >
                                     <button
                                       type="button"
                                       className={styles.lineupTrainingTypeSetButton}
-                                      disabled={trainingTypeSetPending}
+                                      disabled={trainingTypeSetPending || !canSetTraining}
                                       onClick={(event) => {
                                         event.stopPropagation();
-                                        if (trainingTypeSetPending) return;
+                                        if (trainingTypeSetPending || !canSetTraining) return;
                                         void handleSetTrainingType(value);
                                       }}
                                     >

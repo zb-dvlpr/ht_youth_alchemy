@@ -3,7 +3,7 @@
 Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows. It includes dedicated youth and senior team optimization tools for evaluating players, building lineups, and managing match orders, plus Club Chronicle insights for tracked teams.
 
 ## Core capabilities
-- CHPP OAuth connection to Hattrick
+- CHPP OAuth connection to Hattrick with user-selected optional write permissions
 - Multi-team youth and senior support for managers with multiple clubs/academies
 - Youth player list, player details, ratings/skills matrices, and lineup optimization
 - Youth transfer value estimates from revealed maximum potential
@@ -42,6 +42,13 @@ npm install
 CHPP_CONSUMER_KEY=your_key_here
 CHPP_CONSUMER_SECRET=your_secret_here
 CHPP_CALLBACK_URL=http://localhost:3000/api/chpp/oauth/callback
+CHPP_COOKIE_SECRET=base64_32_byte_secret_here
+```
+
+Generate `CHPP_COOKIE_SECRET` with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 3. Start development server:
@@ -53,9 +60,10 @@ npm run dev
 Open `http://localhost:3000`.
 
 ## OAuth flow (local)
-1. Visit `http://localhost:3000/api/chpp/oauth/start`
-2. Authorize in Hattrick
-3. Return to app root
+1. Open `http://localhost:3000`
+2. Select any optional CHPP write permissions
+3. Connect and authorize in Hattrick
+4. Return to app root
 
 Useful OAuth endpoints:
 - `GET /api/chpp/oauth/debug`
@@ -79,7 +87,9 @@ Useful OAuth endpoints:
 - `npm run check:chpp-permissions`
 
 ## Notes
-- OAuth access tokens are stored in httpOnly cookies.
+- CHPP access credentials are stored in one encrypted and authenticated HttpOnly cookie with a 16-week lifetime. No database is required.
+- Rotating `CHPP_COOKIE_SECRET` invalidates existing CHPP sessions.
+- A stolen encrypted cookie can still be replayed until it expires. This is stronger than storing raw token cookies, but it is not equivalent to a database-backed session with server-side revocation.
 
 ## License
 Proprietary. All rights reserved.

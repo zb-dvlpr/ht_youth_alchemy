@@ -215,6 +215,7 @@ type TransferSearchModalProps = {
   getTableRowData?: (result: TransferSearchResult) => TransferSearchTableRowData;
   getNativeLeagueId?: (result: TransferSearchResult) => number | null | undefined;
   canQuickBid?: boolean;
+  quickBidUnavailableTooltip?: ReactNode;
   quickBidPendingPlayerId?: number | null;
   onQuickBid?: (result: TransferSearchResult) => void;
   renderResultCard: (
@@ -1140,6 +1141,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   getTableRowData,
   getNativeLeagueId,
   canQuickBid,
+  quickBidUnavailableTooltip,
   quickBidPendingPlayerId,
   onQuickBid,
   renderResultCard,
@@ -2318,7 +2320,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
                               <td>{renderTablePill(formatTransferSearchDeadlineRemaining(data.deadline, messages), { neutral: true })}</td>
                               <td>
                                 <Tooltip
-                                  content={messages.seniorTransferSearchSupporterOnlyTooltip}
+                                  content={
+                                    quickBidUnavailableTooltip ??
+                                    messages.seniorTransferSearchSupporterOnlyTooltip
+                                  }
                                   disabled={Boolean(canQuickBid)}
                                 >
                                   <button

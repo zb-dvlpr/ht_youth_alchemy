@@ -30,11 +30,6 @@ import { getChangelogEntries } from "@/lib/changelog";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { formatDateTime } from "@/lib/datetime";
 import {
-  getMissingChppPermissions,
-  parseExtendedPermissionsFromCheckToken,
-  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-} from "@/lib/chpp/permissions";
-import {
   CHPP_ACCESS_BLOCKED_EVENT,
   ChppAccessBlockedError,
   type ChppAccessBlockedDetail,
@@ -317,30 +312,13 @@ export default function AppShell({
 
   const ensureRefreshScopes = async () => {
     try {
-      const { response, payload } = await fetchChppJson<{
+      const { response } = await fetchChppJson<{
         permissions?: string[];
         raw?: string;
       }>("/api/chpp/oauth/check-token", {
         cache: "no-store",
       });
       if (!response.ok) {
-        setScopeReconnectModalOpen(true);
-        return false;
-      }
-      const grantedPermissions = Array.isArray(payload?.permissions)
-        ? payload.permissions
-        : [];
-      const missingPermissions = getMissingChppPermissions(
-        grantedPermissions,
-        REQUIRED_CHPP_EXTENDED_PERMISSIONS
-      );
-      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
-      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
-      const scopeTokens = hasScopeTag
-        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
-        : [];
-      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
-      if (missingPermissions.length > 0 || missingDefaultScope) {
         setScopeReconnectModalOpen(true);
         return false;
       }

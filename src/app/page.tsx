@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import Link from "next/link";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
 import ConnectedStatus from "./components/ConnectedStatus";
@@ -23,6 +24,7 @@ import Tooltip from "./components/Tooltip";
 import PremiumPill from "./components/PremiumPill";
 import PremiumStatusPill from "./components/PremiumStatusPill";
 import { SupporterStatusProvider } from "./components/SupporterStatusProvider";
+import { ChppPermissionsProvider } from "./components/ChppPermissionsProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
@@ -33,6 +35,10 @@ import {
   isChppClientProblemStatus,
   isChppServerProblemStatus,
 } from "@/lib/chpp/httpStatusReasons";
+import {
+  CHPP_SESSION_COOKIE,
+  openChppSession,
+} from "@/lib/chpp/session-cookie";
 import type { MatchesResponse } from "./components/UpcomingMatches";
 import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
@@ -363,9 +369,9 @@ export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
   const messages = getMessages(locale);
-  const token = cookieStore.get("chpp_access_token")?.value;
-  const secret = cookieStore.get("chpp_access_secret")?.value;
-  const isConnected = Boolean(token && secret);
+  const isConnected = Boolean(
+    openChppSession(cookieStore.get(CHPP_SESSION_COOKIE)?.value)
+  );
   const premiumLicensingEnabled = isPremiumLicensingEnabled();
 
   if (!isConnected) {
@@ -441,6 +447,7 @@ export default async function Home() {
           {process.env.NODE_ENV !== "production" ? (
             <SeniorMlBackfillBootstrap />
           ) : null}
+          <ChppPermissionsProvider>
           <SupporterStatusProvider isConnected={isConnected}>
             <AppShell
               messages={messages}
@@ -470,9 +477,9 @@ export default async function Home() {
                     {isConnected ? (
                       <ConnectedStatus messages={messages} variant="buttonOnly" />
                     ) : (
-                      <a className={styles.mobileConnectButton} href="/api/chpp/oauth/start">
+                      <Link className={styles.mobileConnectButton} href="/">
                         {messages.mobileConnectLabel}
-                      </a>
+                      </Link>
                     )}
                   </div>
                   <div className={styles.desktopHeaderNotifications}>
@@ -507,9 +514,9 @@ export default async function Home() {
                       {isConnected ? (
                         <ConnectedStatus messages={messages} />
                       ) : (
-                        <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                        <Link className={styles.connectButton} href="/">
                           {messages.connectLabel}
-                        </a>
+                        </Link>
                       )}
                     </div>
                     <BrandClock />
@@ -578,6 +585,7 @@ export default async function Home() {
               />
             </AppShell>
           </SupporterStatusProvider>
+          </ChppPermissionsProvider>
         </div>
       </NotificationsProvider>
     </main>

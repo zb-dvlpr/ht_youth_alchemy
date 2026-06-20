@@ -105,6 +105,24 @@ export const messagesEs: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "Elegir permisos de CHPP",
+    chppPermissionSelectionIntro:
+      "El acceso principal al equipo juvenil se solicitará automáticamente. Puedes elegir qué permisos opcionales de escritura quieres conceder. Puedes volver a conectarte más adelante para cambiarlos.",
+    chppPermissionPlaceBidLabel: "Realizar puja",
+    chppPermissionPlaceBidDescription:
+      "Te permite pujar por jugadores del mercado de transferencias, por ejemplo mediante Buscar jugadores similares o Estimar valor del jugador.",
+    chppPermissionSetMatchOrderLabel: "Establecer órdenes de partido",
+    chppPermissionSetMatchOrderDescription:
+      "Te permite enviar alineaciones a Hattrick.",
+    chppPermissionSetTrainingLabel: "Establecer entrenamiento",
+    chppPermissionSetTrainingDescription:
+      "Te permite cambiar el régimen de entrenamiento del equipo sénior.",
+    chppMissingPlaceBidTooltip:
+      "Para usar esta función, el token CHPP debe haberse obtenido con el permiso Realizar puja.",
+    chppMissingSetMatchOrderTooltip:
+      "Para usar esta función, el token CHPP necesita el permiso Establecer órdenes de partido.",
+    chppMissingSetTrainingTooltip:
+      "Para usar esta función, el token CHPP necesita el permiso Establecer entrenamiento.",
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
       "La Crónica del club llegará pronto. Este espacio seguirá lo que hacen los equipos sénior.",
@@ -220,6 +238,8 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_6_0:
+      "Se añadieron permisos de token CHPP definidos por el usuario, que permiten elegir permisos opcionales de escritura al conectarse.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
     changelog_6_4_0:

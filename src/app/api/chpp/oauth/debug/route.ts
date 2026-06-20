@@ -3,6 +3,10 @@ import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
 
 export async function GET(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     const { callbackUrl } = getChppEnv();
     const host = request.headers.get("host");

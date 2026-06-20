@@ -105,6 +105,24 @@ export const messagesFr: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppPermissionSelectionTitle: "Choisir les autorisations CHPP",
+    chppPermissionSelectionIntro:
+      "L’accès principal à l’équipe de jeunes sera demandé automatiquement. Vous pouvez choisir les autorisations d’écriture facultatives à accorder. Vous pourrez vous reconnecter plus tard pour les modifier.",
+    chppPermissionPlaceBidLabel: "Placer une enchère",
+    chppPermissionPlaceBidDescription:
+      "Vous permet d’enchérir sur des joueurs du marché des transferts, par exemple via Trouver des joueurs similaires ou Estimer la valeur du joueur.",
+    chppPermissionSetMatchOrderLabel: "Définir les ordres de match",
+    chppPermissionSetMatchOrderDescription:
+      "Vous permet d’envoyer des compositions à Hattrick.",
+    chppPermissionSetTrainingLabel: "Définir l’entraînement",
+    chppPermissionSetTrainingDescription:
+      "Vous permet de modifier le programme d’entraînement de l’équipe senior.",
+    chppMissingPlaceBidTooltip:
+      "Pour utiliser cette fonctionnalité, le jeton CHPP doit avoir été obtenu avec l’autorisation Placer une enchère.",
+    chppMissingSetMatchOrderTooltip:
+      "Pour utiliser cette fonctionnalité, le jeton CHPP doit disposer de l’autorisation Définir les ordres de match.",
+    chppMissingSetTrainingTooltip:
+      "Pour utiliser cette fonctionnalité, le jeton CHPP doit disposer de l’autorisation Définir l’entraînement.",
     clubChronicleTitle: "Chronique du club",
     clubChronicleBody:
       "La Chronique du club arrive bientôt. Cet espace suivra les activités des équipes seniors.",
@@ -221,6 +239,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_6_6_0:
+      "Ajout d’autorisations de jeton CHPP définies par l’utilisateur, permettant aux managers de choisir les autorisations d’écriture facultatives lors de la connexion.",
     changelog_6_5_0:
       "Improved OAuth token error handling.",
     changelog_6_4_0:

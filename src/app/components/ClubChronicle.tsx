@@ -66,11 +66,6 @@ import {
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import {
-  getMissingChppPermissions,
-  parseExtendedPermissionsFromCheckToken,
-  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-} from "@/lib/chpp/permissions";
-import {
   CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
@@ -5402,23 +5397,6 @@ export default function ClubChronicle({
         cache: "no-store",
       });
       if (!response.ok) {
-        setScopeReconnectModalOpen(true);
-        return false;
-      }
-      const grantedPermissions = Array.isArray(payload?.permissions)
-        ? payload.permissions
-        : [];
-      const missingPermissions = getMissingChppPermissions(
-        grantedPermissions,
-        REQUIRED_CHPP_EXTENDED_PERMISSIONS
-      );
-      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
-      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
-      const scopeTokens = hasScopeTag
-        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
-        : [];
-      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
-      if (missingPermissions.length > 0 || missingDefaultScope) {
         setScopeReconnectModalOpen(true);
         return false;
       }

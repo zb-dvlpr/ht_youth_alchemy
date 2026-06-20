@@ -10,6 +10,8 @@ import {
 } from "@/lib/chpp/httpStatusReasons";
 import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
 import {
+  CHPP_PERMISSION_FLOW_QUERY_PARAM,
+  CHPP_PERMISSION_FLOW_VERSION,
   OPTIONAL_CHPP_EXTENDED_PERMISSIONS,
   OPTIONAL_CHPP_PERMISSION_OPTIONS,
   type OptionalChppExtendedPermission,
@@ -69,10 +71,12 @@ export default function ChppAccessGate({
     const selected = OPTIONAL_CHPP_EXTENDED_PERMISSIONS.filter((permission) =>
       selectedPermissions.includes(permission)
     );
-    if (selected.length === 0) return "/api/chpp/oauth/start";
     const search = new URLSearchParams({
-      permissions: selected.join(","),
+      [CHPP_PERMISSION_FLOW_QUERY_PARAM]: CHPP_PERMISSION_FLOW_VERSION,
     });
+    if (selected.length > 0) {
+      search.set("permissions", selected.join(","));
+    }
     return `/api/chpp/oauth/start?${search.toString()}`;
   }, [selectedPermissions]);
 

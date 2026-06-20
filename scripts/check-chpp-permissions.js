@@ -38,6 +38,8 @@ for (const permission of OPTIONAL_PERMISSIONS) {
 }
 
 const oauthStartSource = read("src/app/api/chpp/oauth/start/route.ts");
+const oauthCallbackSource = read("src/app/api/chpp/oauth/callback/route.ts");
+const chppClientSource = read("src/lib/chpp/client.ts");
 if (!oauthStartSource.includes("normalizeOptionalChppPermissions(")) {
   errors.push("OAuth start route does not normalize requested permissions.");
 }
@@ -48,6 +50,32 @@ if (!oauthStartSource.includes("buildChppScopeParam(selectedPermissions)")) {
 }
 if (!permissionsSource.includes("...MANDATORY_CHPP_EXTENDED_PERMISSIONS")) {
   errors.push("Requested CHPP scope does not include the mandatory baseline.");
+}
+for (const marker of [
+  "CHPP_PERMISSION_FLOW_VERSION",
+  "CHPP_PERMISSION_FLOW_SESSION_VERSION",
+  "CHPP_PERMISSION_FLOW_QUERY_PARAM",
+  "CHPP_PERMISSION_FLOW_COOKIE",
+]) {
+  if (!permissionsSource.includes(`export const ${marker}`)) {
+    errors.push(`Missing shared CHPP permission-flow marker ${marker}.`);
+  }
+}
+if (
+  !oauthStartSource.includes(
+    "requestUrl.searchParams.get(CHPP_PERMISSION_FLOW_QUERY_PARAM)"
+  ) ||
+  !oauthStartSource.includes("CHPP_PERMISSION_FLOW_VERSION") ||
+  !oauthStartSource.includes('"stale-permission-flow"')
+) {
+  errors.push("OAuth start route does not reject stale permission flows.");
+}
+if (
+  !oauthStartSource.includes("cookieStore.set(") ||
+  !oauthStartSource.includes("CHPP_PERMISSION_FLOW_COOKIE") ||
+  !oauthStartSource.includes("maxAge: 10 * 60")
+) {
+  errors.push("OAuth start route does not set the temporary flow cookie.");
 }
 
 const checkTokenSource = read("src/app/api/chpp/oauth/check-token/route.ts");
@@ -91,6 +119,31 @@ if (!accessGateSource.includes("OPTIONAL_CHPP_PERMISSION_OPTIONS.map")) {
 if (accessGateSource.includes('permission: "manage_youthplayers"')) {
   errors.push("Connection UI incorrectly exposes manage_youthplayers as optional.");
 }
+for (const source of [accessGateSource, chppClientSource]) {
+  if (
+    !source.includes("CHPP_PERMISSION_FLOW_QUERY_PARAM") ||
+    !source.includes("CHPP_PERMISSION_FLOW_VERSION")
+  ) {
+    errors.push(
+      "A current CHPP OAuth start path does not include the permission-flow marker."
+    );
+  }
+}
+if (
+  !oauthCallbackSource.includes(
+    "permissionFlowVersion !== CHPP_PERMISSION_FLOW_VERSION"
+  ) ||
+  !oauthCallbackSource.includes("CHPP_PERMISSION_FLOW_COOKIE")
+) {
+  errors.push("OAuth callback does not require the temporary flow cookie.");
+}
+if (
+  !oauthCallbackSource.includes("clearTemporaryOauthCookies") ||
+  !oauthCallbackSource.includes("CHPP_PERMISSION_FLOW_COOKIE") ||
+  !oauthCallbackSource.includes("maxAge: 0")
+) {
+  errors.push("OAuth callback does not clear the temporary flow cookie.");
+}
 
 const i18nSource = read("src/lib/i18n.ts");
 for (const key of [
@@ -130,6 +183,9 @@ for (const cookieName of [
     errors.push(`CHPP logout does not clear "${cookieName}".`);
   }
 }
+if (!sessionCookieSource.includes("CHPP_PERMISSION_FLOW_COOKIE")) {
+  errors.push('CHPP logout does not clear "chpp_permission_flow".');
+}
 if (
   !sessionCookieSource.includes(
     "response.cookies.set(CHPP_PRODUCTION_SESSION_COOKIE"
@@ -142,6 +198,20 @@ if (
 }
 if (!sessionCookieSource.includes("maxAge: 0")) {
   errors.push("CHPP logout does not explicitly expire cookies with maxAge 0.");
+}
+if (
+  !sessionCookieSource.includes("v: 3") ||
+  !sessionCookieSource.includes(
+    "permissionFlowVersion: CHPP_PERMISSION_FLOW_SESSION_VERSION"
+  ) ||
+  !sessionCookieSource.includes("if (parsed.v !== 3) return null;") ||
+  !sessionCookieSource.includes(
+    "parsed.permissionFlowVersion !== CHPP_PERMISSION_FLOW_SESSION_VERSION"
+  )
+) {
+  errors.push(
+    "CHPP session schema does not reject pre-permission-flow sessions."
+  );
 }
 if (
   invalidateTokenSource.includes("cookieStore.delete(CHPP_SESSION_COOKIE)")

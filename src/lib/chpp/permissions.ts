@@ -1,3 +1,8 @@
+export const CHPP_PERMISSION_FLOW_VERSION = "1";
+export const CHPP_PERMISSION_FLOW_SESSION_VERSION = 1;
+export const CHPP_PERMISSION_FLOW_QUERY_PARAM = "permissionFlowVersion";
+export const CHPP_PERMISSION_FLOW_COOKIE = "chpp_permission_flow";
+
 export const MANDATORY_CHPP_EXTENDED_PERMISSIONS = [
   "manage_youthplayers",
 ] as const;

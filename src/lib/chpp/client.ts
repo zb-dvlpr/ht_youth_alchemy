@@ -3,6 +3,10 @@ import {
   writeGlobalSeason,
 } from "@/lib/season";
 import {
+  CHPP_PERMISSION_FLOW_QUERY_PARAM,
+  CHPP_PERMISSION_FLOW_VERSION,
+} from "@/lib/chpp/permissions";
+import {
   type ChppAccessProblemKind,
   getChppHttpStatusReason,
   isChppClientProblemStatus,
@@ -150,12 +154,13 @@ export async function reconnectChppWithTokenReset(
   }
   if (typeof window !== "undefined") {
     if (permissions) {
-      const search = new URLSearchParams();
+      const search = new URLSearchParams({
+        [CHPP_PERMISSION_FLOW_QUERY_PARAM]: CHPP_PERMISSION_FLOW_VERSION,
+      });
       if (permissions.length > 0) {
         search.set("permissions", permissions.join(","));
       }
-      const query = search.toString();
-      window.location.href = `/api/chpp/oauth/start${query ? `?${query}` : ""}`;
+      window.location.href = `/api/chpp/oauth/start?${search.toString()}`;
       return;
     }
     window.location.href = "/";

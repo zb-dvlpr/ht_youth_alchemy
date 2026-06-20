@@ -1,5 +1,9 @@
 import crypto from "node:crypto";
 import type { NextResponse } from "next/server";
+import {
+  CHPP_PERMISSION_FLOW_COOKIE,
+  CHPP_PERMISSION_FLOW_SESSION_VERSION,
+} from "@/lib/chpp/permissions";
 
 export const CHPP_PRODUCTION_SESSION_COOKIE = "__Host-ya_chpp_session";
 export const CHPP_DEVELOPMENT_SESSION_COOKIE = "ya_chpp_session";
@@ -12,7 +16,8 @@ export const CHPP_SESSION_COOKIE =
 export const CHPP_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 * 16;
 
 type ChppSessionPayload = {
-  v: 2;
+  v: 3;
+  permissionFlowVersion: 1;
   accessToken: string;
   accessSecret: string;
   iat: number;
@@ -42,7 +47,8 @@ export function sealChppSession(input: {
 }) {
   const now = Math.floor(Date.now() / 1000);
   const payload: ChppSessionPayload = {
-    v: 2,
+    v: 3,
+    permissionFlowVersion: CHPP_PERMISSION_FLOW_SESSION_VERSION,
     accessToken: input.accessToken,
     accessSecret: input.accessSecret,
     iat: now,
@@ -93,7 +99,12 @@ export function openChppSession(
       plaintext.toString("utf8")
     ) as Partial<ChppSessionPayload>;
 
-    if (parsed.v !== 2) return null;
+    if (parsed.v !== 3) return null;
+    if (
+      parsed.permissionFlowVersion !== CHPP_PERMISSION_FLOW_SESSION_VERSION
+    ) {
+      return null;
+    }
     if (typeof parsed.accessToken !== "string" || !parsed.accessToken) {
       return null;
     }
@@ -111,7 +122,8 @@ export function openChppSession(
     if (parsed.exp <= now) return null;
 
     return {
-      v: 2,
+      v: 3,
+      permissionFlowVersion: CHPP_PERMISSION_FLOW_SESSION_VERSION,
       accessToken: parsed.accessToken,
       accessSecret: parsed.accessSecret,
       iat: parsed.iat,
@@ -153,6 +165,7 @@ export function clearChppSessionCookies(response: NextResponse) {
     "chpp_access_secret",
     "chpp_req_token",
     "chpp_req_secret",
+    CHPP_PERMISSION_FLOW_COOKIE,
   ]) {
     response.cookies.set(name, "", {
       ...commonOptions,

@@ -102,6 +102,73 @@ function formBodyData(body: string, contentType: string) {
   return data;
 }
 
+type OAuthData = Record<string, string | string[]>;
+
+function appendOAuthDataValue(data: OAuthData, key: string, value: string) {
+  const current = data[key];
+
+  if (current === undefined) {
+    data[key] = value;
+    return;
+  }
+
+  if (Array.isArray(current)) {
+    current.push(value);
+    return;
+  }
+
+  data[key] = [current, value];
+}
+
+function searchParamsData(searchParams: URLSearchParams) {
+  const data: OAuthData = {};
+
+  for (const [key, value] of searchParams.entries()) {
+    appendOAuthDataValue(data, key, value);
+  }
+
+  return data;
+}
+
+function mergeOAuthData(...sources: Array<OAuthData | undefined>) {
+  const merged: OAuthData = {};
+
+  sources.forEach((source) => {
+    if (!source) return;
+
+    Object.entries(source).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((entry) => appendOAuthDataValue(merged, key, entry));
+      } else {
+        appendOAuthDataValue(merged, key, value);
+      }
+    });
+  });
+
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function oauthBaseUrl(url: URL) {
+  return `${url.origin}${url.pathname}`;
+}
+
+function buildOAuthRequestData(
+  method: "GET" | "POST",
+  requestUrl: URL,
+  body?: string,
+  contentType?: string
+): OAuthRequestData {
+  const queryData = searchParamsData(requestUrl.searchParams);
+  const bodyData =
+    body && contentType ? formBodyData(body, contentType) : undefined;
+
+  return {
+    url: oauthBaseUrl(requestUrl),
+    method,
+    data: mergeOAuthData(queryData, bodyData),
+  };
+}
+
 export async function getRequestToken(
   client: NodeOAuthClient
 ): Promise<RequestTokenResult> {
@@ -180,10 +247,7 @@ export async function getProtectedResource(
   accessSecret: string
 ): Promise<string> {
   const requestUrl = new URL(url);
-  const requestData = {
-    url: requestUrl.toString(),
-    method: "GET",
-  };
+  const requestData = buildOAuthRequestData("GET", requestUrl);
   const headers = getAuthorizationHeader(client, requestData, {
     key: accessToken,
     secret: accessSecret,
@@ -211,11 +275,12 @@ export async function postProtectedResource(
   contentType: string
 ): Promise<string> {
   const requestUrl = new URL(url);
-  const requestData = {
-    url: requestUrl.toString(),
-    method: "POST",
-    data: formBodyData(body, contentType),
-  };
+  const requestData = buildOAuthRequestData(
+    "POST",
+    requestUrl,
+    body,
+    contentType
+  );
   const oauthHeaders = getAuthorizationHeader(client, requestData, {
     key: accessToken,
     secret: accessSecret,

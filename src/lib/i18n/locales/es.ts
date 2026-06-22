@@ -238,6 +238,8 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_7_0:
+      "Asignación de jugadores por habilidades para alineaciones sénior.",
     changelog_6_6_0:
       "Se añadieron permisos de token CHPP definidos por el usuario, que permiten elegir permisos opcionales de escritura al conectarse.",
     changelog_6_5_0:
@@ -1385,6 +1387,11 @@ export const messagesEs: Messages = {
     setBestLineup: "Poner mejor alineación",
     setBestLineupLoading: "Aplicando…",
     setBestLineupTooltip: "Establece la alineación usando IA.",
+    seniorLineupAlgorithmLabel: "Algo",
+    seniorLineupAlgorithmAriaLabel:
+      "Algoritmo de asignación de la alineación sénior",
+    seniorLineupAlgorithmSkills: "Habilidades",
+    seniorLineupAlgorithmRatings: "Valoraciones",
     setBestLineupTrainingAware: "Con enfoque de entrenamiento",
     setBestLineupTrainingAwareTooltip:
       "Establece la alineación considerando el plan de entrenamiento. Solo se consideran formaciones que mantienen todas las plazas de entrenamiento cubiertas.",

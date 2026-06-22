@@ -37,6 +37,7 @@ import {
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
+  readSeniorLineupAlgorithm,
   readSeniorDebugManagerUserId,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
   SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
@@ -44,6 +45,8 @@ import {
   SENIOR_RATINGS_WIPE_EVENT,
   SENIOR_SETTINGS_EVENT,
   SENIOR_SETTINGS_STORAGE_KEY,
+  writeSeniorLineupAlgorithm,
+  type SeniorLineupAlgorithm,
 } from "@/lib/settings";
 import {
   SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
@@ -552,7 +555,7 @@ const FORMATION_PREDICT_CONCURRENCY = 4;
 const SENIOR_AI_MAN_MARKING_SUPPORTED_MODES = new Set<
   Exclude<SetBestLineupMode, "extraTime">
 >(["trainingAware", "ignoreTraining", "fixedFormation"]);
-const SENIOR_RATINGS_ALGO_VERSION = 6;
+const SENIOR_RATINGS_ALGO_VERSION = 7;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_PLAYED_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
@@ -3879,6 +3882,8 @@ export default function SeniorDashboard({
     useState<PlayerDetailsPanelTab>("details");
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
+  const [seniorLineupAlgorithm, setSeniorLineupAlgorithm] =
+    useState<SeniorLineupAlgorithm>(() => readSeniorLineupAlgorithm());
   const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
   const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
     EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
@@ -5855,6 +5860,24 @@ export default function SeniorDashboard({
     source: SeniorFeatureAnalyticsSource
   ) => (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
+      <label className={styles.seniorLineupAlgorithmControl}>
+        <span>{messages.seniorLineupAlgorithmLabel}</span>
+        <select
+          className={styles.seniorExtraTimeBTeamThresholdSelect}
+          aria-label={messages.seniorLineupAlgorithmAriaLabel}
+          value={seniorLineupAlgorithm}
+          onChange={(event) => {
+            const nextAlgorithm: SeniorLineupAlgorithm =
+              event.target.value === "ratings" ? "ratings" : "skills";
+            setSeniorLineupAlgorithm(nextAlgorithm);
+            writeSeniorLineupAlgorithm(nextAlgorithm);
+          }}
+        >
+          <option value="skills">{messages.seniorLineupAlgorithmSkills}</option>
+          <option value="ratings">{messages.seniorLineupAlgorithmRatings}</option>
+        </select>
+      </label>
+      <div className={styles.seniorSetBestLineupMenuDivider} aria-hidden="true" />
       <div className={styles.seniorExtraTimeBTeamControls}>
         <Tooltip content={extraTimeBTeamToggleTooltip}>
           <label className={styles.matchesFilterToggle}>
@@ -6471,6 +6494,26 @@ export default function SeniorDashboard({
   const totalSkillLevelForPlayer = (player: SeniorPlayer) =>
     SKILL_KEYS.reduce((sum, key) => sum + (skillValueForPlayer(player, key) ?? 0), 0);
 
+  const effectiveSkillValueForPlayer = (
+    player: SeniorPlayer,
+    key: (typeof SKILL_KEYS)[number]
+  ) => {
+    const details = detailsById.get(player.PlayerID);
+    return calculateEffectiveSkill({
+      rawSkill: skillValueForPlayer(player, key),
+      loyalty: details?.Loyalty,
+      motherClubBonus: details?.MotherClubBonus,
+      form: details?.Form ?? player.Form,
+      stamina: details?.StaminaSkill ?? player.StaminaSkill,
+    });
+  };
+
+  const totalEffectiveSkillLevelForPlayer = (player: SeniorPlayer) =>
+    SKILL_KEYS.reduce(
+      (sum, key) => sum + (effectiveSkillValueForPlayer(player, key) ?? 0),
+      0
+    );
+
   const formValueForPlayer = (player: SeniorPlayer) => {
     const details = detailsById.get(player.PlayerID);
     return typeof details?.Form === "number"
@@ -6849,6 +6892,80 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
+  const effectiveSkillSuitabilityForAssignmentSlot = (
+    player: SeniorPlayer,
+    slot: keyof LineupAssignments
+  ) => {
+    const effective = (key: (typeof SKILL_KEYS)[number]) =>
+      effectiveSkillValueForPlayer(player, key) ?? 0;
+    const representative = representativeSlotForAssignment(slot);
+    switch (representative) {
+      case "KP":
+        return effective("KeeperSkill");
+      case "WB_L":
+      case "WB_R":
+        return (
+          3 * effective("DefenderSkill") +
+          2 * effective("WingerSkill") +
+          effective("PlaymakerSkill")
+        );
+      case "CD_L":
+      case "CD_C":
+      case "CD_R":
+        return 2 * effective("DefenderSkill") + effective("PlaymakerSkill");
+      case "W_L":
+      case "W_R":
+        return (
+          4 * effective("WingerSkill") +
+          3 * effective("PlaymakerSkill") +
+          2 * effective("DefenderSkill") +
+          effective("PassingSkill")
+        );
+      case "IM_L":
+      case "IM_C":
+      case "IM_R":
+        return (
+          4 * effective("PlaymakerSkill") +
+          3 * effective("DefenderSkill") +
+          2 * effective("PassingSkill") +
+          effective("ScorerSkill")
+        );
+      case "F_L":
+      case "F_C":
+      case "F_R":
+        return (
+          4 * effective("ScorerSkill") +
+          3 * effective("PassingSkill") +
+          2 * effective("WingerSkill") +
+          effective("PlaymakerSkill")
+        );
+      default:
+        return totalEffectiveSkillLevelForPlayer(player);
+    }
+  };
+
+  const comparePlayersForSkillsAssignment = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    slot: keyof LineupAssignments
+  ) => {
+    const leftSuitability = effectiveSkillSuitabilityForAssignmentSlot(left, slot);
+    const rightSuitability = effectiveSkillSuitabilityForAssignmentSlot(right, slot);
+    if (rightSuitability !== leftSuitability) {
+      return rightSuitability - leftSuitability;
+    }
+    const leftStamina = staminaValueForPlayer(left);
+    const rightStamina = staminaValueForPlayer(right);
+    if (rightStamina !== leftStamina) return rightStamina - leftStamina;
+    const leftForm = formValueForPlayer(left);
+    const rightForm = formValueForPlayer(right);
+    if (rightForm !== leftForm) return rightForm - leftForm;
+    const leftOverall = totalEffectiveSkillLevelForPlayer(left);
+    const rightOverall = totalEffectiveSkillLevelForPlayer(right);
+    if (rightOverall !== leftOverall) return rightOverall - leftOverall;
+    return 0;
+  };
+
   const comparePlayersForReusableAssignment = (
     left: SeniorPlayer,
     right: SeniorPlayer,
@@ -7066,7 +7183,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
-  const assignPlayersWithReusableSlotAlgorithm = (
+  const assignPlayersWithRatingsSlotAlgorithm = (
     pool: SeniorPlayer[],
     slots: Array<keyof LineupAssignments>,
     ratingsById: Record<number, Record<string, number>>,
@@ -7175,6 +7292,99 @@ function buildSeniorAiManMarkingReadySignature(params: {
       nonTraineeAssignmentTrace,
     };
   };
+
+  const assignPlayersWithSkillsSlotAlgorithm = (
+    pool: SeniorPlayer[],
+    slots: Array<keyof LineupAssignments>,
+    options?: {
+      collectTrace?: boolean;
+    }
+  ) => {
+    let available = [...pool];
+    const assignments: Partial<LineupAssignments> = {};
+    const nonTraineeAssignmentTrace: NonTraineeAssignmentTraceEntry[] = [];
+
+    slots.forEach((slot) => {
+      const comparator = (left: SeniorPlayer, right: SeniorPlayer) =>
+        comparePlayersForSkillsAssignment(left, right, slot);
+      const ranking = [...available]
+        .sort(comparator)
+        .map(
+          (player) =>
+            ({
+              playerId: player.PlayerID,
+              slotRating: null,
+              skillCombo: effectiveSkillSuitabilityForAssignmentSlot(player, slot),
+              form: formValueForPlayer(player),
+              stamina: staminaValueForPlayer(player),
+              overall: totalEffectiveSkillLevelForPlayer(player),
+              ageDays: ageDaysValueForPlayer(player),
+              bestOtherRowRating: null,
+              passesRowFit: false,
+            }) satisfies NonTraineeAssignmentRankingEntry
+        );
+      const selected = pickBestPlayerWithRandomTie(available, comparator);
+      assignments[slot] = selected?.PlayerID ?? null;
+
+      if (options?.collectTrace) {
+        const comparison = ranking.find(
+          (entry) => entry.playerId !== selected?.PlayerID
+        );
+        let reason:
+          | "skillCombo"
+          | "stamina"
+          | "form"
+          | "overall"
+          | "randomFallback" = "randomFallback";
+        const selectedRanking = ranking.find(
+          (entry) => entry.playerId === selected?.PlayerID
+        );
+        if (selectedRanking && comparison) {
+          if (selectedRanking.skillCombo !== comparison.skillCombo) {
+            reason = "skillCombo";
+          } else if (selectedRanking.stamina !== comparison.stamina) {
+            reason = "stamina";
+          } else if (selectedRanking.form !== comparison.form) {
+            reason = "form";
+          } else if (selectedRanking.overall !== comparison.overall) {
+            reason = "overall";
+          }
+        } else if (selectedRanking) {
+          reason = "skillCombo";
+        }
+        nonTraineeAssignmentTrace.push({
+          slot,
+          selectedPlayerId: selected?.PlayerID ?? null,
+          selectedReason: labelForNonTraineeReason(reason),
+          ranking,
+        });
+      }
+
+      if (selected) {
+        available = available.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+
+    return {
+      assignments,
+      remaining: available,
+      nonTraineeAssignmentTrace,
+    };
+  };
+
+  const assignPlayersWithReusableSlotAlgorithm = (
+    pool: SeniorPlayer[],
+    slots: Array<keyof LineupAssignments>,
+    ratingsById: Record<number, Record<string, number>>,
+    options?: {
+      collectTrace?: boolean;
+    }
+  ) =>
+    seniorLineupAlgorithm === "skills"
+      ? assignPlayersWithSkillsSlotAlgorithm(pool, slots, options)
+      : assignPlayersWithRatingsSlotAlgorithm(pool, slots, ratingsById, options);
 
   const buildTrainingAwareAssignmentsForShape = async (
     occupiedSlots: string[],
@@ -14629,10 +14839,14 @@ const refreshDetailsForPlayers = async (
           occupiedSlots,
           mode === "trainingAware" ? activeTrainingType : null
         );
+        const useReusableAssignment =
+          seniorLineupAlgorithm === "skills" ||
+          mode === "ignoreTraining" ||
+          mode === "fixedFormation";
         const resolvedPass =
           mode === "trainingAware"
             ? null
-            : mode === "ignoreTraining" || mode === "fixedFormation"
+            : useReusableAssignment
               ? buildAssignmentsWithReusableAlgorithm(orderedSlots)
               : buildAssignmentsForOrderedSlots(orderedSlots);
         const trainingAwareAssignments =
@@ -14984,7 +15198,11 @@ const refreshDetailsForPlayers = async (
           { slot: "B_W", code: 106 },
           { slot: "B_X", code: null },
         ];
-        if (mode === "ignoreTraining" || mode === "fixedFormation") {
+        if (
+          seniorLineupAlgorithm === "skills" ||
+          mode === "ignoreTraining" ||
+          mode === "fixedFormation"
+        ) {
           const emptyBenchSlots = benchPlan
             .map((entry) => entry.slot)
             .filter(

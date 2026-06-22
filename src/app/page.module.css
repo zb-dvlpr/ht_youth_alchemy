@@ -11443,6 +11443,16 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   margin: 0 0 2px;
 }
 
+.seniorLineupAlgorithmControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  font-size: 11px;
+  color: inherit;
+}
+
 .seniorExtraTimeBTeamThresholdLabel {
   display: inline;
   font-size: 11px;

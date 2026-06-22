@@ -239,6 +239,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_6_7_0:
+      "Distribuição de jogadores por habilidades para escalações seniores.",
     changelog_6_6_0:
       "Foram adicionadas permissões de token CHPP definidas pelo utilizador, permitindo escolher permissões opcionais de escrita durante a ligação.",
     changelog_6_5_0:
@@ -1388,6 +1390,11 @@ export const messagesPt: Messages = {
     setBestLineup: "Definir melhor escalação",
     setBestLineupLoading: "Definindo…",
     setBestLineupTooltip: "Define a escalação usando IA.",
+    seniorLineupAlgorithmLabel: "Algo",
+    seniorLineupAlgorithmAriaLabel:
+      "Algoritmo de distribuição da escalação sênior",
+    seniorLineupAlgorithmSkills: "Habilidades",
+    seniorLineupAlgorithmRatings: "Avaliações",
     setBestLineupTrainingAware: "Com foco no treino",
     setBestLineupTrainingAwareTooltip:
       "Define a escalação considerando o regime de treino. Só serão consideradas formações que mantenham todos os slots de treino preenchidos.",

@@ -8,7 +8,53 @@ const MANDATORY_PERMISSIONS = ["manage_youthplayers"];
 const OPTIONAL_PERMISSIONS = ["place_bid", "set_matchorder", "set_training"];
 const read = (relativePath) =>
   fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
+const listSourceFiles = (directory) =>
+  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return listSourceFiles(entryPath);
+    return entry.isFile() ? [entryPath] : [];
+  });
 const errors = [];
+
+const packageJson = JSON.parse(read("package.json"));
+if (packageJson.dependencies?.oauth) {
+  errors.push('Deprecated runtime dependency "oauth" must not be installed.');
+}
+if (!packageJson.dependencies?.["oauth-1.0a"]) {
+  errors.push('Required OAuth signer dependency "oauth-1.0a" is missing.');
+}
+if (read("package-lock.json").includes('"node_modules/oauth":')) {
+  errors.push('Deprecated "oauth" package remains in package-lock.json.');
+}
+for (const sourceFile of listSourceFiles(path.join(repoRoot, "src"))) {
+  const source = fs.readFileSync(sourceFile, "utf8");
+  if (
+    /from\s+["']oauth["']/.test(source) ||
+    /require\(\s*["']oauth["']\s*\)/.test(source)
+  ) {
+    errors.push(
+      `Deprecated "oauth" package import found in ${path.relative(
+        repoRoot,
+        sourceFile
+      )}.`
+    );
+  }
+}
+
+const nodeOauthSource = read("src/lib/chpp/node-oauth.ts");
+for (const marker of [
+  "createOAuthClient",
+  "fetch(",
+  "new URL(",
+  'cache: "no-store"',
+]) {
+  if (!nodeOauthSource.includes(marker)) {
+    errors.push(`CHPP OAuth transport is missing ${marker}.`);
+  }
+}
+if (/url\.(parse|format|resolve)\s*\(/.test(nodeOauthSource)) {
+  errors.push("CHPP OAuth transport uses a deprecated Node URL API.");
+}
 
 const permissionsSource = read("src/lib/chpp/permissions.ts");
 if (!permissionsSource.includes("MANDATORY_CHPP_EXTENDED_PERMISSIONS")) {

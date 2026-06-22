@@ -501,6 +501,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_6_7_0:
+      "Spelertoewijzing op basis van vaardigheden voor seniorenopstellingen.",
     changelog_6_6_0:
       "Door de gebruiker gekozen CHPP-tokenmachtigingen toegevoegd, zodat managers bij het verbinden optionele schrijfmachtigingen kunnen selecteren.",
     changelog_6_5_0:
@@ -803,6 +805,11 @@ export const messagesNl: Messages = {
   setBestLineup: "Beste opstelling zetten",
   setBestLineupLoading: "Instellen…",
   setBestLineupTooltip: "Zet de opstelling met kunstmatige intelligentie.",
+  seniorLineupAlgorithmLabel: "Algo",
+  seniorLineupAlgorithmAriaLabel:
+    "Toewijzingsalgoritme voor de seniorenopstelling",
+  seniorLineupAlgorithmSkills: "Vaardigheden",
+  seniorLineupAlgorithmRatings: "Beoordelingen",
   setBestLineupTrainingAware: "Trainingsgericht",
   setBestLineupTrainingAwareTooltip:
     "Zet de opstelling met inachtneming van het trainingsregime. Alleen formaties waarbij alle trainingsslots gevuld zijn worden meegenomen.",

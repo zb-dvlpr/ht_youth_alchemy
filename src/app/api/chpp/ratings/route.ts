@@ -15,7 +15,7 @@ const MATCHLINEUP_VERSION = "2.1";
 const MATCHDETAILS_VERSION = "3.1";
 const PLAYERS_VERSION = "2.8";
 const MATCH_FETCH_CONCURRENCY = 6;
-const SENIOR_RATINGS_ALGORITHM_VERSION = 6;
+const SENIOR_RATINGS_ALGORITHM_VERSION = 7;
 const SENIOR_RATINGS_MIN_PLAYED_MINUTES = 85;
 const SENIOR_RATINGS_MAX_PLAYED_MINUTES = 96;
 
@@ -42,6 +42,91 @@ type MatchSubstitution = {
   SubjectPlayerID?: number | string;
   ObjectPlayerID?: number | string;
   MatchMinute?: number | string;
+};
+
+type MatchEvent = {
+  [key: string]: unknown;
+};
+
+const parseNumber = (value: unknown): number | null => {
+  const normalizedValue =
+    typeof value === "object" && value !== null && "#text" in value
+      ? (value as { "#text"?: unknown })["#text"]
+      : value;
+  const parsed = Number(normalizedValue);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const isManMarkingEventType = (value: unknown) => {
+  const eventType = parseNumber(value);
+  return eventType !== null && eventType >= 380 && eventType <= 389;
+};
+
+const extractManMarkingPlayerIdsFromMatchDetails = (
+  matchDetails: unknown
+): Set<number> => {
+  const asRecord = (value: unknown): Record<string, unknown> | null =>
+    typeof value === "object" && value !== null
+      ? (value as Record<string, unknown>)
+      : null;
+  const root = asRecord(matchDetails);
+  const hattrickData = asRecord(root?.HattrickData);
+  const match = asRecord(hattrickData?.Match) ?? asRecord(root?.Match) ?? root;
+  const eventList = asRecord(match?.EventList);
+  const matchEvents = asRecord(match?.MatchEvents);
+  const eventNodes = [
+    eventList?.Event,
+    eventList?.MatchEvent,
+    matchEvents?.Event,
+    matchEvents?.MatchEvent,
+  ];
+  const playerIds = new Set<number>();
+  const readFirst = (event: MatchEvent, keys: string[]) => {
+    for (const key of keys) {
+      if (event[key] !== undefined && event[key] !== null) return event[key];
+    }
+    return undefined;
+  };
+
+  eventNodes.forEach((eventNode) => {
+    normalizeArray<MatchEvent>(
+      eventNode as MatchEvent | MatchEvent[] | undefined
+    ).forEach((event) => {
+      if (
+        !isManMarkingEventType(
+          readFirst(event, [
+            "EventType",
+            "EventTypeID",
+            "EventTypeId",
+            "eventType",
+            "eventTypeID",
+            "eventTypeId",
+          ])
+        )
+      ) {
+        return;
+      }
+      [
+        readFirst(event, [
+          "SubjectPlayerID",
+          "SubjectPlayerId",
+          "subjectPlayerID",
+          "subjectPlayerId",
+        ]),
+        readFirst(event, [
+          "ObjectPlayerID",
+          "ObjectPlayerId",
+          "objectPlayerID",
+          "objectPlayerId",
+        ]),
+      ].forEach((value) => {
+        const playerId = parseNumber(value);
+        if (playerId !== null && playerId > 0) playerIds.add(playerId);
+      });
+    });
+  });
+
+  return playerIds;
 };
 
 const inferSeniorMatchMinutes = (
@@ -257,13 +342,15 @@ export async function GET(request: Request) {
             version: MATCHDETAILS_VERSION,
             matchID: String(match._matchId),
             sourceSystem: match._sourceSystem,
-            matchEvents: "false",
+            matchEvents: "true",
           });
           const [{ parsed: lineupParsed }, { parsed: detailsParsed }] = await Promise.all([
             fetchChppXml(auth, lineupParams),
             fetchChppXml(auth, detailsParams),
           ]);
           const matchDetails = detailsParsed?.HattrickData?.Match;
+          const manMarkingPlayerIds =
+            extractManMarkingPlayerIdsFromMatchDetails(matchDetails);
           const totalMatchMinutes = inferSeniorMatchMinutes(
             typeof matchDetails?.MatchDate === "string" ? matchDetails.MatchDate : null,
             typeof matchDetails?.FinishedDate === "string" ? matchDetails.FinishedDate : null,
@@ -299,6 +386,7 @@ export async function GET(request: Request) {
             ok: true,
             lineupPlayers,
             playedMinutesById,
+            manMarkingPlayerIds,
           };
         } catch {
           return {
@@ -308,6 +396,7 @@ export async function GET(request: Request) {
             ok: false,
             lineupPlayers: [] as LineupPlayer[],
             playedMinutesById: new Map<number, number>(),
+            manMarkingPlayerIds: new Set<number>(),
           };
         }
       }
@@ -330,6 +419,7 @@ export async function GET(request: Request) {
         ) {
           return;
         }
+        if (result.manMarkingPlayerIds.has(playerId)) return;
         const fullName = [player.FirstName, player.NickName, player.LastName]
           .filter(Boolean)
           .join(" ");

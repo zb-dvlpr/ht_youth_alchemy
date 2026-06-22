@@ -1,22 +1,22 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "6.6.4",
+  "version": "6.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run lint && npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && next build",
+    "build": "npm run lint && npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && npm run check:audit && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",
     "check:version": "node scripts/check-version.js",
     "check:i18n": "node scripts/check-i18n.js",
     "check:chpp-permissions": "node scripts/check-chpp-permissions.js",
-    "check:readme-version": "node scripts/check-readme-version.js"
+    "check:readme-version": "node scripts/check-readme-version.js",
+    "check:audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
-    "fast-xml-parser": "^5.3.3",
-    "next": "^16.1.6",
-    "oauth": "^0.10.2",
+    "fast-xml-parser": "^5.9.3",
+    "next": "^16.2.9",
     "oauth-1.0a": "^2.2.6",
     "qrcode": "^1.5.4",
     "react": "^19.2.3",

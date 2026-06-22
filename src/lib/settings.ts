@@ -20,6 +20,9 @@ export const DEFAULT_YOUTH_STALENESS_DAYS = 1;
 export const SENIOR_SETTINGS_STORAGE_KEY = "ya_senior_staleness_days_v1";
 export const SENIOR_SETTINGS_EVENT = "ya:senior-settings";
 export const SENIOR_RATINGS_WIPE_EVENT = "ya:senior-ratings-wipe";
+export const SENIOR_LINEUP_ALGORITHM_STORAGE_KEY =
+  "ya_senior_lineup_algorithm_v1";
+export const DEFAULT_SENIOR_LINEUP_ALGORITHM = "skills";
 export const SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY =
   "ya_senior_debug_manager_user_id_v1";
 export const SENIOR_DEBUG_MANAGER_USER_ID_EVENT =
@@ -36,6 +39,8 @@ export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
 export const DEFAULT_GENERAL_ENABLE_SCALING = false;
 export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
 export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
+
+export type SeniorLineupAlgorithm = "skills" | "ratings";
 
 export type StoredDisplayCurrencySetting =
   | { mode: "default" }
@@ -490,6 +495,30 @@ export function writeSeniorStalenessDays(value: number) {
   try {
     const clamped = Math.min(7, Math.max(1, Math.round(value)));
     window.localStorage.setItem(SENIOR_SETTINGS_STORAGE_KEY, String(clamped));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readSeniorLineupAlgorithm(): SeniorLineupAlgorithm {
+  if (typeof window === "undefined") return DEFAULT_SENIOR_LINEUP_ALGORITHM;
+  try {
+    const stored = window.localStorage.getItem(
+      SENIOR_LINEUP_ALGORITHM_STORAGE_KEY
+    );
+    return stored === "ratings" ? "ratings" : "skills";
+  } catch {
+    return DEFAULT_SENIOR_LINEUP_ALGORITHM;
+  }
+}
+
+export function writeSeniorLineupAlgorithm(value: SeniorLineupAlgorithm): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      SENIOR_LINEUP_ALGORITHM_STORAGE_KEY,
+      value === "ratings" ? "ratings" : "skills"
+    );
   } catch {
     // ignore storage errors
   }

@@ -4173,6 +4173,8 @@ export default function SeniorDashboard({
   const otherOrdersFlashArmedRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
   const startingXiCompleteRef = useRef(false);
+  const previousOtherOrdersLineupSignatureRef = useRef<string | null>(null);
+  const otherOrdersLineupSignatureRef = useRef("");
   const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
@@ -4460,9 +4462,25 @@ export default function SeniorDashboard({
     return new Set(startingPlayerIds).size === 11;
   }, [assignments]);
 
+  const otherOrdersLineupSignature = useMemo(
+    () =>
+      [...FIELD_SLOT_ORDER, ...BENCH_SLOT_ORDER]
+        .map((slot) => {
+          const playerId = assignments[slot];
+          const normalizedPlayerId =
+            typeof playerId === "number" && Number.isFinite(playerId) && playerId > 0
+              ? String(playerId)
+              : "";
+          return `${slot}:${normalizedPlayerId}`;
+        })
+        .join("|"),
+    [assignments]
+  );
+
   useEffect(() => {
     startingXiCompleteRef.current = startingXiComplete;
-  }, [startingXiComplete]);
+    otherOrdersLineupSignatureRef.current = otherOrdersLineupSignature;
+  }, [otherOrdersLineupSignature, startingXiComplete]);
 
   const markSeniorLineupMutated = useCallback(() => {
     setLineupMutationEpoch((value) => value + 1);
@@ -4470,6 +4488,8 @@ export default function SeniorDashboard({
 
   const seedOtherOrdersFlashBaseline = useCallback(() => {
     previousStartingXiCompleteRef.current = startingXiCompleteRef.current;
+    previousOtherOrdersLineupSignatureRef.current =
+      otherOrdersLineupSignatureRef.current;
     otherOrdersFlashArmedRef.current = true;
   }, []);
 
@@ -4487,8 +4507,14 @@ export default function SeniorDashboard({
     if (lineupMutationEpoch === 0) return;
 
     const wasComplete = previousStartingXiCompleteRef.current;
+    const previousSignature = previousOtherOrdersLineupSignatureRef.current;
+    const signatureChanged =
+      previousSignature !== null &&
+      previousSignature !== otherOrdersLineupSignature;
+    const becameComplete = !wasComplete && startingXiComplete;
+    const changedWhileComplete = startingXiComplete && signatureChanged;
 
-    if (!wasComplete && startingXiComplete) {
+    if (becameComplete || changedWhileComplete) {
       setOtherOrdersFlashActive(true);
 
       if (otherOrdersFlashTimeoutRef.current !== null) {
@@ -4502,7 +4528,14 @@ export default function SeniorDashboard({
     }
 
     previousStartingXiCompleteRef.current = startingXiComplete;
-  }, [dataRestored, lineupMutationEpoch, stateRestored, startingXiComplete]);
+    previousOtherOrdersLineupSignatureRef.current = otherOrdersLineupSignature;
+  }, [
+    dataRestored,
+    lineupMutationEpoch,
+    otherOrdersLineupSignature,
+    stateRestored,
+    startingXiComplete,
+  ]);
 
   useEffect(
     () => () => {
@@ -13584,6 +13617,7 @@ const refreshDetailsForPlayers = async (
     staleRefreshAttemptedRef.current = false;
     otherOrdersFlashArmedRef.current = false;
     previousStartingXiCompleteRef.current = false;
+    previousOtherOrdersLineupSignatureRef.current = null;
     setOtherOrdersFlashActive(false);
     if (otherOrdersFlashTimeoutRef.current !== null) {
       window.clearTimeout(otherOrdersFlashTimeoutRef.current);
@@ -15577,6 +15611,7 @@ const refreshDetailsForPlayers = async (
     }
     otherOrdersFlashArmedRef.current = false;
     previousStartingXiCompleteRef.current = false;
+    previousOtherOrdersLineupSignatureRef.current = null;
     setOtherOrdersFlashActive(false);
     if (otherOrdersFlashTimeoutRef.current !== null) {
       window.clearTimeout(otherOrdersFlashTimeoutRef.current);

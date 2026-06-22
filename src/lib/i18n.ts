@@ -279,6 +279,7 @@ export type Messages = {
   changelog_3_4_0: string;
   changelog_3_5_0: string;
   changelog_3_6_0: string;
+  changelog_6_7_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -1099,6 +1100,10 @@ export type Messages = {
   setBestLineup: string;
   setBestLineupLoading: string;
   setBestLineupTooltip: string;
+  seniorLineupAlgorithmLabel: string;
+  seniorLineupAlgorithmAriaLabel: string;
+  seniorLineupAlgorithmSkills: string;
+  seniorLineupAlgorithmRatings: string;
   setBestLineupTrainingAware: string;
   setBestLineupTrainingAwareTooltip: string;
   setBestLineupIgnoreTraining: string;

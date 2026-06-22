@@ -495,6 +495,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_6_7_0:
+      "Przydział zawodników według umiejętności w składach seniorów.",
     changelog_6_6_0:
       "Dodano uprawnienia tokenu CHPP definiowane przez użytkownika, pozwalające menedżerom wybierać opcjonalne uprawnienia do zapisu podczas łączenia.",
     changelog_6_5_0:
@@ -797,6 +799,11 @@ export const messagesPl: Messages = {
   setBestLineup: "Ustaw najlepszy skład",
   setBestLineupLoading: "Ustawianie…",
   setBestLineupTooltip: "Ustawia skład przy użyciu sztucznej inteligencji.",
+  seniorLineupAlgorithmLabel: "Algo",
+  seniorLineupAlgorithmAriaLabel:
+    "Algorytm przydziału zawodników do składu seniorów",
+  seniorLineupAlgorithmSkills: "Umiejętności",
+  seniorLineupAlgorithmRatings: "Oceny",
   setBestLineupTrainingAware: "Uwzględnij trening",
   setBestLineupTrainingAwareTooltip:
     "Ustaw skład z uwzględnieniem reżimu treningowego. Brane są pod uwagę tylko formacje, które wypełniają wszystkie sloty treningowe.",

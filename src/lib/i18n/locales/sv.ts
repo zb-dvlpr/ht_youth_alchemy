@@ -238,6 +238,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_7_0:
+      "Färdighetsbaserad spelartilldelning för senioruppställningar.",
     changelog_6_6_0:
       "Lade till användardefinierade CHPP-tokenbehörigheter så att managers kan välja valfria skrivbehörigheter vid anslutning.",
     changelog_6_5_0:
@@ -1374,6 +1376,11 @@ export const messagesSv: Messages = {
     setBestLineup: "Sätt bästa uppställning",
     setBestLineupLoading: "Sätter…",
     setBestLineupTooltip: "Sätter uppställningen med AI.",
+    seniorLineupAlgorithmLabel: "Algo",
+    seniorLineupAlgorithmAriaLabel:
+      "Tilldelningsalgoritm för senioruppställning",
+    seniorLineupAlgorithmSkills: "Färdigheter",
+    seniorLineupAlgorithmRatings: "Betyg",
     setBestLineupTrainingAware: "Träningsanpassad",
     setBestLineupTrainingAwareTooltip:
       "Sätt uppställningen med hänsyn till träningsupplägget. Endast formationer som fyller alla träningsplatser beaktas.",

@@ -237,6 +237,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_7_0: "Skills-based player allocation for senior lineups.",
     changelog_6_6_0:
       "Added user-defined CHPP token permissions, allowing managers to choose optional write permissions during connection.",
     changelog_6_5_0:
@@ -1330,6 +1331,10 @@ export const messagesEn: Messages = {
     setBestLineup: "Set best lineup",
     setBestLineupLoading: "Setting…",
     setBestLineupTooltip: "Set lineup using AI.",
+    seniorLineupAlgorithmLabel: "Algo",
+    seniorLineupAlgorithmAriaLabel: "Senior lineup allocation algorithm",
+    seniorLineupAlgorithmSkills: "Skills",
+    seniorLineupAlgorithmRatings: "Ratings",
     setBestLineupTrainingAware: "Training-aware",
     setBestLineupTrainingAwareTooltip:
       "Set lineup considering the training regimen. Only formations that keep all training slots filled are considered.",

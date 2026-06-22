@@ -239,6 +239,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_6_7_0:
+      "Attribution des joueurs selon les compétences pour les compositions seniors.",
     changelog_6_6_0:
       "Ajout d’autorisations de jeton CHPP définies par l’utilisateur, permettant aux managers de choisir les autorisations d’écriture facultatives lors de la connexion.",
     changelog_6_5_0:
@@ -1383,6 +1385,11 @@ export const messagesFr: Messages = {
     setBestLineup: "Définir la meilleure compo",
     setBestLineupLoading: "Application…",
     setBestLineupTooltip: "Définit la composition avec l'IA.",
+    seniorLineupAlgorithmLabel: "Algo",
+    seniorLineupAlgorithmAriaLabel:
+      "Algorithme d’attribution de la composition senior",
+    seniorLineupAlgorithmSkills: "Compétences",
+    seniorLineupAlgorithmRatings: "Évaluations",
     setBestLineupTrainingAware: "Axé entraînement",
     setBestLineupTrainingAwareTooltip:
       "Définit la composition en tenant compte du programme d'entraînement. Seules les formations qui remplissent tous les postes d'entraînement sont prises en compte.",

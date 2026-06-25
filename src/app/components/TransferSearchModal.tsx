@@ -341,6 +341,42 @@ const getTransferSearchSortValue = (
   ]);
 };
 
+type TransferSearchHtmsPotentialFilter = {
+  min: string;
+  max: string;
+};
+
+const parseTransferSearchHtmsPotentialFilterValue = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+};
+
+const hasActiveTransferSearchHtmsPotentialFilter = (
+  filter: TransferSearchHtmsPotentialFilter
+) =>
+  parseTransferSearchHtmsPotentialFilterValue(filter.min) !== null ||
+  parseTransferSearchHtmsPotentialFilterValue(filter.max) !== null;
+
+const filterTransferSearchResultsByHtmsPotential = (
+  results: TransferSearchResult[],
+  filter: TransferSearchHtmsPotentialFilter,
+  resolveHtmsPotential: (result: TransferSearchResult) => number | null
+) => {
+  const min = parseTransferSearchHtmsPotentialFilterValue(filter.min);
+  const max = parseTransferSearchHtmsPotentialFilterValue(filter.max);
+  if (min === null && max === null) return results;
+  return results.filter((result) => {
+    const potential = resolveHtmsPotential(result);
+    if (potential === null || !Number.isFinite(potential)) return false;
+    if (min !== null && potential < min) return false;
+    if (max !== null && potential > max) return false;
+    return true;
+  });
+};
+
 const formatTransferSearchTableMetric = (value: number | null, fractionDigits = 0) => {
   if (typeof value !== "number" || Number.isNaN(value)) return null;
   return fractionDigits > 0 ? value.toFixed(fractionDigits) : String(Math.round(value));
@@ -1161,6 +1197,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
     baseKey: filtersDraftKey,
     fields: filters ? buildTransferSearchDraftFields(filters) : null,
   });
+  const [htmsPotentialFilter, setHtmsPotentialFilter] =
+    useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const draftFields =
     draftState.baseKey === filtersDraftKey
       ? draftState.fields
@@ -1176,9 +1214,37 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const worlddetailsRequestedRef = useRef(false);
   const worlddetailsLoadedRef = useRef(false);
   const hasTransferSearchResults = results.length > 0;
+  const resolveResultHtmsPotential = useCallback(
+    (result: TransferSearchResult) =>
+      getTransferSearchSortValue(
+        getSortMetricInput
+          ? getSortMetricInput(result)
+          : buildTransferSearchMetricInput(result),
+        "htmsPotential"
+      ),
+    [getSortMetricInput]
+  );
+  const displayedResults = useMemo(
+    () =>
+      filterTransferSearchResultsByHtmsPotential(
+        results,
+        htmsPotentialFilter,
+        resolveResultHtmsPotential
+      ),
+    [htmsPotentialFilter, resolveResultHtmsPotential, results]
+  );
+  const htmsPotentialFilterActive =
+    hasActiveTransferSearchHtmsPotentialFilter(htmsPotentialFilter);
+  const displayedResultCountLabel =
+    htmsPotentialFilterActive && resultCountLabel
+      ? messages.seniorTransferSearchResultsCount.replace(
+          "{{count}}",
+          String(displayedResults.length)
+        )
+      : resultCountLabel;
   const marketSummary = useMemo(
-    () => buildTransferSearchMarketSummary(results),
-    [results]
+    () => buildTransferSearchMarketSummary(displayedResults),
+    [displayedResults]
   );
 
   const updateDraftField = useCallback(
@@ -1328,8 +1394,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
     [messages]
   );
   const sortedResults = useMemo(() => {
-    if (sortKey === "default") return results;
-    return [...results].sort((left, right) => {
+    if (sortKey === "default") return displayedResults;
+    return [...displayedResults].sort((left, right) => {
       const leftValue = getTransferSearchSortValue(
         getSortMetricInput ? getSortMetricInput(left) : buildTransferSearchMetricInput(left),
         sortKey
@@ -1344,7 +1410,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       if (rightValue !== leftValue) return rightValue - leftValue;
       return left.playerId - right.playerId;
     });
-  }, [getSortMetricInput, results, sortKey]);
+  }, [displayedResults, getSortMetricInput, sortKey]);
   const handleSortChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const nextValue = event.target.value;
@@ -2055,6 +2121,48 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 </div>
 
+                <div className={styles.transferSearchSection}>
+                  <div className={styles.infoLabel}>
+                    {messages.transferSearchHtmsPotentialRangeLabel}
+                  </div>
+                  <div className={styles.transferSearchSimpleRange}>
+                    <input
+                      className={styles.transferSearchInput}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={messages.transferSearchHtmsPotentialMinLabel}
+                      value={htmsPotentialFilter.min}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        setHtmsPotentialFilter((prev) => ({
+                          ...prev,
+                          min: nextValue,
+                        }));
+                      }}
+                      disabled={loading}
+                    />
+                    <input
+                      className={styles.transferSearchInput}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={messages.transferSearchHtmsPotentialMaxLabel}
+                      value={htmsPotentialFilter.max}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        setHtmsPotentialFilter((prev) => ({
+                          ...prev,
+                          max: nextValue,
+                        }));
+                      }}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
                 <div className={styles.transferSearchSidebarActions}>
                   <button
                     type="button"
@@ -2094,8 +2202,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 <div className={styles.transferSearchResultsHeader}>
                   <div>
                     <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
-                    {resultCountLabel ? (
-                      <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                    {displayedResultCountLabel ? (
+                      <span className={styles.profileUpdated}>{displayedResultCountLabel}</span>
                     ) : null}
                   </div>
                   <div className={styles.transferSearchResultsHeaderControls}>
@@ -2150,7 +2258,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 ) : null}
                 {error ? <p className={styles.errorText}>{error}</p> : null}
-                {!loading && !error && results.length === 0 ? (
+                {!loading && !error && displayedResults.length === 0 ? (
                   <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
                 ) : null}
                 {resultsViewMode === "table" ? (

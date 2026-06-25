@@ -1453,6 +1453,9 @@ export type Messages = {
   seniorTransferSearchAgeRangeLabel: string;
   seniorTransferSearchTsiRangeLabel: string;
   seniorTransferSearchPriceRangeLabel: string;
+  transferSearchHtmsPotentialRangeLabel: string;
+  transferSearchHtmsPotentialMinLabel: string;
+  transferSearchHtmsPotentialMaxLabel: string;
   seniorTransferSearchSearchButton: string;
   seniorTransferSearchCloseButton: string;
   seniorTransferSearchLoading: string;

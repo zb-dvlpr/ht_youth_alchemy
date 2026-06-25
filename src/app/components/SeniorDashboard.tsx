@@ -18198,16 +18198,18 @@ const refreshDetailsForPlayers = async (
               : messages.seniorTransferSearchButtonLabel}
           </button>
         </Tooltip>
-        <button
-          type="button"
-          className={styles.confirmSubmit}
-          onClick={() => {
-            setEnterSeniorPlayerIdValue("");
-            setEnterSeniorPlayerIdOpen(true);
-          }}
-        >
-          {messages.seniorEnterPlayerIdButtonLabel}
-        </button>
+        <Tooltip content={messages.seniorEnterPlayerIdTooltip}>
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              setEnterSeniorPlayerIdValue("");
+              setEnterSeniorPlayerIdOpen(true);
+            }}
+          >
+            {messages.seniorEnterPlayerIdButtonLabel}
+          </button>
+        </Tooltip>
         {observedSeniorPlayerActive ? (
           <Tooltip content={messages.seniorObservedExternalPlayerClearLabel}>
             <button

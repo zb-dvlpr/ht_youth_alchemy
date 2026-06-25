@@ -1430,6 +1430,7 @@ export type Messages = {
   starPlayerLabel: string;
   seniorPlayerListTitle: string;
   seniorEnterPlayerIdButtonLabel: string;
+  seniorEnterPlayerIdTooltip: string;
   seniorEnterPlayerIdModalTitle: string;
   seniorEnterPlayerIdInputLabel: string;
   seniorEnterPlayerIdPlaceholder: string;

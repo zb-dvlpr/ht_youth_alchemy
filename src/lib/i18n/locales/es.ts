@@ -1801,6 +1801,8 @@ export const messagesEs: Messages = {
     lineupExclusionAllowLabel: "Permitir que {{player}} se considere para alineaciones",
     seniorPlayerListTitle: "Jugadores senior",
     seniorEnterPlayerIdButtonLabel: "Ingresar ID de jugador",
+    seniorEnterPlayerIdTooltip:
+      "Ver los detalles de un jugador que no está en tu equipo.",
     seniorEnterPlayerIdModalTitle: "Ingresar ID de jugador",
     seniorEnterPlayerIdInputLabel: "ID de jugador",
     seniorEnterPlayerIdPlaceholder: "Ingresa un ID numerico de jugador",

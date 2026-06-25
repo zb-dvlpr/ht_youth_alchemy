@@ -1743,6 +1743,8 @@ export const messagesEn: Messages = {
     lineupExclusionAllowLabel: "Allow {{player}} to be considered for lineups",
     seniorPlayerListTitle: "Senior players",
     seniorEnterPlayerIdButtonLabel: "Enter player ID",
+    seniorEnterPlayerIdTooltip:
+      "View player details for a player who is not on your team.",
     seniorEnterPlayerIdModalTitle: "Enter player ID",
     seniorEnterPlayerIdInputLabel: "Player ID",
     seniorEnterPlayerIdPlaceholder: "Enter numeric player ID",

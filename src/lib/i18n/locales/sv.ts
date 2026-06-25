@@ -1790,6 +1790,8 @@ export const messagesSv: Messages = {
     lineupExclusionAllowLabel: "Lat {{player}} beaktas for uppstallningar",
     seniorPlayerListTitle: "Seniorspelare",
     seniorEnterPlayerIdButtonLabel: "Ange spelar-ID",
+    seniorEnterPlayerIdTooltip:
+      "Visa spelardetaljer för en spelare som inte är i ditt lag.",
     seniorEnterPlayerIdModalTitle: "Ange spelar-ID",
     seniorEnterPlayerIdInputLabel: "Spelar-ID",
     seniorEnterPlayerIdPlaceholder: "Ange numeriskt spelar-ID",

@@ -1803,6 +1803,8 @@ export const messagesPt: Messages = {
     lineupExclusionAllowLabel: "Permitir que {{player}} seja considerado para escalacoes",
     seniorPlayerListTitle: "Jogadores seniores",
     seniorEnterPlayerIdButtonLabel: "Inserir ID do jogador",
+    seniorEnterPlayerIdTooltip:
+      "Ver os detalhes de um jogador que não está na sua equipe.",
     seniorEnterPlayerIdModalTitle: "Inserir ID do jogador",
     seniorEnterPlayerIdInputLabel: "ID do jogador",
     seniorEnterPlayerIdPlaceholder: "Insere um ID numerico do jogador",

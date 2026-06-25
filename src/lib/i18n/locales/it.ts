@@ -1805,6 +1805,8 @@ export const messagesIt: Messages = {
     lineupExclusionAllowLabel: "Consenti a {{player}} di essere considerato per le formazioni",
     seniorPlayerListTitle: "Giocatori senior",
     seniorEnterPlayerIdButtonLabel: "Inserisci ID giocatore",
+    seniorEnterPlayerIdTooltip:
+      "Visualizza i dettagli di un giocatore che non fa parte della tua squadra.",
     seniorEnterPlayerIdModalTitle: "Inserisci ID giocatore",
     seniorEnterPlayerIdInputLabel: "ID giocatore",
     seniorEnterPlayerIdPlaceholder: "Inserisci ID giocatore numerico",

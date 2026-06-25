@@ -679,6 +679,8 @@ export const messagesPl: Messages = {
   sortDescLabel: "Malejąco",
   seniorPlayerListTitle: "Zawodnicy seniorów",
   seniorEnterPlayerIdButtonLabel: "Wprowadz ID zawodnika",
+  seniorEnterPlayerIdTooltip:
+    "Wyświetl szczegóły zawodnika, który nie jest w Twojej drużynie.",
   seniorEnterPlayerIdModalTitle: "Wprowadz ID zawodnika",
   seniorEnterPlayerIdInputLabel: "ID zawodnika",
   seniorEnterPlayerIdPlaceholder: "Wprowadz numeryczne ID zawodnika",

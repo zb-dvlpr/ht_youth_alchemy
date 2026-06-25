@@ -685,6 +685,8 @@ export const messagesNl: Messages = {
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
   seniorEnterPlayerIdButtonLabel: "Speler-ID invoeren",
+  seniorEnterPlayerIdTooltip:
+    "Bekijk spelerdetails voor een speler die niet in je team zit.",
   seniorEnterPlayerIdModalTitle: "Speler-ID invoeren",
   seniorEnterPlayerIdInputLabel: "Speler-ID",
   seniorEnterPlayerIdPlaceholder: "Voer numeriek speler-ID in",

@@ -708,6 +708,7 @@ export const messagesPl: Messages = {
   transferSearchHtmsPotentialRangeLabel: "Potencjal HTMS",
   transferSearchHtmsPotentialMinLabel: "Min. potencjal HTMS",
   transferSearchHtmsPotentialMaxLabel: "Maks. potencjal HTMS",
+  transferSearchNativeCountryLabel: "Kraj pochodzenia",
   seniorTransferSearchSearchButton: "Szukaj",
   seniorTransferSearchCloseButton: "Zamknij",
   seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",

@@ -69,6 +69,7 @@ export type TransferSearchSkillFilter = {
 export type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
+  nativeCountryId: number | null;
   ageMinYears: string;
   ageMinDays: string;
   ageMaxYears: string;
@@ -77,6 +78,11 @@ export type TransferSearchFilters = {
   tsiMax: string;
   priceMinDisplay: string;
   priceMaxDisplay: string;
+};
+
+export type TransferSearchCountryOption = {
+  id: number;
+  name: string;
 };
 
 export type TransferSearchResult = {
@@ -191,6 +197,7 @@ type TransferSearchModalProps = {
   selectedPlayerDetailPillsInline?: boolean;
   filters: TransferSearchFilters | null;
   displayCurrency: DisplayCurrency;
+  countryOptions?: TransferSearchCountryOption[];
   skillSlotCount?: number;
   loading: boolean;
   onUpdateSkillFilter: (
@@ -671,6 +678,7 @@ export const normalizeTransferSearchFilters = (
   );
   const normalizedMinAge = totalDaysToAge(Math.min(minAgeTotal, maxAgeTotal));
   const normalizedMaxAge = totalDaysToAge(Math.max(minAgeTotal, maxAgeTotal));
+  const nativeCountryId = Number(filters.nativeCountryId);
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
@@ -694,6 +702,10 @@ export const normalizeTransferSearchFilters = (
     ageMinDays: String(normalizedMinAge.days),
     ageMaxYears: String(normalizedMaxAge.years),
     ageMaxDays: String(normalizedMaxAge.days),
+    nativeCountryId:
+      Number.isFinite(nativeCountryId) && nativeCountryId > 0
+        ? Math.round(nativeCountryId)
+        : null,
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
     priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
@@ -730,6 +742,9 @@ export const buildTransferSearchParams = (
 
   if (normalized.specialty !== null) {
     params.set("specialty", String(normalized.specialty));
+  }
+  if (normalized.nativeCountryId !== null) {
+    params.set("nativeCountryId", String(normalized.nativeCountryId));
   }
 
   const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
@@ -1159,6 +1174,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   selectedPlayerDetailPillsInline,
   filters,
   displayCurrency,
+  countryOptions = [],
   skillSlotCount,
   loading,
   onUpdateSkillFilter,
@@ -2161,6 +2177,37 @@ const TransferSearchModal = memo(function TransferSearchModal({
                       disabled={loading}
                     />
                   </div>
+                </div>
+
+                <div className={styles.transferSearchSection}>
+                  <label className={styles.infoLabel} htmlFor="transfer-search-native-country">
+                    {messages.transferSearchNativeCountryLabel}
+                  </label>
+                  <select
+                    id="transfer-search-native-country"
+                    className={styles.transferSearchInput}
+                    value={filters?.nativeCountryId === null ? "" : String(filters?.nativeCountryId ?? "")}
+                    onChange={(event) => {
+                      const rawValue = event.target.value;
+                      const nextValue = Number(rawValue);
+                      onUpdateFilterField(
+                        "nativeCountryId",
+                        rawValue === "" || !Number.isFinite(nextValue) || nextValue <= 0
+                          ? null
+                          : Math.round(nextValue)
+                      );
+                    }}
+                    disabled={loading || countryOptions.length === 0}
+                  >
+                    <option value="">
+                      {messages.seniorTransferSearchAnySpecialtyLabel}
+                    </option>
+                    {countryOptions.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className={styles.transferSearchSidebarActions}>

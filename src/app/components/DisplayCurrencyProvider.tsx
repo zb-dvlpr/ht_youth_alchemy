@@ -12,6 +12,7 @@ import {
 import {
   buildCurrencyKey,
   buildDisplayCurrencyOptions,
+  buildWorldDetailsCountryOptions,
   buildCurrencyOptionKey,
   buildDisplayCurrencyOptionLabel,
   formatSekCurrency,
@@ -20,6 +21,7 @@ import {
   type CurrencyMeta,
   type DisplayCurrency,
   type DisplayCurrencyOption,
+  type WorldDetailsCountryOption,
 } from "@/lib/currency";
 import {
   DISPLAY_CURRENCY_SETTINGS_EVENT,
@@ -42,6 +44,7 @@ type StoredCurrenciesCache = {
 
 type DisplayCurrencyContextValue = {
   currencyOptions: DisplayCurrencyOption[];
+  countryOptions: WorldDetailsCountryOption[];
   setting: StoredDisplayCurrencySetting;
   selectedOverride: DisplayCurrency | null;
   setOverride: (currency: DisplayCurrencyOption) => void;
@@ -166,6 +169,10 @@ export function DisplayCurrencyProvider({
     () => buildDisplayCurrencyOptions(currencies),
     [currencies]
   );
+  const countryOptions = useMemo(
+    () => buildWorldDetailsCountryOptions(currencies),
+    [currencies]
+  );
 
   const selectedOverride = useMemo(() => {
     if (setting.mode !== "override") return null;
@@ -245,6 +252,7 @@ export function DisplayCurrencyProvider({
   const value = useMemo<DisplayCurrencyContextValue>(
     () => ({
       currencyOptions,
+      countryOptions,
       setting,
       selectedOverride,
       setOverride,
@@ -255,6 +263,7 @@ export function DisplayCurrencyProvider({
     [
       clearOverride,
       currencyOptions,
+      countryOptions,
       formatSek,
       resolveForCountry,
       selectedOverride,
@@ -282,6 +291,7 @@ export function useDisplayCurrency() {
     };
     return {
       currencyOptions: [fallbackOption],
+      countryOptions: [{ id: fallbackOption.countryId, name: fallbackOption.countryName }],
       setting: { mode: "default" as const },
       selectedOverride: null,
       setOverride: () => undefined,

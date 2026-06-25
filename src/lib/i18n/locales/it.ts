@@ -1834,6 +1834,7 @@ export const messagesIt: Messages = {
     transferSearchHtmsPotentialRangeLabel: "Potenziale HTMS",
     transferSearchHtmsPotentialMinLabel: "Potenziale HTMS min.",
     transferSearchHtmsPotentialMaxLabel: "Potenziale HTMS max.",
+    transferSearchNativeCountryLabel: "Paese d'origine",
     seniorTransferSearchSearchButton: "Cerca",
     seniorTransferSearchCloseButton: "Chiudi",
     seniorTransferSearchLoading: "Ricerca sul mercato trasferimenti…",

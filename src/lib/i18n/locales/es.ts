@@ -1830,6 +1830,7 @@ export const messagesEs: Messages = {
     transferSearchHtmsPotentialRangeLabel: "Potencial HTMS",
     transferSearchHtmsPotentialMinLabel: "Potencial HTMS min.",
     transferSearchHtmsPotentialMaxLabel: "Potencial HTMS max.",
+    transferSearchNativeCountryLabel: "Pais de origen",
     seniorTransferSearchSearchButton: "Buscar",
     seniorTransferSearchCloseButton: "Cerrar",
     seniorTransferSearchLoading: "Buscando en el mercado de transferencias…",

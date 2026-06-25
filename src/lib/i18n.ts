@@ -1456,6 +1456,7 @@ export type Messages = {
   transferSearchHtmsPotentialRangeLabel: string;
   transferSearchHtmsPotentialMinLabel: string;
   transferSearchHtmsPotentialMaxLabel: string;
+  transferSearchNativeCountryLabel: string;
   seniorTransferSearchSearchButton: string;
   seniorTransferSearchCloseButton: string;
   seniorTransferSearchLoading: string;

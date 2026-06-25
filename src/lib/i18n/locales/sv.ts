@@ -1819,6 +1819,7 @@ export const messagesSv: Messages = {
     transferSearchHtmsPotentialRangeLabel: "HTMS-potential",
     transferSearchHtmsPotentialMinLabel: "Min. HTMS-potential",
     transferSearchHtmsPotentialMaxLabel: "Max. HTMS-potential",
+    transferSearchNativeCountryLabel: "Ursprungsland",
     seniorTransferSearchSearchButton: "Sok",
     seniorTransferSearchCloseButton: "Stang",
     seniorTransferSearchLoading: "Soker pa transfermarknaden…",

@@ -648,6 +648,7 @@ type TransferSearchSkillFilter = {
 type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
+  nativeCountryId: number | null;
   ageMinYears: string;
   ageMinDays: string;
   ageMaxYears: string;
@@ -1709,6 +1710,7 @@ const buildInitialTransferSearchFilters = (
         : typeof player.Specialty === "number"
         ? player.Specialty
         : 0,
+    nativeCountryId: null,
     ageMinYears: String(ageMin.years),
     ageMinDays: String(ageMin.days),
     ageMaxYears: String(ageMax.years),
@@ -1871,6 +1873,7 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
   );
   const normalizedMinAge = totalDaysToAge(Math.min(minAgeTotal, maxAgeTotal));
   const normalizedMaxAge = totalDaysToAge(Math.max(minAgeTotal, maxAgeTotal));
+  const nativeCountryId = Number(filters.nativeCountryId);
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
@@ -1894,6 +1897,10 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
     ageMinDays: String(normalizedMinAge.days),
     ageMaxYears: String(normalizedMaxAge.years),
     ageMaxDays: String(normalizedMaxAge.days),
+    nativeCountryId:
+      Number.isFinite(nativeCountryId) && nativeCountryId > 0
+        ? Math.round(nativeCountryId)
+        : null,
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
     priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
@@ -1938,6 +1945,9 @@ const buildTransferSearchParams = (
 
   if (normalized.specialty !== null) {
     params.set("specialty", String(normalized.specialty));
+  }
+  if (normalized.nativeCountryId !== null) {
+    params.set("nativeCountryId", String(normalized.nativeCountryId));
   }
 
   const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
@@ -3727,7 +3737,8 @@ export default function SeniorDashboard({
   const isDevBuild = process.env.NODE_ENV !== "production";
   const showSetBestLineupDebugModal = isDevBuild;
   const { addNotification } = useNotifications();
-  const { resolveForCountry } = useDisplayCurrency();
+  const { countryOptions: transferSearchCountryOptions, resolveForCountry } =
+    useDisplayCurrency();
   const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
   const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
     initialSeniorTeamId
@@ -19469,6 +19480,7 @@ const refreshDetailsForPlayers = async (
         selectedPlayerDetailPills={transferSearchSelectedPlayerDetailPills}
         filters={transferSearchFilters}
         displayCurrency={displayCurrency}
+        countryOptions={transferSearchCountryOptions}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
         onUpdateFilterField={updateTransferSearchFilterField}

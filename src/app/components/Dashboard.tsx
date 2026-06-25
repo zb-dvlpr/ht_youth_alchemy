@@ -1040,7 +1040,8 @@ export default function Dashboard({
   initialLoadError = null,
   initialLoadDetails = null,
 }: DashboardProps) {
-  const { resolveForCountry } = useDisplayCurrency();
+  const { countryOptions: transferSearchCountryOptions, resolveForCountry } =
+    useDisplayCurrency();
   const trackYouthFeatureUsed = useCallback(
     (feature: YouthFeatureAnalyticsName, source: YouthFeatureAnalyticsSource) => {
       trackAnalyticsEvent("youth_feature_used", {
@@ -2079,6 +2080,7 @@ export default function Dashboard({
     return normalizeTransferSearchFilters({
       skillFilters,
       specialty,
+      nativeCountryId: null,
       ageMinYears: String(ageMin.years),
       ageMinDays: String(ageMin.days),
       ageMaxYears: String(ageMax.years),
@@ -7745,6 +7747,7 @@ export default function Dashboard({
         selectedPlayerDetailPillsInline
         filters={transferSearchFilters}
         displayCurrency={displayCurrency}
+        countryOptions={transferSearchCountryOptions}
         skillSlotCount={4}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}

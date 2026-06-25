@@ -1813,6 +1813,7 @@ export const messagesDe: Messages = {
     transferSearchHtmsPotentialRangeLabel: "HTMS-Potenzial",
     transferSearchHtmsPotentialMinLabel: "Min. HTMS-Potenzial",
     transferSearchHtmsPotentialMaxLabel: "Max. HTMS-Potenzial",
+    transferSearchNativeCountryLabel: "Herkunftsland",
     seniorTransferSearchSearchButton: "Suchen",
     seniorTransferSearchCloseButton: "Schliessen",
     seniorTransferSearchLoading: "Transfermarkt wird durchsucht…",

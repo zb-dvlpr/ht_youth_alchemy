@@ -501,6 +501,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_6_8_0:
+      "De mogelijkheid toegevoegd om externe seniorspelers te bekijken.",
     changelog_6_7_0:
       "Spelertoewijzing op basis van vaardigheden voor seniorenopstellingen.",
     changelog_6_6_0:
@@ -682,6 +684,16 @@ export const messagesNl: Messages = {
   sortAscLabel: "Oplopend",
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
+  seniorEnterPlayerIdButtonLabel: "Speler-ID invoeren",
+  seniorEnterPlayerIdModalTitle: "Speler-ID invoeren",
+  seniorEnterPlayerIdInputLabel: "Speler-ID",
+  seniorEnterPlayerIdPlaceholder: "Voer numeriek speler-ID in",
+  seniorEnterPlayerIdSubmitLabel: "Speler laden",
+  seniorEnterPlayerIdLoadingLabel: "Speler laden...",
+  seniorEnterPlayerIdInvalid: "Voer een geldig numeriek speler-ID in.",
+  seniorEnterPlayerIdNotFound: "Speler-ID {{playerId}} is niet gevonden.",
+  seniorObservedExternalPlayerNotice: "Deze speler zit niet in je team.",
+  seniorObservedExternalPlayerClearLabel: "Geobserveerde speler wissen",
   seniorTransferSearchButtonLabel: "Vergelijkbare spelers vinden",
   seniorTransferSearchEditedButtonLabel:
     "Vergelijkbare speler met bewerkte waarden vinden",

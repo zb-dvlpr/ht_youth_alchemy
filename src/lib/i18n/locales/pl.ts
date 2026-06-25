@@ -495,6 +495,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_6_8_0:
+      "Dodano mozliwosc przegladania zewnetrznych zawodnikow seniorow.",
     changelog_6_7_0:
       "Przydział zawodników według umiejętności w składach seniorów.",
     changelog_6_6_0:
@@ -676,6 +678,16 @@ export const messagesPl: Messages = {
   sortAscLabel: "Rosnąco",
   sortDescLabel: "Malejąco",
   seniorPlayerListTitle: "Zawodnicy seniorów",
+  seniorEnterPlayerIdButtonLabel: "Wprowadz ID zawodnika",
+  seniorEnterPlayerIdModalTitle: "Wprowadz ID zawodnika",
+  seniorEnterPlayerIdInputLabel: "ID zawodnika",
+  seniorEnterPlayerIdPlaceholder: "Wprowadz numeryczne ID zawodnika",
+  seniorEnterPlayerIdSubmitLabel: "Wczytaj zawodnika",
+  seniorEnterPlayerIdLoadingLabel: "Wczytywanie zawodnika...",
+  seniorEnterPlayerIdInvalid: "Wprowadz prawidlowe numeryczne ID zawodnika.",
+  seniorEnterPlayerIdNotFound: "Nie znaleziono ID zawodnika {{playerId}}.",
+  seniorObservedExternalPlayerNotice: "Ten zawodnik nie jest w twojej druzynie.",
+  seniorObservedExternalPlayerClearLabel: "Wyczysc obserwowanego zawodnika",
   seniorTransferSearchButtonLabel: "Znajdz podobnych graczy",
   seniorTransferSearchEditedButtonLabel:
     "Znajdz podobnego gracza z edytowanymi wartosciami",

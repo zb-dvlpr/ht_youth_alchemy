@@ -238,6 +238,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_6_8_0:
+      "Lade till mojligheten att visa externa seniorspelare.",
     changelog_6_7_0:
       "Färdighetsbaserad spelartilldelning för senioruppställningar.",
     changelog_6_6_0:
@@ -1787,6 +1789,16 @@ export const messagesSv: Messages = {
     lineupExclusionExcludeLabel: "Exkludera {{player}} fran uppstallningsval",
     lineupExclusionAllowLabel: "Lat {{player}} beaktas for uppstallningar",
     seniorPlayerListTitle: "Seniorspelare",
+    seniorEnterPlayerIdButtonLabel: "Ange spelar-ID",
+    seniorEnterPlayerIdModalTitle: "Ange spelar-ID",
+    seniorEnterPlayerIdInputLabel: "Spelar-ID",
+    seniorEnterPlayerIdPlaceholder: "Ange numeriskt spelar-ID",
+    seniorEnterPlayerIdSubmitLabel: "Ladda spelare",
+    seniorEnterPlayerIdLoadingLabel: "Laddar spelare...",
+    seniorEnterPlayerIdInvalid: "Ange ett giltigt numeriskt spelar-ID.",
+    seniorEnterPlayerIdNotFound: "Spelar-ID {{playerId}} hittades inte.",
+    seniorObservedExternalPlayerNotice: "Den har spelaren finns inte i ditt lag.",
+    seniorObservedExternalPlayerClearLabel: "Rensa observerad spelare",
     seniorTransferSearchButtonLabel: "Hitta liknande spelare",
     seniorTransferSearchEditedButtonLabel:
       "Hitta liknande spelare med redigerade varden",

@@ -279,6 +279,7 @@ export type Messages = {
   changelog_3_4_0: string;
   changelog_3_5_0: string;
   changelog_3_6_0: string;
+  changelog_6_8_0: string;
   changelog_6_7_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
@@ -1428,6 +1429,16 @@ export type Messages = {
   trainingSlotBoth: string;
   starPlayerLabel: string;
   seniorPlayerListTitle: string;
+  seniorEnterPlayerIdButtonLabel: string;
+  seniorEnterPlayerIdModalTitle: string;
+  seniorEnterPlayerIdInputLabel: string;
+  seniorEnterPlayerIdPlaceholder: string;
+  seniorEnterPlayerIdSubmitLabel: string;
+  seniorEnterPlayerIdLoadingLabel: string;
+  seniorEnterPlayerIdInvalid: string;
+  seniorEnterPlayerIdNotFound: string;
+  seniorObservedExternalPlayerNotice: string;
+  seniorObservedExternalPlayerClearLabel: string;
   seniorTransferSearchButtonLabel: string;
   seniorTransferSearchEditedButtonLabel: string;
   seniorTransferSearchFemaleTeamTooltip: string;

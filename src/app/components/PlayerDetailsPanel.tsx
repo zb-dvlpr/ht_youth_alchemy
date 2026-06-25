@@ -201,6 +201,7 @@ type PlayerDetailsPanelProps = {
   ratingsManualEditsByPlayerId?: Record<number, Record<string, number>>;
   showTabs?: boolean;
   detailsHeaderActions?: ReactNode;
+  detailsNotice?: ReactNode;
   onSeniorSimulationStateChange?: (state: {
     editing: boolean;
     dirty: boolean;
@@ -613,6 +614,7 @@ export default function PlayerDetailsPanel({
   ratingsManualEditsByPlayerId,
   showTabs = true,
   detailsHeaderActions,
+  detailsNotice,
   onSeniorSimulationStateChange,
   seniorSimulationEditingBlocked = false,
   onSeniorSimulationBlockedInteraction,
@@ -1194,47 +1196,46 @@ export default function PlayerDetailsPanel({
     }
 
     return (
-      <div
-        className={`${styles.profileCard}${
-          detailsHeaderActions ? ` ${styles.profileCardWithHeaderActions}` : ""
-        }`}
-      >
-        <div className={styles.detailsRefreshCorner}>
-          {detailsHeaderActions}
-          <Tooltip content={messages.playerDetailsPreviousPlayer}>
-            <button
-              type="button"
-              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
-              onClick={onPreviousPlayer}
-              disabled={!selectedPlayer || loading || !hasPreviousPlayer}
-              aria-label={messages.playerDetailsPreviousPlayer}
-            >
-              {"<"}
-            </button>
-          </Tooltip>
-          <Tooltip content={messages.playerDetailsNextPlayer}>
-            <button
-              type="button"
-              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
-              onClick={onNextPlayer}
-              disabled={!selectedPlayer || loading || !hasNextPlayer}
-              aria-label={messages.playerDetailsNextPlayer}
-            >
-              {">"}
-            </button>
-          </Tooltip>
-          <Tooltip content={messages.refreshTooltip}>
-            <button
-              type="button"
-              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
-              onClick={onRefresh}
-              disabled={!selectedPlayer || loading}
-              aria-label={messages.refreshTooltip}
-            >
-              ↻
-            </button>
-          </Tooltip>
+      <div className={styles.profileCard}>
+        <div className={styles.profileCardTopActions}>
+          <div className={styles.profileCardLeftActions}>{detailsHeaderActions}</div>
+          <div className={styles.detailsNavigationCorner}>
+            <Tooltip content={messages.playerDetailsPreviousPlayer}>
+              <button
+                type="button"
+                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+                onClick={onPreviousPlayer}
+                disabled={!selectedPlayer || loading || !hasPreviousPlayer}
+                aria-label={messages.playerDetailsPreviousPlayer}
+              >
+                {"<"}
+              </button>
+            </Tooltip>
+            <Tooltip content={messages.playerDetailsNextPlayer}>
+              <button
+                type="button"
+                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+                onClick={onNextPlayer}
+                disabled={!selectedPlayer || loading || !hasNextPlayer}
+                aria-label={messages.playerDetailsNextPlayer}
+              >
+                {">"}
+              </button>
+            </Tooltip>
+            <Tooltip content={messages.refreshTooltip}>
+              <button
+                type="button"
+                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+                onClick={onRefresh}
+                disabled={!selectedPlayer || loading}
+                aria-label={messages.refreshTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
         </div>
+        {detailsNotice ? <div className={styles.detailsNotice}>{detailsNotice}</div> : null}
         <div className={styles.profileHeader}>
           <div className={styles.profileHeaderMain}>
             <div className={styles.profileNameRow}>

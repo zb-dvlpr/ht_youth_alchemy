@@ -237,6 +237,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_6_8_0: "Added the ability to view external senior players.",
     changelog_6_7_0: "Skills-based player allocation for senior lineups.",
     changelog_6_6_0:
       "Added user-defined CHPP token permissions, allowing managers to choose optional write permissions during connection.",
@@ -1741,6 +1742,16 @@ export const messagesEn: Messages = {
     lineupExclusionExcludeLabel: "Exclude {{player}} from lineup consideration",
     lineupExclusionAllowLabel: "Allow {{player}} to be considered for lineups",
     seniorPlayerListTitle: "Senior players",
+    seniorEnterPlayerIdButtonLabel: "Enter player ID",
+    seniorEnterPlayerIdModalTitle: "Enter player ID",
+    seniorEnterPlayerIdInputLabel: "Player ID",
+    seniorEnterPlayerIdPlaceholder: "Enter numeric player ID",
+    seniorEnterPlayerIdSubmitLabel: "Load player",
+    seniorEnterPlayerIdLoadingLabel: "Loading player...",
+    seniorEnterPlayerIdInvalid: "Enter a valid numeric player ID.",
+    seniorEnterPlayerIdNotFound: "Player ID {{playerId}} was not found.",
+    seniorObservedExternalPlayerNotice: "This player is not in your team.",
+    seniorObservedExternalPlayerClearLabel: "Clear observed player",
     seniorTransferSearchButtonLabel: "Find similar players",
     seniorTransferSearchEditedButtonLabel:
       "Find similar player with edited values",

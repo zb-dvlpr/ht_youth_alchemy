@@ -238,6 +238,8 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_6_8_0:
+      "Se agrego la posibilidad de ver jugadores senior externos.",
     changelog_6_7_0:
       "Asignación de jugadores por habilidades para alineaciones sénior.",
     changelog_6_6_0:
@@ -1798,6 +1800,16 @@ export const messagesEs: Messages = {
     lineupExclusionExcludeLabel: "Excluir a {{player}} de la consideracion para alineaciones",
     lineupExclusionAllowLabel: "Permitir que {{player}} se considere para alineaciones",
     seniorPlayerListTitle: "Jugadores senior",
+    seniorEnterPlayerIdButtonLabel: "Ingresar ID de jugador",
+    seniorEnterPlayerIdModalTitle: "Ingresar ID de jugador",
+    seniorEnterPlayerIdInputLabel: "ID de jugador",
+    seniorEnterPlayerIdPlaceholder: "Ingresa un ID numerico de jugador",
+    seniorEnterPlayerIdSubmitLabel: "Cargar jugador",
+    seniorEnterPlayerIdLoadingLabel: "Cargando jugador...",
+    seniorEnterPlayerIdInvalid: "Ingresa un ID numerico de jugador valido.",
+    seniorEnterPlayerIdNotFound: "No se encontro el ID de jugador {{playerId}}.",
+    seniorObservedExternalPlayerNotice: "Este jugador no esta en tu equipo.",
+    seniorObservedExternalPlayerClearLabel: "Borrar jugador observado",
     seniorTransferSearchButtonLabel: "Encontrar jugadores similares",
     seniorTransferSearchEditedButtonLabel:
       "Encontrar jugador similar con valores editados",

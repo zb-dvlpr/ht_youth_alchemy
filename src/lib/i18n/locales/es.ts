@@ -1856,6 +1856,14 @@ export const messagesEs: Messages = {
     transferMarketCriteriaLoaded: "Criterios cargados. Pulsa Buscar para ejecutarlos.",
     transferMarketStorageError: "El almacenamiento del mercado de transferencias no esta disponible.",
     transferMarketTeamLabel: "Equipo senior",
+    transferSearchInvalidSkillRangeTitle: "Rango de habilidad no valido",
+    transferSearchInvalidSkillRangeBody:
+      "CHPP permite un rango maximo de cuatro niveles de habilidad incluidos. Por ejemplo, 4 a 7 esta permitido, pero 4 a 8 es demasiado amplio. {{skill}} esta en {{min}} a {{max}}.",
+    transferSearchInvalidSkillRangeConfirm: "OK",
+    transferSearchInvalidAgeRangeTitle: "Rango de edad no valido",
+    transferSearchInvalidAgeRangeBody:
+      "CHPP exige un rango maximo de edad de 1a111d. Por ejemplo, 17a 0d a 18a 111d esta permitido, pero 17a 0d a 19a 0d es demasiado amplio.",
+    transferSearchInvalidAgeRangeConfirm: "OK",
     seniorTransferSearchSearchButton: "Buscar",
     seniorTransferSearchCloseButton: "Cerrar",
     seniorTransferSearchLoading: "Buscando en el mercado de transferencias…",

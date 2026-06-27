@@ -1885,12 +1885,10 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
       }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
-      const normalizedMin = Math.min(clampedMin, clampedMax);
-      const normalizedMax = Math.max(clampedMin, clampedMax);
       return {
         ...filter,
-        min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + 3),
+        min: clampedMin,
+        max: clampedMax,
       };
     }),
     ageMinYears: String(normalizedMinAge.years),

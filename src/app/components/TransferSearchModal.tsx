@@ -697,12 +697,10 @@ export const normalizeTransferSearchFilters = (
       }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
-      const normalizedMin = Math.min(clampedMin, clampedMax);
-      const normalizedMax = Math.max(clampedMin, clampedMax);
       return {
         ...filter,
-        min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
+        min: clampedMin,
+        max: clampedMax,
       };
     }),
     ageMinYears: String(normalizedMinAge.years),
@@ -883,6 +881,8 @@ export const formatTransferSearchBidDraftDisplay = (
 const TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT = 4;
 const TRANSFER_SEARCH_MAX_SKILL_DELTA =
   TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT - 1;
+const TRANSFER_SEARCH_MAX_AGE_RANGE_DAYS =
+  HATTRICK_AGE_DAYS_PER_YEAR * 2 - 1;
 const TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT = 3;
 
 const formatTransferSearchMarketDisplay = (
@@ -955,6 +955,53 @@ const buildTransferSearchMarketSummary = (
   };
 };
 
+type TransferSearchValidationIssue =
+  | { type: "skillRange"; skillLabel: string; min: number; max: number }
+  | { type: "ageRange" };
+
+const validateTransferSearchCriteria = (
+  filters: TransferSearchFilters,
+  messages: Messages
+): TransferSearchValidationIssue | null => {
+  for (const filter of filters.skillFilters) {
+    if (!isActiveTransferSearchSkillFilter(filter)) continue;
+    const definition = TRANSFER_SEARCH_SKILLS.find(
+      (entry) => entry.key === filter.skillKey
+    );
+    const skillLabel = definition
+      ? String(messages[definition.labelKey as keyof Messages])
+      : filter.skillKey;
+    if (filter.max < filter.min || filter.max - filter.min > TRANSFER_SEARCH_MAX_SKILL_DELTA) {
+      return {
+        type: "skillRange",
+        skillLabel,
+        min: filter.min,
+        max: filter.max,
+      };
+    }
+  }
+
+  const minYears = parseTransferSearchDraftInteger(filters.ageMinYears);
+  const minDays = parseTransferSearchDraftInteger(filters.ageMinDays);
+  const maxYears = parseTransferSearchDraftInteger(filters.ageMaxYears);
+  const maxDays = parseTransferSearchDraftInteger(filters.ageMaxDays);
+  if (
+    minYears === null ||
+    minDays === null ||
+    maxYears === null ||
+    maxDays === null
+  ) {
+    return null;
+  }
+  const minAgeTotal = ageToTotalDays(minYears, minDays);
+  const maxAgeTotal = ageToTotalDays(maxYears, maxDays);
+  if (maxAgeTotal - minAgeTotal > TRANSFER_SEARCH_MAX_AGE_RANGE_DAYS) {
+    return { type: "ageRange" };
+  }
+
+  return null;
+};
+
 const resolveTransferSearchSkillRange = (
   skillKey: TransferSearchSkillKey,
   currentMin: number,
@@ -962,23 +1009,17 @@ const resolveTransferSearchSkillRange = (
   edge: "min" | "max",
   nextValue: number
 ) => {
+  const clamped = clampTransferSkillValue(skillKey, nextValue);
   if (edge === "min") {
-    const nextMin = clampTransferSkillValue(skillKey, nextValue);
-    const nextMax = clampTransferSkillValue(
-      skillKey,
-      Math.max(currentMax, nextMin)
-    );
     return {
-      min: Math.max(nextMin, nextMax - TRANSFER_SEARCH_MAX_SKILL_DELTA),
-      max: nextMax,
+      min: clamped,
+      max: currentMax,
     };
   }
 
-  const nextMax = clampTransferSkillValue(skillKey, nextValue);
-  const nextMin = clampTransferSkillValue(skillKey, Math.min(currentMin, nextMax));
   return {
-    min: nextMin,
-    max: Math.min(nextMax, nextMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
+    min: currentMin,
+    max: clamped,
   };
 };
 
@@ -990,10 +1031,35 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
   messages,
   onUpdateFilter,
 }: TransferSearchSkillRowProps) {
-  const [draftMin, setDraftMin] = useState(String(filter.min));
-  const [draftMax, setDraftMax] = useState(String(filter.max));
-
   const filterIsInactive = filter.skillKey === null;
+  const draftBaseKey = `${filter.skillKey ?? "none"}:${filter.min}:${filter.max}`;
+  const [draftState, setDraftState] = useState({
+    baseKey: draftBaseKey,
+    min: String(filter.min),
+    max: String(filter.max),
+  });
+  const draftMin =
+    draftState.baseKey === draftBaseKey ? draftState.min : String(filter.min);
+  const draftMax =
+    draftState.baseKey === draftBaseKey ? draftState.max : String(filter.max);
+  const setDraftMin = useCallback(
+    (min: string) =>
+      setDraftState((prev) => ({
+        baseKey: draftBaseKey,
+        min,
+        max: prev.baseKey === draftBaseKey ? prev.max : String(filter.max),
+      })),
+    [draftBaseKey, filter.max]
+  );
+  const setDraftMax = useCallback(
+    (max: string) =>
+      setDraftState((prev) => ({
+        baseKey: draftBaseKey,
+        min: prev.baseKey === draftBaseKey ? prev.min : String(filter.min),
+        max,
+      })),
+    [draftBaseKey, filter.min]
+  );
   const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
     (entry) =>
       entry.key === filter.skillKey || !selectedOtherSkillKeys.includes(entry.key)
@@ -1018,27 +1084,39 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
         onUpdateFilter(index, next);
       });
     },
-    [filter.max, filter.min, filter.skillKey, index, onUpdateFilter]
+    [
+      filter.max,
+      filter.min,
+      filter.skillKey,
+      index,
+      onUpdateFilter,
+      setDraftMax,
+      setDraftMin,
+    ]
   );
   const handleMinInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const nextValue = event.target.value;
+      if (!/^\d*$/.test(nextValue)) return;
       setDraftMin(nextValue);
+      if (nextValue === "") return;
       const parsed = Number(nextValue);
       if (!Number.isFinite(parsed)) return;
       commitRange("min", parsed);
     },
-    [commitRange]
+    [commitRange, setDraftMin]
   );
   const handleMaxInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const nextValue = event.target.value;
+      if (!/^\d*$/.test(nextValue)) return;
       setDraftMax(nextValue);
+      if (nextValue === "") return;
       const parsed = Number(nextValue);
       if (!Number.isFinite(parsed)) return;
       commitRange("max", parsed);
     },
-    [commitRange]
+    [commitRange, setDraftMax]
   );
 
   return (
@@ -1055,8 +1133,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.min <= skillDefinition.min ||
-              filter.max - (filter.min - 1) > TRANSFER_SEARCH_MAX_SKILL_DELTA
+              filter.min <= skillDefinition.min
             }
             aria-label={`${messages.seniorTransferSearchMinLabel} -`}
           >
@@ -1070,7 +1147,15 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             step={1}
             value={filterIsInactive ? "-" : draftMin}
             onChange={handleMinInputChange}
-            onBlur={() => setDraftMin(String(filter.min))}
+            onBlur={() => {
+              if (!filter.skillKey) return;
+              const parsed = Number(draftMin);
+              if (!Number.isFinite(parsed)) {
+                setDraftMin(String(filter.min));
+                return;
+              }
+              commitRange("min", parsed);
+            }}
             disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMinLabel}
           />
@@ -1081,7 +1166,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.min >= Math.min(skillDefinition.max, filter.max)
+              filter.min >= skillDefinition.max
             }
             aria-label={`${messages.seniorTransferSearchMinLabel} +`}
           >
@@ -1104,13 +1189,8 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
           }
           const next = {
             skillKey: nextSkillKey,
-            ...resolveTransferSearchSkillRange(
-              nextSkillKey,
-              filter.min,
-              filter.max,
-              "max",
-              filter.max
-            ),
+            min: clampTransferSkillValue(nextSkillKey, filter.skillKey ? filter.min : 0),
+            max: clampTransferSkillValue(nextSkillKey, filter.skillKey ? filter.max : 0),
           };
           setDraftMin(String(next.min));
           setDraftMax(String(next.max));
@@ -1136,7 +1216,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("max", filter.max - 1)}
-            disabled={disabled || filterIsInactive || filter.max <= filter.min}
+            disabled={disabled || filterIsInactive || filter.max <= skillDefinition.min}
             aria-label={`${messages.seniorTransferSearchMaxLabel} -`}
           >
             -
@@ -1149,7 +1229,15 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             step={1}
             value={filterIsInactive ? "-" : draftMax}
             onChange={handleMaxInputChange}
-            onBlur={() => setDraftMax(String(filter.max))}
+            onBlur={() => {
+              if (!filter.skillKey) return;
+              const parsed = Number(draftMax);
+              if (!Number.isFinite(parsed)) {
+                setDraftMax(String(filter.max));
+                return;
+              }
+              commitRange("max", parsed);
+            }}
             disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMaxLabel}
           />
@@ -1160,8 +1248,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.max >= skillDefinition.max ||
-              filter.max + 1 - filter.min > TRANSFER_SEARCH_MAX_SKILL_DELTA
+              filter.max >= skillDefinition.max
             }
             aria-label={`${messages.seniorTransferSearchMaxLabel} +`}
           >
@@ -1227,6 +1314,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
   });
   const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
+  const [validationIssue, setValidationIssue] =
+    useState<TransferSearchValidationIssue | null>(null);
   const htmsPotentialFilter =
     controlledHtmsPotentialFilter ?? internalHtmsPotentialFilter;
   const setHtmsPotentialFilter = useCallback(
@@ -1332,6 +1421,16 @@ const TransferSearchModal = memo(function TransferSearchModal({
     });
     return validated;
   }, [draftFields, filters, filtersDraftKey, onUpdateFilterField]);
+  const commitAndValidateCriteria = useCallback(() => {
+    const committedFilters = commitDraftFields();
+    if (!committedFilters) return null;
+    const issue = validateTransferSearchCriteria(committedFilters, messages);
+    if (issue) {
+      setValidationIssue(issue);
+      return null;
+    }
+    return committedFilters;
+  }, [commitDraftFields, messages]);
   useEffect(() => {
     if (
       !hasTransferSearchResults ||
@@ -1944,7 +2043,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         .sort();
                       return (
                         <TransferSearchSkillRow
-                          key={`${filter.skillKey ?? "none"}-${filter.min}-${filter.max}-${index}`}
+                          key={`${filter.skillKey ?? "none"}-${index}`}
                           filter={filter}
                           index={index}
                           selectedOtherSkillKeys={selectedOtherSkillKeys}
@@ -2237,9 +2336,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   {onSaveAsProfile ? (
                     <button
                       type="button"
-                      className={styles.secondaryButton}
+                      className={`${styles.secondaryButton} ${styles.transferSearchSaveProfileButton}`}
                       onClick={() => {
-                        const committedFilters = commitDraftFields();
+                        const committedFilters = commitAndValidateCriteria();
                         if (!committedFilters) return;
                         onSaveAsProfile(committedFilters);
                       }}
@@ -2252,7 +2351,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     type="button"
                     className={styles.confirmSubmit}
                     onClick={() => {
-                      const committedFilters = commitDraftFields();
+                      const committedFilters = commitAndValidateCriteria();
                       if (!committedFilters) return;
                       onSearch(committedFilters);
                     }}
@@ -2585,27 +2684,70 @@ const TransferSearchModal = memo(function TransferSearchModal({
         </div>
   );
 
+  const validationModal =
+    validationIssue === null ? null : (
+      <Modal
+        open
+        title={
+          validationIssue.type === "skillRange"
+            ? messages.transferSearchInvalidSkillRangeTitle
+            : messages.transferSearchInvalidAgeRangeTitle
+        }
+        body={
+          <p className={styles.muted}>
+            {validationIssue.type === "skillRange"
+              ? messages.transferSearchInvalidSkillRangeBody
+                  .replace("{{skill}}", validationIssue.skillLabel)
+                  .replace("{{min}}", String(validationIssue.min))
+                  .replace("{{max}}", String(validationIssue.max))
+              : messages.transferSearchInvalidAgeRangeBody}
+          </p>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setValidationIssue(null)}
+          >
+            {validationIssue.type === "skillRange"
+              ? messages.transferSearchInvalidSkillRangeConfirm
+              : messages.transferSearchInvalidAgeRangeConfirm}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setValidationIssue(null)}
+      />
+    );
+
   if (mode === "workspace") {
-    return body;
+    return (
+      <>
+        {body}
+        {validationModal}
+      </>
+    );
   }
 
   return (
-    <Modal
-      open={open}
-      title={messages.seniorTransferSearchModalTitle}
-      className={`${styles.transferSearchModal}${
-        resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
-      }`}
-      movable
-      body={body}
-      actions={
-        <button type="button" className={styles.confirmSubmit} onClick={onClose}>
-          {messages.seniorTransferSearchCloseButton}
-        </button>
-      }
-      closeOnBackdrop
-      onClose={onClose}
-    />
+    <>
+      <Modal
+        open={open}
+        title={messages.seniorTransferSearchModalTitle}
+        className={`${styles.transferSearchModal}${
+          resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
+        }`}
+        movable
+        body={body}
+        actions={
+          <button type="button" className={styles.confirmSubmit} onClick={onClose}>
+            {messages.seniorTransferSearchCloseButton}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={onClose}
+      />
+      {validationModal}
+    </>
   );
 });
 

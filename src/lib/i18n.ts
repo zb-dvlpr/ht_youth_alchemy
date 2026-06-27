@@ -1482,6 +1482,12 @@ export type Messages = {
   transferMarketCriteriaLoaded: string;
   transferMarketStorageError: string;
   transferMarketTeamLabel: string;
+  transferSearchInvalidSkillRangeTitle: string;
+  transferSearchInvalidSkillRangeBody: string;
+  transferSearchInvalidSkillRangeConfirm: string;
+  transferSearchInvalidAgeRangeTitle: string;
+  transferSearchInvalidAgeRangeBody: string;
+  transferSearchInvalidAgeRangeConfirm: string;
   seniorTransferSearchSearchButton: string;
   seniorTransferSearchCloseButton: string;
   seniorTransferSearchLoading: string;

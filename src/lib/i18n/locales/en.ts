@@ -1798,6 +1798,14 @@ export const messagesEn: Messages = {
     transferMarketCriteriaLoaded: "Criteria loaded. Press Search to run it.",
     transferMarketStorageError: "Transfer Market storage is unavailable.",
     transferMarketTeamLabel: "Senior team",
+    transferSearchInvalidSkillRangeTitle: "Invalid skill range",
+    transferSearchInvalidSkillRangeBody:
+      "CHPP allows a maximum skill range of four levels inclusive. For example, 4 to 7 is allowed, but 4 to 8 is too wide. {{skill}} is set to {{min}} to {{max}}.",
+    transferSearchInvalidSkillRangeConfirm: "OK",
+    transferSearchInvalidAgeRangeTitle: "Invalid age range",
+    transferSearchInvalidAgeRangeBody:
+      "CHPP mandates a maximum age range of 1y111d. For example, 17y 0d to 18y 111d is allowed, but 17y 0d to 19y 0d is too wide.",
+    transferSearchInvalidAgeRangeConfirm: "OK",
     seniorTransferSearchSearchButton: "Search",
     seniorTransferSearchCloseButton: "Close",
     seniorTransferSearchLoading: "Searching transfer market…",

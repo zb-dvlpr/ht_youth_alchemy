@@ -1858,6 +1858,14 @@ export const messagesPt: Messages = {
     transferMarketCriteriaLoaded: "Criterios carregados. Prime Pesquisa para executar.",
     transferMarketStorageError: "O armazenamento do mercado de transferencias esta indisponivel.",
     transferMarketTeamLabel: "Equipa senior",
+    transferSearchInvalidSkillRangeTitle: "Intervalo de habilidade invalido",
+    transferSearchInvalidSkillRangeBody:
+      "A CHPP permite um intervalo maximo de quatro niveis de habilidade incluidos. Por exemplo, 4 a 7 e permitido, mas 4 a 8 e demasiado amplo. {{skill}} esta definido de {{min}} a {{max}}.",
+    transferSearchInvalidSkillRangeConfirm: "OK",
+    transferSearchInvalidAgeRangeTitle: "Intervalo de idade invalido",
+    transferSearchInvalidAgeRangeBody:
+      "A CHPP exige um intervalo maximo de idade de 1a111d. Por exemplo, 17a 0d a 18a 111d e permitido, mas 17a 0d a 19a 0d e demasiado amplo.",
+    transferSearchInvalidAgeRangeConfirm: "OK",
     seniorTransferSearchSearchButton: "Pesquisar",
     seniorTransferSearchCloseButton: "Fechar",
     seniorTransferSearchLoading: "A pesquisar no mercado de transferencias…",

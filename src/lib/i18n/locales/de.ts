@@ -1839,6 +1839,14 @@ export const messagesDe: Messages = {
     transferMarketCriteriaLoaded: "Kriterien geladen. Druecke Suchen, um sie auszufuehren.",
     transferMarketStorageError: "Transfermarkt-Speicher ist nicht verfuegbar.",
     transferMarketTeamLabel: "Seniorenteam",
+    transferSearchInvalidSkillRangeTitle: "Ungueltiger Skillbereich",
+    transferSearchInvalidSkillRangeBody:
+      "CHPP erlaubt hoechstens vier Skillstufen inklusive. Zum Beispiel ist 4 bis 7 erlaubt, aber 4 bis 8 ist zu breit. {{skill}} ist auf {{min}} bis {{max}} gesetzt.",
+    transferSearchInvalidSkillRangeConfirm: "OK",
+    transferSearchInvalidAgeRangeTitle: "Ungueltiger Altersbereich",
+    transferSearchInvalidAgeRangeBody:
+      "CHPP verlangt einen maximalen Altersbereich von 1J111T. Zum Beispiel ist 17J 0T bis 18J 111T erlaubt, aber 17J 0T bis 19J 0T ist zu breit.",
+    transferSearchInvalidAgeRangeConfirm: "OK",
     seniorTransferSearchSearchButton: "Suchen",
     seniorTransferSearchCloseButton: "Schliessen",
     seniorTransferSearchLoading: "Transfermarkt wird durchsucht…",

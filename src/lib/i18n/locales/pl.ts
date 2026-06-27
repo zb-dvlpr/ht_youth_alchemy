@@ -734,6 +734,14 @@ export const messagesPl: Messages = {
   transferMarketCriteriaLoaded: "Kryteria wczytane. Nacisnij Szukaj, aby uruchomic.",
   transferMarketStorageError: "Magazyn rynku transferowego jest niedostepny.",
   transferMarketTeamLabel: "Druzyna seniorska",
+  transferSearchInvalidSkillRangeTitle: "Nieprawidlowy zakres umiejetnosci",
+  transferSearchInvalidSkillRangeBody:
+    "CHPP pozwala na maksymalnie cztery poziomy umiejetnosci wlacznie. Na przyklad 4 do 7 jest dozwolone, ale 4 do 8 jest zbyt szerokie. {{skill}} ustawiono na {{min}} do {{max}}.",
+  transferSearchInvalidSkillRangeConfirm: "OK",
+  transferSearchInvalidAgeRangeTitle: "Nieprawidlowy zakres wieku",
+  transferSearchInvalidAgeRangeBody:
+    "CHPP wymaga maksymalnego zakresu wieku 1r111d. Na przyklad 17r 0d do 18r 111d jest dozwolone, ale 17r 0d do 19r 0d jest zbyt szerokie.",
+  transferSearchInvalidAgeRangeConfirm: "OK",
   seniorTransferSearchSearchButton: "Szukaj",
   seniorTransferSearchCloseButton: "Zamknij",
   seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",

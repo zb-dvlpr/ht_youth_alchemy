@@ -82,8 +82,8 @@ const createDefaultTransferSearchFilters = (): TransferSearchFilters =>
     nativeCountryId: null,
     ageMinYears: "17",
     ageMinDays: "0",
-    ageMaxYears: "17",
-    ageMaxDays: "0",
+    ageMaxYears: "18",
+    ageMaxDays: "111",
     tsiMin: "",
     tsiMax: "",
     priceMinDisplay: "",
@@ -344,6 +344,14 @@ export default function TransferMarketTool({
     setSaveModalOpen(true);
   };
 
+  const closeSaveProfileModal = () => {
+    setSaveModalOpen(false);
+    setProfileName("");
+    setProfileError(null);
+    setOverwriteName(null);
+    setPendingProfileCriteria(null);
+  };
+
   const saveProfile = async (overwrite = false) => {
     const trimmed = profileName.trim();
     if (!trimmed) {
@@ -364,7 +372,7 @@ export default function TransferMarketTool({
         htmsPotentialFilter,
         displayCurrency,
       });
-      setSaveModalOpen(false);
+      closeSaveProfileModal();
       addNotification(
         existing
           ? messages.transferMarketProfileOverwritten
@@ -646,6 +654,16 @@ export default function TransferMarketTool({
             )}
           </div>
         }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setPastOpen(false)}
+          >
+            {messages.seniorTransferSearchCloseButton}
+          </button>
+        }
+        closeOnBackdrop
         onClose={() => setPastOpen(false)}
       />
       <Modal
@@ -661,6 +679,16 @@ export default function TransferMarketTool({
             )}
           </div>
         }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setProfilesOpen(false)}
+          >
+            {messages.seniorTransferSearchCloseButton}
+          </button>
+        }
+        closeOnBackdrop
         onClose={() => setProfilesOpen(false)}
       />
       <Modal
@@ -704,7 +732,7 @@ export default function TransferMarketTool({
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={() => setOverwriteName(null)}
+                onClick={closeSaveProfileModal}
               >
                 {messages.transferMarketOverwriteProfileCancel}
               </button>
@@ -717,16 +745,26 @@ export default function TransferMarketTool({
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              className={styles.confirmSubmit}
-              onClick={() => void saveProfile(false)}
-            >
-              {messages.transferMarketSaveProfileConfirm}
-            </button>
+            <>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={closeSaveProfileModal}
+              >
+                {messages.transferMarketOverwriteProfileCancel}
+              </button>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => void saveProfile(false)}
+              >
+                {messages.transferMarketSaveProfileConfirm}
+              </button>
+            </>
           )
         }
-        onClose={() => setSaveModalOpen(false)}
+        closeOnBackdrop
+        onClose={closeSaveProfileModal}
       />
     </div>
   );

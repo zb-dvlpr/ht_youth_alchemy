@@ -9487,7 +9487,23 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  align-items: stretch;
+  flex-wrap: wrap;
   margin-top: 6px;
+}
+
+.transferSearchSaveProfileButton {
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  text-align: center;
 }
 
 .transferSearchFallbackNotice {
@@ -9958,7 +9974,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   gap: 10px;
   max-height: min(68vh, 620px);
   overflow: auto;
-  padding-right: 4px;
+  padding: 2px 4px 2px 0;
 }
 
 .transferMarketListRow {
@@ -10003,6 +10019,14 @@ html[data-mobile-shell="true"] .transferMarketMobileActionRow {
 html[data-mobile-shell="true"] .transferSearchWorkspaceContent {
   display: block;
   height: auto;
+}
+
+html[data-mobile-shell="true"] .transferSearchSidebarActions {
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferSearchSidebarActions > button {
+  flex: 1 1 160px;
 }
 
 html[data-mobile-shell="true"] .transferMarketListRow {

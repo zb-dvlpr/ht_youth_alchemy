@@ -96,6 +96,11 @@ import {
   type StorageDiagnostics,
 } from "@/lib/storageDiagnostics";
 import { wipeChronicleIndexedDbData } from "@/lib/chronicleIndexedDb";
+import {
+  exportTransferMarketStorage,
+  importTransferMarketStorage,
+  type TransferMarketStorageExport,
+} from "@/lib/transferMarketStorage";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -107,6 +112,7 @@ type ExportPayload = {
   exportedAt: string;
   entries: Record<string, string>;
   reminders?: ReminderStorageExport;
+  transferMarket?: TransferMarketStorageExport;
 };
 
 const STORAGE_PREFIX = "ya_";
@@ -383,6 +389,7 @@ export default function SettingsButton({
 
   const handleExport = () => {
     if (typeof window === "undefined") return;
+    void (async () => {
     try {
       const entries: Record<string, string> = {};
       for (let index = 0; index < window.localStorage.length; index += 1) {
@@ -397,6 +404,7 @@ export default function SettingsButton({
         exportedAt: new Date().toISOString(),
         entries,
         reminders: exportReminderStorageState(),
+        transferMarket: await exportTransferMarketStorage(),
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: "application/json",
@@ -415,6 +423,7 @@ export default function SettingsButton({
     } finally {
       setOpen(false);
     }
+    })();
   };
 
   const handleImport = () => {
@@ -480,6 +489,9 @@ export default function SettingsButton({
         });
         if (parsed.reminders) {
           importReminderStorageExport(parsed.reminders);
+        }
+        if (parsed.transferMarket) {
+          await importTransferMarketStorage(parsed.transferMarket);
         }
       }
       addNotification(messages.settingsImportSuccess);

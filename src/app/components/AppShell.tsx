@@ -95,6 +95,10 @@ import {
   type ClubChronicleReminderContext,
   type ClubChronicleReminderContextEventDetail,
 } from "@/lib/reminders/clubChronicle";
+import {
+  TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT,
+  TRANSFER_MARKET_OPEN_PROFILES_EVENT,
+} from "@/lib/transferMarket/events";
 
 type AppShellProps = {
   messages: Messages;
@@ -102,6 +106,7 @@ type AppShellProps = {
   globalHeader: ReactNode;
   children: ReactNode;
   seniorTool: ReactNode;
+  transferMarketTool: ReactNode;
   initialSeniorTeams?: Array<{
     teamId: number;
     teamName: string;
@@ -122,7 +127,7 @@ type AppShellProps = {
   mobileLauncherUtility?: ReactNode;
 };
 
-type ToolId = "youth" | "senior" | "chronicle";
+type ToolId = "youth" | "senior" | "chronicle" | "transferMarket";
 type ToolSelectionSource = "desktop_sidebar" | "mobile_launcher";
 
 type ViewStateSnapshot = {
@@ -190,6 +195,14 @@ const parseBuyCoffeePromptSource = (
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const normalizeToolId = (value: unknown): ToolId =>
+  value === "chronicle" ||
+  value === "senior" ||
+  value === "transferMarket" ||
+  value === "youth"
+    ? value
+    : "youth";
+
 const resolveSeniorDashboardDataStorageKey = (
   teamId: number | null,
   multiTeamEnabled: boolean
@@ -231,6 +244,7 @@ export default function AppShell({
   globalHeader,
   children,
   seniorTool,
+  transferMarketTool,
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
   initialYouthTeams = [],
@@ -349,11 +363,17 @@ export default function AppShell({
         label: messages.toolClubChronicle,
         icon: "📰",
       },
+      {
+        id: "transferMarket" as const,
+        label: messages.toolTransferMarket,
+        icon: "🔍",
+      },
     ],
     [
       messages.toolClubChronicle,
       messages.toolSeniorBadge,
       messages.toolSeniorOptimization,
+      messages.toolTransferMarket,
       messages.toolYouthBadge,
       messages.toolYouthOptimization,
     ]
@@ -1071,13 +1091,7 @@ export default function AppShell({
         | { appShell?: "launcher" | "tool"; tool?: ToolId }
         | null;
       if (state?.appShell === "tool" && state.tool) {
-        setActiveTool(
-          state.tool === "chronicle"
-            ? "chronicle"
-            : state.tool === "senior"
-            ? "senior"
-            : "youth"
-        );
+        setActiveTool(normalizeToolId(state.tool));
         setMobileLauncherOpen(false);
         return;
       }
@@ -1190,25 +1204,13 @@ export default function AppShell({
             Date.now() - Number(parsed.capturedAt ?? 0) <= 2 * 60 * 1000
           ) {
             setCollapsed(Boolean(parsed.collapsed));
-            setActiveTool(
-              parsed.activeTool === "chronicle"
-                ? "chronicle"
-                : parsed.activeTool === "senior"
-                  ? "senior"
-                  : "youth"
-            );
+            setActiveTool(normalizeToolId(parsed.activeTool));
             return;
           }
           window.localStorage.removeItem(APP_SHELL_VIEW_STATE_KEY);
         }
         const stored = window.localStorage.getItem(APP_SHELL_ACTIVE_TOOL_KEY);
-        setActiveTool(
-          stored === "chronicle"
-            ? "chronicle"
-            : stored === "senior"
-              ? "senior"
-              : "youth"
-        );
+        setActiveTool(normalizeToolId(stored));
         const collapsedStored = window.localStorage.getItem(
           APP_SHELL_COLLAPSED_KEY
         );
@@ -1475,13 +1477,7 @@ export default function AppShell({
       if (!(event instanceof CustomEvent)) return;
       const detail = event.detail as { tool?: ToolId } | undefined;
       if (!detail?.tool) return;
-      selectTool(
-        detail.tool === "chronicle"
-          ? "chronicle"
-          : detail.tool === "senior"
-            ? "senior"
-            : "youth"
-      );
+      selectTool(normalizeToolId(detail.tool));
     };
     window.addEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
     return () => window.removeEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
@@ -1536,6 +1532,10 @@ export default function AppShell({
   const headerChildren = useMemo(() => Children.toArray(globalHeader), [globalHeader]);
   const youthToolChildren = useMemo(() => Children.toArray(children), [children]);
   const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
+  const transferMarketToolChildren = useMemo(
+    () => Children.toArray(transferMarketTool),
+    [transferMarketTool]
+  );
 
   const handleBuyCoffeeLater = () => {
     trackAnalyticsEvent("coffee_flow", {
@@ -1849,6 +1849,39 @@ export default function AppShell({
           ) : null}
         </div>
       ) : null}
+      {!mobileLauncherOpen &&
+      !mobileLayoutActive &&
+      activeTool === "transferMarket" ? (
+        <div className={styles.shellContextBar}>
+          <div className={styles.youthActionBarActions}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT)
+                )
+              }
+            >
+              {messages.transferMarketPastSearchesButton}
+            </button>
+          </div>
+          <Tooltip content={messages.transferMarketProfilesTooltip}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(TRANSFER_MARKET_OPEN_PROFILES_EVENT)
+                )
+              }
+              aria-label={messages.transferMarketProfilesAriaLabel}
+            >
+              ☰
+            </button>
+          </Tooltip>
+        </div>
+      ) : null}
       {mobileLayoutActive && !mobileLauncherOpen ? mobileNavTrail : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
         {mobileLayoutActive ? (
@@ -1886,6 +1919,7 @@ export default function AppShell({
                   primarySeniorTeamCountryId={primarySeniorTeamCountryId}
                 />
               ) : null}
+              {activeTool === "transferMarket" ? transferMarketToolChildren : null}
             </>
           )
         ) : (
@@ -1898,6 +1932,7 @@ export default function AppShell({
                 primarySeniorTeamCountryId={primarySeniorTeamCountryId}
               />
             ) : null}
+            {activeTool === "transferMarket" ? transferMarketToolChildren : null}
           </>
         )}
       </section>

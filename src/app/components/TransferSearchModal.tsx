@@ -189,8 +189,16 @@ type TransferSearchSkillRowProps = {
   ) => void;
 };
 
-type TransferSearchModalProps = {
+export type TransferSearchHtmsPotentialFilter = {
+  min: string;
+  max: string;
+};
+
+export type TransferSearchContentMode = "modal" | "workspace";
+
+export type TransferSearchModalProps = {
   open: boolean;
+  mode?: TransferSearchContentMode;
   messages: Messages;
   selectedPlayerName: string | null;
   selectedPlayerDetailPills?: string[];
@@ -225,6 +233,10 @@ type TransferSearchModalProps = {
   quickBidUnavailableTooltip?: ReactNode;
   quickBidPendingPlayerId?: number | null;
   onQuickBid?: (result: TransferSearchResult) => void;
+  htmsPotentialFilter?: TransferSearchHtmsPotentialFilter;
+  onHtmsPotentialFilterChange?: (next: TransferSearchHtmsPotentialFilter) => void;
+  onSaveAsProfile?: (filters: TransferSearchFilters) => void;
+  saveAsProfileLabel?: string;
   renderResultCard: (
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
@@ -346,11 +358,6 @@ const getTransferSearchSortValue = (
     parsePsicoMetricValue(psico.wageAvg),
     parsePsicoMetricValue(psico.wageLow),
   ]);
-};
-
-type TransferSearchHtmsPotentialFilter = {
-  min: string;
-  max: string;
 };
 
 const parseTransferSearchHtmsPotentialFilterValue = (value: string) => {
@@ -1168,6 +1175,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
 
 const TransferSearchModal = memo(function TransferSearchModal({
   open,
+  mode = "modal",
   messages,
   selectedPlayerName,
   selectedPlayerDetailPills,
@@ -1196,6 +1204,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
   quickBidUnavailableTooltip,
   quickBidPendingPlayerId,
   onQuickBid,
+  htmsPotentialFilter: controlledHtmsPotentialFilter,
+  onHtmsPotentialFilterChange,
+  onSaveAsProfile,
+  saveAsProfileLabel,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
@@ -1213,8 +1225,21 @@ const TransferSearchModal = memo(function TransferSearchModal({
     baseKey: filtersDraftKey,
     fields: filters ? buildTransferSearchDraftFields(filters) : null,
   });
-  const [htmsPotentialFilter, setHtmsPotentialFilter] =
+  const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
+  const htmsPotentialFilter =
+    controlledHtmsPotentialFilter ?? internalHtmsPotentialFilter;
+  const setHtmsPotentialFilter = useCallback(
+    (updater: (prev: TransferSearchHtmsPotentialFilter) => TransferSearchHtmsPotentialFilter) => {
+      const next = updater(htmsPotentialFilter);
+      if (onHtmsPotentialFilterChange) {
+        onHtmsPotentialFilterChange(next);
+        return;
+      }
+      setInternalHtmsPotentialFilter(next);
+    },
+    [htmsPotentialFilter, onHtmsPotentialFilterChange]
+  );
   const draftFields =
     draftState.baseKey === filtersDraftKey
       ? draftState.fields
@@ -1849,18 +1874,16 @@ const TransferSearchModal = memo(function TransferSearchModal({
     []
   );
 
-  return (
-    <Modal
-      open={open}
-      title={messages.seniorTransferSearchModalTitle}
-      className={`${styles.transferSearchModal}${
-        resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
-      }`}
-      movable
-      body={
-        <div className={styles.transferSearchModalShell}>
+  const body = (
+        <div
+          className={
+            mode === "workspace"
+              ? styles.transferSearchWorkspaceShell
+              : styles.transferSearchModalShell
+          }
+        >
           <div
-            className={`${styles.transferSearchModalContent}${
+            className={`${mode === "workspace" ? styles.transferSearchWorkspaceContent : styles.transferSearchModalContent}${
               resultsViewMode === "table" ? ` ${styles.transferSearchModalContentTableMode}` : ""
             }`}
           >
@@ -2211,6 +2234,20 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 </div>
 
                 <div className={styles.transferSearchSidebarActions}>
+                  {onSaveAsProfile ? (
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => {
+                        const committedFilters = commitDraftFields();
+                        if (!committedFilters) return;
+                        onSaveAsProfile(committedFilters);
+                      }}
+                      disabled={loading}
+                    >
+                      {saveAsProfileLabel ?? "Save as profile"}
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={styles.confirmSubmit}
@@ -2546,7 +2583,21 @@ const TransferSearchModal = memo(function TransferSearchModal({
             </div>
           </div>
         </div>
-      }
+  );
+
+  if (mode === "workspace") {
+    return body;
+  }
+
+  return (
+    <Modal
+      open={open}
+      title={messages.seniorTransferSearchModalTitle}
+      className={`${styles.transferSearchModal}${
+        resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
+      }`}
+      movable
+      body={body}
       actions={
         <button type="button" className={styles.confirmSubmit} onClick={onClose}>
           {messages.seniorTransferSearchCloseButton}
@@ -2559,3 +2610,4 @@ const TransferSearchModal = memo(function TransferSearchModal({
 });
 
 export default TransferSearchModal;
+export { TransferSearchModal as TransferSearchContent };

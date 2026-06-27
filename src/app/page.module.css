@@ -9214,7 +9214,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   flex-wrap: wrap;
 }
 
-.transferMarketMobileActions {
+.transferMarketMobileMenu {
   display: none;
 }
 
@@ -10078,22 +10078,8 @@ html[data-mobile-shell="true"] .transferMarketTeamSelect {
   width: 100%;
 }
 
-html[data-mobile-shell="true"] .transferMarketMobileActions {
-  display: block;
-}
-
-html[data-mobile-shell="true"] .transferMarketMobileMenuButton {
-  left: auto;
-  top: auto;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(18px, calc(env(safe-area-inset-bottom) + 18px));
-}
-
-html[data-mobile-shell="true"] .transferMarketMobileMenuDropdown {
-  left: auto;
-  top: auto;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: max(72px, calc(env(safe-area-inset-bottom) + 72px));
+html[data-mobile-shell="true"] .transferMarketMobileMenu {
+  display: contents;
 }
 
 html[data-mobile-shell="true"] .transferSearchMobileWorkspaceShell,

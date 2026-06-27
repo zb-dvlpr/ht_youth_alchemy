@@ -28,6 +28,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import { useChppPermissions } from "./ChppPermissionsProvider";
 import { useSupporterStatus } from "./SupporterStatusProvider";
 import Modal from "./Modal";
+import MobileFloatingActionMenu from "./MobileFloatingActionMenu";
 import TransferSearchResultCard, {
   normalizeTransferSearchResultCardDetails,
   type TransferSearchResultCardDetails,
@@ -187,7 +188,7 @@ export default function TransferMarketTool({
     useState<TransferSearchResultsViewMode>("cards");
   const [pastOpen, setPastOpen] = useState(false);
   const [profilesOpen, setProfilesOpen] = useState(false);
-  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [mobileMenuPosition, setMobileMenuPosition] = useState({ x: 12, y: 120 });
   const [pastSearches, setPastSearches] = useState<TransferMarketPastSearchEntry[]>([]);
   const [profiles, setProfiles] = useState<TransferMarketSearchProfile[]>([]);
   const [currentCriteriaReady, setCurrentCriteriaReady] = useState(false);
@@ -222,13 +223,11 @@ export default function TransferMarketTool({
 
   const openPastSearches = useCallback(() => {
     setPastOpen(true);
-    setMobileActionsOpen(false);
     void readPast();
   }, [readPast]);
 
   const openSearchProfiles = useCallback(() => {
     setProfilesOpen(true);
-    setMobileActionsOpen(false);
     void readProfiles();
   }, [readProfiles]);
 
@@ -685,37 +684,38 @@ export default function TransferMarketTool({
           </label>
         ) : null}
       </div>
-      <div className={styles.transferMarketMobileActions}>
-        <button
-          type="button"
-          className={`${styles.mobileYouthMenuButton} ${styles.transferMarketMobileMenuButton}`}
-          aria-label={messages.mobileYouthMenuToggleLabel}
-          aria-expanded={mobileActionsOpen}
-          onClick={() => setMobileActionsOpen((prev) => !prev)}
+      <div className={styles.transferMarketMobileMenu}>
+        <MobileFloatingActionMenu
+          toggleLabel={messages.mobileYouthMenuToggleLabel}
+          position={mobileMenuPosition}
+          onPositionChange={setMobileMenuPosition}
         >
-          {mobileActionsOpen ? "▴" : "▾"}
-        </button>
-        {mobileActionsOpen ? (
-          <div
-            className={`${styles.mobileYouthMenuDropdown} ${styles.transferMarketMobileMenuDropdown}`}
-          >
-            <button
-              type="button"
-              className={styles.mobileYouthMenuAction}
-              onClick={openPastSearches}
-            >
-              {messages.transferMarketPastSearchesButton}
-            </button>
-            <div className={styles.mobileYouthMenuDivider} />
-            <button
-              type="button"
-              className={styles.mobileYouthMenuAction}
-              onClick={openSearchProfiles}
-            >
-              {messages.transferMarketProfilesTooltip}
-            </button>
-          </div>
-        ) : null}
+          {({ closeMenu }) => (
+            <>
+              <button
+                type="button"
+                className={styles.mobileYouthMenuAction}
+                onClick={() => {
+                  closeMenu();
+                  openPastSearches();
+                }}
+              >
+                {messages.transferMarketPastSearchesButton}
+              </button>
+              <div className={styles.mobileYouthMenuDivider} />
+              <button
+                type="button"
+                className={styles.mobileYouthMenuAction}
+                onClick={() => {
+                  closeMenu();
+                  openSearchProfiles();
+                }}
+              >
+                {messages.transferMarketProfilesTooltip}
+              </button>
+            </>
+          )}
+        </MobileFloatingActionMenu>
       </div>
       <TransferSearchContent
         open

@@ -5,16 +5,16 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { fetchChppJson } from "@/lib/chpp/client";
 import { formatDateTime } from "@/lib/datetime";
-import { formatSekCurrency } from "@/lib/currency";
-import { hattrickPlayerUrl, hattrickTeamUrl } from "@/lib/hattrick/urls";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { mapWithConcurrency } from "@/lib/async";
 import {
   buildTransferMarketScopeKey,
   addTransferMarketPastSearch,
-  getTransferMarketProfile,
+  deleteTransferMarketProfile,
+  readTransferMarketCurrentCriteria,
   readTransferMarketPastSearches,
   readTransferMarketProfiles,
-  saveTransferMarketProfile,
+  saveTransferMarketCurrentCriteria,
   type TransferMarketPastSearchEntry,
   type TransferMarketSearchProfile,
   type TransferMarketStoredCriteria,
@@ -28,7 +28,11 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import { useChppPermissions } from "./ChppPermissionsProvider";
 import { useSupporterStatus } from "./SupporterStatusProvider";
 import Modal from "./Modal";
-import Tooltip from "./Tooltip";
+import TransferSearchResultCard, {
+  normalizeTransferSearchResultCardDetails,
+  type TransferSearchResultCardDetails,
+} from "./TransferSearchResultCard";
+import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import {
   TransferSearchContent,
   TRANSFER_SEARCH_SKILLS,
@@ -171,6 +175,9 @@ export default function TransferMarketTool({
     emptyHtmsPotentialFilter
   );
   const [results, setResults] = useState<TransferSearchResult[]>([]);
+  const [resultDetailsById, setResultDetailsById] = useState<
+    Record<number, TransferSearchResultCardDetails>
+  >({});
   const [itemCount, setItemCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -182,15 +189,11 @@ export default function TransferMarketTool({
   const [profilesOpen, setProfilesOpen] = useState(false);
   const [pastSearches, setPastSearches] = useState<TransferMarketPastSearchEntry[]>([]);
   const [profiles, setProfiles] = useState<TransferMarketSearchProfile[]>([]);
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [profileName, setProfileName] = useState("");
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [overwriteName, setOverwriteName] = useState<string | null>(null);
-  const [pendingProfileCriteria, setPendingProfileCriteria] =
-    useState<TransferSearchFilters | null>(null);
+  const [currentCriteriaReady, setCurrentCriteriaReady] = useState(false);
   const [bidDrafts, setBidDrafts] = useState<Record<number, TransferSearchBidDraft>>({});
   const [quickBidPendingPlayerId, setQuickBidPendingPlayerId] = useState<number | null>(null);
   const requestIdRef = useRef(0);
+  const storageWriteFailedRef = useRef(false);
 
   const readPast = useCallback(async () => {
     try {
@@ -208,6 +211,14 @@ export default function TransferMarketTool({
     }
   }, [addNotification, messages.transferMarketStorageError, scopeKey]);
 
+  const { openSaveProfile, saveProfileModal } = useTransferMarketProfileSave({
+    messages,
+    scopeKey,
+    displayCurrency,
+    htmsPotentialFilter,
+    onSaved: readProfiles,
+  });
+
   useEffect(() => {
     const openPast = () => {
       setPastOpen(true);
@@ -224,6 +235,80 @@ export default function TransferMarketTool({
       window.removeEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfiles);
     };
   }, [readPast, readProfiles]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    setCurrentCriteriaReady(false);
+    setResults([]);
+    setResultDetailsById({});
+    setItemCount(null);
+    setError(null);
+    setExactEmpty(false);
+    setBidDrafts({});
+    void (async () => {
+      try {
+        const stored = await readTransferMarketCurrentCriteria(scopeKey);
+        if (cancelled || requestIdRef.current !== requestId) return;
+        if (stored) {
+          setFilters(normalizeTransferSearchFilters(stored.filters));
+          setHtmsPotentialFilter(stored.htmsPotentialFilter);
+          setSortKey(stored.sortKey);
+          setResultsViewMode(stored.resultsViewMode);
+        } else {
+          setFilters(createDefaultTransferSearchFilters());
+          setHtmsPotentialFilter(emptyHtmsPotentialFilter);
+          setSortKey("default");
+          setResultsViewMode("cards");
+        }
+      } catch {
+        if (!cancelled) {
+          addNotification(messages.transferMarketStorageError);
+          setFilters(createDefaultTransferSearchFilters());
+          setHtmsPotentialFilter(emptyHtmsPotentialFilter);
+          setSortKey("default");
+          setResultsViewMode("cards");
+        }
+      } finally {
+        if (!cancelled && requestIdRef.current === requestId) {
+          setCurrentCriteriaReady(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [addNotification, messages.transferMarketStorageError, scopeKey]);
+
+  useEffect(() => {
+    if (!currentCriteriaReady) return;
+    const timeoutId = window.setTimeout(() => {
+      void saveTransferMarketCurrentCriteria({
+        scopeKey,
+        filters,
+        htmsPotentialFilter,
+        displayCurrency,
+        sortKey,
+        resultsViewMode,
+      }).catch(() => {
+        if (storageWriteFailedRef.current) return;
+        storageWriteFailedRef.current = true;
+        addNotification(messages.transferMarketStorageError);
+      });
+    }, 350);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    addNotification,
+    currentCriteriaReady,
+    displayCurrency,
+    filters,
+    htmsPotentialFilter,
+    messages.transferMarketStorageError,
+    resultsViewMode,
+    scopeKey,
+    sortKey,
+  ]);
 
   const updateSkillFilter = useCallback(
     (index: number, patch: Partial<TransferSearchSkillFilter>) => {
@@ -257,6 +342,7 @@ export default function TransferMarketTool({
       setError(null);
       setExactEmpty(false);
       setResults([]);
+      setResultDetailsById({});
       setItemCount(null);
       try {
         const params = buildTransferSearchParams(normalized, displayCurrency);
@@ -285,6 +371,41 @@ export default function TransferMarketTool({
         setResults(nextResults);
         setItemCount(nextResults.length);
         setExactEmpty(nextResults.length === 0);
+        const detailEntries = await mapWithConcurrency(
+          nextResults,
+          4,
+          async (result) => {
+            try {
+              const { response, payload } = await fetchChppJson<{
+                data?: { HattrickData?: { Player?: unknown } };
+                error?: string;
+                details?: string;
+              }>(
+                `/api/chpp/playerdetails?playerId=${result.playerId}&includeMatchInfo=true`,
+                { cache: "no-store" }
+              );
+              if (!response.ok || payload?.error) return null;
+              const details = normalizeTransferSearchResultCardDetails(
+                payload?.data?.HattrickData?.Player,
+                result.playerId
+              );
+              return details ? ([result.playerId, details] as const) : null;
+            } catch {
+              return null;
+            }
+          }
+        );
+        if (requestIdRef.current !== requestId) return;
+        setResultDetailsById(
+          Object.fromEntries(
+            detailEntries.filter(
+              (
+                entry
+              ): entry is readonly [number, TransferSearchResultCardDetails] =>
+                entry !== null
+            )
+          )
+        );
         setBidDrafts(() => {
           const next: Record<number, TransferSearchBidDraft> = {};
           nextResults.forEach((result) => {
@@ -328,6 +449,7 @@ export default function TransferMarketTool({
     setFilters(normalizeTransferSearchFilters(criteria.filters));
     setHtmsPotentialFilter(criteria.htmsPotentialFilter);
     setResults([]);
+    setResultDetailsById({});
     setItemCount(null);
     setError(null);
     setExactEmpty(false);
@@ -336,57 +458,17 @@ export default function TransferMarketTool({
     addNotification(messages.transferMarketCriteriaLoaded);
   };
 
-  const openSaveProfile = (committedFilters: TransferSearchFilters) => {
-    setPendingProfileCriteria(committedFilters);
-    setProfileName("");
-    setProfileError(null);
-    setOverwriteName(null);
-    setSaveModalOpen(true);
-  };
-
-  const closeSaveProfileModal = () => {
-    setSaveModalOpen(false);
-    setProfileName("");
-    setProfileError(null);
-    setOverwriteName(null);
-    setPendingProfileCriteria(null);
-  };
-
-  const saveProfile = async (overwrite = false) => {
-    const trimmed = profileName.trim();
-    if (!trimmed) {
-      setProfileError(messages.transferMarketProfileNameRequired);
-      return;
-    }
-    if (!pendingProfileCriteria) return;
-    try {
-      const existing = await getTransferMarketProfile(scopeKey, trimmed);
-      if (existing && !overwrite) {
-        setOverwriteName(trimmed);
-        return;
-      }
-      await saveTransferMarketProfile({
-        scopeKey,
-        name: trimmed,
-        filters: normalizeTransferSearchFilters(pendingProfileCriteria),
-        htmsPotentialFilter,
-        displayCurrency,
-      });
-      closeSaveProfileModal();
-      addNotification(
-        existing
-          ? messages.transferMarketProfileOverwritten
-          : messages.transferMarketProfileSaved
-      );
-    } catch {
-      setProfileError(messages.transferMarketStorageError);
-    }
-  };
-
-  const submitQuickBid = async (result: TransferSearchResult) => {
+  const submitTransferBid = async (
+    result: TransferSearchResult,
+    bidKind: keyof TransferSearchBidDraft
+  ) => {
     if (!selectedTeam?.teamId || !canPlaceBid) return;
+    const draft = bidDrafts[result.playerId] ?? {
+      bidDisplay: "",
+      maxBidDisplay: "",
+    };
     const amountSek = displayToSek(
-      bidDrafts[result.playerId]?.bidDisplay ?? "",
+      draft[bidKind],
       displayCurrency
     );
     if (!amountSek) return;
@@ -397,17 +479,74 @@ export default function TransferMarketTool({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            bidKind === "bidDisplay"
+              ? {
+                  playerId: result.playerId,
+                  teamId: selectedTeam.teamId,
+                  bidAmount: amountSek,
+                }
+              : {
+                  playerId: result.playerId,
+                  teamId: selectedTeam.teamId,
+                  maxBidAmount: amountSek,
+                }
+          ),
+        }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.details ?? payload?.error ?? "Failed to place bid");
+      }
+      addNotification(
+        messages.seniorTransferSearchBidPlaced.replace(
+          "{{player}}",
+          formatTransferSearchPlayerName(result)
+        )
+      );
+    } catch (bidError) {
+      addNotification(bidError instanceof Error ? bidError.message : String(bidError));
+    } finally {
+      setQuickBidPendingPlayerId(null);
+    }
+  };
+
+  const submitQuickBid = async (result: TransferSearchResult) => {
+    if (!selectedTeam?.teamId || !canPlaceBid) return;
+    const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+    if (typeof minimumBidSek !== "number") return;
+    setBidDrafts((prev) => ({
+      ...prev,
+      [result.playerId]: {
+        bidDisplay: formatTransferSearchBidDraftDisplay(
+          minimumBidSek,
+          displayCurrency
+        ),
+        maxBidDisplay: prev[result.playerId]?.maxBidDisplay ?? "",
+      },
+    }));
+    setQuickBidPendingPlayerId(result.playerId);
+    try {
+      const { response, payload } = await fetchChppJson<{ error?: string; details?: string }>(
+        "/api/chpp/playerdetails",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             playerId: result.playerId,
             teamId: selectedTeam.teamId,
-            bidAmount: amountSek,
+            bidAmount: minimumBidSek,
           }),
         }
       );
       if (!response.ok || payload?.error) {
         throw new Error(payload?.details ?? payload?.error ?? "Failed to place bid");
       }
-      addNotification(messages.seniorTransferSearchBidPlaced);
+      addNotification(
+        messages.seniorTransferSearchBidPlaced.replace(
+          "{{player}}",
+          formatTransferSearchPlayerName(result)
+        )
+      );
     } catch (bidError) {
       addNotification(bidError instanceof Error ? bidError.message : String(bidError));
     } finally {
@@ -426,136 +565,43 @@ export default function TransferMarketTool({
   const renderResultCard = (
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
-  ) => {
-    const priceSek =
-      typeof result.highestBidSek === "number" && result.highestBidSek > 0
-        ? result.highestBidSek
-        : result.askingPriceSek;
-    return (
-      <article key={result.playerId} className={styles.transferSearchResultCard}>
-        <div className={styles.transferSearchResultHeader}>
-          <div>
-            <h4 className={styles.profileName}>
-              <a
-                className={styles.profileNameLink}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {formatTransferSearchPlayerName(result)}
-              </a>
-            </h4>
-            <p className={styles.profileMeta}>
-              {countryMeta ? <span>{countryMeta.name}</span> : null}
-              {result.age !== null ? (
-                <span>
-                  {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
-                </span>
-              ) : null}
-              {result.tsi !== null ? <span>TSI: {result.tsi}</span> : null}
-            </p>
-          </div>
-          <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>
-              {formatTransferSearchCurrencyLabel(
-                messages.clubChronicleTransferListedAskingPriceColumn,
-                displayCurrency
-              )}
-            </div>
-            <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
-              {typeof priceSek === "number"
-                ? formatSekCurrency(priceSek, displayCurrency)
-                : messages.unknownShort}
-            </div>
-          </div>
-        </div>
-        <div className={styles.profileInfoRow}>
-          <div>
-            <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
-            <div className={styles.infoValue}>{result.playerId}</div>
-          </div>
-          {result.specialty !== null ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
-              <div className={styles.infoValue}>
-                {SPECIALTY_EMOJI[result.specialty] ?? result.specialty}
-              </div>
-            </div>
-          ) : null}
-          {result.sellerTeamName ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.seniorTransferSearchSellerLabel}</div>
-              <div className={styles.infoValue}>
-                {result.sellerTeamId ? (
-                  <a
-                    className={styles.chroniclePressLink}
-                    href={hattrickTeamUrl(result.sellerTeamId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {result.sellerTeamName}
-                  </a>
-                ) : (
-                  result.sellerTeamName
-                )}
-              </div>
-            </div>
-          ) : null}
-        </div>
-        <div className={styles.transferSearchBidGrid}>
-          <input
-            className={styles.transferSearchInput}
-            type="number"
-            min="0"
-            value={bidDrafts[result.playerId]?.bidDisplay ?? ""}
-            onChange={(event) =>
-              setBidDrafts((prev) => ({
-                ...prev,
-                [result.playerId]: {
-                  bidDisplay: event.target.value,
-                  maxBidDisplay: prev[result.playerId]?.maxBidDisplay ?? "",
-                },
-              }))
-            }
-            disabled={!canQuickBid || quickBidPendingPlayerId === result.playerId}
-            aria-label={messages.seniorTransferSearchBidAmountLabel}
-          />
-          <Tooltip
-            content={
-              !canPlaceBid
-                ? messages.chppMissingPlaceBidTooltip
-                : messages.seniorTransferSearchSupporterOnlyTooltip
-            }
-            disabled={canQuickBid}
-          >
-            <button
-              type="button"
-              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
-              disabled={!canQuickBid || quickBidPendingPlayerId === result.playerId}
-              onClick={() => void submitQuickBid(result)}
-            >
-              {messages.seniorTransferSearchPlaceBidButton}
-            </button>
-          </Tooltip>
-        </div>
-      </article>
-    );
-  };
+  ) => (
+    <TransferSearchResultCard
+      result={result}
+      countryMeta={countryMeta}
+      resultDetails={resultDetailsById[result.playerId] ?? null}
+      messages={messages}
+      displayCurrency={displayCurrency}
+      selectedSeniorLeagueId={selectedTeam?.leagueId ?? null}
+      bidDraft={
+        bidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" }
+      }
+      pending={quickBidPendingPlayerId === result.playerId}
+      canBid={canQuickBid}
+      canPlaceBid={canPlaceBid}
+      onBidDraftChange={(playerId, key, value) =>
+        setBidDrafts((prev) => ({
+          ...prev,
+          [playerId]: {
+            bidDisplay: prev[playerId]?.bidDisplay ?? "",
+            maxBidDisplay: prev[playerId]?.maxBidDisplay ?? "",
+            [key]: value,
+          },
+        }))
+      }
+      onSubmitBid={(nextResult, bidKind) => {
+        void submitTransferBid(nextResult, bidKind);
+      }}
+    />
+  );
 
   const renderCriteriaRows = (
-    entries: Array<TransferMarketPastSearchEntry | TransferMarketSearchProfile>
+    entries: TransferMarketPastSearchEntry[]
   ) =>
     entries.map((entry) => (
       <div key={entry.id} className={styles.transferMarketListRow}>
         <div>
-          {"name" in entry ? (
-            <strong>{entry.name}</strong>
-          ) : (
-            <strong>{formatDateTime(entry.createdAt)}</strong>
-          )}
-          {"updatedAt" in entry ? (
-            <div className={styles.profileUpdated}>{formatDateTime(entry.updatedAt)}</div>
-          ) : null}
+          <strong>{formatDateTime(entry.createdAt)}</strong>
           <p className={styles.muted}>{formatCriteriaSummary(entry, messages)}</p>
         </div>
         <button
@@ -565,6 +611,43 @@ export default function TransferMarketTool({
         >
           {messages.transferMarketLoadButton}
         </button>
+      </div>
+    ));
+
+  const deleteProfile = async (profile: TransferMarketSearchProfile) => {
+    try {
+      await deleteTransferMarketProfile(scopeKey, profile.name);
+      setProfiles(await readTransferMarketProfiles(scopeKey));
+      addNotification(messages.transferMarketProfileDeleted);
+    } catch {
+      addNotification(messages.transferMarketStorageError);
+    }
+  };
+
+  const renderProfileRows = (entries: TransferMarketSearchProfile[]) =>
+    entries.map((entry) => (
+      <div key={entry.id} className={styles.transferMarketListRow}>
+        <div>
+          <strong>{entry.name}</strong>
+          <div className={styles.profileUpdated}>{formatDateTime(entry.updatedAt)}</div>
+          <p className={styles.muted}>{formatCriteriaSummary(entry, messages)}</p>
+        </div>
+        <div className={styles.transferMarketListRowActions}>
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => loadCriteria(entry)}
+          >
+            {messages.transferMarketLoadButton}
+          </button>
+          <button
+            type="button"
+            className={styles.transferMarketModalSecondaryButton}
+            onClick={() => void deleteProfile(entry)}
+          >
+            {messages.transferMarketDeleteProfileButton}
+          </button>
+        </div>
       </div>
     ));
 
@@ -673,7 +756,7 @@ export default function TransferMarketTool({
         body={
           <div className={styles.transferMarketListBody}>
             {profiles.length ? (
-              renderCriteriaRows(profiles)
+              renderProfileRows(profiles)
             ) : (
               <p className={styles.muted}>{messages.transferMarketProfilesEmpty}</p>
             )}
@@ -691,81 +774,7 @@ export default function TransferMarketTool({
         closeOnBackdrop
         onClose={() => setProfilesOpen(false)}
       />
-      <Modal
-        open={saveModalOpen}
-        title={
-          overwriteName
-            ? messages.transferMarketOverwriteProfileTitle
-            : messages.transferMarketSaveProfileTitle
-        }
-        body={
-          <div className={styles.transferMarketSaveProfileBody}>
-            {overwriteName ? (
-              <p className={styles.muted}>
-                {messages.transferMarketOverwriteProfileBody.replace(
-                  "{{name}}",
-                  overwriteName
-                )}
-              </p>
-            ) : (
-              <label className={styles.transferMarketProfileNameField}>
-                <span className={styles.infoLabel}>
-                  {messages.transferMarketProfileNameLabel}
-                </span>
-                <input
-                  className={styles.transferSearchInput}
-                  value={profileName}
-                  placeholder={messages.transferMarketProfileNamePlaceholder}
-                  onChange={(event) => {
-                    setProfileName(event.target.value);
-                    setProfileError(null);
-                  }}
-                />
-              </label>
-            )}
-            {profileError ? <p className={styles.errorText}>{profileError}</p> : null}
-          </div>
-        }
-        actions={
-          overwriteName ? (
-            <>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={closeSaveProfileModal}
-              >
-                {messages.transferMarketOverwriteProfileCancel}
-              </button>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={() => void saveProfile(true)}
-              >
-                {messages.transferMarketOverwriteProfileConfirm}
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={closeSaveProfileModal}
-              >
-                {messages.transferMarketOverwriteProfileCancel}
-              </button>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={() => void saveProfile(false)}
-              >
-                {messages.transferMarketSaveProfileConfirm}
-              </button>
-            </>
-          )
-        }
-        closeOnBackdrop
-        onClose={closeSaveProfileModal}
-      />
+      {saveProfileModal}
     </div>
   );
 }

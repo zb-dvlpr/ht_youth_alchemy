@@ -1,13 +1,16 @@
 import type {
   TransferSearchFilters,
   TransferSearchHtmsPotentialFilter,
+  TransferSearchResultsViewMode,
+  TransferSearchSortKey,
 } from "@/app/components/TransferSearchModal";
 import type { DisplayCurrency } from "@/lib/currency";
 
 const TRANSFER_MARKET_DB_NAME = "hattrick-alchemy-transfer-market";
-const TRANSFER_MARKET_DB_VERSION = 1;
+const TRANSFER_MARKET_DB_VERSION = 2;
 const PAST_SEARCHES_STORE = "pastSearches";
 const PROFILES_STORE = "profiles";
+const CURRENT_CRITERIA_STORE = "currentCriteria";
 const PAST_SEARCH_LIMIT = 10;
 
 export type TransferMarketStoredCriteria = {
@@ -30,9 +33,18 @@ export type TransferMarketSearchProfile = TransferMarketStoredCriteria & {
   updatedAt: number;
 };
 
+export type TransferMarketCurrentCriteriaEntry = TransferMarketStoredCriteria & {
+  id: string;
+  scopeKey: string;
+  updatedAt: number;
+  sortKey: TransferSearchSortKey;
+  resultsViewMode: TransferSearchResultsViewMode;
+};
+
 export type TransferMarketStorageExport = {
   pastSearches: TransferMarketPastSearchEntry[];
   profiles: TransferMarketSearchProfile[];
+  currentCriteria?: TransferMarketCurrentCriteriaEntry[];
 };
 
 export function buildTransferMarketScopeKey(input: {
@@ -70,6 +82,13 @@ const openTransferMarketDb = () =>
         const store = db.createObjectStore(PROFILES_STORE, { keyPath: "id" });
         store.createIndex("scopeKey", "scopeKey", { unique: false });
         store.createIndex("name", "name", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(CURRENT_CRITERIA_STORE)) {
+        const store = db.createObjectStore(CURRENT_CRITERIA_STORE, {
+          keyPath: "id",
+        });
+        store.createIndex("scopeKey", "scopeKey", { unique: true });
+        store.createIndex("updatedAt", "updatedAt", { unique: false });
       }
     };
     request.onerror = () => reject(request.error ?? new Error("IndexedDB error"));
@@ -185,6 +204,72 @@ export async function saveTransferMarketProfile(
   return next;
 }
 
+export async function deleteTransferMarketProfile(
+  scopeKey: string,
+  name: string
+): Promise<void> {
+  const db = await openTransferMarketDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(PROFILES_STORE, "readwrite");
+    transaction.objectStore(PROFILES_STORE).delete(buildProfileId(scopeKey, name));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("IndexedDB delete error"));
+    transaction.oncomplete = () => resolve();
+  });
+  db.close();
+}
+
+export async function readTransferMarketCurrentCriteria(scopeKey: string) {
+  const db = await openTransferMarketDb();
+  return new Promise<TransferMarketCurrentCriteriaEntry | null>((resolve, reject) => {
+    const transaction = db.transaction(CURRENT_CRITERIA_STORE, "readonly");
+    const request = transaction.objectStore(CURRENT_CRITERIA_STORE).get(scopeKey);
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB read error"));
+    request.onsuccess = () =>
+      resolve((request.result as TransferMarketCurrentCriteriaEntry | undefined) ?? null);
+    transaction.oncomplete = () => db.close();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("IndexedDB transaction error"));
+  });
+}
+
+export async function saveTransferMarketCurrentCriteria(
+  entry: Omit<TransferMarketCurrentCriteriaEntry, "id" | "updatedAt"> & {
+    updatedAt?: number;
+  }
+) {
+  const next: TransferMarketCurrentCriteriaEntry = {
+    ...entry,
+    id: entry.scopeKey,
+    updatedAt: entry.updatedAt ?? Date.now(),
+  };
+  const db = await openTransferMarketDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(CURRENT_CRITERIA_STORE, "readwrite");
+    transaction.objectStore(CURRENT_CRITERIA_STORE).put(next);
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("IndexedDB write error"));
+    transaction.oncomplete = () => resolve();
+  });
+  db.close();
+  return next;
+}
+
+export async function deleteTransferMarketCurrentCriteria(
+  scopeKey: string
+): Promise<void> {
+  const db = await openTransferMarketDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(CURRENT_CRITERIA_STORE, "readwrite");
+    transaction.objectStore(CURRENT_CRITERIA_STORE).delete(scopeKey);
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("IndexedDB delete error"));
+    transaction.oncomplete = () => resolve();
+  });
+  db.close();
+}
+
 export async function exportTransferMarketStorage(): Promise<TransferMarketStorageExport> {
   const db = await openTransferMarketDb();
   const readAll = <T>(storeName: string) =>
@@ -195,11 +280,12 @@ export async function exportTransferMarketStorage(): Promise<TransferMarketStora
       request.onsuccess = () => resolve((request.result ?? []) as T[]);
     });
   try {
-    const [pastSearches, profiles] = await Promise.all([
+    const [pastSearches, profiles, currentCriteria] = await Promise.all([
       readAll<TransferMarketPastSearchEntry>(PAST_SEARCHES_STORE),
       readAll<TransferMarketSearchProfile>(PROFILES_STORE),
+      readAll<TransferMarketCurrentCriteriaEntry>(CURRENT_CRITERIA_STORE),
     ]);
-    return { pastSearches, profiles };
+    return { pastSearches, profiles, currentCriteria };
   } finally {
     db.close();
   }
@@ -211,15 +297,20 @@ export async function importTransferMarketStorage(
   const db = await openTransferMarketDb();
   await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(
-      [PAST_SEARCHES_STORE, PROFILES_STORE],
+      [PAST_SEARCHES_STORE, PROFILES_STORE, CURRENT_CRITERIA_STORE],
       "readwrite"
     );
     const pastStore = transaction.objectStore(PAST_SEARCHES_STORE);
     const profilesStore = transaction.objectStore(PROFILES_STORE);
+    const currentCriteriaStore = transaction.objectStore(CURRENT_CRITERIA_STORE);
     pastStore.clear();
     profilesStore.clear();
+    currentCriteriaStore.clear();
     payload.pastSearches.forEach((entry) => pastStore.put(entry));
     payload.profiles.forEach((profile) => profilesStore.put(profile));
+    (payload.currentCriteria ?? []).forEach((entry) =>
+      currentCriteriaStore.put(entry)
+    );
     transaction.onerror = () => reject(transaction.error ?? new Error("IndexedDB import error"));
     transaction.oncomplete = () => resolve();
   });

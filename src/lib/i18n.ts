@@ -1479,6 +1479,8 @@ export type Messages = {
   transferMarketProfilesTitle: string;
   transferMarketProfilesEmpty: string;
   transferMarketLoadButton: string;
+  transferMarketDeleteProfileButton: string;
+  transferMarketProfileDeleted: string;
   transferMarketCriteriaLoaded: string;
   transferMarketStorageError: string;
   transferMarketTeamLabel: string;

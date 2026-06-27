@@ -1850,6 +1850,8 @@ export const messagesFr: Messages = {
     transferMarketProfilesTitle: "Profils de recherche",
     transferMarketProfilesEmpty: "Aucun profil enregistre.",
     transferMarketLoadButton: "Charger",
+    transferMarketDeleteProfileButton: "Supprimer",
+    transferMarketProfileDeleted: "Profil supprime.",
     transferMarketCriteriaLoaded: "Criteres charges. Appuyez sur Chercher pour lancer.",
     transferMarketStorageError: "Le stockage du marche des transferts est indisponible.",
     transferMarketTeamLabel: "Equipe senior",

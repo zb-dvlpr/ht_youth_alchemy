@@ -1842,6 +1842,8 @@ export const messagesSv: Messages = {
     transferMarketProfilesTitle: "Sokprofiler",
     transferMarketProfilesEmpty: "Inga sparade profiler.",
     transferMarketLoadButton: "Ladda",
+    transferMarketDeleteProfileButton: "Ta bort",
+    transferMarketProfileDeleted: "Profil borttagen.",
     transferMarketCriteriaLoaded: "Kriterier laddade. Tryck Sok for att kora.",
     transferMarketStorageError: "Transfermarknadens lagring ar inte tillganglig.",
     transferMarketTeamLabel: "Seniorlag",

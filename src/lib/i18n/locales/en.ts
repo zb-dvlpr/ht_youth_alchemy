@@ -1795,6 +1795,8 @@ export const messagesEn: Messages = {
     transferMarketProfilesTitle: "Search profiles",
     transferMarketProfilesEmpty: "No saved profiles.",
     transferMarketLoadButton: "Load",
+    transferMarketDeleteProfileButton: "Delete",
+    transferMarketProfileDeleted: "Profile deleted.",
     transferMarketCriteriaLoaded: "Criteria loaded. Press Search to run it.",
     transferMarketStorageError: "Transfer Market storage is unavailable.",
     transferMarketTeamLabel: "Senior team",

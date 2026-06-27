@@ -1857,6 +1857,8 @@ export const messagesIt: Messages = {
     transferMarketProfilesTitle: "Profili di ricerca",
     transferMarketProfilesEmpty: "Nessun profilo salvato.",
     transferMarketLoadButton: "Carica",
+    transferMarketDeleteProfileButton: "Elimina",
+    transferMarketProfileDeleted: "Profilo eliminato.",
     transferMarketCriteriaLoaded: "Criteri caricati. Premi Cerca per eseguire.",
     transferMarketStorageError: "Archivio del mercato trasferimenti non disponibile.",
     transferMarketTeamLabel: "Squadra senior",

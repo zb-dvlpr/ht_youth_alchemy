@@ -737,6 +737,8 @@ export const messagesNl: Messages = {
   transferMarketProfilesTitle: "Zoekprofielen",
   transferMarketProfilesEmpty: "Geen opgeslagen profielen.",
   transferMarketLoadButton: "Laden",
+  transferMarketDeleteProfileButton: "Verwijderen",
+  transferMarketProfileDeleted: "Profiel verwijderd.",
   transferMarketCriteriaLoaded: "Criteria geladen. Druk op Zoeken om uit te voeren.",
   transferMarketStorageError: "Transfermarkt-opslag is niet beschikbaar.",
   transferMarketTeamLabel: "Seniorenteam",

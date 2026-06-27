@@ -564,6 +564,9 @@ export default async function Home() {
                   messages={messages}
                   initialSeniorTeams={seniorTeams}
                   initialSeniorTeamId={defaultSeniorTeamId}
+                  managerScopeId={
+                    managerIdentity?.userId ?? managerIdentity?.loginname ?? null
+                  }
                 />
               }
               transferMarketTool={

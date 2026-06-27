@@ -1836,6 +1836,8 @@ export const messagesDe: Messages = {
     transferMarketProfilesTitle: "Suchprofile",
     transferMarketProfilesEmpty: "Keine gespeicherten Profile.",
     transferMarketLoadButton: "Laden",
+    transferMarketDeleteProfileButton: "Loeschen",
+    transferMarketProfileDeleted: "Profil geloescht.",
     transferMarketCriteriaLoaded: "Kriterien geladen. Druecke Suchen, um sie auszufuehren.",
     transferMarketStorageError: "Transfermarkt-Speicher ist nicht verfuegbar.",
     transferMarketTeamLabel: "Seniorenteam",

@@ -9966,13 +9966,14 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferMarketListModal {
-  width: min(760px, calc(100vw - 24px));
+  width: min(1100px, calc(100vw - 64px));
+  max-width: calc(100vw - 64px);
 }
 
 .transferMarketListBody {
   display: grid;
   gap: 10px;
-  max-height: min(68vh, 620px);
+  max-height: min(78vh, 760px);
   overflow: auto;
   padding: 2px 4px 2px 0;
 }
@@ -9988,10 +9989,39 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   padding: 10px;
 }
 
+.transferMarketListRowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .transferMarketSaveProfileBody,
 .transferMarketProfileNameField {
   display: grid;
   gap: 8px;
+}
+
+.transferMarketModalSecondaryButton {
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid #c8b8a3;
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #5b4a37;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.transferMarketModalSecondaryButton:hover,
+.transferMarketModalSecondaryButton:focus-visible {
+  background: #f5ede2;
+  border-color: #a99070;
 }
 
 html[data-mobile-shell="true"] .transferSearchBidGrid {
@@ -10031,6 +10061,23 @@ html[data-mobile-shell="true"] .transferSearchSidebarActions > button {
 
 html[data-mobile-shell="true"] .transferMarketListRow {
   grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .transferMarketListModal {
+  width: calc(100vw - 24px);
+  max-width: calc(100vw - 24px);
+}
+
+html[data-mobile-shell="true"] .transferMarketListBody {
+  max-height: min(70dvh, 620px);
+}
+
+html[data-mobile-shell="true"] .transferMarketListRowActions {
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferMarketListRowActions > button {
+  flex: 1 1 140px;
 }
 
 .injuryStatusSymbol {

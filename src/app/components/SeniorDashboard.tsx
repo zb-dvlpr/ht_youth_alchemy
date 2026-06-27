@@ -22,7 +22,6 @@ import {
   reconnectChppWithTokenReset,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
-import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
@@ -93,22 +92,21 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
-  formatTransferSearchCurrencyLabel,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
+  type TransferSearchHtmsPotentialFilter,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
 import {
   displayAmountToSek,
   formatSekCurrency,
-  getDisplayCurrencyLabel,
   sekToDisplayAmount,
   type DisplayCurrency,
 } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
-import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
-import PlayerStatementQuote from "./PlayerStatementQuote";
+import TransferSearchResultCard from "./TransferSearchResultCard";
+import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
@@ -121,7 +119,6 @@ import {
 import { readGlobalSeason } from "@/lib/season";
 import {
   captureSeniorEncounteredPlayer,
-  predictSeniorEncounteredPlayerWage,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
 import {
@@ -146,6 +143,7 @@ import {
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
 import { resolveOpponentTeam } from "@/lib/matches/visibility";
+import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -392,6 +390,7 @@ type SeniorDashboardProps = {
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
+  managerScopeId?: string | null;
 };
 
 type MobileSeniorPlayerScreen = "root" | "list" | "detail";
@@ -2075,25 +2074,6 @@ const formatTransferSearchBidDraftDisplay = (
   return displayAmount === null ? "" : String(Math.ceil(displayAmount));
 };
 
-const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) => {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  return trimmed
-    .replace(/\b[Pp]opular guy\b/g, (match) =>
-      match[0] === "P" ? "Popular person" : "popular person"
-    )
-    .replace(/\b[Ss]ympathetic guy\b/g, (match) =>
-      match[0] === "S" ? "Sympathetic person" : "sympathetic person"
-    )
-    .replace(/\b[Pp]leasant guy\b/g, (match) =>
-      match[0] === "P" ? "Pleasant person" : "pleasant person"
-    )
-    .replace(/\b[Nn]asty fellow\b/g, (match) =>
-      match[0] === "N" ? "Nasty person" : "nasty person"
-    );
-};
-
 const computeSeniorEffectiveSkill = (
   baseSkill: number | null,
   player: SeniorPlayer | null,
@@ -2955,50 +2935,6 @@ const metricPillStyle = (
   };
 };
 
-const seniorBarGradient = (
-  value: number | null,
-  minSkillLevel: number,
-  maxSkillLevel: number
-) => {
-  if (value === null || value === undefined) return undefined;
-  if (maxSkillLevel <= minSkillLevel) return undefined;
-  const t = Math.min(
-    1,
-    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
-  );
-  if (t >= 1) {
-    return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
-  }
-  if (t <= 0) {
-    return "linear-gradient(90deg, #cf3f3a, #8b241f)";
-  }
-  const startHue = 6 + (136 - 6) * t;
-  const startSat = 72 - 8 * t;
-  const startLight = 49 - 9 * t;
-  const endHue = 2 + (145 - 2) * t;
-  const endSat = 66 - 10 * t;
-  const endLight = 33 - 5 * t;
-  const startColor = `hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%)`;
-  const endColor = `hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%)`;
-  return `linear-gradient(90deg, ${startColor}, ${endColor})`;
-};
-
-const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
-  if (
-    typeof actualSek !== "number" ||
-    !Number.isFinite(actualSek) ||
-    actualSek <= 0 ||
-    typeof predictedSek !== "number" ||
-    !Number.isFinite(predictedSek)
-  ) {
-    return null;
-  }
-  const diffPercent = ((predictedSek - actualSek) / actualSek) * 100;
-  const rounded = Math.round((diffPercent + Number.EPSILON) * 10) / 10;
-  const sign = rounded > 0 ? "+" : "";
-  return `${sign}${rounded.toFixed(1)}%`;
-};
-
 const resolveTransferSearchSalaryForSelectedTeam = (
   salarySek: number | null | undefined,
   currentForeign: boolean | null | undefined,
@@ -3731,6 +3667,7 @@ export default function SeniorDashboard({
   messages,
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
+  managerScopeId = null,
 }: SeniorDashboardProps) {
   const isDevBuild = process.env.NODE_ENV !== "production";
   const showSetBestLineupDebugModal = isDevBuild;
@@ -3978,6 +3915,8 @@ export default function SeniorDashboard({
     useState<TransferSearchSortKey>("default");
   const [transferSearchResultsViewMode, setTransferSearchResultsViewMode] =
     useState<TransferSearchResultsViewMode>("cards");
+  const [transferSearchHtmsPotentialFilter, setTransferSearchHtmsPotentialFilter] =
+    useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchUsedFallback, setTransferSearchUsedFallback] = useState(false);
@@ -4258,6 +4197,21 @@ export default function SeniorDashboard({
     resolvedSeniorTeamIdRef.current = resolvedSeniorTeamId;
   }, [resolvedSeniorTeamId]);
   const displayCurrency = resolveForCountry(activeSeniorTeamOption?.countryId ?? null);
+  const transferMarketScopeKey = useMemo(
+    () =>
+      buildTransferMarketScopeKey({
+        managerId: managerScopeId ?? lineupExclusionsUserKey,
+        teamId: resolvedSeniorTeamId,
+      }),
+    [lineupExclusionsUserKey, managerScopeId, resolvedSeniorTeamId]
+  );
+  const { openSaveProfile: openTransferSearchSaveProfile, saveProfileModal } =
+    useTransferMarketProfileSave({
+      messages,
+      scopeKey: transferMarketScopeKey,
+      displayCurrency,
+      htmsPotentialFilter: transferSearchHtmsPotentialFilter,
+    });
   const formatDisplayCurrencyFromSek = useCallback(
     (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
     [displayCurrency]
@@ -17475,427 +17429,34 @@ const refreshDetailsForPlayers = async (
   const renderTransferSearchResultCard = useCallback((
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
-  ) => {
-    const resultDetails = detailsById.get(result.playerId) ?? null;
-    const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
-    const pending = transferSearchBidPendingPlayerId === result.playerId;
-    const playerName = formatTransferSearchPlayerName(result);
-    const displayPriceSek =
-      typeof result.highestBidSek === "number" && result.highestBidSek > 0
-        ? result.highestBidSek
-        : result.askingPriceSek;
-    const displayPriceLabel =
-      typeof result.highestBidSek === "number" && result.highestBidSek > 0
-        ? messages.seniorTransferSearchHighestBidLabel
-        : messages.clubChronicleTransferListedAskingPriceColumn;
-    const currencyName = getDisplayCurrencyLabel(displayCurrency);
-    const displayPriceCurrencyLabel = `${displayPriceLabel} (${currencyName})`;
-    const bidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
-      messages.seniorTransferSearchBidAmountLabel,
-      displayCurrency
-    );
-    const maxBidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
-      messages.seniorTransferSearchMaxBidAmountLabel,
-      displayCurrency
-    );
-    const deadlineDate = parseChppDate(result.deadline ?? undefined);
-    const seniorSkillLevelLabels = messages.seniorSkillLevelLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const formatSeniorSkillLevel = (value: number | undefined) => {
-      if (typeof value !== "number" || value <= 0) return messages.unknownLabel;
-      const index = Math.min(20, Math.max(1, Math.floor(value))) - 1;
-      return seniorSkillLevelLabels[index] ?? messages.unknownLabel;
-    };
-    const seniorAgreeabilityLabels = messages.seniorAgreeabilityLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorAggressivenessLabels = messages.seniorAggressivenessLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorHonestyLabels = messages.seniorHonestyLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorPersonalitySentence =
-      !resultDetails
-        ? null
-        : (() => {
-            const agreeability =
-              typeof resultDetails.Agreeability === "number" ? resultDetails.Agreeability : null;
-            const aggressiveness =
-              typeof resultDetails.Aggressiveness === "number"
-                ? resultDetails.Aggressiveness
-                : null;
-            const honesty =
-              typeof resultDetails.Honesty === "number" ? resultDetails.Honesty : null;
-            if (
-              agreeability === null ||
-              aggressiveness === null ||
-              honesty === null ||
-              !seniorAgreeabilityLabels[agreeability] ||
-              !seniorAggressivenessLabels[aggressiveness] ||
-              !seniorHonestyLabels[honesty]
-            ) {
-              return neutralizeSeniorPersonalityFallback(resultDetails.PersonalityStatement);
-            }
-            return messages.seniorPersonalitySentence
-              .replace("{{agreeabilityLabel}}", seniorAgreeabilityLabels[agreeability])
-              .replace("{{agreeabilityValue}}", String(agreeability))
-              .replace("{{aggressivenessLabel}}", seniorAggressivenessLabels[aggressiveness])
-              .replace("{{aggressivenessValue}}", String(aggressiveness))
-              .replace("{{honestyLabel}}", seniorHonestyLabels[honesty])
-              .replace("{{honestyValue}}", String(honesty));
-          })();
-    const seniorTraitsSentence =
-      !resultDetails
-        ? null
-        : (() => {
-            const parts: string[] = [];
-            if (
-              typeof resultDetails.Experience === "number" &&
-              typeof resultDetails.Leadership === "number"
-            ) {
-              parts.push(
-                messages.seniorTraitsSentenceExperienceLeadership
-                  .replace(
-                    "{{experienceLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Experience)
-                  )
-                  .replace("{{experienceValue}}", String(resultDetails.Experience))
-                  .replace(
-                    "{{leadershipLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Leadership)
-                  )
-                  .replace("{{leadershipValue}}", String(resultDetails.Leadership))
-              );
-            }
-            if (typeof resultDetails.Loyalty === "number") {
-              parts.push(
-                messages.seniorTraitsSentenceLoyalty
-                  .replace(
-                    "{{loyaltyLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Loyalty)
-                  )
-                  .replace("{{loyaltyValue}}", String(resultDetails.Loyalty))
-              );
-            }
-            return parts.length ? parts.join(" ") : null;
-          })();
-    const resultSpecialtyName =
-      (resultDetails?.Specialty ?? result.specialty) !== null
-        ? (resultDetails?.Specialty ?? result.specialty) === 0
-          ? messages.specialtyNone
-          : specialtyName(resultDetails?.Specialty ?? result.specialty)
-        : null;
-    const resolvedForm = resultDetails?.Form ?? result.form;
-    const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
-    const resolvedSalary =
-      typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
-    const resolvedIsAbroad =
-      resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
-    const foreignForSelectedTeam = isForeignForSelectedLeague(
-      resultDetails?.NativeLeagueID,
-      selectedSeniorLeagueId
-    );
-    const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
-      resolvedSalary,
-      resolvedIsAbroad,
-      foreignForSelectedTeam
-    );
-    const seniorMetricInput = {
-      ageYears:
-        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
-      ageDays:
-        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
-      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
-      salarySek: resolvedSalary,
-      isAbroad: resolvedIsAbroad ?? undefined,
-      form: resolvedForm,
-      stamina: resolvedStamina,
-      keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
-      defending: parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
-      playmaking:
-        parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
-      winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
-      passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
-      scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
-      setPieces:
-        parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
-    };
-    const predictedBaseWageSek =
-      process.env.NODE_ENV !== "production"
-        ? predictSeniorEncounteredPlayerWage({
-            playerId: result.playerId,
-            ageYears: seniorMetricInput.ageYears,
-            ageDays: seniorMetricInput.ageDays,
-            keeper: seniorMetricInput.keeper,
-            defending: seniorMetricInput.defending,
-            playmaking: seniorMetricInput.playmaking,
-            winger: seniorMetricInput.winger,
-            passing: seniorMetricInput.passing,
-            scoring: seniorMetricInput.scoring,
-            setPieces: seniorMetricInput.setPieces,
-            form: seniorMetricInput.form ?? null,
-            stamina: seniorMetricInput.stamina ?? null,
-            tsi: seniorMetricInput.tsi ?? null,
-            salarySek: seniorMetricInput.salarySek ?? null,
-            isAbroad: seniorMetricInput.isAbroad,
-            injuryLevel:
-              typeof resultDetails?.InjuryLevel === "number"
-                ? resultDetails.InjuryLevel
-                : null,
-          })
-        : null;
-    const adjustedPredictedSalary =
-      predictedBaseWageSek !== null
-        ? resolveTransferSearchSalaryForSelectedTeam(
-            predictedBaseWageSek,
-            false,
-            foreignForSelectedTeam
-          )
-        : null;
-    const predictedSalaryDiffPercent = formatPredictionDiffPercent(
-      adjustedSalary,
-      adjustedPredictedSalary
-    );
-    return (
-      <article key={result.playerId} className={styles.transferSearchResultCard}>
-        <div className={styles.transferSearchResultHeader}>
-          <div>
-            <h4 className={styles.profileName}>
-              <a
-                className={styles.profileNameLink}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={messages.playerLinkLabel}
-              >
-                {playerName}
-              </a>
-              {countryMeta ? (
-                <OriginFlag
-                  display={countryMeta.flagDisplay}
-                  className={styles.transferSearchCardNationality}
-                />
-              ) : null}
-            </h4>
-            <PlayerStatementQuote statement={resultDetails?.Statement} />
-            {seniorPersonalitySentence ? (
-              <p className={styles.seniorPersonaLine}>{seniorPersonalitySentence}</p>
-            ) : null}
-            {seniorTraitsSentence ? (
-              <p className={styles.seniorPersonaLine}>{seniorTraitsSentence}</p>
-            ) : null}
-            <p className={styles.profileMeta}>
-              {result.age !== null ? (
-                <span className={styles.metaItem}>
-                  {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
-                </span>
-              ) : null}
-          {result.tsi !== null ? (
-            <span className={styles.metaItem}>
-              {messages.sortTsi}: {result.tsi}
-            </span>
-          ) : null}
-          {adjustedSalary !== null ? (
-            <span className={styles.metaItem}>
-              {messages.seniorWageLabel}:{" "}
-              {`${formatDisplayCurrencyFromSek(adjustedSalary)}${
-                foreignForSelectedTeam === true ? "*" : ""
-              }`}
-            </span>
-          ) : null}
-        </p>
-            {adjustedPredictedSalary !== null ? (
-              <p className={styles.infoValueTiny}>
-                {messages.seniorMlPredictedWageLabel}:{" "}
-                {`${formatDisplayCurrencyFromSek(adjustedPredictedSalary)}${
-                  foreignForSelectedTeam === true ? "*" : ""
-                }`}
-                {predictedSalaryDiffPercent
-                  ? ` (${messages.seniorMlPredictionDiffLabel} ${predictedSalaryDiffPercent})`
-                  : ""}
-              </p>
-            ) : null}
-            {adjustedSalary !== null && foreignForSelectedTeam === true ? (
-              <p className={styles.seniorPersonaLine}>
-                {messages.transferSearchTableWageFootnote}
-              </p>
-            ) : null}
-          </div>
-          <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{displayPriceCurrencyLabel}</div>
-            <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
-              {displayPriceSek !== null
-                ? formatDisplayCurrencyFromSek(displayPriceSek)
-                : messages.unknownShort}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.profileInfoRow}>
-          <div>
-            <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
-            <div className={styles.infoValue}>
-              {result.playerId}
-              <Tooltip content={messages.copyPlayerIdLabel}>
-                <button
-                  type="button"
-                  className={`${styles.infoLinkIcon} ${styles.copyPlayerIdButton}`}
-                  onClick={() => {
-                    void copyTextToClipboard(String(result.playerId)).then((copied) => {
-                      if (copied) addNotification(messages.notificationPlayerIdCopied);
-                    });
-                  }}
-                  aria-label={messages.copyPlayerIdLabel}
-                >
-                  ⧉
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-          {resultSpecialtyName ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
-              <div className={styles.infoValue}>
-                {(resultDetails?.Specialty ?? result.specialty) !== null &&
-                SPECIALTY_EMOJI[resultDetails?.Specialty ?? result.specialty ?? 0] ? (
-                  <span className={styles.playerSpecialty}>
-                    {SPECIALTY_EMOJI[resultDetails?.Specialty ?? result.specialty ?? 0]}
-                  </span>
-                ) : null}{" "}
-                {resultSpecialtyName}
-              </div>
-            </div>
-          ) : null}
-          <div>
-            <div className={styles.infoLabel}>{messages.seniorTransferSearchDeadlineLabel}</div>
-            <div className={styles.infoValue}>
-              {deadlineDate ? formatDateTime(deadlineDate) : messages.unknownShort}
-            </div>
-          </div>
-          {result.sellerTeamName ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.seniorTransferSearchSellerLabel}</div>
-              <div className={styles.infoValue}>
-                {result.sellerTeamId ? (
-                  <a
-                    className={styles.chroniclePressLink}
-                    href={hattrickTeamUrl(result.sellerTeamId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {result.sellerTeamName}
-                  </a>
-                ) : (
-                  result.sellerTeamName
-                )}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <SeniorFoxtrickSimulator
-          key={`${result.playerId}-${Boolean(resultDetails)}`}
-          input={seniorMetricInput}
-          messages={messages}
-          displayCurrency={displayCurrency}
-          barGradient={seniorBarGradient}
-        />
-
-        <div className={styles.transferSearchBidGrid}>
-          <div className={styles.transferSearchBidField}>
-            <label className={styles.infoLabel} htmlFor={`bid-${result.playerId}`}>
-              {bidAmountCurrencyLabel}
-            </label>
-            <input
-              id={`bid-${result.playerId}`}
-              className={styles.transferSearchInput}
-              type="number"
-              min="0"
-              step="1"
-              value={draft.bidDisplay}
-              onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "bidDisplay", event.target.value)
-              }
-              disabled={!transferSearchCanBid || pending}
-            />
-          </div>
-          <Tooltip
-            content={
-              !canPlaceBid
-                ? messages.chppMissingPlaceBidTooltip
-                : messages.seniorTransferSearchSupporterOnlyTooltip
-            }
-            disabled={transferSearchCanBid}
-          >
-            <button
-              type="button"
-              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
-              onClick={() => {
-                void submitTransferBid(result, "bidDisplay");
-              }}
-              disabled={!transferSearchCanBid || pending}
-            >
-              {messages.seniorTransferSearchPlaceBidButton}
-            </button>
-          </Tooltip>
-          <div className={styles.transferSearchBidField}>
-            <label className={styles.infoLabel} htmlFor={`max-bid-${result.playerId}`}>
-              {maxBidAmountCurrencyLabel}
-            </label>
-            <input
-              id={`max-bid-${result.playerId}`}
-              className={styles.transferSearchInput}
-              type="number"
-              min="0"
-              step="1"
-              value={draft.maxBidDisplay}
-              onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "maxBidDisplay", event.target.value)
-              }
-              disabled={!transferSearchCanBid || pending}
-            />
-          </div>
-          <Tooltip
-            content={
-              !canPlaceBid
-                ? messages.chppMissingPlaceBidTooltip
-                : messages.seniorTransferSearchSupporterOnlyTooltip
-            }
-            disabled={transferSearchCanBid}
-          >
-            <button
-              type="button"
-              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
-              onClick={() => {
-                void submitTransferBid(result, "maxBidDisplay");
-              }}
-              disabled={!transferSearchCanBid || pending}
-            >
-              {messages.seniorTransferSearchPlaceMaxBidButton}
-            </button>
-          </Tooltip>
-        </div>
-      </article>
-    );
-  }, [
+  ) => (
+    <TransferSearchResultCard
+      result={result}
+      countryMeta={countryMeta}
+      resultDetails={detailsById.get(result.playerId) ?? null}
+      messages={messages}
+      displayCurrency={displayCurrency}
+      selectedSeniorLeagueId={selectedSeniorLeagueId}
+      bidDraft={transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" }}
+      pending={transferSearchBidPendingPlayerId === result.playerId}
+      canBid={transferSearchCanBid}
+      canPlaceBid={canPlaceBid}
+      onBidDraftChange={updateTransferSearchBidDraft}
+      onSubmitBid={(nextResult, bidKind) => {
+        void submitTransferBid(nextResult, bidKind);
+      }}
+    />
+  ), [
+    canPlaceBid,
     detailsById,
-    formatDisplayCurrencyFromSek,
+    displayCurrency,
     messages,
     selectedSeniorLeagueId,
-    specialtyName,
+    submitTransferBid,
     transferSearchBidDrafts,
     transferSearchBidPendingPlayerId,
     transferSearchCanBid,
     updateTransferSearchBidDraft,
-    submitTransferBid,
   ]);
   const handleTransferSearchClose = useCallback(() => {
     setTransferSearchModalOpen(false);
@@ -19506,9 +19067,14 @@ const refreshDetailsForPlayers = async (
         onQuickBid={(result) => {
           void placeTransferQuickBid(result);
         }}
+        htmsPotentialFilter={transferSearchHtmsPotentialFilter}
+        onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
+        onSaveAsProfile={openTransferSearchSaveProfile}
+        saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />
+      {saveProfileModal}
       <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}

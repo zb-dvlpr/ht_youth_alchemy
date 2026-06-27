@@ -731,6 +731,8 @@ export const messagesPl: Messages = {
   transferMarketProfilesTitle: "Profile wyszukiwania",
   transferMarketProfilesEmpty: "Brak zapisanych profili.",
   transferMarketLoadButton: "Wczytaj",
+  transferMarketDeleteProfileButton: "Usun",
+  transferMarketProfileDeleted: "Profil usuniety.",
   transferMarketCriteriaLoaded: "Kryteria wczytane. Nacisnij Szukaj, aby uruchomic.",
   transferMarketStorageError: "Magazyn rynku transferowego jest niedostepny.",
   transferMarketTeamLabel: "Druzyna seniorska",

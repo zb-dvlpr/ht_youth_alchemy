@@ -9214,6 +9214,10 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   flex-wrap: wrap;
 }
 
+.transferMarketMobileActions {
+  display: none;
+}
+
 .transferSearchWorkspaceShell {
   display: flex;
   flex-direction: column;
@@ -10048,21 +10052,152 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 }
 
 html[data-mobile-shell="true"] .transferMarketTool {
-  padding: 10px;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 8px 8px max(96px, calc(72px + env(safe-area-inset-bottom)));
 }
 
 html[data-mobile-shell="true"] .transferMarketHeader {
   align-items: stretch;
   flex-direction: column;
+  margin-bottom: 10px;
 }
 
 html[data-mobile-shell="true"] .transferMarketMobileActionRow {
-  display: flex;
+  display: none;
 }
 
+html[data-mobile-shell="true"] .transferMarketTeamSelect {
+  max-width: none;
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferMarketMobileActions {
+  display: block;
+}
+
+html[data-mobile-shell="true"] .transferMarketMobileMenuButton {
+  left: auto;
+  top: auto;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 18px));
+}
+
+html[data-mobile-shell="true"] .transferMarketMobileMenuDropdown {
+  left: auto;
+  top: auto;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(72px, calc(env(safe-area-inset-bottom) + 72px));
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceShell,
 html[data-mobile-shell="true"] .transferSearchWorkspaceContent {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent {
+  display: block;
+  gap: 0;
+  height: auto;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent
+  [data-transfer-search-mobile-panel][data-transfer-search-mobile-active="false"] {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchMobilePanelNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchModalSidebar,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchModalResults,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchMarketSummary {
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  border-radius: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsStack {
   display: block;
   height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchCriteriaGrid,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchRangeGrid,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSimpleRange,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchBidGrid {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSkillRow {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchValueGroup {
+  justify-items: start;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchValueStepper {
+  grid-template-columns: 28px 52px 28px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultHeader,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSidebarHeader,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsHeader {
+  grid-template-columns: 1fr;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsHeaderControls {
+  width: 100%;
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsSortControl,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchViewToggle {
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchPriceBlock {
+  width: 100%;
+  justify-items: start;
+  text-align: left;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchTableShell {
+  height: auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchTableScroller,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .seniorPsicoTableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 html[data-mobile-shell="true"] .transferSearchSidebarActions {

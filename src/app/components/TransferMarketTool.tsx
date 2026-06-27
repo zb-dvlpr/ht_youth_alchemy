@@ -187,6 +187,7 @@ export default function TransferMarketTool({
     useState<TransferSearchResultsViewMode>("cards");
   const [pastOpen, setPastOpen] = useState(false);
   const [profilesOpen, setProfilesOpen] = useState(false);
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [pastSearches, setPastSearches] = useState<TransferMarketPastSearchEntry[]>([]);
   const [profiles, setProfiles] = useState<TransferMarketSearchProfile[]>([]);
   const [currentCriteriaReady, setCurrentCriteriaReady] = useState(false);
@@ -219,22 +220,32 @@ export default function TransferMarketTool({
     onSaved: readProfiles,
   });
 
+  const openPastSearches = useCallback(() => {
+    setPastOpen(true);
+    setMobileActionsOpen(false);
+    void readPast();
+  }, [readPast]);
+
+  const openSearchProfiles = useCallback(() => {
+    setProfilesOpen(true);
+    setMobileActionsOpen(false);
+    void readProfiles();
+  }, [readProfiles]);
+
   useEffect(() => {
     const openPast = () => {
-      setPastOpen(true);
-      void readPast();
+      openPastSearches();
     };
-    const openProfiles = () => {
-      setProfilesOpen(true);
-      void readProfiles();
+    const openProfilesHandler = () => {
+      openSearchProfiles();
     };
     window.addEventListener(TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT, openPast);
-    window.addEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfiles);
+    window.addEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfilesHandler);
     return () => {
       window.removeEventListener(TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT, openPast);
-      window.removeEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfiles);
+      window.removeEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfilesHandler);
     };
-  }, [readPast, readProfiles]);
+  }, [openPastSearches, openSearchProfiles]);
 
   useEffect(() => {
     let cancelled = false;
@@ -673,24 +684,42 @@ export default function TransferMarketTool({
             </select>
           </label>
         ) : null}
-        <div className={styles.transferMarketMobileActionRow}>
-          <button type="button" className={styles.secondaryButton} onClick={() => {
-            setPastOpen(true);
-            void readPast();
-          }}>
-            {messages.transferMarketPastSearchesButton}
-          </button>
-          <button type="button" className={styles.secondaryButton} onClick={() => {
-            setProfilesOpen(true);
-            void readProfiles();
-          }}>
-            {messages.transferMarketProfilesTooltip}
-          </button>
-        </div>
+      </div>
+      <div className={styles.transferMarketMobileActions}>
+        <button
+          type="button"
+          className={`${styles.mobileYouthMenuButton} ${styles.transferMarketMobileMenuButton}`}
+          aria-label={messages.mobileYouthMenuToggleLabel}
+          aria-expanded={mobileActionsOpen}
+          onClick={() => setMobileActionsOpen((prev) => !prev)}
+        >
+          {mobileActionsOpen ? "▴" : "▾"}
+        </button>
+        {mobileActionsOpen ? (
+          <div
+            className={`${styles.mobileYouthMenuDropdown} ${styles.transferMarketMobileMenuDropdown}`}
+          >
+            <button
+              type="button"
+              className={styles.mobileYouthMenuAction}
+              onClick={openPastSearches}
+            >
+              {messages.transferMarketPastSearchesButton}
+            </button>
+            <div className={styles.mobileYouthMenuDivider} />
+            <button
+              type="button"
+              className={styles.mobileYouthMenuAction}
+              onClick={openSearchProfiles}
+            >
+              {messages.transferMarketProfilesTooltip}
+            </button>
+          </div>
+        ) : null}
       </div>
       <TransferSearchContent
         open
-        mode="workspace"
+        mode="mobileWorkspace"
         messages={messages}
         selectedPlayerName={null}
         filters={filters}

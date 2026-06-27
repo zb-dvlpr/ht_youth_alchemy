@@ -195,7 +195,7 @@ export type TransferSearchHtmsPotentialFilter = {
   max: string;
 };
 
-export type TransferSearchContentMode = "modal" | "workspace";
+export type TransferSearchContentMode = "modal" | "workspace" | "mobileWorkspace";
 
 export type TransferSearchModalProps = {
   open: boolean;
@@ -1974,16 +1974,17 @@ const TransferSearchModal = memo(function TransferSearchModal({
     []
   );
 
+  const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
   const body = (
         <div
-          className={
-            mode === "workspace"
-              ? styles.transferSearchWorkspaceShell
-              : styles.transferSearchModalShell
-          }
+          className={`${workspaceMode ? styles.transferSearchWorkspaceShell : styles.transferSearchModalShell}${
+            mode === "mobileWorkspace" ? ` ${styles.transferSearchMobileWorkspaceShell}` : ""
+          }`}
         >
           <div
-            className={`${mode === "workspace" ? styles.transferSearchWorkspaceContent : styles.transferSearchModalContent}${
+            className={`${workspaceMode ? styles.transferSearchWorkspaceContent : styles.transferSearchModalContent}${
+              mode === "mobileWorkspace" ? ` ${styles.transferSearchMobileWorkspaceContent}` : ""
+            }${
               resultsViewMode === "table" ? ` ${styles.transferSearchModalContentTableMode}` : ""
             }`}
           >
@@ -2725,7 +2726,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       />
     );
 
-  if (mode === "workspace") {
+  if (workspaceMode) {
     return (
       <>
         {body}

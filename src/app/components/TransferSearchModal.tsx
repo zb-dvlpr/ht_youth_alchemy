@@ -2338,7 +2338,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   {onSaveAsProfile ? (
                     <button
                       type="button"
-                      className={`${styles.secondaryButton} ${styles.transferSearchSaveProfileButton}`}
+                      className={`${styles.confirmCancel} ${styles.transferSearchSaveProfileButton}`}
                       onClick={() => {
                         const committedFilters = commitAndValidateCriteria();
                         if (!committedFilters) return;

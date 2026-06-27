@@ -7,6 +7,7 @@ import {
 } from "@/lib/seniorPlayerMetrics";
 import {
   memo,
+  Fragment,
   startTransition,
   useCallback,
   useEffect,
@@ -2662,7 +2663,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         (typeof nativeLeagueId === "number"
                           ? leagueFlagDisplayById[nativeLeagueId]
                           : undefined) ?? countryMeta?.flagDisplay;
-                      return renderResultCard(
+                      const renderedCard = renderResultCard(
                         result,
                         countryMeta || flagDisplay
                           ? {
@@ -2673,6 +2674,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
                               flagDisplay,
                             }
                           : null
+                      );
+                      return (
+                        <Fragment key={`transfer-search-result-${result.playerId}`}>
+                          {renderedCard}
+                        </Fragment>
                       );
                     })}
                   </div>

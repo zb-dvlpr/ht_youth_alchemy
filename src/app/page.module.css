@@ -35,6 +35,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   min-height: 100%;
 }
 
+@media (max-width: 900px) {
+  .main {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .scaleContainer {
+    transform: none;
+    width: 100%;
+    min-height: 100%;
+  }
+}
+
 .chppAccessPage,
 .chppAccessGate {
   min-height: 100dvh;

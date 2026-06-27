@@ -172,7 +172,8 @@ const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
 const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
-const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
+const MOBILE_LAYOUT_MAX_WIDTH = 900;
+const MOBILE_LAYOUT_MEDIA_QUERY = `(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`;
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const YOUTH_DASHBOARD_STATE_STORAGE_KEY = "ya_dashboard_state_v2";
 
@@ -194,6 +195,38 @@ const parseBuyCoffeePromptSource = (
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isMobileLayoutViewport = () => {
+  if (typeof window === "undefined") return false;
+
+  const visualViewportWidth = window.visualViewport?.width;
+  const cssViewportMobile =
+    window.matchMedia?.(MOBILE_LAYOUT_MEDIA_QUERY).matches === true ||
+    window.innerWidth <= MOBILE_LAYOUT_MAX_WIDTH ||
+    (typeof visualViewportWidth === "number" &&
+      visualViewportWidth <= MOBILE_LAYOUT_MAX_WIDTH);
+
+  const screenWidth = window.screen?.width;
+  const screenHeight = window.screen?.height;
+  const physicalScreenMin = Math.min(
+    typeof screenWidth === "number" && screenWidth > 0
+      ? screenWidth
+      : Number.POSITIVE_INFINITY,
+    typeof screenHeight === "number" && screenHeight > 0
+      ? screenHeight
+      : Number.POSITIVE_INFINITY
+  );
+
+  const coarsePointer =
+    window.matchMedia?.("(pointer: coarse)").matches === true ||
+    navigator.maxTouchPoints > 0;
+
+  const noHover = window.matchMedia?.("(hover: none)").matches === true;
+  const phoneOrSmallTabletInDesktopSiteMode =
+    physicalScreenMin <= MOBILE_LAYOUT_MAX_WIDTH && coarsePointer && noHover;
+
+  return cssViewportMobile || phoneOrSmallTabletInDesktopSiteMode;
+};
 
 const normalizeToolId = (value: unknown): ToolId =>
   value === "chronicle" ||
@@ -1037,11 +1070,12 @@ export default function AppShell({
   }, [chppAccessBlock]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
-    const apply = (matches: boolean) => {
-      setMobileLayoutActive(matches);
-      if (!matches) {
+    if (typeof window === "undefined") return;
+
+    const applyMobileLayoutState = () => {
+      const nextMobileLayoutActive = isMobileLayoutViewport();
+      setMobileLayoutActive(nextMobileLayoutActive);
+      if (!nextMobileLayoutActive) {
         setMobileLauncherOpen(false);
         return;
       }
@@ -1051,15 +1085,41 @@ export default function AppShell({
       }
     };
 
-    apply(mediaQuery.matches);
+    applyMobileLayoutState();
 
-    const handleChange = (event: MediaQueryListEvent) => apply(event.matches);
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleChange);
-      return () => mediaQuery.removeEventListener("change", handleChange);
+    const mediaQuery =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY)
+        : null;
+    const visualViewport = window.visualViewport ?? null;
+    const screenOrientation = window.screen?.orientation ?? null;
+    const handleViewportChange = () => {
+      applyMobileLayoutState();
+    };
+
+    if (mediaQuery) {
+      if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", handleViewportChange);
+      } else {
+        mediaQuery.addListener(handleViewportChange);
+      }
     }
-    mediaQuery.addListener(handleChange);
-    return () => mediaQuery.removeListener(handleChange);
+    window.addEventListener("resize", handleViewportChange);
+    visualViewport?.addEventListener("resize", handleViewportChange);
+    screenOrientation?.addEventListener?.("change", handleViewportChange);
+
+    return () => {
+      if (mediaQuery) {
+        if (typeof mediaQuery.removeEventListener === "function") {
+          mediaQuery.removeEventListener("change", handleViewportChange);
+        } else {
+          mediaQuery.removeListener(handleViewportChange);
+        }
+      }
+      window.removeEventListener("resize", handleViewportChange);
+      visualViewport?.removeEventListener("resize", handleViewportChange);
+      screenOrientation?.removeEventListener?.("change", handleViewportChange);
+    };
   }, []);
 
   useEffect(() => {

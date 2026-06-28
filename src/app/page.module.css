@@ -9705,7 +9705,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 @media (min-width: 901px) {
-  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent) {
+  html:not([data-mobile-shell="true"]) .transferSearchWorkspaceContent {
     align-items: stretch;
     height: var(--transfer-search-workspace-available-height, auto);
     max-height: var(--transfer-search-workspace-available-height, none);
@@ -9713,14 +9713,16 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
     overflow: hidden;
   }
 
-  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
     .transferSearchModalSidebar {
     max-height: 100%;
     min-height: 0;
     overflow-y: auto;
   }
 
-  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
     .transferSearchResultsStack {
     grid-template-rows: minmax(0, 1fr) auto;
     height: 100%;
@@ -9729,7 +9731,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
     overflow: hidden;
   }
 
-  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
     .transferSearchModalResults:not(.transferSearchModalResultsTableMode) {
     display: flex;
     flex-direction: column;
@@ -9737,7 +9740,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
     overflow: hidden;
   }
 
-  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
     .transferSearchResultsList {
     flex: 1 1 auto;
     min-height: 0;

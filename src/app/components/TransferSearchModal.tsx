@@ -1442,8 +1442,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
     setMobilePanel("results");
     onSearch(committedFilters);
   }, [commitAndValidateCriteria, onSearch]);
+  const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
   useEffect(() => {
-    if (mode !== "workspace") return;
+    if (!workspaceMode) return;
     if (typeof window === "undefined") return;
     const element = workspaceContentRef.current;
     if (!element) return;
@@ -1457,7 +1458,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
       animationFrame = window.requestAnimationFrame(() => {
         animationFrame = null;
         const isDesktop = desktopQuery.matches;
-        if (!isDesktop) {
+        const isMobileShell =
+          document.documentElement.dataset.mobileShell === "true";
+        if (!isDesktop || isMobileShell) {
           setWorkspaceAvailableHeight(null);
           return;
         }
@@ -1477,6 +1480,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
     window.addEventListener("resize", updateAvailableHeight);
     window.addEventListener("orientationchange", updateAvailableHeight);
     desktopQuery.addEventListener("change", updateAvailableHeight);
+    const mobileShellObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(updateAvailableHeight);
+    mobileShellObserver?.observe(document.documentElement, {
+      attributeFilter: ["data-mobile-shell"],
+      attributes: true,
+    });
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
@@ -1490,9 +1501,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
       window.removeEventListener("resize", updateAvailableHeight);
       window.removeEventListener("orientationchange", updateAvailableHeight);
       desktopQuery.removeEventListener("change", updateAvailableHeight);
+      mobileShellObserver?.disconnect();
       resizeObserver?.disconnect();
     };
-  }, [mode]);
+  }, [workspaceMode]);
   useEffect(() => {
     if (
       !hasTransferSearchResults ||
@@ -2034,10 +2046,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
     },
     []
   );
-
-  const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
   const workspaceAvailableHeightStyle =
-    mode === "workspace" && workspaceAvailableHeight !== null
+    workspaceMode && workspaceAvailableHeight !== null
       ? ({
           "--transfer-search-workspace-available-height": `${workspaceAvailableHeight}px`,
         } as CSSProperties)

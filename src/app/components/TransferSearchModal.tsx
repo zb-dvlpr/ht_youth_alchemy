@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 
@@ -1317,6 +1318,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [validationIssue, setValidationIssue] =
     useState<TransferSearchValidationIssue | null>(null);
+  const workspaceContentRef = useRef<HTMLDivElement | null>(null);
+  const [workspaceAvailableHeight, setWorkspaceAvailableHeight] =
+    useState<number | null>(null);
   const htmsPotentialFilter =
     controlledHtmsPotentialFilter ?? internalHtmsPotentialFilter;
   const setHtmsPotentialFilter = useCallback(
@@ -1438,6 +1442,57 @@ const TransferSearchModal = memo(function TransferSearchModal({
     setMobilePanel("results");
     onSearch(committedFilters);
   }, [commitAndValidateCriteria, onSearch]);
+  useEffect(() => {
+    if (mode !== "workspace") return;
+    if (typeof window === "undefined") return;
+    const element = workspaceContentRef.current;
+    if (!element) return;
+
+    let animationFrame: number | null = null;
+    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const updateAvailableHeight = () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const isDesktop = desktopQuery.matches;
+        if (!isDesktop) {
+          setWorkspaceAvailableHeight(null);
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        const bottomPadding = 24;
+        const nextHeight = Math.max(
+          360,
+          Math.floor(window.innerHeight - rect.top - bottomPadding)
+        );
+        setWorkspaceAvailableHeight((previous) =>
+          previous === nextHeight ? previous : nextHeight
+        );
+      });
+    };
+
+    updateAvailableHeight();
+    window.addEventListener("resize", updateAvailableHeight);
+    window.addEventListener("orientationchange", updateAvailableHeight);
+    desktopQuery.addEventListener("change", updateAvailableHeight);
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateAvailableHeight);
+    resizeObserver?.observe(element);
+
+    return () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      window.removeEventListener("resize", updateAvailableHeight);
+      window.removeEventListener("orientationchange", updateAvailableHeight);
+      desktopQuery.removeEventListener("change", updateAvailableHeight);
+      resizeObserver?.disconnect();
+    };
+  }, [mode]);
   useEffect(() => {
     if (
       !hasTransferSearchResults ||
@@ -1981,6 +2036,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
   );
 
   const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
+  const workspaceAvailableHeightStyle =
+    mode === "workspace" && workspaceAvailableHeight !== null
+      ? ({
+          "--transfer-search-workspace-available-height": `${workspaceAvailableHeight}px`,
+        } as CSSProperties)
+      : undefined;
   const body = (
         <div
           className={`${workspaceMode ? styles.transferSearchWorkspaceShell : styles.transferSearchModalShell}${
@@ -1988,11 +2049,13 @@ const TransferSearchModal = memo(function TransferSearchModal({
           }`}
         >
           <div
+            ref={workspaceContentRef}
             className={`${workspaceMode ? styles.transferSearchWorkspaceContent : styles.transferSearchModalContent}${
               mode === "mobileWorkspace" ? ` ${styles.transferSearchMobileWorkspaceContent}` : ""
             }${
               resultsViewMode === "table" ? ` ${styles.transferSearchModalContentTableMode}` : ""
             }`}
+            style={workspaceAvailableHeightStyle}
           >
             <aside
               className={`${styles.transferSearchModalSidebar}${

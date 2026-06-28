@@ -9707,13 +9707,15 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 @media (min-width: 901px) {
   .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent) {
     align-items: stretch;
-    max-height: calc(100dvh - var(--shell-topbar-height, 56px) - 132px);
+    height: var(--transfer-search-workspace-available-height, auto);
+    max-height: var(--transfer-search-workspace-available-height, none);
     min-height: 0;
     overflow: hidden;
   }
 
   .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
     .transferSearchModalSidebar {
+    max-height: 100%;
     min-height: 0;
     overflow-y: auto;
   }

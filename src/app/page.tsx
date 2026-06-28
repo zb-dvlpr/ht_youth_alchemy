@@ -591,6 +591,9 @@ export default async function Home() {
                 ratingsResponse={resolvedRatingsResponse}
                 initialYouthTeams={youthTeams}
                 initialYouthTeamId={defaultYouthTeamId}
+                managerScopeId={
+                  managerIdentity?.userId ?? managerIdentity?.loginname ?? null
+                }
                 appVersion={pkg.version}
                 messages={messages}
                 isConnected={isConnected}

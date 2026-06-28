@@ -1432,6 +1432,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
     }
     return committedFilters;
   }, [commitDraftFields, messages]);
+  const handleSearchSubmit = useCallback(() => {
+    const committedFilters = commitAndValidateCriteria();
+    if (!committedFilters) return;
+    setMobilePanel("results");
+    onSearch(committedFilters);
+  }, [commitAndValidateCriteria, onSearch]);
   useEffect(() => {
     if (
       !hasTransferSearchResults ||
@@ -2352,11 +2358,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   <button
                     type="button"
                     className={styles.confirmSubmit}
-                    onClick={() => {
-                      const committedFilters = commitAndValidateCriteria();
-                      if (!committedFilters) return;
-                      onSearch(committedFilters);
-                    }}
+                    onClick={handleSearchSubmit}
                     disabled={loading}
                   >
                     {loading ? (

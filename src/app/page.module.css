@@ -9704,6 +9704,47 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   overflow-wrap: anywhere;
 }
 
+@media (min-width: 901px) {
+  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent) {
+    align-items: stretch;
+    max-height: calc(100dvh - var(--shell-topbar-height, 56px) - 132px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+    .transferSearchModalSidebar {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+    .transferSearchResultsStack {
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+    .transferSearchModalResults:not(.transferSearchModalResultsTableMode) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .transferSearchWorkspaceContent:not(.transferSearchMobileWorkspaceContent)
+    .transferSearchResultsList {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    overscroll-behavior: contain;
+  }
+}
+
 .transferSearchMarketDistribution {
   display: grid;
   gap: 8px;

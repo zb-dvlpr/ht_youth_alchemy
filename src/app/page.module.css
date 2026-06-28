@@ -9734,20 +9734,22 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   html:not([data-mobile-shell="true"])
     .transferSearchWorkspaceContent
     .transferSearchModalResults:not(.transferSearchModalResultsTableMode) {
-    display: flex;
-    flex-direction: column;
+    display: block;
+    max-height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   html:not([data-mobile-shell="true"])
     .transferSearchWorkspaceContent
     .transferSearchResultsList {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
+    display: grid;
+    gap: 14px;
+    min-height: auto;
+    overflow: visible;
     padding-right: 4px;
-    overscroll-behavior: contain;
   }
 }
 

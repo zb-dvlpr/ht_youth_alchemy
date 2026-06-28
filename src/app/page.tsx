@@ -15,6 +15,7 @@ import SeasonBootstrap from "./components/SeasonBootstrap";
 import SeniorMlBackfillBootstrap from "./components/SeniorMlBackfillBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
+import TransferMarketTool from "./components/TransferMarketTool";
 import ChppAccessGate from "./components/ChppAccessGate";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
 import ReminderBellSlot from "./components/reminders/ReminderBellSlot";
@@ -563,6 +564,19 @@ export default async function Home() {
                   messages={messages}
                   initialSeniorTeams={seniorTeams}
                   initialSeniorTeamId={defaultSeniorTeamId}
+                  managerScopeId={
+                    managerIdentity?.userId ?? managerIdentity?.loginname ?? null
+                  }
+                />
+              }
+              transferMarketTool={
+                <TransferMarketTool
+                  messages={messages}
+                  initialSeniorTeams={seniorTeams}
+                  initialSeniorTeamId={defaultSeniorTeamId}
+                  managerScopeId={
+                    managerIdentity?.userId ?? managerIdentity?.loginname ?? null
+                  }
                 />
               }
               initialSeniorTeams={seniorTeams}
@@ -577,6 +591,9 @@ export default async function Home() {
                 ratingsResponse={resolvedRatingsResponse}
                 initialYouthTeams={youthTeams}
                 initialYouthTeamId={defaultYouthTeamId}
+                managerScopeId={
+                  managerIdentity?.userId ?? managerIdentity?.loginname ?? null
+                }
                 appVersion={pkg.version}
                 messages={messages}
                 isConnected={isConnected}

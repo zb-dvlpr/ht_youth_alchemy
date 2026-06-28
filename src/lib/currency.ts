@@ -17,6 +17,11 @@ export type DisplayCurrencyOption = DisplayCurrency & {
   label: string;
 };
 
+export type WorldDetailsCountryOption = {
+  id: number;
+  name: string;
+};
+
 export const SEK_DISPLAY_CURRENCY: DisplayCurrency = {
   key: "SEK:1",
   currencyName: "SEK",
@@ -165,6 +170,29 @@ export function buildDisplayCurrencyOptions(
         sensitivity: "base",
       }) ||
       left.currencyRate - right.currencyRate
+  );
+}
+
+export function buildWorldDetailsCountryOptions(
+  currencies: CurrencyMeta[]
+): WorldDetailsCountryOption[] {
+  const byId = new Map<number, WorldDetailsCountryOption>();
+  currencies.forEach((currency) => {
+    if (
+      !Number.isFinite(currency.countryId) ||
+      currency.countryId <= 0 ||
+      !currency.countryName.trim()
+    ) {
+      return;
+    }
+    if (byId.has(currency.countryId)) return;
+    byId.set(currency.countryId, {
+      id: currency.countryId,
+      name: currency.countryName.trim(),
+    });
+  });
+  return Array.from(byId.values()).sort((left, right) =>
+    left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
   );
 }
 

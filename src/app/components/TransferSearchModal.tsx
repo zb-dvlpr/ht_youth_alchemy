@@ -7,6 +7,7 @@ import {
 } from "@/lib/seniorPlayerMetrics";
 import {
   memo,
+  Fragment,
   startTransition,
   useCallback,
   useEffect,
@@ -14,6 +15,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 
@@ -69,6 +71,7 @@ export type TransferSearchSkillFilter = {
 export type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
+  nativeCountryId: number | null;
   ageMinYears: string;
   ageMinDays: string;
   ageMaxYears: string;
@@ -77,6 +80,11 @@ export type TransferSearchFilters = {
   tsiMax: string;
   priceMinDisplay: string;
   priceMaxDisplay: string;
+};
+
+export type TransferSearchCountryOption = {
+  id: number;
+  name: string;
 };
 
 export type TransferSearchResult = {
@@ -183,14 +191,23 @@ type TransferSearchSkillRowProps = {
   ) => void;
 };
 
-type TransferSearchModalProps = {
+export type TransferSearchHtmsPotentialFilter = {
+  min: string;
+  max: string;
+};
+
+export type TransferSearchContentMode = "modal" | "workspace" | "mobileWorkspace";
+
+export type TransferSearchModalProps = {
   open: boolean;
+  mode?: TransferSearchContentMode;
   messages: Messages;
   selectedPlayerName: string | null;
   selectedPlayerDetailPills?: string[];
   selectedPlayerDetailPillsInline?: boolean;
   filters: TransferSearchFilters | null;
   displayCurrency: DisplayCurrency;
+  countryOptions?: TransferSearchCountryOption[];
   skillSlotCount?: number;
   loading: boolean;
   onUpdateSkillFilter: (
@@ -218,6 +235,10 @@ type TransferSearchModalProps = {
   quickBidUnavailableTooltip?: ReactNode;
   quickBidPendingPlayerId?: number | null;
   onQuickBid?: (result: TransferSearchResult) => void;
+  htmsPotentialFilter?: TransferSearchHtmsPotentialFilter;
+  onHtmsPotentialFilterChange?: (next: TransferSearchHtmsPotentialFilter) => void;
+  onSaveAsProfile?: (filters: TransferSearchFilters) => void;
+  saveAsProfileLabel?: string;
   renderResultCard: (
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
@@ -339,6 +360,37 @@ const getTransferSearchSortValue = (
     parsePsicoMetricValue(psico.wageAvg),
     parsePsicoMetricValue(psico.wageLow),
   ]);
+};
+
+const parseTransferSearchHtmsPotentialFilterValue = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+};
+
+const hasActiveTransferSearchHtmsPotentialFilter = (
+  filter: TransferSearchHtmsPotentialFilter
+) =>
+  parseTransferSearchHtmsPotentialFilterValue(filter.min) !== null ||
+  parseTransferSearchHtmsPotentialFilterValue(filter.max) !== null;
+
+const filterTransferSearchResultsByHtmsPotential = (
+  results: TransferSearchResult[],
+  filter: TransferSearchHtmsPotentialFilter,
+  resolveHtmsPotential: (result: TransferSearchResult) => number | null
+) => {
+  const min = parseTransferSearchHtmsPotentialFilterValue(filter.min);
+  const max = parseTransferSearchHtmsPotentialFilterValue(filter.max);
+  if (min === null && max === null) return results;
+  return results.filter((result) => {
+    const potential = resolveHtmsPotential(result);
+    if (potential === null || !Number.isFinite(potential)) return false;
+    if (min !== null && potential < min) return false;
+    if (max !== null && potential > max) return false;
+    return true;
+  });
 };
 
 const formatTransferSearchTableMetric = (value: number | null, fractionDigits = 0) => {
@@ -635,6 +687,7 @@ export const normalizeTransferSearchFilters = (
   );
   const normalizedMinAge = totalDaysToAge(Math.min(minAgeTotal, maxAgeTotal));
   const normalizedMaxAge = totalDaysToAge(Math.max(minAgeTotal, maxAgeTotal));
+  const nativeCountryId = Number(filters.nativeCountryId);
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
@@ -646,18 +699,20 @@ export const normalizeTransferSearchFilters = (
       }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
-      const normalizedMin = Math.min(clampedMin, clampedMax);
-      const normalizedMax = Math.max(clampedMin, clampedMax);
       return {
         ...filter,
-        min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
+        min: clampedMin,
+        max: clampedMax,
       };
     }),
     ageMinYears: String(normalizedMinAge.years),
     ageMinDays: String(normalizedMinAge.days),
     ageMaxYears: String(normalizedMaxAge.years),
     ageMaxDays: String(normalizedMaxAge.days),
+    nativeCountryId:
+      Number.isFinite(nativeCountryId) && nativeCountryId > 0
+        ? Math.round(nativeCountryId)
+        : null,
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
     priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
@@ -694,6 +749,9 @@ export const buildTransferSearchParams = (
 
   if (normalized.specialty !== null) {
     params.set("specialty", String(normalized.specialty));
+  }
+  if (normalized.nativeCountryId !== null) {
+    params.set("nativeCountryId", String(normalized.nativeCountryId));
   }
 
   const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
@@ -825,6 +883,8 @@ export const formatTransferSearchBidDraftDisplay = (
 const TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT = 4;
 const TRANSFER_SEARCH_MAX_SKILL_DELTA =
   TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT - 1;
+const TRANSFER_SEARCH_MAX_AGE_RANGE_DAYS =
+  HATTRICK_AGE_DAYS_PER_YEAR * 2 - 1;
 const TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT = 3;
 
 const formatTransferSearchMarketDisplay = (
@@ -897,6 +957,53 @@ const buildTransferSearchMarketSummary = (
   };
 };
 
+type TransferSearchValidationIssue =
+  | { type: "skillRange"; skillLabel: string; min: number; max: number }
+  | { type: "ageRange" };
+
+const validateTransferSearchCriteria = (
+  filters: TransferSearchFilters,
+  messages: Messages
+): TransferSearchValidationIssue | null => {
+  for (const filter of filters.skillFilters) {
+    if (!isActiveTransferSearchSkillFilter(filter)) continue;
+    const definition = TRANSFER_SEARCH_SKILLS.find(
+      (entry) => entry.key === filter.skillKey
+    );
+    const skillLabel = definition
+      ? String(messages[definition.labelKey as keyof Messages])
+      : filter.skillKey;
+    if (filter.max < filter.min || filter.max - filter.min > TRANSFER_SEARCH_MAX_SKILL_DELTA) {
+      return {
+        type: "skillRange",
+        skillLabel,
+        min: filter.min,
+        max: filter.max,
+      };
+    }
+  }
+
+  const minYears = parseTransferSearchDraftInteger(filters.ageMinYears);
+  const minDays = parseTransferSearchDraftInteger(filters.ageMinDays);
+  const maxYears = parseTransferSearchDraftInteger(filters.ageMaxYears);
+  const maxDays = parseTransferSearchDraftInteger(filters.ageMaxDays);
+  if (
+    minYears === null ||
+    minDays === null ||
+    maxYears === null ||
+    maxDays === null
+  ) {
+    return null;
+  }
+  const minAgeTotal = ageToTotalDays(minYears, minDays);
+  const maxAgeTotal = ageToTotalDays(maxYears, maxDays);
+  if (maxAgeTotal - minAgeTotal > TRANSFER_SEARCH_MAX_AGE_RANGE_DAYS) {
+    return { type: "ageRange" };
+  }
+
+  return null;
+};
+
 const resolveTransferSearchSkillRange = (
   skillKey: TransferSearchSkillKey,
   currentMin: number,
@@ -904,23 +1011,17 @@ const resolveTransferSearchSkillRange = (
   edge: "min" | "max",
   nextValue: number
 ) => {
+  const clamped = clampTransferSkillValue(skillKey, nextValue);
   if (edge === "min") {
-    const nextMin = clampTransferSkillValue(skillKey, nextValue);
-    const nextMax = clampTransferSkillValue(
-      skillKey,
-      Math.max(currentMax, nextMin)
-    );
     return {
-      min: Math.max(nextMin, nextMax - TRANSFER_SEARCH_MAX_SKILL_DELTA),
-      max: nextMax,
+      min: clamped,
+      max: currentMax,
     };
   }
 
-  const nextMax = clampTransferSkillValue(skillKey, nextValue);
-  const nextMin = clampTransferSkillValue(skillKey, Math.min(currentMin, nextMax));
   return {
-    min: nextMin,
-    max: Math.min(nextMax, nextMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
+    min: currentMin,
+    max: clamped,
   };
 };
 
@@ -932,10 +1033,35 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
   messages,
   onUpdateFilter,
 }: TransferSearchSkillRowProps) {
-  const [draftMin, setDraftMin] = useState(String(filter.min));
-  const [draftMax, setDraftMax] = useState(String(filter.max));
-
   const filterIsInactive = filter.skillKey === null;
+  const draftBaseKey = `${filter.skillKey ?? "none"}:${filter.min}:${filter.max}`;
+  const [draftState, setDraftState] = useState({
+    baseKey: draftBaseKey,
+    min: String(filter.min),
+    max: String(filter.max),
+  });
+  const draftMin =
+    draftState.baseKey === draftBaseKey ? draftState.min : String(filter.min);
+  const draftMax =
+    draftState.baseKey === draftBaseKey ? draftState.max : String(filter.max);
+  const setDraftMin = useCallback(
+    (min: string) =>
+      setDraftState((prev) => ({
+        baseKey: draftBaseKey,
+        min,
+        max: prev.baseKey === draftBaseKey ? prev.max : String(filter.max),
+      })),
+    [draftBaseKey, filter.max]
+  );
+  const setDraftMax = useCallback(
+    (max: string) =>
+      setDraftState((prev) => ({
+        baseKey: draftBaseKey,
+        min: prev.baseKey === draftBaseKey ? prev.min : String(filter.min),
+        max,
+      })),
+    [draftBaseKey, filter.min]
+  );
   const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
     (entry) =>
       entry.key === filter.skillKey || !selectedOtherSkillKeys.includes(entry.key)
@@ -960,27 +1086,39 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
         onUpdateFilter(index, next);
       });
     },
-    [filter.max, filter.min, filter.skillKey, index, onUpdateFilter]
+    [
+      filter.max,
+      filter.min,
+      filter.skillKey,
+      index,
+      onUpdateFilter,
+      setDraftMax,
+      setDraftMin,
+    ]
   );
   const handleMinInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const nextValue = event.target.value;
+      if (!/^\d*$/.test(nextValue)) return;
       setDraftMin(nextValue);
+      if (nextValue === "") return;
       const parsed = Number(nextValue);
       if (!Number.isFinite(parsed)) return;
       commitRange("min", parsed);
     },
-    [commitRange]
+    [commitRange, setDraftMin]
   );
   const handleMaxInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const nextValue = event.target.value;
+      if (!/^\d*$/.test(nextValue)) return;
       setDraftMax(nextValue);
+      if (nextValue === "") return;
       const parsed = Number(nextValue);
       if (!Number.isFinite(parsed)) return;
       commitRange("max", parsed);
     },
-    [commitRange]
+    [commitRange, setDraftMax]
   );
 
   return (
@@ -997,8 +1135,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.min <= skillDefinition.min ||
-              filter.max - (filter.min - 1) > TRANSFER_SEARCH_MAX_SKILL_DELTA
+              filter.min <= skillDefinition.min
             }
             aria-label={`${messages.seniorTransferSearchMinLabel} -`}
           >
@@ -1012,7 +1149,15 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             step={1}
             value={filterIsInactive ? "-" : draftMin}
             onChange={handleMinInputChange}
-            onBlur={() => setDraftMin(String(filter.min))}
+            onBlur={() => {
+              if (!filter.skillKey) return;
+              const parsed = Number(draftMin);
+              if (!Number.isFinite(parsed)) {
+                setDraftMin(String(filter.min));
+                return;
+              }
+              commitRange("min", parsed);
+            }}
             disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMinLabel}
           />
@@ -1023,7 +1168,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.min >= Math.min(skillDefinition.max, filter.max)
+              filter.min >= skillDefinition.max
             }
             aria-label={`${messages.seniorTransferSearchMinLabel} +`}
           >
@@ -1046,13 +1191,8 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
           }
           const next = {
             skillKey: nextSkillKey,
-            ...resolveTransferSearchSkillRange(
-              nextSkillKey,
-              filter.min,
-              filter.max,
-              "max",
-              filter.max
-            ),
+            min: clampTransferSkillValue(nextSkillKey, filter.skillKey ? filter.min : 0),
+            max: clampTransferSkillValue(nextSkillKey, filter.skillKey ? filter.max : 0),
           };
           setDraftMin(String(next.min));
           setDraftMax(String(next.max));
@@ -1078,7 +1218,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("max", filter.max - 1)}
-            disabled={disabled || filterIsInactive || filter.max <= filter.min}
+            disabled={disabled || filterIsInactive || filter.max <= skillDefinition.min}
             aria-label={`${messages.seniorTransferSearchMaxLabel} -`}
           >
             -
@@ -1091,7 +1231,15 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             step={1}
             value={filterIsInactive ? "-" : draftMax}
             onChange={handleMaxInputChange}
-            onBlur={() => setDraftMax(String(filter.max))}
+            onBlur={() => {
+              if (!filter.skillKey) return;
+              const parsed = Number(draftMax);
+              if (!Number.isFinite(parsed)) {
+                setDraftMax(String(filter.max));
+                return;
+              }
+              commitRange("max", parsed);
+            }}
             disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMaxLabel}
           />
@@ -1102,8 +1250,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             disabled={
               disabled ||
               filterIsInactive ||
-              filter.max >= skillDefinition.max ||
-              filter.max + 1 - filter.min > TRANSFER_SEARCH_MAX_SKILL_DELTA
+              filter.max >= skillDefinition.max
             }
             aria-label={`${messages.seniorTransferSearchMaxLabel} +`}
           >
@@ -1117,12 +1264,14 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
 
 const TransferSearchModal = memo(function TransferSearchModal({
   open,
+  mode = "modal",
   messages,
   selectedPlayerName,
   selectedPlayerDetailPills,
   selectedPlayerDetailPillsInline,
   filters,
   displayCurrency,
+  countryOptions = [],
   skillSlotCount,
   loading,
   onUpdateSkillFilter,
@@ -1144,6 +1293,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
   quickBidUnavailableTooltip,
   quickBidPendingPlayerId,
   onQuickBid,
+  htmsPotentialFilter: controlledHtmsPotentialFilter,
+  onHtmsPotentialFilterChange,
+  onSaveAsProfile,
+  saveAsProfileLabel,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
@@ -1161,6 +1314,26 @@ const TransferSearchModal = memo(function TransferSearchModal({
     baseKey: filtersDraftKey,
     fields: filters ? buildTransferSearchDraftFields(filters) : null,
   });
+  const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
+    useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
+  const [validationIssue, setValidationIssue] =
+    useState<TransferSearchValidationIssue | null>(null);
+  const workspaceContentRef = useRef<HTMLDivElement | null>(null);
+  const [workspaceAvailableHeight, setWorkspaceAvailableHeight] =
+    useState<number | null>(null);
+  const htmsPotentialFilter =
+    controlledHtmsPotentialFilter ?? internalHtmsPotentialFilter;
+  const setHtmsPotentialFilter = useCallback(
+    (updater: (prev: TransferSearchHtmsPotentialFilter) => TransferSearchHtmsPotentialFilter) => {
+      const next = updater(htmsPotentialFilter);
+      if (onHtmsPotentialFilterChange) {
+        onHtmsPotentialFilterChange(next);
+        return;
+      }
+      setInternalHtmsPotentialFilter(next);
+    },
+    [htmsPotentialFilter, onHtmsPotentialFilterChange]
+  );
   const draftFields =
     draftState.baseKey === filtersDraftKey
       ? draftState.fields
@@ -1176,9 +1349,37 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const worlddetailsRequestedRef = useRef(false);
   const worlddetailsLoadedRef = useRef(false);
   const hasTransferSearchResults = results.length > 0;
+  const resolveResultHtmsPotential = useCallback(
+    (result: TransferSearchResult) =>
+      getTransferSearchSortValue(
+        getSortMetricInput
+          ? getSortMetricInput(result)
+          : buildTransferSearchMetricInput(result),
+        "htmsPotential"
+      ),
+    [getSortMetricInput]
+  );
+  const displayedResults = useMemo(
+    () =>
+      filterTransferSearchResultsByHtmsPotential(
+        results,
+        htmsPotentialFilter,
+        resolveResultHtmsPotential
+      ),
+    [htmsPotentialFilter, resolveResultHtmsPotential, results]
+  );
+  const htmsPotentialFilterActive =
+    hasActiveTransferSearchHtmsPotentialFilter(htmsPotentialFilter);
+  const displayedResultCountLabel =
+    htmsPotentialFilterActive && resultCountLabel
+      ? messages.seniorTransferSearchResultsCount.replace(
+          "{{count}}",
+          String(displayedResults.length)
+        )
+      : resultCountLabel;
   const marketSummary = useMemo(
-    () => buildTransferSearchMarketSummary(results),
-    [results]
+    () => buildTransferSearchMarketSummary(displayedResults),
+    [displayedResults]
   );
 
   const updateDraftField = useCallback(
@@ -1225,6 +1426,85 @@ const TransferSearchModal = memo(function TransferSearchModal({
     });
     return validated;
   }, [draftFields, filters, filtersDraftKey, onUpdateFilterField]);
+  const commitAndValidateCriteria = useCallback(() => {
+    const committedFilters = commitDraftFields();
+    if (!committedFilters) return null;
+    const issue = validateTransferSearchCriteria(committedFilters, messages);
+    if (issue) {
+      setValidationIssue(issue);
+      return null;
+    }
+    return committedFilters;
+  }, [commitDraftFields, messages]);
+  const handleSearchSubmit = useCallback(() => {
+    const committedFilters = commitAndValidateCriteria();
+    if (!committedFilters) return;
+    setMobilePanel("results");
+    onSearch(committedFilters);
+  }, [commitAndValidateCriteria, onSearch]);
+  const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
+  useEffect(() => {
+    if (!workspaceMode) return;
+    if (typeof window === "undefined") return;
+    const element = workspaceContentRef.current;
+    if (!element) return;
+
+    let animationFrame: number | null = null;
+    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const updateAvailableHeight = () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const isDesktop = desktopQuery.matches;
+        const isMobileShell =
+          document.documentElement.dataset.mobileShell === "true";
+        if (!isDesktop || isMobileShell) {
+          setWorkspaceAvailableHeight(null);
+          return;
+        }
+        const rect = element.getBoundingClientRect();
+        const bottomPadding = 24;
+        const nextHeight = Math.max(
+          360,
+          Math.floor(window.innerHeight - rect.top - bottomPadding)
+        );
+        setWorkspaceAvailableHeight((previous) =>
+          previous === nextHeight ? previous : nextHeight
+        );
+      });
+    };
+
+    updateAvailableHeight();
+    window.addEventListener("resize", updateAvailableHeight);
+    window.addEventListener("orientationchange", updateAvailableHeight);
+    desktopQuery.addEventListener("change", updateAvailableHeight);
+    const mobileShellObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(updateAvailableHeight);
+    mobileShellObserver?.observe(document.documentElement, {
+      attributeFilter: ["data-mobile-shell"],
+      attributes: true,
+    });
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateAvailableHeight);
+    resizeObserver?.observe(element);
+
+    return () => {
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      window.removeEventListener("resize", updateAvailableHeight);
+      window.removeEventListener("orientationchange", updateAvailableHeight);
+      desktopQuery.removeEventListener("change", updateAvailableHeight);
+      mobileShellObserver?.disconnect();
+      resizeObserver?.disconnect();
+    };
+  }, [workspaceMode]);
   useEffect(() => {
     if (
       !hasTransferSearchResults ||
@@ -1328,8 +1608,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
     [messages]
   );
   const sortedResults = useMemo(() => {
-    if (sortKey === "default") return results;
-    return [...results].sort((left, right) => {
+    if (sortKey === "default") return displayedResults;
+    return [...displayedResults].sort((left, right) => {
       const leftValue = getTransferSearchSortValue(
         getSortMetricInput ? getSortMetricInput(left) : buildTransferSearchMetricInput(left),
         sortKey
@@ -1344,7 +1624,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       if (rightValue !== leftValue) return rightValue - leftValue;
       return left.playerId - right.playerId;
     });
-  }, [getSortMetricInput, results, sortKey]);
+  }, [displayedResults, getSortMetricInput, sortKey]);
   const handleSortChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const nextValue = event.target.value;
@@ -1766,21 +2046,26 @@ const TransferSearchModal = memo(function TransferSearchModal({
     },
     []
   );
-
-  return (
-    <Modal
-      open={open}
-      title={messages.seniorTransferSearchModalTitle}
-      className={`${styles.transferSearchModal}${
-        resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
-      }`}
-      movable
-      body={
-        <div className={styles.transferSearchModalShell}>
+  const workspaceAvailableHeightStyle =
+    workspaceMode && workspaceAvailableHeight !== null
+      ? ({
+          "--transfer-search-workspace-available-height": `${workspaceAvailableHeight}px`,
+        } as CSSProperties)
+      : undefined;
+  const body = (
+        <div
+          className={`${workspaceMode ? styles.transferSearchWorkspaceShell : styles.transferSearchModalShell}${
+            mode === "mobileWorkspace" ? ` ${styles.transferSearchMobileWorkspaceShell}` : ""
+          }`}
+        >
           <div
-            className={`${styles.transferSearchModalContent}${
+            ref={workspaceContentRef}
+            className={`${workspaceMode ? styles.transferSearchWorkspaceContent : styles.transferSearchModalContent}${
+              mode === "mobileWorkspace" ? ` ${styles.transferSearchMobileWorkspaceContent}` : ""
+            }${
               resultsViewMode === "table" ? ` ${styles.transferSearchModalContentTableMode}` : ""
             }`}
+            style={workspaceAvailableHeightStyle}
           >
             <aside
               className={`${styles.transferSearchModalSidebar}${
@@ -1839,7 +2124,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         .sort();
                       return (
                         <TransferSearchSkillRow
-                          key={`${filter.skillKey ?? "none"}-${filter.min}-${filter.max}-${index}`}
+                          key={`${filter.skillKey ?? "none"}-${index}`}
                           filter={filter}
                           index={index}
                           selectedOtherSkillKeys={selectedOtherSkillKeys}
@@ -2055,15 +2340,98 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 </div>
 
+                <div className={styles.transferSearchSection}>
+                  <div className={styles.infoLabel}>
+                    {messages.transferSearchHtmsPotentialRangeLabel}
+                  </div>
+                  <div className={styles.transferSearchSimpleRange}>
+                    <input
+                      className={styles.transferSearchInput}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={messages.transferSearchHtmsPotentialMinLabel}
+                      value={htmsPotentialFilter.min}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        setHtmsPotentialFilter((prev) => ({
+                          ...prev,
+                          min: nextValue,
+                        }));
+                      }}
+                      disabled={loading}
+                    />
+                    <input
+                      className={styles.transferSearchInput}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={messages.transferSearchHtmsPotentialMaxLabel}
+                      value={htmsPotentialFilter.max}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        setHtmsPotentialFilter((prev) => ({
+                          ...prev,
+                          max: nextValue,
+                        }));
+                      }}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.transferSearchSection}>
+                  <label className={styles.infoLabel} htmlFor="transfer-search-native-country">
+                    {messages.transferSearchNativeCountryLabel}
+                  </label>
+                  <select
+                    id="transfer-search-native-country"
+                    className={styles.transferSearchInput}
+                    value={filters?.nativeCountryId === null ? "" : String(filters?.nativeCountryId ?? "")}
+                    onChange={(event) => {
+                      const rawValue = event.target.value;
+                      const nextValue = Number(rawValue);
+                      onUpdateFilterField(
+                        "nativeCountryId",
+                        rawValue === "" || !Number.isFinite(nextValue) || nextValue <= 0
+                          ? null
+                          : Math.round(nextValue)
+                      );
+                    }}
+                    disabled={loading || countryOptions.length === 0}
+                  >
+                    <option value="">
+                      {messages.seniorTransferSearchAnySpecialtyLabel}
+                    </option>
+                    {countryOptions.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className={styles.transferSearchSidebarActions}>
+                  {onSaveAsProfile ? (
+                    <button
+                      type="button"
+                      className={`${styles.confirmCancel} ${styles.transferSearchSaveProfileButton}`}
+                      onClick={() => {
+                        const committedFilters = commitAndValidateCriteria();
+                        if (!committedFilters) return;
+                        onSaveAsProfile(committedFilters);
+                      }}
+                      disabled={loading}
+                    >
+                      {saveAsProfileLabel ?? "Save as profile"}
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={styles.confirmSubmit}
-                    onClick={() => {
-                      const committedFilters = commitDraftFields();
-                      if (!committedFilters) return;
-                      onSearch(committedFilters);
-                    }}
+                    onClick={handleSearchSubmit}
                     disabled={loading}
                   >
                     {loading ? (
@@ -2094,8 +2462,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 <div className={styles.transferSearchResultsHeader}>
                   <div>
                     <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
-                    {resultCountLabel ? (
-                      <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                    {displayedResultCountLabel ? (
+                      <span className={styles.profileUpdated}>{displayedResultCountLabel}</span>
                     ) : null}
                   </div>
                   <div className={styles.transferSearchResultsHeaderControls}>
@@ -2150,7 +2518,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 ) : null}
                 {error ? <p className={styles.errorText}>{error}</p> : null}
-                {!loading && !error && results.length === 0 ? (
+                {!loading && !error && displayedResults.length === 0 ? (
                   <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
                 ) : null}
                 {resultsViewMode === "table" ? (
@@ -2371,7 +2739,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         (typeof nativeLeagueId === "number"
                           ? leagueFlagDisplayById[nativeLeagueId]
                           : undefined) ?? countryMeta?.flagDisplay;
-                      return renderResultCard(
+                      const renderedCard = renderResultCard(
                         result,
                         countryMeta || flagDisplay
                           ? {
@@ -2383,6 +2751,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
                             }
                           : null
                       );
+                      return (
+                        <Fragment key={`transfer-search-result-${result.playerId}`}>
+                          {renderedCard}
+                        </Fragment>
+                      );
                     })}
                   </div>
                 )}
@@ -2391,16 +2764,74 @@ const TransferSearchModal = memo(function TransferSearchModal({
             </div>
           </div>
         </div>
-      }
-      actions={
-        <button type="button" className={styles.confirmSubmit} onClick={onClose}>
-          {messages.seniorTransferSearchCloseButton}
-        </button>
-      }
-      closeOnBackdrop
-      onClose={onClose}
-    />
+  );
+
+  const validationModal =
+    validationIssue === null ? null : (
+      <Modal
+        open
+        title={
+          validationIssue.type === "skillRange"
+            ? messages.transferSearchInvalidSkillRangeTitle
+            : messages.transferSearchInvalidAgeRangeTitle
+        }
+        body={
+          <p className={styles.muted}>
+            {validationIssue.type === "skillRange"
+              ? messages.transferSearchInvalidSkillRangeBody
+                  .replace("{{skill}}", validationIssue.skillLabel)
+                  .replace("{{min}}", String(validationIssue.min))
+                  .replace("{{max}}", String(validationIssue.max))
+              : messages.transferSearchInvalidAgeRangeBody}
+          </p>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setValidationIssue(null)}
+          >
+            {validationIssue.type === "skillRange"
+              ? messages.transferSearchInvalidSkillRangeConfirm
+              : messages.transferSearchInvalidAgeRangeConfirm}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setValidationIssue(null)}
+      />
+    );
+
+  if (workspaceMode) {
+    return (
+      <>
+        {body}
+        {validationModal}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Modal
+        open={open}
+        title={messages.seniorTransferSearchModalTitle}
+        className={`${styles.transferSearchModal}${
+          resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
+        }`}
+        movable
+        body={body}
+        actions={
+          <button type="button" className={styles.confirmSubmit} onClick={onClose}>
+            {messages.seniorTransferSearchCloseButton}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={onClose}
+      />
+      {validationModal}
+    </>
   );
 });
 
 export default TransferSearchModal;
+export { TransferSearchModal as TransferSearchContent };

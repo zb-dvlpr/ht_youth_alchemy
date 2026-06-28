@@ -25,6 +25,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
 import VersionUpdateGate from "./VersionUpdateGate";
+import { TransferMarketActionBarSlotProvider } from "./TransferMarketActionBarSlot";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
 import { trackAnalyticsEvent } from "@/lib/analytics";
@@ -42,6 +43,10 @@ import {
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
 import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
+import {
+  MANUAL_OPEN_EVENT,
+  MOBILE_LAUNCHER_REQUEST_EVENT,
+} from "@/lib/mobileShellEvents";
 import { runStartupStorageHousekeeping } from "@/lib/storageHousekeeping";
 import {
   dismissReminder,
@@ -95,6 +100,10 @@ import {
   type ClubChronicleReminderContext,
   type ClubChronicleReminderContextEventDetail,
 } from "@/lib/reminders/clubChronicle";
+import {
+  TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT,
+  TRANSFER_MARKET_OPEN_PROFILES_EVENT,
+} from "@/lib/transferMarket/events";
 
 type AppShellProps = {
   messages: Messages;
@@ -102,6 +111,7 @@ type AppShellProps = {
   globalHeader: ReactNode;
   children: ReactNode;
   seniorTool: ReactNode;
+  transferMarketTool: ReactNode;
   initialSeniorTeams?: Array<{
     teamId: number;
     teamName: string;
@@ -122,7 +132,7 @@ type AppShellProps = {
   mobileLauncherUtility?: ReactNode;
 };
 
-type ToolId = "youth" | "senior" | "chronicle";
+type ToolId = "youth" | "senior" | "chronicle" | "transferMarket";
 type ToolSelectionSource = "desktop_sidebar" | "mobile_launcher";
 
 type ViewStateSnapshot = {
@@ -164,10 +174,10 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
-const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
 const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
-const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
+const MOBILE_LAYOUT_MAX_WIDTH = 900;
+const MOBILE_LAYOUT_MEDIA_QUERY = `(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`;
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const YOUTH_DASHBOARD_STATE_STORAGE_KEY = "ya_dashboard_state_v2";
 
@@ -189,6 +199,46 @@ const parseBuyCoffeePromptSource = (
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isMobileLayoutViewport = () => {
+  if (typeof window === "undefined") return false;
+
+  const visualViewportWidth = window.visualViewport?.width;
+  const cssViewportMobile =
+    window.matchMedia?.(MOBILE_LAYOUT_MEDIA_QUERY).matches === true ||
+    window.innerWidth <= MOBILE_LAYOUT_MAX_WIDTH ||
+    (typeof visualViewportWidth === "number" &&
+      visualViewportWidth <= MOBILE_LAYOUT_MAX_WIDTH);
+
+  const screenWidth = window.screen?.width;
+  const screenHeight = window.screen?.height;
+  const physicalScreenMin = Math.min(
+    typeof screenWidth === "number" && screenWidth > 0
+      ? screenWidth
+      : Number.POSITIVE_INFINITY,
+    typeof screenHeight === "number" && screenHeight > 0
+      ? screenHeight
+      : Number.POSITIVE_INFINITY
+  );
+
+  const coarsePointer =
+    window.matchMedia?.("(pointer: coarse)").matches === true ||
+    navigator.maxTouchPoints > 0;
+
+  const noHover = window.matchMedia?.("(hover: none)").matches === true;
+  const phoneOrSmallTabletInDesktopSiteMode =
+    physicalScreenMin <= MOBILE_LAYOUT_MAX_WIDTH && coarsePointer && noHover;
+
+  return cssViewportMobile || phoneOrSmallTabletInDesktopSiteMode;
+};
+
+const normalizeToolId = (value: unknown): ToolId =>
+  value === "chronicle" ||
+  value === "senior" ||
+  value === "transferMarket" ||
+  value === "youth"
+    ? value
+    : "youth";
 
 const resolveSeniorDashboardDataStorageKey = (
   teamId: number | null,
@@ -231,6 +281,7 @@ export default function AppShell({
   globalHeader,
   children,
   seniorTool,
+  transferMarketTool,
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
   initialYouthTeams = [],
@@ -258,6 +309,8 @@ export default function AppShell({
   const [showManual, setShowManual] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
+  const [transferMarketActionBarSlot, setTransferMarketActionBarSlot] =
+    useState<ReactNode | null>(null);
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
   const [buyCoffeePromptSource, setBuyCoffeePromptSource] =
     useState<BuyCoffeePromptSource>("unknown");
@@ -349,11 +402,17 @@ export default function AppShell({
         label: messages.toolClubChronicle,
         icon: "📰",
       },
+      {
+        id: "transferMarket" as const,
+        label: messages.toolTransferMarket,
+        icon: "🔍",
+      },
     ],
     [
       messages.toolClubChronicle,
       messages.toolSeniorBadge,
       messages.toolSeniorOptimization,
+      messages.toolTransferMarket,
       messages.toolYouthBadge,
       messages.toolYouthOptimization,
     ]
@@ -1017,11 +1076,12 @@ export default function AppShell({
   }, [chppAccessBlock]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
-    const apply = (matches: boolean) => {
-      setMobileLayoutActive(matches);
-      if (!matches) {
+    if (typeof window === "undefined") return;
+
+    const applyMobileLayoutState = () => {
+      const nextMobileLayoutActive = isMobileLayoutViewport();
+      setMobileLayoutActive(nextMobileLayoutActive);
+      if (!nextMobileLayoutActive) {
         setMobileLauncherOpen(false);
         return;
       }
@@ -1031,15 +1091,41 @@ export default function AppShell({
       }
     };
 
-    apply(mediaQuery.matches);
+    applyMobileLayoutState();
 
-    const handleChange = (event: MediaQueryListEvent) => apply(event.matches);
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleChange);
-      return () => mediaQuery.removeEventListener("change", handleChange);
+    const mediaQuery =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY)
+        : null;
+    const visualViewport = window.visualViewport ?? null;
+    const screenOrientation = window.screen?.orientation ?? null;
+    const handleViewportChange = () => {
+      applyMobileLayoutState();
+    };
+
+    if (mediaQuery) {
+      if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", handleViewportChange);
+      } else {
+        mediaQuery.addListener(handleViewportChange);
+      }
     }
-    mediaQuery.addListener(handleChange);
-    return () => mediaQuery.removeListener(handleChange);
+    window.addEventListener("resize", handleViewportChange);
+    visualViewport?.addEventListener("resize", handleViewportChange);
+    screenOrientation?.addEventListener?.("change", handleViewportChange);
+
+    return () => {
+      if (mediaQuery) {
+        if (typeof mediaQuery.removeEventListener === "function") {
+          mediaQuery.removeEventListener("change", handleViewportChange);
+        } else {
+          mediaQuery.removeListener(handleViewportChange);
+        }
+      }
+      window.removeEventListener("resize", handleViewportChange);
+      visualViewport?.removeEventListener("resize", handleViewportChange);
+      screenOrientation?.removeEventListener?.("change", handleViewportChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -1071,13 +1157,7 @@ export default function AppShell({
         | { appShell?: "launcher" | "tool"; tool?: ToolId }
         | null;
       if (state?.appShell === "tool" && state.tool) {
-        setActiveTool(
-          state.tool === "chronicle"
-            ? "chronicle"
-            : state.tool === "senior"
-            ? "senior"
-            : "youth"
-        );
+        setActiveTool(normalizeToolId(state.tool));
         setMobileLauncherOpen(false);
         return;
       }
@@ -1190,25 +1270,13 @@ export default function AppShell({
             Date.now() - Number(parsed.capturedAt ?? 0) <= 2 * 60 * 1000
           ) {
             setCollapsed(Boolean(parsed.collapsed));
-            setActiveTool(
-              parsed.activeTool === "chronicle"
-                ? "chronicle"
-                : parsed.activeTool === "senior"
-                  ? "senior"
-                  : "youth"
-            );
+            setActiveTool(normalizeToolId(parsed.activeTool));
             return;
           }
           window.localStorage.removeItem(APP_SHELL_VIEW_STATE_KEY);
         }
         const stored = window.localStorage.getItem(APP_SHELL_ACTIVE_TOOL_KEY);
-        setActiveTool(
-          stored === "chronicle"
-            ? "chronicle"
-            : stored === "senior"
-              ? "senior"
-              : "youth"
-        );
+        setActiveTool(normalizeToolId(stored));
         const collapsedStored = window.localStorage.getItem(
           APP_SHELL_COLLAPSED_KEY
         );
@@ -1445,8 +1513,8 @@ export default function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => setShowManual(true);
-    window.addEventListener("ya:manual-open", handler);
-    return () => window.removeEventListener("ya:manual-open", handler);
+    window.addEventListener(MANUAL_OPEN_EVENT, handler);
+    return () => window.removeEventListener(MANUAL_OPEN_EVENT, handler);
   }, []);
 
   const selectTool = useCallback((toolId: ToolId) => {
@@ -1475,13 +1543,7 @@ export default function AppShell({
       if (!(event instanceof CustomEvent)) return;
       const detail = event.detail as { tool?: ToolId } | undefined;
       if (!detail?.tool) return;
-      selectTool(
-        detail.tool === "chronicle"
-          ? "chronicle"
-          : detail.tool === "senior"
-            ? "senior"
-            : "youth"
-      );
+      selectTool(normalizeToolId(detail.tool));
     };
     window.addEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
     return () => window.removeEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
@@ -1536,6 +1598,10 @@ export default function AppShell({
   const headerChildren = useMemo(() => Children.toArray(globalHeader), [globalHeader]);
   const youthToolChildren = useMemo(() => Children.toArray(children), [children]);
   const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
+  const transferMarketToolChildren = useMemo(
+    () => Children.toArray(transferMarketTool),
+    [transferMarketTool]
+  );
 
   const handleBuyCoffeeLater = () => {
     trackAnalyticsEvent("coffee_flow", {
@@ -1680,6 +1746,7 @@ export default function AppShell({
   return (
     <DisplayCurrencyProvider>
     <ReminderBellSlotProvider bell={reminderBell}>
+    <TransferMarketActionBarSlotProvider setSlot={setTransferMarketActionBarSlot}>
       <div
         className={styles.shellFrame}
         data-mobile-layout={mobileLayoutActive ? "true" : "false"}
@@ -1849,6 +1916,44 @@ export default function AppShell({
           ) : null}
         </div>
       ) : null}
+      {!mobileLauncherOpen &&
+      !mobileLayoutActive &&
+      activeTool === "transferMarket" ? (
+        <div className={`${styles.shellContextBar} ${styles.transferMarketContextBar}`}>
+          <div className={styles.youthActionBarActions}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT)
+                )
+              }
+            >
+              {messages.transferMarketPastSearchesButton}
+            </button>
+          </div>
+          <Tooltip content={messages.transferMarketProfilesTooltip}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(TRANSFER_MARKET_OPEN_PROFILES_EVENT)
+                )
+              }
+              aria-label={messages.transferMarketProfilesAriaLabel}
+            >
+              ☰
+            </button>
+          </Tooltip>
+          {transferMarketActionBarSlot ? (
+            <div className={styles.transferMarketContextBarSlot}>
+              {transferMarketActionBarSlot}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {mobileLayoutActive && !mobileLauncherOpen ? mobileNavTrail : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
         {mobileLayoutActive ? (
@@ -1886,6 +1991,7 @@ export default function AppShell({
                   primarySeniorTeamCountryId={primarySeniorTeamCountryId}
                 />
               ) : null}
+              {activeTool === "transferMarket" ? transferMarketToolChildren : null}
             </>
           )
         ) : (
@@ -1898,6 +2004,7 @@ export default function AppShell({
                 primarySeniorTeamCountryId={primarySeniorTeamCountryId}
               />
             ) : null}
+            {activeTool === "transferMarket" ? transferMarketToolChildren : null}
           </>
         )}
       </section>
@@ -2069,6 +2176,7 @@ export default function AppShell({
       />
       <VersionUpdateGate appVersion={appVersion} messages={messages} />
       </div>
+    </TransferMarketActionBarSlotProvider>
     </ReminderBellSlotProvider>
     </DisplayCurrencyProvider>
   );

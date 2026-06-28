@@ -35,6 +35,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   min-height: 100%;
 }
 
+@media (max-width: 900px) {
+  .main {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .scaleContainer {
+    transform: none;
+    width: 100%;
+    min-height: 100%;
+  }
+}
+
 .chppAccessPage,
 .chppAccessGate {
   min-height: 100dvh;
@@ -1320,6 +1334,43 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   border-radius: 12px;
   background: #f4efe6;
   box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
+}
+
+.transferMarketContextBar {
+  gap: 10px;
+}
+
+.transferMarketContextBarSlot {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.transferMarketContextTeamSelect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.transferMarketContextTeamSelect .infoLabel {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.transferMarketContextTeamSelectInput {
+  width: auto;
+  min-width: 160px;
+  max-width: 260px;
+  min-height: 30px;
+  padding: 5px 30px 5px 10px;
+  border-radius: 999px;
+  background: #fffaf2;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .topBar {
@@ -7266,6 +7317,12 @@ html[data-theme="dark"] .profileCard {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .detailsNotice {
+  background: rgba(138, 108, 58, 0.22);
+  border-color: rgba(222, 188, 130, 0.38);
+  color: #f2dfbc;
+}
+
 html[data-theme="dark"] .profileMeta,
 html[data-theme="dark"] .infoLabel {
   color: #b9b0a5;
@@ -8752,12 +8809,67 @@ html[data-theme="dark"] .spinner {
   border-radius: 16px;
   background: #fdfbf7;
   border: 1px solid #efe6d9;
-  padding: 0 20px 18px;
+  padding: 14px 20px 18px;
   position: relative;
 }
 
-.profileCardWithHeaderActions {
-  padding-top: 14px;
+.profileCardTopActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.profileCardLeftActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.detailsNavigationCorner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.detailsNotice {
+  margin: 0 0 10px;
+  border: 1px solid #d6c3a9;
+  border-radius: 8px;
+  background: #f7efe3;
+  color: #5a4934;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.seniorDetailsActionGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.observedSeniorPlayerClearButton {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.observedSeniorPlayerForm {
+  display: grid;
+  gap: 8px;
+  min-width: min(320px, 72vw);
 }
 
 .profileHeader {
@@ -8966,22 +9078,6 @@ html[data-theme="dark"] .spinner {
   font-size: 13px;
 }
 
-.detailsRefreshCorner {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  gap: 6px;
-}
-
-.profileCardWithHeaderActions .detailsRefreshCorner {
-  position: static;
-  justify-content: flex-end;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
 .youthEstimateValueButton {
   border-radius: 8px;
   padding: 6px 10px;
@@ -8994,14 +9090,21 @@ html[data-mobile-shell="true"] .mobileYouthContent .profileCard {
   padding-top: 16px;
 }
 
-html[data-mobile-shell="true"] .mobileYouthContent .detailsRefreshCorner {
-  position: static;
+html[data-mobile-shell="true"] .mobileYouthContent .profileCardTopActions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .profileCardLeftActions {
+  flex: 1 1 160px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .detailsNavigationCorner {
+  flex: 0 0 auto;
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .detailsHeaderAux {
@@ -9117,6 +9220,56 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   max-height: 100%;
   min-height: 0;
   min-width: 0;
+}
+
+.transferMarketTool {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding: 16px;
+}
+
+.transferMarketHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.transferMarketTeamSelect {
+  display: grid;
+  gap: 4px;
+  max-width: 360px;
+}
+
+.transferMarketMobileActionRow {
+  display: none;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.transferMarketMobileMenu {
+  display: none;
+}
+
+.transferSearchWorkspaceShell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.transferSearchWorkspaceContent {
+  display: grid;
+  grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
+  gap: 18px;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
 }
 
 .transferSearchModalContent {
@@ -9387,8 +9540,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 
 .transferSearchSidebarActions {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
+  align-items: stretch;
+  flex-wrap: wrap;
   margin-top: 6px;
+}
+
+.transferSearchSaveProfileButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  text-align: center;
 }
 
 .transferSearchFallbackNotice {
@@ -9575,6 +9739,55 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font-size: 13px;
   line-height: 1.2;
   overflow-wrap: anywhere;
+}
+
+@media (min-width: 901px) {
+  html:not([data-mobile-shell="true"]) .transferSearchWorkspaceContent {
+    align-items: stretch;
+    height: var(--transfer-search-workspace-available-height, auto);
+    max-height: var(--transfer-search-workspace-available-height, none);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
+    .transferSearchModalSidebar {
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
+    .transferSearchResultsStack {
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
+    .transferSearchModalResults:not(.transferSearchModalResultsTableMode) {
+    display: block;
+    max-height: 100%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  html:not([data-mobile-shell="true"])
+    .transferSearchWorkspaceContent
+    .transferSearchResultsList {
+    display: grid;
+    gap: 14px;
+    min-height: auto;
+    overflow: visible;
+    padding-right: 4px;
+  }
 }
 
 .transferSearchMarketDistribution {
@@ -9850,6 +10063,65 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   grid-area: maxBidAction;
 }
 
+.transferMarketListModal {
+  width: min(1100px, calc(100vw - 64px));
+  max-width: calc(100vw - 64px);
+}
+
+.transferMarketListBody {
+  display: grid;
+  gap: 10px;
+  max-height: min(78vh, 760px);
+  overflow: auto;
+  padding: 2px 4px 2px 0;
+}
+
+.transferMarketListRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e8dece;
+  border-radius: 8px;
+  background: #fbf7f0;
+  padding: 10px;
+}
+
+.transferMarketListRowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.transferMarketSaveProfileBody,
+.transferMarketProfileNameField {
+  display: grid;
+  gap: 8px;
+}
+
+.transferMarketModalSecondaryButton {
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid #c8b8a3;
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #5b4a37;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.transferMarketModalSecondaryButton:hover,
+.transferMarketModalSecondaryButton:focus-visible {
+  background: #f5ede2;
+  border-color: #a99070;
+}
+
 html[data-mobile-shell="true"] .transferSearchBidGrid {
   grid-template-columns: 1fr;
   grid-template-areas:
@@ -9857,6 +10129,169 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
     "bidAction"
     "maxBidField"
     "maxBidAction";
+}
+
+html[data-mobile-shell="true"] .transferMarketTool {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 8px 8px max(96px, calc(72px + env(safe-area-inset-bottom)));
+}
+
+html[data-mobile-shell="true"] .transferMarketHeader {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .transferMarketMobileActionRow {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .transferMarketTeamSelect {
+  display: none;
+  max-width: none;
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferMarketMobileMenu {
+  display: contents;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceShell,
+html[data-mobile-shell="true"] .transferSearchWorkspaceContent {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent {
+  display: block;
+  gap: 0;
+  height: auto;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent
+  [data-transfer-search-mobile-panel][data-transfer-search-mobile-active="false"] {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchMobilePanelNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchModalSidebar,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchModalResults,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchMarketSummary {
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  border-radius: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsStack {
+  display: block;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchCriteriaGrid,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchRangeGrid,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSimpleRange,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchBidGrid {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSkillRow {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchValueGroup {
+  justify-items: start;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchValueStepper {
+  grid-template-columns: 28px 52px 28px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultHeader,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchSidebarHeader,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsHeader {
+  grid-template-columns: 1fr;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsHeaderControls {
+  width: 100%;
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchResultsSortControl,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchViewToggle {
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchPriceBlock {
+  width: 100%;
+  justify-items: start;
+  text-align: left;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchTableShell {
+  height: auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .transferSearchTableScroller,
+html[data-mobile-shell="true"] .transferSearchMobileWorkspaceContent .seniorPsicoTableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html[data-mobile-shell="true"] .transferSearchSidebarActions {
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferSearchSidebarActions > button {
+  flex: 1 1 160px;
+}
+
+html[data-mobile-shell="true"] .transferMarketListRow {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .transferMarketListModal {
+  width: calc(100vw - 24px);
+  max-width: calc(100vw - 24px);
+}
+
+html[data-mobile-shell="true"] .transferMarketListBody {
+  max-height: min(70dvh, 620px);
+}
+
+html[data-mobile-shell="true"] .transferMarketListRowActions {
+  justify-content: stretch;
+}
+
+html[data-mobile-shell="true"] .transferMarketListRowActions > button {
+  flex: 1 1 140px;
 }
 
 .injuryStatusSymbol {

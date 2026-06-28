@@ -47,6 +47,7 @@ import TransferSearchModal, {
   TRANSFER_SEARCH_SKILLS,
   type TransferSearchBidDraft,
   type TransferSearchFilters,
+  type TransferSearchHtmsPotentialFilter,
   type TransferSearchResult,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchResultsViewMode,
@@ -55,6 +56,7 @@ import TransferSearchModal, {
   type TransferSearchSkillKey,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
+import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import OriginFlag from "./OriginFlag";
 import { formatSekCurrency, getDisplayCurrencyLabel } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
@@ -65,6 +67,7 @@ import {
 } from "@/lib/positions";
 import { parseChppDate } from "@/lib/chpp/utils";
 import { formatDateTime } from "@/lib/datetime";
+import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 import {
   getAutoSelection,
   getTrainingForStar,
@@ -337,6 +340,7 @@ type DashboardProps = {
   ratingsResponse: RatingsMatrixResponse | null;
   initialYouthTeams?: YouthTeamOption[];
   initialYouthTeamId?: number | null;
+  managerScopeId?: string | number | null;
   appVersion: string;
   messages: Messages;
   isConnected: boolean;
@@ -1035,12 +1039,14 @@ export default function Dashboard({
   ratingsResponse,
   initialYouthTeams = [],
   initialYouthTeamId = null,
+  managerScopeId = null,
   messages,
   isConnected,
   initialLoadError = null,
   initialLoadDetails = null,
 }: DashboardProps) {
-  const { resolveForCountry } = useDisplayCurrency();
+  const { countryOptions: transferSearchCountryOptions, resolveForCountry } =
+    useDisplayCurrency();
   const trackYouthFeatureUsed = useCallback(
     (feature: YouthFeatureAnalyticsName, source: YouthFeatureAnalyticsSource) => {
       trackAnalyticsEvent("youth_feature_used", {
@@ -1108,6 +1114,8 @@ export default function Dashboard({
     useState<TransferSearchSortKey>("default");
   const [transferSearchResultsViewMode, setTransferSearchResultsViewMode] =
     useState<TransferSearchResultsViewMode>("cards");
+  const [transferSearchHtmsPotentialFilter, setTransferSearchHtmsPotentialFilter] =
+    useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchExactEmpty, setTransferSearchExactEmpty] = useState(false);
@@ -1574,6 +1582,23 @@ export default function Dashboard({
   }, [resolvedYouthTeamId]);
   const displayCurrency = resolveForCountry(activeYouthTeamOption?.countryId ?? null);
   const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
+  const transferMarketScopeKey = useMemo(
+    () =>
+      buildTransferMarketScopeKey({
+        managerId: managerScopeId,
+        teamId: resolvedSeniorTeamId,
+      }),
+    [managerScopeId, resolvedSeniorTeamId]
+  );
+  const {
+    openSaveProfile: openYouthTransferSearchSaveProfile,
+    saveProfileModal: youthTransferSearchSaveProfileModal,
+  } = useTransferMarketProfileSave({
+    messages,
+    scopeKey: transferMarketScopeKey,
+    displayCurrency,
+    htmsPotentialFilter: transferSearchHtmsPotentialFilter,
+  });
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
     number | null
   >(null);
@@ -2079,6 +2104,7 @@ export default function Dashboard({
     return normalizeTransferSearchFilters({
       skillFilters,
       specialty,
+      nativeCountryId: null,
       ageMinYears: String(ageMin.years),
       ageMinDays: String(ageMin.days),
       ageMaxYears: String(ageMax.years),
@@ -4022,6 +4048,7 @@ export default function Dashboard({
     if (!initialFilters) return;
     setTransferSearchSourcePlayerId(selectedPlayer.YouthPlayerID);
     setTransferSearchResultsViewMode("cards");
+    setTransferSearchHtmsPotentialFilter({ min: "", max: "" });
     setTransferSearchModalOpen(true);
     void runTransferSearch(initialFilters, {
       allowAutoFallback: true,
@@ -7745,6 +7772,7 @@ export default function Dashboard({
         selectedPlayerDetailPillsInline
         filters={transferSearchFilters}
         displayCurrency={displayCurrency}
+        countryOptions={transferSearchCountryOptions}
         skillSlotCount={4}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
@@ -7752,6 +7780,10 @@ export default function Dashboard({
         onSearch={(filters) => {
           void runTransferSearch(filters);
         }}
+        htmsPotentialFilter={transferSearchHtmsPotentialFilter}
+        onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
+        onSaveAsProfile={openYouthTransferSearchSaveProfile}
+        saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
         resultCountLabel={transferSearchResultCountLabel}
         exactEmpty={transferSearchExactEmpty}
         fallbackNotice={messages.youthEstimateValueFallbackNotice}
@@ -7779,6 +7811,7 @@ export default function Dashboard({
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
       />
+      {youthTransferSearchSaveProfileModal}
       <Modal
         open={Boolean(serviceErrorModal)}
         title={serviceErrorModal?.title ?? messages.unableToLoadPlayers}

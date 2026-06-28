@@ -22,7 +22,6 @@ import {
   reconnectChppWithTokenReset,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
-import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
@@ -93,22 +92,21 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
-  formatTransferSearchCurrencyLabel,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
+  type TransferSearchHtmsPotentialFilter,
   type TransferSearchTableRowData,
 } from "./TransferSearchModal";
 import {
   displayAmountToSek,
   formatSekCurrency,
-  getDisplayCurrencyLabel,
   sekToDisplayAmount,
   type DisplayCurrency,
 } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
-import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
-import PlayerStatementQuote from "./PlayerStatementQuote";
+import TransferSearchResultCard from "./TransferSearchResultCard";
+import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
@@ -121,7 +119,6 @@ import {
 import { readGlobalSeason } from "@/lib/season";
 import {
   captureSeniorEncounteredPlayer,
-  predictSeniorEncounteredPlayerWage,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
 import {
@@ -146,6 +143,7 @@ import {
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
 import { resolveOpponentTeam } from "@/lib/matches/visibility";
+import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -235,6 +233,18 @@ type SkillValue = {
 type PlayerDetailCacheEntry = {
   data: SeniorPlayerDetails;
   fetchedAt: number;
+};
+
+type ObservedSeniorSelectionSnapshot = {
+  selectedId: number | null;
+  activeDetailsTab: PlayerDetailsPanelTab;
+};
+
+type ObservedSeniorPlayerState = {
+  player: SeniorPlayer;
+  details: SeniorPlayerDetails;
+  fetchedAt: number;
+  restore: ObservedSeniorSelectionSnapshot;
 };
 
 type SeniorLeagueOrigin = {
@@ -380,6 +390,7 @@ type SeniorDashboardProps = {
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
+  managerScopeId?: string | null;
 };
 
 type MobileSeniorPlayerScreen = "root" | "list" | "detail";
@@ -636,6 +647,7 @@ type TransferSearchSkillFilter = {
 type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
+  nativeCountryId: number | null;
   ageMinYears: string;
   ageMinDays: string;
   ageMaxYears: string;
@@ -1697,6 +1709,7 @@ const buildInitialTransferSearchFilters = (
         : typeof player.Specialty === "number"
         ? player.Specialty
         : 0,
+    nativeCountryId: null,
     ageMinYears: String(ageMin.years),
     ageMinDays: String(ageMin.days),
     ageMaxYears: String(ageMax.years),
@@ -1859,6 +1872,7 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
   );
   const normalizedMinAge = totalDaysToAge(Math.min(minAgeTotal, maxAgeTotal));
   const normalizedMaxAge = totalDaysToAge(Math.max(minAgeTotal, maxAgeTotal));
+  const nativeCountryId = Number(filters.nativeCountryId);
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
@@ -1870,18 +1884,20 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
       }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
-      const normalizedMin = Math.min(clampedMin, clampedMax);
-      const normalizedMax = Math.max(clampedMin, clampedMax);
       return {
         ...filter,
-        min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + 3),
+        min: clampedMin,
+        max: clampedMax,
       };
     }),
     ageMinYears: String(normalizedMinAge.years),
     ageMinDays: String(normalizedMinAge.days),
     ageMaxYears: String(normalizedMaxAge.years),
     ageMaxDays: String(normalizedMaxAge.days),
+    nativeCountryId:
+      Number.isFinite(nativeCountryId) && nativeCountryId > 0
+        ? Math.round(nativeCountryId)
+        : null,
     tsiMin: String(filters.tsiMin ?? "").trim(),
     tsiMax: String(filters.tsiMax ?? "").trim(),
     priceMinDisplay: String(filters.priceMinDisplay ?? "").trim(),
@@ -1926,6 +1942,9 @@ const buildTransferSearchParams = (
 
   if (normalized.specialty !== null) {
     params.set("specialty", String(normalized.specialty));
+  }
+  if (normalized.nativeCountryId !== null) {
+    params.set("nativeCountryId", String(normalized.nativeCountryId));
   }
 
   const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
@@ -2053,25 +2072,6 @@ const formatTransferSearchBidDraftDisplay = (
   if (typeof valueSek === "string") return valueSek;
   const displayAmount = sekToDisplayAmount(valueSek, displayCurrency);
   return displayAmount === null ? "" : String(Math.ceil(displayAmount));
-};
-
-const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) => {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  return trimmed
-    .replace(/\b[Pp]opular guy\b/g, (match) =>
-      match[0] === "P" ? "Popular person" : "popular person"
-    )
-    .replace(/\b[Ss]ympathetic guy\b/g, (match) =>
-      match[0] === "S" ? "Sympathetic person" : "sympathetic person"
-    )
-    .replace(/\b[Pp]leasant guy\b/g, (match) =>
-      match[0] === "P" ? "Pleasant person" : "pleasant person"
-    )
-    .replace(/\b[Nn]asty fellow\b/g, (match) =>
-      match[0] === "N" ? "Nasty person" : "nasty person"
-    );
 };
 
 const computeSeniorEffectiveSkill = (
@@ -2935,50 +2935,6 @@ const metricPillStyle = (
   };
 };
 
-const seniorBarGradient = (
-  value: number | null,
-  minSkillLevel: number,
-  maxSkillLevel: number
-) => {
-  if (value === null || value === undefined) return undefined;
-  if (maxSkillLevel <= minSkillLevel) return undefined;
-  const t = Math.min(
-    1,
-    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
-  );
-  if (t >= 1) {
-    return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
-  }
-  if (t <= 0) {
-    return "linear-gradient(90deg, #cf3f3a, #8b241f)";
-  }
-  const startHue = 6 + (136 - 6) * t;
-  const startSat = 72 - 8 * t;
-  const startLight = 49 - 9 * t;
-  const endHue = 2 + (145 - 2) * t;
-  const endSat = 66 - 10 * t;
-  const endLight = 33 - 5 * t;
-  const startColor = `hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%)`;
-  const endColor = `hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%)`;
-  return `linear-gradient(90deg, ${startColor}, ${endColor})`;
-};
-
-const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
-  if (
-    typeof actualSek !== "number" ||
-    !Number.isFinite(actualSek) ||
-    actualSek <= 0 ||
-    typeof predictedSek !== "number" ||
-    !Number.isFinite(predictedSek)
-  ) {
-    return null;
-  }
-  const diffPercent = ((predictedSek - actualSek) / actualSek) * 100;
-  const rounded = Math.round((diffPercent + Number.EPSILON) * 10) / 10;
-  const sign = rounded > 0 ? "+" : "";
-  return `${sign}${rounded.toFixed(1)}%`;
-};
-
 const resolveTransferSearchSalaryForSelectedTeam = (
   salarySek: number | null | undefined,
   currentForeign: boolean | null | undefined,
@@ -3711,11 +3667,13 @@ export default function SeniorDashboard({
   messages,
   initialSeniorTeams = [],
   initialSeniorTeamId = null,
+  managerScopeId = null,
 }: SeniorDashboardProps) {
   const isDevBuild = process.env.NODE_ENV !== "production";
   const showSetBestLineupDebugModal = isDevBuild;
   const { addNotification } = useNotifications();
-  const { resolveForCountry } = useDisplayCurrency();
+  const { countryOptions: transferSearchCountryOptions, resolveForCountry } =
+    useDisplayCurrency();
   const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
   const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
     initialSeniorTeamId
@@ -3746,6 +3704,11 @@ export default function SeniorDashboard({
     Record<number, SeniorLeagueOrigin>
   >({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [observedSeniorPlayer, setObservedSeniorPlayer] =
+    useState<ObservedSeniorPlayerState | null>(null);
+  const [enterSeniorPlayerIdOpen, setEnterSeniorPlayerIdOpen] = useState(false);
+  const [enterSeniorPlayerIdValue, setEnterSeniorPlayerIdValue] = useState("");
+  const [enterSeniorPlayerIdLoading, setEnterSeniorPlayerIdLoading] = useState(false);
   const [selectedPlayerSimulationState, setSelectedPlayerSimulationState] = useState<{
     dirty: boolean;
     metricInput: SeniorPlayerMetricInput | null;
@@ -3952,6 +3915,8 @@ export default function SeniorDashboard({
     useState<TransferSearchSortKey>("default");
   const [transferSearchResultsViewMode, setTransferSearchResultsViewMode] =
     useState<TransferSearchResultsViewMode>("cards");
+  const [transferSearchHtmsPotentialFilter, setTransferSearchHtmsPotentialFilter] =
+    useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchUsedFallback, setTransferSearchUsedFallback] = useState(false);
@@ -4173,6 +4138,8 @@ export default function SeniorDashboard({
   const otherOrdersFlashArmedRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
   const startingXiCompleteRef = useRef(false);
+  const previousOtherOrdersLineupSignatureRef = useRef<string | null>(null);
+  const otherOrdersLineupSignatureRef = useRef("");
   const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
@@ -4193,12 +4160,23 @@ export default function SeniorDashboard({
     SeniorSalaryIncreaseEvent[]
   >([]);
 
-  const selectedPlayer =
+  const selectedOwnPlayer =
     selectedId !== null
       ? players.find((player) => player.PlayerID === selectedId) ?? null
       : null;
+  const observedSeniorPlayerActive =
+    selectedOwnPlayer === null &&
+    selectedId !== null &&
+    observedSeniorPlayer?.player.PlayerID === selectedId;
+  const selectedPlayer =
+    selectedOwnPlayer ??
+    (observedSeniorPlayerActive ? observedSeniorPlayer.player : null);
   const selectedDetails =
-    selectedId !== null ? detailsCache[selectedId]?.data ?? null : null;
+    selectedOwnPlayer && selectedId !== null
+      ? detailsCache[selectedId]?.data ?? null
+      : observedSeniorPlayerActive
+        ? observedSeniorPlayer.details
+        : null;
   const multiTeamEnabled = seniorTeams.length > 1;
   const activeSeniorTeamId = multiTeamEnabled ? selectedSeniorTeamId : null;
   const activeSeniorTeamOption = useMemo(() => {
@@ -4219,6 +4197,21 @@ export default function SeniorDashboard({
     resolvedSeniorTeamIdRef.current = resolvedSeniorTeamId;
   }, [resolvedSeniorTeamId]);
   const displayCurrency = resolveForCountry(activeSeniorTeamOption?.countryId ?? null);
+  const transferMarketScopeKey = useMemo(
+    () =>
+      buildTransferMarketScopeKey({
+        managerId: managerScopeId ?? lineupExclusionsUserKey,
+        teamId: resolvedSeniorTeamId,
+      }),
+    [lineupExclusionsUserKey, managerScopeId, resolvedSeniorTeamId]
+  );
+  const { openSaveProfile: openTransferSearchSaveProfile, saveProfileModal } =
+    useTransferMarketProfileSave({
+      messages,
+      scopeKey: transferMarketScopeKey,
+      displayCurrency,
+      htmsPotentialFilter: transferSearchHtmsPotentialFilter,
+    });
   const formatDisplayCurrencyFromSek = useCallback(
     (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
     [displayCurrency]
@@ -4350,10 +4343,24 @@ export default function SeniorDashboard({
       ),
     [activeSeniorTeamId, multiTeamEnabled]
   );
+  const persistedSeniorSelectedId =
+    observedSeniorPlayerActive && observedSeniorPlayer
+      ? observedSeniorPlayer.restore.selectedId !== null &&
+        players.some((player) => player.PlayerID === observedSeniorPlayer.restore.selectedId)
+        ? observedSeniorPlayer.restore.selectedId
+        : null
+      : selectedId;
+  const persistedSeniorActiveDetailsTab =
+    observedSeniorPlayerActive && observedSeniorPlayer
+      ? observedSeniorPlayer.restore.activeDetailsTab
+      : activeDetailsTab;
+  const transferSearchStateUsesObservedSeniorPlayer =
+    observedSeniorPlayer !== null &&
+    transferSearchSourcePlayerId === observedSeniorPlayer.player.PlayerID;
 
   const buildSeniorStatePersistPayload = () => ({
     updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
-    selectedId,
+    selectedId: persistedSeniorSelectedId,
     assignments,
     behaviors,
     loadedMatchId,
@@ -4369,7 +4376,7 @@ export default function SeniorDashboard({
     updatesHistory,
     matrixNewMarkers,
     selectedUpdatesId,
-    activeDetailsTab,
+    activeDetailsTab: persistedSeniorActiveDetailsTab,
     mobileSeniorView,
     mobileSeniorPlayerScreen,
     mobileSeniorMenuPosition,
@@ -4392,16 +4399,32 @@ export default function SeniorDashboard({
     ratingsManualOverrideEnabled,
     ratingsOverwriteManualEditsEnabled,
     ratingsManualEditsByPlayerId,
-    transferSearchModalOpen,
-    transferSearchSourcePlayerId,
-    transferSearchFilters,
-    transferSearchResults,
-    transferSearchItemCount,
+    transferSearchModalOpen: transferSearchStateUsesObservedSeniorPlayer
+      ? false
+      : transferSearchModalOpen,
+    transferSearchSourcePlayerId: transferSearchStateUsesObservedSeniorPlayer
+      ? null
+      : transferSearchSourcePlayerId,
+    transferSearchFilters: transferSearchStateUsesObservedSeniorPlayer
+      ? null
+      : transferSearchFilters,
+    transferSearchResults: transferSearchStateUsesObservedSeniorPlayer
+      ? []
+      : transferSearchResults,
+    transferSearchItemCount: transferSearchStateUsesObservedSeniorPlayer
+      ? null
+      : transferSearchItemCount,
     transferSearchSortKey,
     transferSearchResultsViewMode,
-    transferSearchUsedFallback,
-    transferSearchExactEmpty,
-    transferSearchBidDrafts,
+    transferSearchUsedFallback: transferSearchStateUsesObservedSeniorPlayer
+      ? false
+      : transferSearchUsedFallback,
+    transferSearchExactEmpty: transferSearchStateUsesObservedSeniorPlayer
+      ? false
+      : transferSearchExactEmpty,
+    transferSearchBidDrafts: transferSearchStateUsesObservedSeniorPlayer
+      ? {}
+      : transferSearchBidDrafts,
   });
 
   const buildSeniorDataPersistencePayload = useCallback(
@@ -4460,9 +4483,25 @@ export default function SeniorDashboard({
     return new Set(startingPlayerIds).size === 11;
   }, [assignments]);
 
+  const otherOrdersLineupSignature = useMemo(
+    () =>
+      [...FIELD_SLOT_ORDER, ...BENCH_SLOT_ORDER]
+        .map((slot) => {
+          const playerId = assignments[slot];
+          const normalizedPlayerId =
+            typeof playerId === "number" && Number.isFinite(playerId) && playerId > 0
+              ? String(playerId)
+              : "";
+          return `${slot}:${normalizedPlayerId}`;
+        })
+        .join("|"),
+    [assignments]
+  );
+
   useEffect(() => {
     startingXiCompleteRef.current = startingXiComplete;
-  }, [startingXiComplete]);
+    otherOrdersLineupSignatureRef.current = otherOrdersLineupSignature;
+  }, [otherOrdersLineupSignature, startingXiComplete]);
 
   const markSeniorLineupMutated = useCallback(() => {
     setLineupMutationEpoch((value) => value + 1);
@@ -4470,6 +4509,8 @@ export default function SeniorDashboard({
 
   const seedOtherOrdersFlashBaseline = useCallback(() => {
     previousStartingXiCompleteRef.current = startingXiCompleteRef.current;
+    previousOtherOrdersLineupSignatureRef.current =
+      otherOrdersLineupSignatureRef.current;
     otherOrdersFlashArmedRef.current = true;
   }, []);
 
@@ -4487,8 +4528,14 @@ export default function SeniorDashboard({
     if (lineupMutationEpoch === 0) return;
 
     const wasComplete = previousStartingXiCompleteRef.current;
+    const previousSignature = previousOtherOrdersLineupSignatureRef.current;
+    const signatureChanged =
+      previousSignature !== null &&
+      previousSignature !== otherOrdersLineupSignature;
+    const becameComplete = !wasComplete && startingXiComplete;
+    const changedWhileComplete = startingXiComplete && signatureChanged;
 
-    if (!wasComplete && startingXiComplete) {
+    if (becameComplete || changedWhileComplete) {
       setOtherOrdersFlashActive(true);
 
       if (otherOrdersFlashTimeoutRef.current !== null) {
@@ -4502,7 +4549,14 @@ export default function SeniorDashboard({
     }
 
     previousStartingXiCompleteRef.current = startingXiComplete;
-  }, [dataRestored, lineupMutationEpoch, stateRestored, startingXiComplete]);
+    previousOtherOrdersLineupSignatureRef.current = otherOrdersLineupSignature;
+  }, [
+    dataRestored,
+    lineupMutationEpoch,
+    otherOrdersLineupSignature,
+    stateRestored,
+    startingXiComplete,
+  ]);
 
   useEffect(
     () => () => {
@@ -5111,6 +5165,56 @@ export default function SeniorDashboard({
 
   const selectedPanelDetails = useMemo(() => {
     if (!selectedPlayer) return null;
+    if (selectedDetails) {
+      const origin =
+        typeof selectedDetails.NativeLeagueID === "number"
+          ? leagueOriginsById[selectedDetails.NativeLeagueID]
+          : undefined;
+      return {
+        YouthPlayerID: selectedPlayer.PlayerID,
+        FirstName: selectedDetails.FirstName ?? selectedPlayer.FirstName,
+        NickName: selectedDetails.NickName ?? selectedPlayer.NickName,
+        LastName: selectedDetails.LastName ?? selectedPlayer.LastName,
+        Age: selectedDetails.Age ?? selectedPlayer.Age,
+        AgeDays: selectedDetails.AgeDays ?? selectedPlayer.AgeDays,
+        TSI: selectedDetails.TSI ?? selectedPlayer.TSI,
+        Salary: selectedDetails.Salary ?? selectedPlayer.Salary,
+        IsAbroad: selectedDetails.IsAbroad ?? selectedPlayer.IsAbroad,
+        OwningTeam: selectedDetails.OwningTeam,
+        ArrivalDate: selectedDetails.ArrivalDate ?? selectedPlayer.ArrivalDate,
+        NativeLeagueID: selectedDetails.NativeLeagueID,
+        OriginName: origin?.leagueName,
+        OriginFlagDisplay: origin?.flagDisplay,
+        Specialty: selectedDetails.Specialty ?? selectedPlayer.Specialty,
+        InjuryLevel: selectedDetails.InjuryLevel ?? selectedPlayer.InjuryLevel,
+        Form: selectedDetails.Form ?? selectedPlayer.Form,
+        StaminaSkill: selectedDetails.StaminaSkill ?? selectedPlayer.StaminaSkill,
+        PersonalityStatement: selectedDetails.PersonalityStatement,
+        Statement: selectedDetails.Statement,
+        Agreeability: selectedDetails.Agreeability,
+        Aggressiveness: selectedDetails.Aggressiveness,
+        Honesty: selectedDetails.Honesty,
+        Experience: selectedDetails.Experience,
+        Leadership: selectedDetails.Leadership,
+        Loyalty: selectedDetails.Loyalty,
+        MotherClubBonus: selectedDetails.MotherClubBonus,
+        CareerGoals: selectedDetails.CareerGoals,
+        CareerHattricks: selectedDetails.CareerHattricks,
+        LeagueGoals: selectedDetails.LeagueGoals,
+        CupGoals: selectedDetails.CupGoals,
+        FriendliesGoals: selectedDetails.FriendliesGoals,
+        Caps: selectedDetails.Caps,
+        CapsU20: selectedDetails.CapsU20,
+        GoalsCurrentTeam: selectedDetails.GoalsCurrentTeam,
+        AssistsCurrentTeam: selectedDetails.AssistsCurrentTeam,
+        CareerAssists: selectedDetails.CareerAssists,
+        MatchesCurrentTeam: selectedDetails.MatchesCurrentTeam,
+        PlayerSkills: selectedDetails.PlayerSkills ?? selectedPlayer.PlayerSkills,
+        LastMatch: selectedDetails.LastMatch,
+        TransferListed: selectedDetails.TransferListed,
+        TransferDetails: selectedDetails.TransferDetails,
+      };
+    }
     return (
       panelDetailsById.get(selectedPlayer.PlayerID) ?? {
         YouthPlayerID: selectedPlayer.PlayerID,
@@ -5130,7 +5234,7 @@ export default function SeniorDashboard({
         PlayerSkills: selectedPlayer.PlayerSkills,
       }
     );
-  }, [panelDetailsById, selectedPlayer]);
+  }, [leagueOriginsById, panelDetailsById, selectedDetails, selectedPlayer]);
 
   const seniorSimulationLicenseContext = useMemo<AppLicenseModalContext>(
     () => ({
@@ -5178,13 +5282,23 @@ export default function SeniorDashboard({
 
   const transferSearchSourcePlayer = useMemo(() => {
     if (transferSearchSourcePlayerId === null) return null;
-    return players.find((player) => player.PlayerID === transferSearchSourcePlayerId) ?? null;
-  }, [players, transferSearchSourcePlayerId]);
+    return (
+      players.find((player) => player.PlayerID === transferSearchSourcePlayerId) ??
+      (observedSeniorPlayer?.player.PlayerID === transferSearchSourcePlayerId
+        ? observedSeniorPlayer.player
+        : null)
+    );
+  }, [observedSeniorPlayer, players, transferSearchSourcePlayerId]);
 
   const transferSearchSourceDetails = useMemo(() => {
     if (transferSearchSourcePlayerId === null) return null;
-    return detailsById.get(transferSearchSourcePlayerId) ?? null;
-  }, [detailsById, transferSearchSourcePlayerId]);
+    return (
+      detailsById.get(transferSearchSourcePlayerId) ??
+      (observedSeniorPlayer?.player.PlayerID === transferSearchSourcePlayerId
+        ? observedSeniorPlayer.details
+        : null)
+    );
+  }, [detailsById, observedSeniorPlayer, transferSearchSourcePlayerId]);
 
   const skillsMatrixRows = useMemo(
     () =>
@@ -12226,10 +12340,22 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
+  type FetchSeniorPlayerDetailsOptions = {
+    encounterSource?: SeniorEncounterSource;
+    captureEncounter?: boolean;
+  };
+
   const fetchPlayerDetailsById = async (
     playerId: number,
-    encounterSource: SeniorEncounterSource = "ownSenior"
+    optionsOrEncounterSource: SeniorEncounterSource | FetchSeniorPlayerDetailsOptions = "ownSenior"
   ) => {
+    const options =
+      typeof optionsOrEncounterSource === "string"
+        ? { encounterSource: optionsOrEncounterSource, captureEncounter: true }
+        : {
+            encounterSource: optionsOrEncounterSource.encounterSource ?? "ownSenior",
+            captureEncounter: optionsOrEncounterSource.captureEncounter ?? true,
+          };
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Player?: SeniorPlayerDetails } };
       error?: string;
@@ -12245,7 +12371,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
       rawPlayer,
       playerId
     );
-    await captureSeniorEncounteredPlayer(rawPlayer, encounterSource);
+    if (options.captureEncounter) {
+      await captureSeniorEncounteredPlayer(rawPlayer, options.encounterSource);
+    }
     return normalized;
   };
 
@@ -12484,12 +12612,21 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
-  const openTransferSearchForPlayer = async (player: SeniorPlayer) => {
+  const openTransferSearchForPlayer = async (
+    player: SeniorPlayer,
+    options?: {
+      sourceDetailsOverride?: SeniorPlayerDetails | null;
+    }
+  ) => {
     trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return false;
-    const detail = await ensureDetails(player.PlayerID);
+    const detail =
+      options?.sourceDetailsOverride !== undefined
+        ? options.sourceDetailsOverride
+        : await ensureDetails(player.PlayerID, false, "ownSenior");
     const editedSourceDetails =
+      options?.sourceDetailsOverride === undefined &&
       effectiveSelectedPlayerSimulationState.dirty &&
       selectedId === player.PlayerID &&
       effectiveSelectedPlayerSimulationState.metricInput
@@ -13584,6 +13721,7 @@ const refreshDetailsForPlayers = async (
     staleRefreshAttemptedRef.current = false;
     otherOrdersFlashArmedRef.current = false;
     previousStartingXiCompleteRef.current = false;
+    previousOtherOrdersLineupSignatureRef.current = null;
     setOtherOrdersFlashActive(false);
     if (otherOrdersFlashTimeoutRef.current !== null) {
       window.clearTimeout(otherOrdersFlashTimeoutRef.current);
@@ -15577,6 +15715,7 @@ const refreshDetailsForPlayers = async (
     }
     otherOrdersFlashArmedRef.current = false;
     previousStartingXiCompleteRef.current = false;
+    previousOtherOrdersLineupSignatureRef.current = null;
     setOtherOrdersFlashActive(false);
     if (otherOrdersFlashTimeoutRef.current !== null) {
       window.clearTimeout(otherOrdersFlashTimeoutRef.current);
@@ -17290,427 +17429,34 @@ const refreshDetailsForPlayers = async (
   const renderTransferSearchResultCard = useCallback((
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
-  ) => {
-    const resultDetails = detailsById.get(result.playerId) ?? null;
-    const draft = transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
-    const pending = transferSearchBidPendingPlayerId === result.playerId;
-    const playerName = formatTransferSearchPlayerName(result);
-    const displayPriceSek =
-      typeof result.highestBidSek === "number" && result.highestBidSek > 0
-        ? result.highestBidSek
-        : result.askingPriceSek;
-    const displayPriceLabel =
-      typeof result.highestBidSek === "number" && result.highestBidSek > 0
-        ? messages.seniorTransferSearchHighestBidLabel
-        : messages.clubChronicleTransferListedAskingPriceColumn;
-    const currencyName = getDisplayCurrencyLabel(displayCurrency);
-    const displayPriceCurrencyLabel = `${displayPriceLabel} (${currencyName})`;
-    const bidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
-      messages.seniorTransferSearchBidAmountLabel,
-      displayCurrency
-    );
-    const maxBidAmountCurrencyLabel = formatTransferSearchCurrencyLabel(
-      messages.seniorTransferSearchMaxBidAmountLabel,
-      displayCurrency
-    );
-    const deadlineDate = parseChppDate(result.deadline ?? undefined);
-    const seniorSkillLevelLabels = messages.seniorSkillLevelLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const formatSeniorSkillLevel = (value: number | undefined) => {
-      if (typeof value !== "number" || value <= 0) return messages.unknownLabel;
-      const index = Math.min(20, Math.max(1, Math.floor(value))) - 1;
-      return seniorSkillLevelLabels[index] ?? messages.unknownLabel;
-    };
-    const seniorAgreeabilityLabels = messages.seniorAgreeabilityLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorAggressivenessLabels = messages.seniorAggressivenessLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorHonestyLabels = messages.seniorHonestyLabels
-      .split("|")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const seniorPersonalitySentence =
-      !resultDetails
-        ? null
-        : (() => {
-            const agreeability =
-              typeof resultDetails.Agreeability === "number" ? resultDetails.Agreeability : null;
-            const aggressiveness =
-              typeof resultDetails.Aggressiveness === "number"
-                ? resultDetails.Aggressiveness
-                : null;
-            const honesty =
-              typeof resultDetails.Honesty === "number" ? resultDetails.Honesty : null;
-            if (
-              agreeability === null ||
-              aggressiveness === null ||
-              honesty === null ||
-              !seniorAgreeabilityLabels[agreeability] ||
-              !seniorAggressivenessLabels[aggressiveness] ||
-              !seniorHonestyLabels[honesty]
-            ) {
-              return neutralizeSeniorPersonalityFallback(resultDetails.PersonalityStatement);
-            }
-            return messages.seniorPersonalitySentence
-              .replace("{{agreeabilityLabel}}", seniorAgreeabilityLabels[agreeability])
-              .replace("{{agreeabilityValue}}", String(agreeability))
-              .replace("{{aggressivenessLabel}}", seniorAggressivenessLabels[aggressiveness])
-              .replace("{{aggressivenessValue}}", String(aggressiveness))
-              .replace("{{honestyLabel}}", seniorHonestyLabels[honesty])
-              .replace("{{honestyValue}}", String(honesty));
-          })();
-    const seniorTraitsSentence =
-      !resultDetails
-        ? null
-        : (() => {
-            const parts: string[] = [];
-            if (
-              typeof resultDetails.Experience === "number" &&
-              typeof resultDetails.Leadership === "number"
-            ) {
-              parts.push(
-                messages.seniorTraitsSentenceExperienceLeadership
-                  .replace(
-                    "{{experienceLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Experience)
-                  )
-                  .replace("{{experienceValue}}", String(resultDetails.Experience))
-                  .replace(
-                    "{{leadershipLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Leadership)
-                  )
-                  .replace("{{leadershipValue}}", String(resultDetails.Leadership))
-              );
-            }
-            if (typeof resultDetails.Loyalty === "number") {
-              parts.push(
-                messages.seniorTraitsSentenceLoyalty
-                  .replace(
-                    "{{loyaltyLevel}}",
-                    formatSeniorSkillLevel(resultDetails.Loyalty)
-                  )
-                  .replace("{{loyaltyValue}}", String(resultDetails.Loyalty))
-              );
-            }
-            return parts.length ? parts.join(" ") : null;
-          })();
-    const resultSpecialtyName =
-      (resultDetails?.Specialty ?? result.specialty) !== null
-        ? (resultDetails?.Specialty ?? result.specialty) === 0
-          ? messages.specialtyNone
-          : specialtyName(resultDetails?.Specialty ?? result.specialty)
-        : null;
-    const resolvedForm = resultDetails?.Form ?? result.form;
-    const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
-    const resolvedSalary =
-      typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
-    const resolvedIsAbroad =
-      resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
-    const foreignForSelectedTeam = isForeignForSelectedLeague(
-      resultDetails?.NativeLeagueID,
-      selectedSeniorLeagueId
-    );
-    const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
-      resolvedSalary,
-      resolvedIsAbroad,
-      foreignForSelectedTeam
-    );
-    const seniorMetricInput = {
-      ageYears:
-        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
-      ageDays:
-        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
-      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
-      salarySek: resolvedSalary,
-      isAbroad: resolvedIsAbroad ?? undefined,
-      form: resolvedForm,
-      stamina: resolvedStamina,
-      keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
-      defending: parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
-      playmaking:
-        parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
-      winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
-      passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
-      scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
-      setPieces:
-        parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
-    };
-    const predictedBaseWageSek =
-      process.env.NODE_ENV !== "production"
-        ? predictSeniorEncounteredPlayerWage({
-            playerId: result.playerId,
-            ageYears: seniorMetricInput.ageYears,
-            ageDays: seniorMetricInput.ageDays,
-            keeper: seniorMetricInput.keeper,
-            defending: seniorMetricInput.defending,
-            playmaking: seniorMetricInput.playmaking,
-            winger: seniorMetricInput.winger,
-            passing: seniorMetricInput.passing,
-            scoring: seniorMetricInput.scoring,
-            setPieces: seniorMetricInput.setPieces,
-            form: seniorMetricInput.form ?? null,
-            stamina: seniorMetricInput.stamina ?? null,
-            tsi: seniorMetricInput.tsi ?? null,
-            salarySek: seniorMetricInput.salarySek ?? null,
-            isAbroad: seniorMetricInput.isAbroad,
-            injuryLevel:
-              typeof resultDetails?.InjuryLevel === "number"
-                ? resultDetails.InjuryLevel
-                : null,
-          })
-        : null;
-    const adjustedPredictedSalary =
-      predictedBaseWageSek !== null
-        ? resolveTransferSearchSalaryForSelectedTeam(
-            predictedBaseWageSek,
-            false,
-            foreignForSelectedTeam
-          )
-        : null;
-    const predictedSalaryDiffPercent = formatPredictionDiffPercent(
-      adjustedSalary,
-      adjustedPredictedSalary
-    );
-    return (
-      <article key={result.playerId} className={styles.transferSearchResultCard}>
-        <div className={styles.transferSearchResultHeader}>
-          <div>
-            <h4 className={styles.profileName}>
-              <a
-                className={styles.profileNameLink}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={messages.playerLinkLabel}
-              >
-                {playerName}
-              </a>
-              {countryMeta ? (
-                <OriginFlag
-                  display={countryMeta.flagDisplay}
-                  className={styles.transferSearchCardNationality}
-                />
-              ) : null}
-            </h4>
-            <PlayerStatementQuote statement={resultDetails?.Statement} />
-            {seniorPersonalitySentence ? (
-              <p className={styles.seniorPersonaLine}>{seniorPersonalitySentence}</p>
-            ) : null}
-            {seniorTraitsSentence ? (
-              <p className={styles.seniorPersonaLine}>{seniorTraitsSentence}</p>
-            ) : null}
-            <p className={styles.profileMeta}>
-              {result.age !== null ? (
-                <span className={styles.metaItem}>
-                  {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
-                </span>
-              ) : null}
-          {result.tsi !== null ? (
-            <span className={styles.metaItem}>
-              {messages.sortTsi}: {result.tsi}
-            </span>
-          ) : null}
-          {adjustedSalary !== null ? (
-            <span className={styles.metaItem}>
-              {messages.seniorWageLabel}:{" "}
-              {`${formatDisplayCurrencyFromSek(adjustedSalary)}${
-                foreignForSelectedTeam === true ? "*" : ""
-              }`}
-            </span>
-          ) : null}
-        </p>
-            {adjustedPredictedSalary !== null ? (
-              <p className={styles.infoValueTiny}>
-                {messages.seniorMlPredictedWageLabel}:{" "}
-                {`${formatDisplayCurrencyFromSek(adjustedPredictedSalary)}${
-                  foreignForSelectedTeam === true ? "*" : ""
-                }`}
-                {predictedSalaryDiffPercent
-                  ? ` (${messages.seniorMlPredictionDiffLabel} ${predictedSalaryDiffPercent})`
-                  : ""}
-              </p>
-            ) : null}
-            {adjustedSalary !== null && foreignForSelectedTeam === true ? (
-              <p className={styles.seniorPersonaLine}>
-                {messages.transferSearchTableWageFootnote}
-              </p>
-            ) : null}
-          </div>
-          <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{displayPriceCurrencyLabel}</div>
-            <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
-              {displayPriceSek !== null
-                ? formatDisplayCurrencyFromSek(displayPriceSek)
-                : messages.unknownShort}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.profileInfoRow}>
-          <div>
-            <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
-            <div className={styles.infoValue}>
-              {result.playerId}
-              <Tooltip content={messages.copyPlayerIdLabel}>
-                <button
-                  type="button"
-                  className={`${styles.infoLinkIcon} ${styles.copyPlayerIdButton}`}
-                  onClick={() => {
-                    void copyTextToClipboard(String(result.playerId)).then((copied) => {
-                      if (copied) addNotification(messages.notificationPlayerIdCopied);
-                    });
-                  }}
-                  aria-label={messages.copyPlayerIdLabel}
-                >
-                  ⧉
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-          {resultSpecialtyName ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
-              <div className={styles.infoValue}>
-                {(resultDetails?.Specialty ?? result.specialty) !== null &&
-                SPECIALTY_EMOJI[resultDetails?.Specialty ?? result.specialty ?? 0] ? (
-                  <span className={styles.playerSpecialty}>
-                    {SPECIALTY_EMOJI[resultDetails?.Specialty ?? result.specialty ?? 0]}
-                  </span>
-                ) : null}{" "}
-                {resultSpecialtyName}
-              </div>
-            </div>
-          ) : null}
-          <div>
-            <div className={styles.infoLabel}>{messages.seniorTransferSearchDeadlineLabel}</div>
-            <div className={styles.infoValue}>
-              {deadlineDate ? formatDateTime(deadlineDate) : messages.unknownShort}
-            </div>
-          </div>
-          {result.sellerTeamName ? (
-            <div>
-              <div className={styles.infoLabel}>{messages.seniorTransferSearchSellerLabel}</div>
-              <div className={styles.infoValue}>
-                {result.sellerTeamId ? (
-                  <a
-                    className={styles.chroniclePressLink}
-                    href={hattrickTeamUrl(result.sellerTeamId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {result.sellerTeamName}
-                  </a>
-                ) : (
-                  result.sellerTeamName
-                )}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <SeniorFoxtrickSimulator
-          key={`${result.playerId}-${Boolean(resultDetails)}`}
-          input={seniorMetricInput}
-          messages={messages}
-          displayCurrency={displayCurrency}
-          barGradient={seniorBarGradient}
-        />
-
-        <div className={styles.transferSearchBidGrid}>
-          <div className={styles.transferSearchBidField}>
-            <label className={styles.infoLabel} htmlFor={`bid-${result.playerId}`}>
-              {bidAmountCurrencyLabel}
-            </label>
-            <input
-              id={`bid-${result.playerId}`}
-              className={styles.transferSearchInput}
-              type="number"
-              min="0"
-              step="1"
-              value={draft.bidDisplay}
-              onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "bidDisplay", event.target.value)
-              }
-              disabled={!transferSearchCanBid || pending}
-            />
-          </div>
-          <Tooltip
-            content={
-              !canPlaceBid
-                ? messages.chppMissingPlaceBidTooltip
-                : messages.seniorTransferSearchSupporterOnlyTooltip
-            }
-            disabled={transferSearchCanBid}
-          >
-            <button
-              type="button"
-              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
-              onClick={() => {
-                void submitTransferBid(result, "bidDisplay");
-              }}
-              disabled={!transferSearchCanBid || pending}
-            >
-              {messages.seniorTransferSearchPlaceBidButton}
-            </button>
-          </Tooltip>
-          <div className={styles.transferSearchBidField}>
-            <label className={styles.infoLabel} htmlFor={`max-bid-${result.playerId}`}>
-              {maxBidAmountCurrencyLabel}
-            </label>
-            <input
-              id={`max-bid-${result.playerId}`}
-              className={styles.transferSearchInput}
-              type="number"
-              min="0"
-              step="1"
-              value={draft.maxBidDisplay}
-              onChange={(event) =>
-                updateTransferSearchBidDraft(result.playerId, "maxBidDisplay", event.target.value)
-              }
-              disabled={!transferSearchCanBid || pending}
-            />
-          </div>
-          <Tooltip
-            content={
-              !canPlaceBid
-                ? messages.chppMissingPlaceBidTooltip
-                : messages.seniorTransferSearchSupporterOnlyTooltip
-            }
-            disabled={transferSearchCanBid}
-          >
-            <button
-              type="button"
-              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
-              onClick={() => {
-                void submitTransferBid(result, "maxBidDisplay");
-              }}
-              disabled={!transferSearchCanBid || pending}
-            >
-              {messages.seniorTransferSearchPlaceMaxBidButton}
-            </button>
-          </Tooltip>
-        </div>
-      </article>
-    );
-  }, [
+  ) => (
+    <TransferSearchResultCard
+      result={result}
+      countryMeta={countryMeta}
+      resultDetails={detailsById.get(result.playerId) ?? null}
+      messages={messages}
+      displayCurrency={displayCurrency}
+      selectedSeniorLeagueId={selectedSeniorLeagueId}
+      bidDraft={transferSearchBidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" }}
+      pending={transferSearchBidPendingPlayerId === result.playerId}
+      canBid={transferSearchCanBid}
+      canPlaceBid={canPlaceBid}
+      onBidDraftChange={updateTransferSearchBidDraft}
+      onSubmitBid={(nextResult, bidKind) => {
+        void submitTransferBid(nextResult, bidKind);
+      }}
+    />
+  ), [
+    canPlaceBid,
     detailsById,
-    formatDisplayCurrencyFromSek,
+    displayCurrency,
     messages,
     selectedSeniorLeagueId,
-    specialtyName,
+    submitTransferBid,
     transferSearchBidDrafts,
     transferSearchBidPendingPlayerId,
     transferSearchCanBid,
     updateTransferSearchBidDraft,
-    submitTransferBid,
   ]);
   const handleTransferSearchClose = useCallback(() => {
     setTransferSearchModalOpen(false);
@@ -17805,25 +17551,248 @@ const refreshDetailsForPlayers = async (
     });
   }, [selectedId]);
 
+  const buildObservedSeniorPlayerFromDetails = (
+    details: SeniorPlayerDetails,
+    fallbackPlayerId: number
+  ): SeniorPlayer => ({
+    PlayerID: details.PlayerID ?? fallbackPlayerId,
+    FirstName: details.FirstName ?? "",
+    NickName: details.NickName,
+    LastName: details.LastName ?? "",
+    Age: details.Age,
+    AgeDays: details.AgeDays,
+    ArrivalDate: details.ArrivalDate,
+    Specialty: details.Specialty,
+    TSI: details.TSI,
+    Salary: details.Salary,
+    IsAbroad: details.IsAbroad,
+    Form: details.Form,
+    StaminaSkill: details.StaminaSkill,
+    InjuryLevel: details.InjuryLevel,
+    Cards: details.Cards,
+    PlayerSkills: details.PlayerSkills,
+  });
+
+  const clearObservedSeniorPlayer = useCallback(() => {
+    const restore = observedSeniorPlayer?.restore ?? null;
+    const observedPlayerId = observedSeniorPlayer?.player.PlayerID ?? null;
+    if (observedPlayerId !== null && transferSearchSourcePlayerId === observedPlayerId) {
+      setTransferSearchModalOpen(false);
+      setTransferSearchSourcePlayerId(null);
+      setTransferSearchFilters(null);
+      setTransferSearchResults([]);
+      setTransferSearchItemCount(null);
+      setTransferSearchUsedFallback(false);
+      setTransferSearchExactEmpty(false);
+      setTransferSearchBidDrafts({});
+    }
+    setObservedSeniorPlayer(null);
+    setEnterSeniorPlayerIdOpen(false);
+    setEnterSeniorPlayerIdValue("");
+
+    if (!restore) return;
+    const restoreSelectedId =
+      restore.selectedId !== null &&
+      players.some((player) => player.PlayerID === restore.selectedId)
+        ? restore.selectedId
+        : null;
+    setSelectedId(restoreSelectedId);
+    setActiveDetailsTab(restore.activeDetailsTab);
+  }, [observedSeniorPlayer, players, transferSearchSourcePlayerId]);
+
+  const refreshObservedSeniorPlayer = useCallback(async () => {
+    if (!observedSeniorPlayerActive || !observedSeniorPlayer) return;
+    const playerId = observedSeniorPlayer.player.PlayerID;
+    try {
+      const refreshed = await fetchPlayerDetailsById(playerId, {
+        captureEncounter: false,
+      });
+      if (!refreshed) {
+        addNotification(
+          messages.seniorEnterPlayerIdNotFound.replace("{{playerId}}", String(playerId))
+        );
+        return;
+      }
+      setObservedSeniorPlayer((current) =>
+        current?.player.PlayerID === playerId
+          ? {
+              ...current,
+              player: buildObservedSeniorPlayerFromDetails(refreshed, playerId),
+              details: refreshed,
+              fetchedAt: Date.now(),
+            }
+          : current
+      );
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) {
+        addNotification(messages.authExpiredTitle);
+        return;
+      }
+      addNotification(
+        error instanceof Error ? error.message : messages.seniorEnterPlayerIdNotFound
+      );
+    }
+  }, [
+    addNotification,
+    fetchPlayerDetailsById,
+    messages.authExpiredTitle,
+    messages.seniorEnterPlayerIdNotFound,
+    observedSeniorPlayer,
+    observedSeniorPlayerActive,
+  ]);
+
+  const handleEnterSeniorPlayerIdSubmit = useCallback(async () => {
+    const trimmed = enterSeniorPlayerIdValue.trim();
+    if (!trimmed || !/^\d+$/.test(trimmed)) {
+      addNotification(messages.seniorEnterPlayerIdInvalid);
+      return;
+    }
+    const playerId = Number(trimmed);
+    if (!Number.isSafeInteger(playerId) || playerId <= 0) {
+      addNotification(messages.seniorEnterPlayerIdInvalid);
+      return;
+    }
+
+    const ownPlayer = players.find((player) => player.PlayerID === playerId) ?? null;
+    if (ownPlayer) {
+      const observedPlayerId = observedSeniorPlayer?.player.PlayerID ?? null;
+      if (observedPlayerId !== null && transferSearchSourcePlayerId === observedPlayerId) {
+        setTransferSearchModalOpen(false);
+        setTransferSearchSourcePlayerId(null);
+        setTransferSearchFilters(null);
+        setTransferSearchResults([]);
+        setTransferSearchItemCount(null);
+        setTransferSearchUsedFallback(false);
+        setTransferSearchExactEmpty(false);
+        setTransferSearchBidDrafts({});
+      }
+      setObservedSeniorPlayer(null);
+      setSelectedId(ownPlayer.PlayerID);
+      setActiveDetailsTab("details");
+      setEnterSeniorPlayerIdOpen(false);
+      setEnterSeniorPlayerIdValue("");
+      return;
+    }
+
+    setEnterSeniorPlayerIdLoading(true);
+    try {
+      const details = await fetchPlayerDetailsById(playerId, {
+        captureEncounter: false,
+      });
+      if (!details) {
+        addNotification(
+          messages.seniorEnterPlayerIdNotFound.replace("{{playerId}}", String(playerId))
+        );
+        return;
+      }
+      const observedPlayer = buildObservedSeniorPlayerFromDetails(details, playerId);
+      setObservedSeniorPlayer({
+        player: observedPlayer,
+        details,
+        fetchedAt: Date.now(),
+        restore:
+          observedSeniorPlayerActive && observedSeniorPlayer
+            ? observedSeniorPlayer.restore
+            : {
+                selectedId,
+                activeDetailsTab,
+              },
+      });
+      setSelectedId(observedPlayer.PlayerID);
+      setActiveDetailsTab("details");
+      setEnterSeniorPlayerIdOpen(false);
+      setEnterSeniorPlayerIdValue("");
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) {
+        addNotification(messages.authExpiredTitle);
+        return;
+      }
+      addNotification(
+        error instanceof Error ? error.message : messages.seniorEnterPlayerIdNotFound
+      );
+    } finally {
+      setEnterSeniorPlayerIdLoading(false);
+    }
+  }, [
+    activeDetailsTab,
+    addNotification,
+    enterSeniorPlayerIdValue,
+    fetchPlayerDetailsById,
+    messages.authExpiredTitle,
+    messages.seniorEnterPlayerIdInvalid,
+    messages.seniorEnterPlayerIdNotFound,
+    observedSeniorPlayer,
+    observedSeniorPlayerActive,
+    players,
+    selectedId,
+    transferSearchSourcePlayerId,
+  ]);
+
+  const handleSeniorDetailsRefresh = useCallback(() => {
+    if (refreshing) return;
+    if (observedSeniorPlayerActive) {
+      void refreshObservedSeniorPlayer();
+      return;
+    }
+    if (players.length === 0) return;
+    void refreshDetailsForPlayers(players);
+  }, [
+    observedSeniorPlayerActive,
+    players,
+    refreshObservedSeniorPlayer,
+    refreshing,
+    refreshDetailsForPlayers,
+  ]);
+
   const seniorDetailsHeaderActions =
     selectedPlayer ? (
-      <Tooltip
-        content={messages.seniorTransferSearchFemaleTeamTooltip}
-        disabled={activeSeniorTeamOption?.teamGender !== "female"}
-      >
-        <button
-          type="button"
-          className={styles.confirmSubmit}
-          onClick={() => {
-            void openTransferSearchForPlayer(selectedPlayer);
-          }}
-          disabled={activeSeniorTeamOption?.teamGender === "female"}
+      <div className={styles.seniorDetailsActionGroup}>
+        <Tooltip
+          content={messages.seniorTransferSearchFemaleTeamTooltip}
+          disabled={activeSeniorTeamOption?.teamGender !== "female"}
         >
-          {effectiveSelectedPlayerSimulationState.dirty
-            ? messages.seniorTransferSearchEditedButtonLabel
-            : messages.seniorTransferSearchButtonLabel}
-        </button>
-      </Tooltip>
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void openTransferSearchForPlayer(selectedPlayer, {
+                sourceDetailsOverride: observedSeniorPlayerActive
+                  ? selectedDetails
+                  : undefined,
+              });
+            }}
+            disabled={activeSeniorTeamOption?.teamGender === "female"}
+          >
+            {effectiveSelectedPlayerSimulationState.dirty
+              ? messages.seniorTransferSearchEditedButtonLabel
+              : messages.seniorTransferSearchButtonLabel}
+          </button>
+        </Tooltip>
+        <Tooltip content={messages.seniorEnterPlayerIdTooltip}>
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              setEnterSeniorPlayerIdValue("");
+              setEnterSeniorPlayerIdOpen(true);
+            }}
+          >
+            {messages.seniorEnterPlayerIdButtonLabel}
+          </button>
+        </Tooltip>
+        {observedSeniorPlayerActive ? (
+          <Tooltip content={messages.seniorObservedExternalPlayerClearLabel}>
+            <button
+              type="button"
+              className={`${styles.sortToggle} ${styles.observedSeniorPlayerClearButton}`}
+              onClick={clearObservedSeniorPlayer}
+              aria-label={messages.seniorObservedExternalPlayerClearLabel}
+            >
+              🗑
+            </button>
+          </Tooltip>
+        ) : null}
+      </div>
     ) : null;
 
   const mobileSeniorMatrixHint = !mobileSeniorLandscapeActive ? (
@@ -17838,12 +17807,15 @@ const refreshDetailsForPlayers = async (
       detailsData={selectedPanelDetails}
       loading={false}
       error={null}
-      lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+      lastUpdated={
+        observedSeniorPlayerActive
+          ? observedSeniorPlayer?.fetchedAt ?? null
+          : selectedId
+            ? detailsCache[selectedId]?.fetchedAt ?? null
+            : null
+      }
       unlockStatus={null}
-      onRefresh={() => {
-        if (refreshing || players.length === 0) return;
-        void refreshDetailsForPlayers(players);
-      }}
+      onRefresh={handleSeniorDetailsRefresh}
       players={panelPlayers}
       playerDetailsById={panelDetailsById}
       skillsMatrixRows={skillsMatrixRows}
@@ -17866,7 +17838,11 @@ const refreshDetailsForPlayers = async (
       ratingsHasManualEdits={hasManualRatingsEdits}
       onRatingsManualCellChange={handleRatingsManualCellChange}
       ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
-      ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+      ratingsMatrixSelectedName={
+        observedSeniorPlayerActive || !selectedOwnPlayer
+          ? null
+          : formatPlayerName(selectedOwnPlayer)
+      }
       ratingsMatrixSpecialtyByName={specialtyByName}
       ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
       ratingsMatrixCardStatusByName={seniorCardStatusByName}
@@ -17894,13 +17870,15 @@ const refreshDetailsForPlayers = async (
         setOrderSource("skills");
         setOrderedPlayerIds(null);
       }}
-      hasPreviousPlayer={Boolean(previousPlayerId)}
-      hasNextPlayer={Boolean(nextPlayerId)}
+      hasPreviousPlayer={!observedSeniorPlayerActive && Boolean(previousPlayerId)}
+      hasNextPlayer={!observedSeniorPlayerActive && Boolean(nextPlayerId)}
       onPreviousPlayer={() => {
+        if (observedSeniorPlayerActive) return;
         if (!previousPlayerId) return;
         setSelectedId(previousPlayerId);
       }}
       onNextPlayer={() => {
+        if (observedSeniorPlayerActive) return;
         if (!nextPlayerId) return;
         setSelectedId(nextPlayerId);
       }}
@@ -17910,6 +17888,9 @@ const refreshDetailsForPlayers = async (
       activeTab="details"
       showTabs={false}
       detailsHeaderActions={seniorDetailsHeaderActions}
+      detailsNotice={
+        observedSeniorPlayerActive ? messages.seniorObservedExternalPlayerNotice : null
+      }
       onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
       seniorSimulationEditingBlocked={!premiumUnlocked}
       onSeniorSimulationBlockedInteraction={() =>
@@ -18520,7 +18501,11 @@ const refreshDetailsForPlayers = async (
           ratingsHasManualEdits={hasManualRatingsEdits}
           onRatingsManualCellChange={handleRatingsManualCellChange}
           ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
-          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSelectedName={
+            observedSeniorPlayerActive || !selectedOwnPlayer
+              ? null
+              : formatPlayerName(selectedOwnPlayer)
+          }
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
@@ -18595,7 +18580,11 @@ const refreshDetailsForPlayers = async (
           ratingsHasManualEdits={hasManualRatingsEdits}
           onRatingsManualCellChange={handleRatingsManualCellChange}
           ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
-          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSelectedName={
+            observedSeniorPlayerActive || !selectedOwnPlayer
+              ? null
+              : formatPlayerName(selectedOwnPlayer)
+          }
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
@@ -18985,6 +18974,64 @@ const refreshDetailsForPlayers = async (
           </button>
         }
       />
+      <Modal
+        open={enterSeniorPlayerIdOpen}
+        title={messages.seniorEnterPlayerIdModalTitle}
+        movable={false}
+        onClose={() => {
+          if (enterSeniorPlayerIdLoading) return;
+          setEnterSeniorPlayerIdOpen(false);
+        }}
+        body={
+          <form
+            id="senior-enter-player-id-form"
+            className={styles.observedSeniorPlayerForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleEnterSeniorPlayerIdSubmit();
+            }}
+          >
+            <label className={styles.infoLabel} htmlFor="senior-enter-player-id">
+              {messages.seniorEnterPlayerIdInputLabel}
+            </label>
+            <input
+              id="senior-enter-player-id"
+              className={styles.transferSearchInput}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={enterSeniorPlayerIdValue}
+              placeholder={messages.seniorEnterPlayerIdPlaceholder}
+              disabled={enterSeniorPlayerIdLoading}
+              onChange={(event) => {
+                setEnterSeniorPlayerIdValue(event.target.value.replace(/\D/g, ""));
+              }}
+            />
+          </form>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.sortToggle}
+              onClick={() => setEnterSeniorPlayerIdOpen(false)}
+              disabled={enterSeniorPlayerIdLoading}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="submit"
+              form="senior-enter-player-id-form"
+              className={styles.confirmSubmit}
+              disabled={enterSeniorPlayerIdLoading}
+            >
+              {enterSeniorPlayerIdLoading
+                ? messages.seniorEnterPlayerIdLoadingLabel
+                : messages.seniorEnterPlayerIdSubmitLabel}
+            </button>
+          </>
+        }
+      />
       <TransferSearchModal
         open={transferSearchModalOpen}
         messages={messages}
@@ -18992,6 +19039,7 @@ const refreshDetailsForPlayers = async (
         selectedPlayerDetailPills={transferSearchSelectedPlayerDetailPills}
         filters={transferSearchFilters}
         displayCurrency={displayCurrency}
+        countryOptions={transferSearchCountryOptions}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
         onUpdateFilterField={updateTransferSearchFilterField}
@@ -19019,9 +19067,14 @@ const refreshDetailsForPlayers = async (
         onQuickBid={(result) => {
           void placeTransferQuickBid(result);
         }}
+        htmsPotentialFilter={transferSearchHtmsPotentialFilter}
+        onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
+        onSaveAsProfile={openTransferSearchSaveProfile}
+        saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />
+      {saveProfileModal}
       <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}
@@ -22593,12 +22646,15 @@ const refreshDetailsForPlayers = async (
             detailsData={selectedPanelDetails}
             loading={false}
             error={null}
-            lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+            lastUpdated={
+              observedSeniorPlayerActive
+                ? observedSeniorPlayer?.fetchedAt ?? null
+                : selectedId
+                  ? detailsCache[selectedId]?.fetchedAt ?? null
+                  : null
+            }
             unlockStatus={null}
-            onRefresh={() => {
-              if (refreshing || players.length === 0) return;
-              void refreshDetailsForPlayers(players);
-            }}
+            onRefresh={handleSeniorDetailsRefresh}
             players={panelPlayers}
             playerDetailsById={panelDetailsById}
             skillsMatrixRows={skillsMatrixRows}
@@ -22621,7 +22677,11 @@ const refreshDetailsForPlayers = async (
             ratingsHasManualEdits={hasManualRatingsEdits}
             onRatingsManualCellChange={handleRatingsManualCellChange}
             ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
-            ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+            ratingsMatrixSelectedName={
+              observedSeniorPlayerActive || !selectedOwnPlayer
+                ? null
+                : formatPlayerName(selectedOwnPlayer)
+            }
             ratingsMatrixSpecialtyByName={specialtyByName}
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
             ratingsMatrixCardStatusByName={seniorCardStatusByName}
@@ -22650,14 +22710,16 @@ const refreshDetailsForPlayers = async (
               setOrderSource("skills");
               setOrderedPlayerIds(null);
             }}
-            hasPreviousPlayer={Boolean(previousPlayerId)}
-            hasNextPlayer={Boolean(nextPlayerId)}
+            hasPreviousPlayer={!observedSeniorPlayerActive && Boolean(previousPlayerId)}
+            hasNextPlayer={!observedSeniorPlayerActive && Boolean(nextPlayerId)}
             onPreviousPlayer={() => {
+              if (observedSeniorPlayerActive) return;
               if (!previousPlayerId) return;
               setActiveDetailsTab("details");
               setSelectedId(previousPlayerId);
             }}
             onNextPlayer={() => {
+              if (observedSeniorPlayerActive) return;
               if (!nextPlayerId) return;
               setActiveDetailsTab("details");
               setSelectedId(nextPlayerId);
@@ -22670,6 +22732,9 @@ const refreshDetailsForPlayers = async (
             showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
             detailsHeaderActions={seniorDetailsHeaderActions}
+            detailsNotice={
+              observedSeniorPlayerActive ? messages.seniorObservedExternalPlayerNotice : null
+            }
             onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
             seniorSimulationEditingBlocked={!premiumUnlocked}
             onSeniorSimulationBlockedInteraction={() =>

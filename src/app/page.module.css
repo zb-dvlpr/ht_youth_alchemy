@@ -1336,6 +1336,43 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
 }
 
+.transferMarketContextBar {
+  gap: 10px;
+}
+
+.transferMarketContextBarSlot {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.transferMarketContextTeamSelect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.transferMarketContextTeamSelect .infoLabel {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.transferMarketContextTeamSelectInput {
+  width: auto;
+  min-width: 160px;
+  max-width: 260px;
+  min-height: 30px;
+  padding: 5px 30px 5px 10px;
+  border-radius: 999px;
+  background: #fffaf2;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 .topBar {
   display: grid;
   align-items: center;
@@ -9187,7 +9224,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 
 .transferMarketTool {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 12px;
   height: 100%;
   min-height: 0;

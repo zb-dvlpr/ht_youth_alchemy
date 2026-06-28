@@ -25,6 +25,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
 import VersionUpdateGate from "./VersionUpdateGate";
+import { TransferMarketActionBarSlotProvider } from "./TransferMarketActionBarSlot";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
 import { trackAnalyticsEvent } from "@/lib/analytics";
@@ -308,6 +309,8 @@ export default function AppShell({
   const [showManual, setShowManual] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
+  const [transferMarketActionBarSlot, setTransferMarketActionBarSlot] =
+    useState<ReactNode | null>(null);
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
   const [buyCoffeePromptSource, setBuyCoffeePromptSource] =
     useState<BuyCoffeePromptSource>("unknown");
@@ -1743,6 +1746,7 @@ export default function AppShell({
   return (
     <DisplayCurrencyProvider>
     <ReminderBellSlotProvider bell={reminderBell}>
+    <TransferMarketActionBarSlotProvider setSlot={setTransferMarketActionBarSlot}>
       <div
         className={styles.shellFrame}
         data-mobile-layout={mobileLayoutActive ? "true" : "false"}
@@ -1915,7 +1919,7 @@ export default function AppShell({
       {!mobileLauncherOpen &&
       !mobileLayoutActive &&
       activeTool === "transferMarket" ? (
-        <div className={styles.shellContextBar}>
+        <div className={`${styles.shellContextBar} ${styles.transferMarketContextBar}`}>
           <div className={styles.youthActionBarActions}>
             <button
               type="button"
@@ -1943,6 +1947,11 @@ export default function AppShell({
               ☰
             </button>
           </Tooltip>
+          {transferMarketActionBarSlot ? (
+            <div className={styles.transferMarketContextBarSlot}>
+              {transferMarketActionBarSlot}
+            </div>
+          ) : null}
         </div>
       ) : null}
       {mobileLayoutActive && !mobileLauncherOpen ? mobileNavTrail : null}
@@ -2167,6 +2176,7 @@ export default function AppShell({
       />
       <VersionUpdateGate appVersion={appVersion} messages={messages} />
       </div>
+    </TransferMarketActionBarSlotProvider>
     </ReminderBellSlotProvider>
     </DisplayCurrencyProvider>
   );

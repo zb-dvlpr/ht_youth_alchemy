@@ -38,6 +38,7 @@ import {
   MobileMenuDivider,
   MobileMenuTeamSwitcher,
 } from "./MobileFloatingMenuSections";
+import { useTransferMarketActionBarSlot } from "./TransferMarketActionBarSlot";
 import TransferSearchResultCard, {
   normalizeTransferSearchResultCardDetails,
   type TransferSearchResultCardDetails,
@@ -183,6 +184,30 @@ export default function TransferMarketTool({
       })),
     [initialSeniorTeams]
   );
+  const desktopTeamSwitcherSlot = useMemo(() => {
+    if (initialSeniorTeams.length <= 1) return null;
+
+    return (
+      <label className={styles.transferMarketContextTeamSelect}>
+        <span className={styles.infoLabel}>{messages.transferMarketTeamLabel}</span>
+        <select
+          className={`${styles.transferSearchInput} ${styles.transferMarketContextTeamSelectInput}`}
+          value={selectedTeamId ?? ""}
+          onChange={(event) => {
+            const next = Number(event.target.value);
+            setSelectedTeamId(Number.isFinite(next) ? next : null);
+          }}
+        >
+          {initialSeniorTeams.map((team) => (
+            <option key={team.teamId} value={team.teamId}>
+              {team.teamName}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }, [initialSeniorTeams, messages.transferMarketTeamLabel, selectedTeamId]);
+  useTransferMarketActionBarSlot(desktopTeamSwitcherSlot);
   const displayCurrency = resolveForCountry(selectedTeam?.countryId ?? null);
   const scopeKey = buildTransferMarketScopeKey({
     managerId: managerScopeId,
@@ -680,27 +705,6 @@ export default function TransferMarketTool({
 
   return (
     <div className={styles.transferMarketTool}>
-      <div className={styles.transferMarketHeader}>
-        {initialSeniorTeams.length > 1 ? (
-          <label className={styles.transferMarketTeamSelect}>
-            <span className={styles.infoLabel}>{messages.transferMarketTeamLabel}</span>
-            <select
-              className={styles.transferSearchInput}
-              value={selectedTeamId ?? ""}
-              onChange={(event) => {
-                const next = Number(event.target.value);
-                setSelectedTeamId(Number.isFinite(next) ? next : null);
-              }}
-            >
-              {initialSeniorTeams.map((team) => (
-                <option key={team.teamId} value={team.teamId}>
-                  {team.teamName}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-      </div>
       <div className={styles.transferMarketMobileMenu}>
         <MobileFloatingActionMenu
           toggleLabel={messages.mobileYouthMenuToggleLabel}

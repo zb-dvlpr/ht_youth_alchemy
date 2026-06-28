@@ -1,8 +1,13 @@
 "use client";
 
-import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { MANUAL_OPEN_EVENT } from "@/lib/mobileShellEvents";
 import MobileFloatingActionMenu from "./MobileFloatingActionMenu";
+import {
+  MobileMenuAction,
+  MobileMenuDivider,
+  MobileMenuTeamSwitcher,
+} from "./MobileFloatingMenuSections";
 
 export type MobileToolView =
   | "playerDetails"
@@ -49,7 +54,7 @@ export default function MobileToolMenu({
   onPositionChange,
 }: MobileToolMenuProps) {
   const openManual = () => {
-    window.dispatchEvent(new CustomEvent("ya:manual-open"));
+    window.dispatchEvent(new CustomEvent(MANUAL_OPEN_EVENT));
   };
 
   return (
@@ -60,147 +65,105 @@ export default function MobileToolMenu({
     >
       {({ closeMenu }) => (
         <>
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
+          <MobileMenuAction
             onClick={() => {
               onHome();
               closeMenu();
             }}
           >
             {messages.mobileHomeLabel}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeView === "help" ? styles.mobileYouthMenuActionActive : ""
-            }`}
+          </MobileMenuAction>
+          <MobileMenuDivider />
+          <MobileMenuAction
+            active={activeView === "help"}
             onClick={() => {
               onOpenHelp();
               closeMenu();
             }}
           >
             {messages.mobileHelpLabel}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          {teamOptions.length > 1 ? (
-            <label className={styles.mobileYouthMenuField}>
-              <span className={styles.mobileYouthMenuLabel}>{teamLabel}</span>
-              <select
-                className={styles.mobileYouthMenuSelect}
-                value={selectedTeamId ?? ""}
-                onChange={(event) => {
-                  const nextId = Number(event.target.value);
-                  if (Number.isNaN(nextId)) return;
-                  onTeamChange(nextId);
-                }}
-              >
-                {teamOptions.map((team) => (
-                  <option key={team.id} value={team.id}>
-                    {team.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <div className={styles.mobileYouthMenuDivider} />
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
+          </MobileMenuAction>
+          <MobileMenuDivider />
+          <MobileMenuTeamSwitcher
+            label={teamLabel}
+            teamOptions={teamOptions}
+            selectedTeamId={selectedTeamId}
+            onTeamChange={onTeamChange}
+          />
+          <MobileMenuDivider />
+          <MobileMenuAction
             onClick={() => {
               onRefresh();
               closeMenu();
             }}
           >
             {messages.refresh}
-          </button>
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
+          </MobileMenuAction>
+          <MobileMenuAction
             onClick={() => {
               onOpenUpdates();
               closeMenu();
             }}
           >
             {messages.clubChronicleUpdatesTitle}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              playerListActive ? styles.mobileYouthMenuActionActive : ""
-            }`}
+          </MobileMenuAction>
+          <MobileMenuDivider />
+          <MobileMenuAction
+            active={playerListActive}
             onClick={() => {
               onOpenPlayerList();
               closeMenu();
             }}
           >
             {messages.mobilePlayerListLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
+          </MobileMenuAction>
+          <MobileMenuAction
+            active={
               activeView === "playerDetails" && !playerListActive
-                ? styles.mobileYouthMenuActionActive
-                : ""
-            }`}
+            }
             onClick={() => {
               onSelectView("playerDetails");
               closeMenu();
             }}
           >
             {messages.detailsTabLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeView === "skillsMatrix" ? styles.mobileYouthMenuActionActive : ""
-            }`}
+          </MobileMenuAction>
+          <MobileMenuAction
+            active={activeView === "skillsMatrix"}
             onClick={() => {
               onSelectView("skillsMatrix");
               closeMenu();
             }}
           >
             {messages.skillsMatrixTabLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeView === "ratingsMatrix" ? styles.mobileYouthMenuActionActive : ""
-            }`}
+          </MobileMenuAction>
+          <MobileMenuAction
+            active={activeView === "ratingsMatrix"}
             onClick={() => {
               onSelectView("ratingsMatrix");
               closeMenu();
             }}
           >
             {messages.ratingsMatrixTabLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeView === "lineupOptimizer"
-                ? styles.mobileYouthMenuActionActive
-                : ""
-            }`}
+          </MobileMenuAction>
+          <MobileMenuAction
+            active={activeView === "lineupOptimizer"}
             onClick={() => {
               onSelectView("lineupOptimizer");
               closeMenu();
             }}
           >
             {messages.lineupTitle}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
+          </MobileMenuAction>
+          <MobileMenuDivider />
+          <MobileMenuAction
             onClick={() => {
               openManual();
               closeMenu();
             }}
           >
             {messages.helpMenuManual}
-          </button>
+          </MobileMenuAction>
         </>
       )}
     </MobileFloatingActionMenu>

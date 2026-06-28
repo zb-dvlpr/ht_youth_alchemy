@@ -42,6 +42,10 @@ import {
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
 import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
+import {
+  MANUAL_OPEN_EVENT,
+  MOBILE_LAUNCHER_REQUEST_EVENT,
+} from "@/lib/mobileShellEvents";
 import { runStartupStorageHousekeeping } from "@/lib/storageHousekeeping";
 import {
   dismissReminder,
@@ -169,7 +173,6 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
-const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
 const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
 const MOBILE_LAYOUT_MAX_WIDTH = 900;
@@ -1507,8 +1510,8 @@ export default function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => setShowManual(true);
-    window.addEventListener("ya:manual-open", handler);
-    return () => window.removeEventListener("ya:manual-open", handler);
+    window.addEventListener(MANUAL_OPEN_EVENT, handler);
+    return () => window.removeEventListener(MANUAL_OPEN_EVENT, handler);
   }, []);
 
   const selectTool = useCallback((toolId: ToolId) => {

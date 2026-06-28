@@ -10058,9 +10058,7 @@ html[data-mobile-shell="true"] .transferMarketTool {
 }
 
 html[data-mobile-shell="true"] .transferMarketHeader {
-  align-items: stretch;
-  flex-direction: column;
-  margin-bottom: 10px;
+  display: none;
 }
 
 html[data-mobile-shell="true"] .transferMarketMobileActionRow {
@@ -10068,6 +10066,7 @@ html[data-mobile-shell="true"] .transferMarketMobileActionRow {
 }
 
 html[data-mobile-shell="true"] .transferMarketTeamSelect {
+  display: none;
   max-width: none;
   width: 100%;
 }

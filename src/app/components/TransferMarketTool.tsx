@@ -23,12 +23,21 @@ import {
   TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT,
   TRANSFER_MARKET_OPEN_PROFILES_EVENT,
 } from "@/lib/transferMarket/events";
+import {
+  MANUAL_OPEN_EVENT,
+  MOBILE_LAUNCHER_REQUEST_EVENT,
+} from "@/lib/mobileShellEvents";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { useChppPermissions } from "./ChppPermissionsProvider";
 import { useSupporterStatus } from "./SupporterStatusProvider";
 import Modal from "./Modal";
 import MobileFloatingActionMenu from "./MobileFloatingActionMenu";
+import {
+  MobileMenuAction,
+  MobileMenuDivider,
+  MobileMenuTeamSwitcher,
+} from "./MobileFloatingMenuSections";
 import TransferSearchResultCard, {
   normalizeTransferSearchResultCardDetails,
   type TransferSearchResultCardDetails,
@@ -165,6 +174,14 @@ export default function TransferMarketTool({
       initialSeniorTeams[0] ??
       null,
     [initialSeniorTeams, selectedTeamId]
+  );
+  const mobileTeamOptions = useMemo(
+    () =>
+      initialSeniorTeams.map((team) => ({
+        id: team.teamId,
+        label: team.teamName,
+      })),
+    [initialSeniorTeams]
   );
   const displayCurrency = resolveForCountry(selectedTeam?.countryId ?? null);
   const scopeKey = buildTransferMarketScopeKey({
@@ -692,27 +709,53 @@ export default function TransferMarketTool({
         >
           {({ closeMenu }) => (
             <>
-              <button
-                type="button"
-                className={styles.mobileYouthMenuAction}
+              <MobileMenuAction
+                onClick={() => {
+                  closeMenu();
+                  window.dispatchEvent(
+                    new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT)
+                  );
+                }}
+              >
+                {messages.mobileHomeLabel}
+              </MobileMenuAction>
+              <MobileMenuDivider />
+              {mobileTeamOptions.length > 1 ? (
+                <>
+                  <MobileMenuTeamSwitcher
+                    label={messages.transferMarketTeamLabel}
+                    teamOptions={mobileTeamOptions}
+                    selectedTeamId={selectedTeamId}
+                    onTeamChange={setSelectedTeamId}
+                  />
+                  <MobileMenuDivider />
+                </>
+              ) : null}
+              <MobileMenuAction
                 onClick={() => {
                   closeMenu();
                   openPastSearches();
                 }}
               >
                 {messages.transferMarketPastSearchesButton}
-              </button>
-              <div className={styles.mobileYouthMenuDivider} />
-              <button
-                type="button"
-                className={styles.mobileYouthMenuAction}
+              </MobileMenuAction>
+              <MobileMenuAction
                 onClick={() => {
                   closeMenu();
                   openSearchProfiles();
                 }}
               >
                 {messages.transferMarketProfilesTooltip}
-              </button>
+              </MobileMenuAction>
+              <MobileMenuDivider />
+              <MobileMenuAction
+                onClick={() => {
+                  closeMenu();
+                  window.dispatchEvent(new CustomEvent(MANUAL_OPEN_EVENT));
+                }}
+              >
+                {messages.helpMenuManual}
+              </MobileMenuAction>
             </>
           )}
         </MobileFloatingActionMenu>

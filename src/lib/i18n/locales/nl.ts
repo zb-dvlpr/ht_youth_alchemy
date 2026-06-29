@@ -782,6 +782,9 @@ export const messagesNl: Messages = {
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
   hattrickSupporterActionRequiredTooltip:
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
+  settingsDebugSupporterOverrideLabel: "Behandelen als Hattrick Supporter",
+  settingsDebugSupporterOverrideHint:
+    "Alleen ontwikkeling. Forceert Supporter-UI-paden aan of uit zonder de echte CHPP-accountstatus te wijzigen.",
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",

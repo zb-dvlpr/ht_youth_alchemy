@@ -531,6 +531,8 @@ export type Messages = {
   settingsDebugTitle: string;
   settingsDebugDisableScalingLabel: string;
   settingsDebugRandomNewMarkersLabel: string;
+  settingsDebugSupporterOverrideLabel: string;
+  settingsDebugSupporterOverrideHint: string;
   settingsDebugRandomNewMarkersOffLabel: string;
   settingsDebugBuyCoffeePromptButton: string;
   settingsDebugStorageButton: string;

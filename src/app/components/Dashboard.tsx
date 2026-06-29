@@ -7784,6 +7784,10 @@ export default function Dashboard({
         onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
         onSaveAsProfile={openYouthTransferSearchSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
+        canSaveAsProfile={isSupporter}
+        saveAsProfileUnavailableTooltip={
+          messages.hattrickSupporterActionRequiredTooltip
+        }
         resultCountLabel={transferSearchResultCountLabel}
         exactEmpty={transferSearchExactEmpty}
         fallbackNotice={messages.youthEstimateValueFallbackNotice}

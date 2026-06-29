@@ -700,6 +700,9 @@ export const messagesDe: Messages = {
     settingsDebugTitle: "Debug-Einstellungen",
     settingsDebugDisableScalingLabel: "Dummy-Updates anzeigen",
     settingsDebugRandomNewMarkersLabel: "Zufaellige NEW-Marker anzeigen",
+    settingsDebugSupporterOverrideLabel: "Als Hattrick Supporter behandeln",
+    settingsDebugSupporterOverrideHint:
+      "Nur Entwicklung. Erzwingt Supporter-UI-Pfade ein oder aus, ohne den echten CHPP-Kontostatus zu ändern.",
     settingsDebugRandomNewMarkersOffLabel: "Zufaellige NEW-Marker ausblenden",
     clubChronicleLeaguePanelTitle: "Ligaleistung und Pokal",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",

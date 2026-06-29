@@ -662,6 +662,9 @@ export const messagesEn: Messages = {
     settingsDebugTitle: "Debug settings",
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
+    settingsDebugSupporterOverrideLabel: "Treat as Hattrick Supporter",
+    settingsDebugSupporterOverrideHint:
+      "Development only. Forces supporter-only UI paths on or off without changing the real CHPP account status.",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     settingsDebugStorageButton: "Storage",

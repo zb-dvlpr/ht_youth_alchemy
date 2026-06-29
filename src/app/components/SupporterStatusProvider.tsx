@@ -11,6 +11,10 @@ import {
 } from "react";
 
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import {
+  DEBUG_SUPPORTER_OVERRIDE_EVENT,
+  readDebugSupporterOverride,
+} from "@/lib/settings";
 
 export type SupporterStatus = "unknown" | "loading" | "supporter" | "nonSupporter";
 
@@ -47,7 +51,9 @@ export function SupporterStatusProvider({
   children,
 }: SupporterStatusProviderProps) {
   const [status, setStatus] = useState<SupporterStatus>("unknown");
+  const [debugSupporterOverride, setDebugSupporterOverride] = useState(false);
   const fetchedRef = useRef(false);
+  const isDev = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     if (!isConnected) {
@@ -91,7 +97,31 @@ export function SupporterStatusProvider({
     };
   }, [isConnected]);
 
-  const effectiveStatus = isConnected ? status : "unknown";
+  useEffect(() => {
+    if (!isDev || typeof window === "undefined") return;
+    const syncDebugSupporterOverride = () => {
+      setDebugSupporterOverride(readDebugSupporterOverride());
+    };
+    syncDebugSupporterOverride();
+    window.addEventListener(
+      DEBUG_SUPPORTER_OVERRIDE_EVENT,
+      syncDebugSupporterOverride
+    );
+    return () => {
+      window.removeEventListener(
+        DEBUG_SUPPORTER_OVERRIDE_EVENT,
+        syncDebugSupporterOverride
+      );
+    };
+  }, [isDev]);
+
+  const effectiveStatus = !isConnected
+    ? "unknown"
+    : isDev
+      ? debugSupporterOverride
+        ? "supporter"
+        : "nonSupporter"
+      : status;
   const value = useMemo(
     () => ({
       status: effectiveStatus,

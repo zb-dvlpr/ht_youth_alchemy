@@ -776,6 +776,9 @@ export const messagesPl: Messages = {
     "Ta akcja jest dostepna tylko dla Supporterow Hattrick.",
   hattrickSupporterActionRequiredTooltip:
     "Ta akcja jest dostepna tylko dla Supporterow Hattrick.",
+  settingsDebugSupporterOverrideLabel: "Traktuj jako Hattrick Supporter",
+  settingsDebugSupporterOverrideHint:
+    "Tylko development. Wymusza sciezki UI dla Supporterow bez zmiany prawdziwego statusu konta CHPP.",
   seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
   seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
   seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",

@@ -690,6 +690,9 @@ export const messagesEs: Messages = {
     settingsDebugTitle: "Ajustes de depuración",
     settingsDebugDisableScalingLabel: "Mostrar actualizaciones ficticias",
     settingsDebugRandomNewMarkersLabel: "Mostrar marcadores NEW aleatorios",
+    settingsDebugSupporterOverrideLabel: "Tratar como Hattrick Supporter",
+    settingsDebugSupporterOverrideHint:
+      "Solo desarrollo. Fuerza rutas de interfaz para Supporters sin cambiar el estado real de la cuenta CHPP.",
     settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatorios",
     settingsDebugStorageButton: "Almacenamiento",
     settingsDebugStorageTitle: "Diagnostico de almacenamiento",

@@ -34,6 +34,9 @@ export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
 export const DEFAULT_DEBUG_DISABLE_SCALING = false;
 export const YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY =
   "ya_youth_new_markers_debug_v1";
+export const DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY =
+  "ya_debug_supporter_override_v1";
+export const DEBUG_SUPPORTER_OVERRIDE_EVENT = "ya:debug-supporter-override";
 export const GENERAL_SETTINGS_STORAGE_KEY = "ya_general_enable_scaling_v1";
 export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
 export const DEFAULT_GENERAL_ENABLE_SCALING = false;
@@ -627,6 +630,31 @@ export function writeYouthNewMarkersDebugEnabled(value: boolean) {
   } catch {
     // ignore storage errors
   }
+}
+
+export function readDebugSupporterOverride(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      window.localStorage.getItem(DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY) ===
+      "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function writeDebugSupporterOverride(value: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY,
+      value ? "true" : "false"
+    );
+  } catch {
+    // ignore storage errors
+  }
+  window.dispatchEvent(new CustomEvent(DEBUG_SUPPORTER_OVERRIDE_EVENT));
 }
 
 export function readGeneralEnableScaling(): boolean {

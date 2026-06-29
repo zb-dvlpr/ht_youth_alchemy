@@ -693,6 +693,9 @@ export const messagesIt: Messages = {
     settingsDebugTitle: "Impostazioni debug",
     settingsDebugDisableScalingLabel: "Mostra aggiornamenti fittizi",
     settingsDebugRandomNewMarkersLabel: "Mostra marker NEW casuali",
+    settingsDebugSupporterOverrideLabel: "Tratta come Hattrick Supporter",
+    settingsDebugSupporterOverrideHint:
+      "Solo sviluppo. Forza i percorsi UI per Supporter senza modificare lo stato reale dell account CHPP.",
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     settingsDebugStorageButton: "Archiviazione",
     settingsDebugStorageTitle: "Diagnostica archiviazione",

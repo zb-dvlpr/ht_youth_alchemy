@@ -687,6 +687,9 @@ export const messagesSv: Messages = {
     settingsDebugTitle: "Debug-inställningar",
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
+    settingsDebugSupporterOverrideLabel: "Behandla som Hattrick Supporter",
+    settingsDebugSupporterOverrideHint:
+      "Endast utveckling. Tvingar supporter-UI på eller av utan att ändra riktig CHPP-kontostatus.",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
     settingsDebugStorageButton: "Lagring",
     settingsDebugStorageTitle: "Lagringsdiagnostik",

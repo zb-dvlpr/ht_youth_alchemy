@@ -239,6 +239,8 @@ export type TransferSearchModalProps = {
   onHtmsPotentialFilterChange?: (next: TransferSearchHtmsPotentialFilter) => void;
   onSaveAsProfile?: (filters: TransferSearchFilters) => void;
   saveAsProfileLabel?: string;
+  canSaveAsProfile?: boolean;
+  saveAsProfileUnavailableTooltip?: ReactNode;
   renderResultCard: (
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
@@ -1297,6 +1299,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
   onHtmsPotentialFilterChange,
   onSaveAsProfile,
   saveAsProfileLabel,
+  canSaveAsProfile,
+  saveAsProfileUnavailableTooltip,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
@@ -1314,6 +1318,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
     baseKey: filtersDraftKey,
     fields: filters ? buildTransferSearchDraftFields(filters) : null,
   });
+  const saveAsProfileBlocked = canSaveAsProfile === false;
+  const saveAsProfileTooltip = saveAsProfileBlocked
+    ? saveAsProfileUnavailableTooltip
+    : null;
   const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [validationIssue, setValidationIssue] =
@@ -2415,18 +2423,23 @@ const TransferSearchModal = memo(function TransferSearchModal({
 
                 <div className={styles.transferSearchSidebarActions}>
                   {onSaveAsProfile ? (
-                    <button
-                      type="button"
-                      className={`${styles.confirmCancel} ${styles.transferSearchSaveProfileButton}`}
-                      onClick={() => {
-                        const committedFilters = commitAndValidateCriteria();
-                        if (!committedFilters) return;
-                        onSaveAsProfile(committedFilters);
-                      }}
-                      disabled={loading}
+                    <Tooltip
+                      content={saveAsProfileTooltip}
+                      disabled={!saveAsProfileTooltip}
                     >
-                      {saveAsProfileLabel ?? "Save as profile"}
-                    </button>
+                      <button
+                        type="button"
+                        className={`${styles.confirmCancel} ${styles.transferSearchSaveProfileButton}`}
+                        onClick={() => {
+                          const committedFilters = commitAndValidateCriteria();
+                          if (!committedFilters) return;
+                          onSaveAsProfile(committedFilters);
+                        }}
+                        disabled={loading || saveAsProfileBlocked}
+                      >
+                        {saveAsProfileLabel ?? "Save as profile"}
+                      </button>
+                    </Tooltip>
                   ) : null}
                   <button
                     type="button"

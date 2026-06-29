@@ -10,7 +10,12 @@ import {
   getMissingChppPermissions,
   parseExtendedPermissionsFromCheckToken,
 } from "@/lib/chpp/permissions";
-import { createNodeOAuthClient, getProtectedResource, postProtectedResource } from "@/lib/chpp/node-oauth";
+import {
+  ChppUpstreamError,
+  createNodeOAuthClient,
+  getProtectedResource,
+  postProtectedResource,
+} from "@/lib/chpp/node-oauth";
 
 export const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
 const DEBUG_OAUTH_ERROR_HEADER = "x-ya-debug-oauth-error";
@@ -175,6 +180,7 @@ export async function postChppXml(
 
 export function buildChppErrorPayload(message: string, error: unknown) {
   const isDev = process.env.NODE_ENV !== "production";
+  const isUpstreamError = error instanceof ChppUpstreamError;
   const safeDetails = (() => {
     if (error instanceof Error) return error.message;
     if (typeof error === "string") return error;
@@ -204,6 +210,19 @@ export function buildChppErrorPayload(message: string, error: unknown) {
     errorObject && typeof errorObject.code === "string"
       ? errorObject.code
       : null;
+  const phase =
+    errorObject && typeof errorObject.phase === "string"
+      ? errorObject.phase
+      : null;
+  const combinedText = [details, data].join(" ").toLowerCase();
+  const hasServiceUnavailableMarker =
+    combinedText.includes("the service is unavailable") ||
+    combinedText.includes("service unavailable");
+  const isConfigError =
+    error instanceof Error &&
+    (error.message.startsWith("Missing required CHPP env vars:") ||
+      error.message === "Missing CHPP_COOKIE_SECRET" ||
+      error.message === "CHPP_COOKIE_SECRET must be 32 bytes base64-encoded");
   const unauthorizedText = [details, data]
     .filter(Boolean)
     .join(" ")
@@ -248,6 +267,20 @@ export function buildChppErrorPayload(message: string, error: unknown) {
     }
     return null;
   })();
+  const isAuthorizeUnavailable =
+    phase === "authorize-preflight" &&
+    ((inferredStatusCode ?? 503) === 503 || hasServiceUnavailableMarker);
+  if (isAuthorizeUnavailable) {
+    return {
+      error: message,
+      details:
+        "Hattrick CHPP authorization is currently unavailable. Please try again later.",
+      statusCode: 503,
+      code: "CHPP_AUTHORIZE_UNAVAILABLE",
+      data: isDev ? data : null,
+      debugDetails: isDev ? details : null,
+    };
+  }
   const isServerError =
     inferredStatusCode !== null
       ? inferredStatusCode >= 500
@@ -261,6 +294,9 @@ export function buildChppErrorPayload(message: string, error: unknown) {
       : false;
 
   const friendlyDetails = (() => {
+    if (isConfigError) {
+      return "CHPP OAuth is not configured correctly on this app instance.";
+    }
     if (errorCode === "CHPP_DEBUG_SIMULATED_4XX") {
       return "Simulated OAuth client-side error (4xx).";
     }
@@ -268,10 +304,10 @@ export function buildChppErrorPayload(message: string, error: unknown) {
       return "Simulated OAuth server-side error (5xx).";
     }
     if (isServerError) {
-      return "Hattrick OAuth/CHPP returned a server-side error (5xx). Please retry later and contact Hattrick staff if the issue persists.";
+      return "Hattrick OAuth/CHPP returned a server-side error. Please retry later.";
     }
     if (isClientError) {
-      return "Hattrick OAuth/CHPP rejected the request (4xx). Reconnect and retry; if it continues, contact Hattrick staff.";
+      return "Hattrick OAuth/CHPP rejected the request. Reconnect and retry.";
     }
     return hasHtmlPayload
       ? "Hattrick OAuth/CHPP returned an unexpected error response. Please retry; if it continues, contact Hattrick staff."
@@ -281,7 +317,17 @@ export function buildChppErrorPayload(message: string, error: unknown) {
   return {
     error: message,
     details: friendlyDetails,
-    code: errorCode ?? (isServerError ? "CHPP_UPSTREAM_5XX" : null),
+    code:
+      errorCode ??
+      (isConfigError
+        ? "APP_CONFIG_ERROR"
+        : isServerError
+          ? "CHPP_UPSTREAM_5XX"
+          : isClientError
+            ? "CHPP_UPSTREAM_4XX"
+            : isUpstreamError
+              ? "CHPP_UPSTREAM_ERROR"
+              : null),
     ...(errorObject
       ? {
           statusCode: inferredStatusCode,

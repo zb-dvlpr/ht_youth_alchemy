@@ -106,6 +106,14 @@ export const messagesSv: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppOauthAuthorizeUnavailableReason:
+      "Hattrick CHPP authorization is temporarily unavailable.",
+    chppOauthAuthorizeUnavailableDetails:
+      "Hattrick's CHPP authorization page is currently unavailable. Please retry later.",
+    chppOauthServerErrorDetails:
+      "Hattrick OAuth/CHPP returned a server-side error. Please retry later.",
+    chppOauthClientErrorDetails:
+      "Hattrick rejected the OAuth authorization request. Reconnect and retry.",
     chppPermissionSelectionTitle: "Välj CHPP-behörigheter",
     chppPermissionSelectionIntro:
       "Grundläggande åtkomst till ungdomslaget begärs automatiskt. Du kan välja vilka valfria skrivbehörigheter du vill ge. Du kan ansluta igen senare för att ändra dem.",

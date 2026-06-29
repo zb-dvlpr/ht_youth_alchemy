@@ -107,6 +107,8 @@ type ChppInitialAccessProblem = {
   details?: string | null;
 };
 
+type HomeSearchParams = Record<string, string | string[] | undefined>;
+
 type ManagerTeam = {
   TeamId?: number | string;
   TeamName?: string;
@@ -360,16 +362,77 @@ function resolveInitialAccessProblem(
   };
 }
 
+function getFirstSearchParam(
+  searchParams: HomeSearchParams,
+  key: string
+): string | undefined {
+  const value = searchParams[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function resolveOauthErrorFromSearchParams(
+  searchParams: HomeSearchParams,
+  messages: ReturnType<typeof getMessages>
+): ChppInitialAccessProblem | null {
+  if (getFirstSearchParam(searchParams, "chpp_oauth_error") !== "1") {
+    return null;
+  }
+
+  const rawStatus = getFirstSearchParam(searchParams, "status");
+  const rawCode = getFirstSearchParam(searchParams, "code");
+  const parsedStatus = rawStatus ? Number(rawStatus) : 503;
+  const statusCode =
+    Number.isFinite(parsedStatus) && parsedStatus > 0 ? parsedStatus : 503;
+  const isClient = isChppClientProblemStatus(statusCode);
+  const isServer = isChppServerProblemStatus(statusCode);
+
+  return {
+    kind: isClient && !isServer ? "client-error" : "server-error",
+    statusCode,
+    reason:
+      rawCode === "CHPP_AUTHORIZE_UNAVAILABLE"
+        ? messages.chppOauthAuthorizeUnavailableReason
+        : getChppHttpStatusReason(statusCode),
+    details:
+      rawCode === "CHPP_AUTHORIZE_UNAVAILABLE"
+        ? messages.chppOauthAuthorizeUnavailableDetails
+        : isServer
+          ? messages.chppOauthServerErrorDetails
+          : messages.chppOauthClientErrorDetails,
+  };
+}
+
 function isRatingsMatrixResponse(
   payload: RatingsMatrixResponse | ChppInitialErrorPayload | null
 ): payload is RatingsMatrixResponse {
   return Boolean(payload && Array.isArray((payload as RatingsMatrixResponse).players));
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<HomeSearchParams> | HomeSearchParams;
+}) {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
   const messages = getMessages(locale);
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const oauthAccessProblem = resolveOauthErrorFromSearchParams(
+    resolvedSearchParams,
+    messages
+  );
+
+  if (oauthAccessProblem) {
+    return (
+      <main
+        className={`${styles.main} ${styles.chppAccessPage}`}
+        data-app-main="true"
+      >
+        <ChppAccessGate messages={messages} {...oauthAccessProblem} />
+      </main>
+    );
+  }
+
   const isConnected = Boolean(
     openChppSession(cookieStore.get(CHPP_SESSION_COOKIE)?.value)
   );

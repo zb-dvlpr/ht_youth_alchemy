@@ -11,11 +11,10 @@ import {
   chppSessionCookieOptions,
   sealChppSession,
 } from "@/lib/chpp/session-cookie";
+import { buildChppErrorPayload } from "@/lib/chpp/server";
+import { buildOauthErrorRedirectUrl } from "@/lib/chpp/oauth-errors";
 
-function clearOauthCookies(
-  response: NextResponse,
-  names: readonly string[]
-) {
+function clearOauthCookies(response: NextResponse, names: readonly string[]) {
   for (const name of names) {
     response.cookies.set(name, "", {
       httpOnly: true,
@@ -34,6 +33,56 @@ function clearTemporaryOauthCookies(response: NextResponse) {
     "chpp_req_secret",
     CHPP_PERMISSION_FLOW_COOKIE,
   ]);
+}
+
+function clearAllOauthCookies(response: NextResponse) {
+  clearOauthCookies(response, [
+    "chpp_access_token",
+    "chpp_access_secret",
+    "chpp_req_token",
+    "chpp_req_secret",
+    CHPP_PERMISSION_FLOW_COOKIE,
+  ]);
+}
+
+function logOauthCallbackFailure(
+  request: Request,
+  payload: ReturnType<typeof buildChppErrorPayload>,
+  error: unknown
+) {
+  const errorObject =
+    error && typeof error === "object" && !Array.isArray(error)
+      ? (error as Record<string, unknown>)
+      : null;
+
+  console.error("CHPP OAuth callback failed", {
+    phase: "callback",
+    oauthPhase:
+      errorObject && typeof errorObject.phase === "string"
+        ? errorObject.phase
+        : null,
+    endpoint:
+      errorObject && typeof errorObject.endpoint === "string"
+        ? errorObject.endpoint
+        : null,
+    statusCode: payload.statusCode,
+    statusText:
+      errorObject && typeof errorObject.statusText === "string"
+        ? errorObject.statusText
+        : null,
+    code: payload.code,
+    host: request.headers.get("host"),
+    path: new URL(request.url).pathname,
+    vercelId: request.headers.get("x-vercel-id"),
+    dataPreview:
+      errorObject && typeof errorObject.data === "string"
+        ? errorObject.data.slice(0, 500)
+        : null,
+    details:
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : payload.debugDetails ?? payload.details,
+  });
 }
 
 export async function GET(request: Request) {
@@ -124,41 +173,19 @@ export async function GET(request: Request) {
       chppSessionCookieOptions
     );
 
-    clearOauthCookies(response, [
-      "chpp_access_token",
-      "chpp_access_secret",
-      "chpp_req_token",
-      "chpp_req_secret",
-      CHPP_PERMISSION_FLOW_COOKIE,
-    ]);
+    clearAllOauthCookies(response);
     return response;
   } catch (error) {
-    const response = NextResponse.json(
-      {
-        error: "OAuth callback failed",
-        ...(process.env.NODE_ENV === "production"
-          ? {}
-          : {
-              details:
-                error instanceof Error &&
-                (error.message === "Missing CHPP_COOKIE_SECRET" ||
-                  error.message ===
-                    "CHPP_COOKIE_SECRET must be 32 bytes base64-encoded")
-                  ? error.message
-                  : "OAuth callback failed",
-              debug: {
-                requestPath: new URL(request.url).pathname,
-                callbackUrl: resolveChppCallbackUrl({
-                  requestUrl: request.url,
-                  host: request.headers.get("host"),
-                  forwardedProto: request.headers.get("x-forwarded-proto"),
-                }),
-                requestHost: request.headers.get("host"),
-                forwardedProto: request.headers.get("x-forwarded-proto"),
-              },
-            }),
-      },
-      { status: 500 }
+    const payload = buildChppErrorPayload("OAuth callback failed", error);
+    logOauthCallbackFailure(request, payload, error);
+
+    const response = NextResponse.redirect(
+      buildOauthErrorRedirectUrl({
+        requestUrl: request.url,
+        phase: "callback",
+        statusCode: payload.statusCode,
+        code: payload.code,
+      })
     );
     clearTemporaryOauthCookies(response);
     return response;

@@ -32,6 +32,38 @@ export type AccessTokenResult = {
   results?: Record<string, string>;
 };
 
+export type ChppOAuthPhase =
+  | "request-token"
+  | "authorize-preflight"
+  | "access-token"
+  | "protected-get"
+  | "protected-post";
+
+export class ChppUpstreamError extends Error {
+  statusCode: number;
+  statusText: string;
+  phase: ChppOAuthPhase;
+  endpoint: string;
+  data: string;
+
+  constructor(input: {
+    message: string;
+    statusCode: number;
+    statusText?: string;
+    phase: ChppOAuthPhase;
+    endpoint: string;
+    data?: string;
+  }) {
+    super(`${input.message}: ${input.statusCode}`);
+    this.name = "ChppUpstreamError";
+    this.statusCode = input.statusCode;
+    this.statusText = input.statusText ?? "";
+    this.phase = input.phase;
+    this.endpoint = input.endpoint;
+    this.data = (input.data ?? "").slice(0, 1000);
+  }
+}
+
 type OAuthRequestData = {
   url: string;
   method: string;
@@ -74,9 +106,21 @@ function parseTokenResult(
   return { token, secret, results };
 }
 
-function createHttpError(message: string, statusCode: number) {
-  return Object.assign(new Error(`${message}: ${statusCode}`), {
-    statusCode,
+function createHttpError(input: {
+  message: string;
+  statusCode: number;
+  statusText?: string;
+  phase: ChppOAuthPhase;
+  endpoint: string;
+  data?: string;
+}) {
+  return new ChppUpstreamError({
+    message: input.message,
+    statusCode: input.statusCode,
+    statusText: input.statusText,
+    phase: input.phase,
+    endpoint: input.endpoint,
+    data: input.data,
   });
 }
 
@@ -152,6 +196,10 @@ function oauthBaseUrl(url: URL) {
   return `${url.origin}${url.pathname}`;
 }
 
+function safeEndpointLabel(url: URL) {
+  return oauthBaseUrl(url);
+}
+
 function buildOAuthRequestData(
   method: "GET" | "POST",
   requestUrl: URL,
@@ -195,7 +243,14 @@ export async function getRequestToken(
   const body = await response.text();
 
   if (!response.ok) {
-    throw createHttpError("Failed to obtain request token", response.status);
+    throw createHttpError({
+      message: "Failed to obtain request token",
+      statusCode: response.status,
+      statusText: response.statusText,
+      phase: "request-token",
+      endpoint: "request_token",
+      data: body,
+    });
   }
 
   return parseTokenResult(body, "Failed to obtain request token");
@@ -234,7 +289,14 @@ export async function getAccessToken(
   const body = await response.text();
 
   if (!response.ok) {
-    throw createHttpError("Failed to obtain access token", response.status);
+    throw createHttpError({
+      message: "Failed to obtain access token",
+      statusCode: response.status,
+      statusText: response.statusText,
+      phase: "access-token",
+      endpoint: "access_token",
+      data: body,
+    });
   }
 
   return parseTokenResult(body, "Failed to obtain access token");
@@ -260,7 +322,14 @@ export async function getProtectedResource(
   const body = await response.text();
 
   if (!response.ok) {
-    throw createHttpError("CHPP GET failed", response.status);
+    throw createHttpError({
+      message: "CHPP GET failed",
+      statusCode: response.status,
+      statusText: response.statusText,
+      phase: "protected-get",
+      endpoint: safeEndpointLabel(requestUrl),
+      data: body,
+    });
   }
 
   return body;
@@ -297,7 +366,14 @@ export async function postProtectedResource(
   const responseBody = await response.text();
 
   if (!response.ok) {
-    throw createHttpError("CHPP POST failed", response.status);
+    throw createHttpError({
+      message: "CHPP POST failed",
+      statusCode: response.status,
+      statusText: response.statusText,
+      phase: "protected-post",
+      endpoint: safeEndpointLabel(requestUrl),
+      data: responseBody,
+    });
   }
 
   return responseBody;

@@ -10,6 +10,66 @@ import {
   normalizeOptionalChppPermissions,
 } from "@/lib/chpp/permissions";
 import { createNodeOAuthClient, getRequestToken } from "@/lib/chpp/node-oauth";
+import { assertChppAuthorizePageAvailable } from "@/lib/chpp/health";
+import { buildChppErrorPayload } from "@/lib/chpp/server";
+import { buildOauthErrorRedirectUrl } from "@/lib/chpp/oauth-errors";
+
+function clearTemporaryOauthCookies(response: NextResponse) {
+  for (const name of [
+    "chpp_req_token",
+    "chpp_req_secret",
+    CHPP_PERMISSION_FLOW_COOKIE,
+  ]) {
+    response.cookies.set(name, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+    });
+  }
+}
+
+function logOauthStartFailure(
+  request: Request,
+  payload: ReturnType<typeof buildChppErrorPayload>,
+  error: unknown
+) {
+  const errorObject =
+    error && typeof error === "object" && !Array.isArray(error)
+      ? (error as Record<string, unknown>)
+      : null;
+
+  console.error("CHPP OAuth start failed", {
+    phase: "start",
+    oauthPhase:
+      errorObject && typeof errorObject.phase === "string"
+        ? errorObject.phase
+        : null,
+    endpoint:
+      errorObject && typeof errorObject.endpoint === "string"
+        ? errorObject.endpoint
+        : null,
+    statusCode: payload.statusCode,
+    statusText:
+      errorObject && typeof errorObject.statusText === "string"
+        ? errorObject.statusText
+        : null,
+    code: payload.code,
+    host: request.headers.get("host"),
+    path: new URL(request.url).pathname,
+    vercelId: request.headers.get("x-vercel-id"),
+    dataPreview:
+      errorObject && typeof errorObject.data === "string"
+        ? errorObject.data.slice(0, 500)
+        : null,
+    details:
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : payload.debugDetails ?? payload.details,
+  });
+}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -42,6 +102,7 @@ export async function GET(request: Request) {
       callbackUrl
     );
 
+    await assertChppAuthorizePageAvailable();
     const { token, secret } = await getRequestToken(client);
 
     const cookieStore = await cookies();
@@ -80,28 +141,18 @@ export async function GET(request: Request) {
     authorizeUrl.searchParams.set("scope", scope);
     return NextResponse.redirect(authorizeUrl);
   } catch (error) {
-    const debug = new URL(request.url).searchParams.get("debug") === "1";
-    return NextResponse.json(
-      {
-        error: "OAuth start failed",
-        details: error instanceof Error ? error.message : String(error),
-        ...(debug
-          ? {
-              debug: {
-                requestTokenUrl: CHPP_ENDPOINTS.requestToken,
-                accessTokenUrl: CHPP_ENDPOINTS.accessToken,
-                authorizeUrl: CHPP_ENDPOINTS.authorize,
-                callbackUrl: resolveChppCallbackUrl({
-                  requestUrl: request.url,
-                  host: request.headers.get("host"),
-                  forwardedProto: request.headers.get("x-forwarded-proto"),
-                }),
-                method: "node-oauth",
-              },
-            }
-          : {}),
-      },
-      { status: 500 }
+    const payload = buildChppErrorPayload("OAuth start failed", error);
+    logOauthStartFailure(request, payload, error);
+
+    const response = NextResponse.redirect(
+      buildOauthErrorRedirectUrl({
+        requestUrl: request.url,
+        phase: "start",
+        statusCode: payload.statusCode,
+        code: payload.code,
+      })
     );
+    clearTemporaryOauthCookies(response);
+    return response;
   }
 }

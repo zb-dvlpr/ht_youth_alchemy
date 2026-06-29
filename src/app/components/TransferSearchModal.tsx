@@ -131,6 +131,7 @@ export type TransferSearchSortKey =
   | "htmsPotential"
   | "psicoTsiAvg"
   | "psicoWageAvg"
+  | "skillTradingCandidate"
   | "keeper"
   | "defending"
   | "playmaking"
@@ -294,6 +295,7 @@ const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
   "htmsPotential",
   "psicoTsiAvg",
   "psicoWageAvg",
+  "skillTradingCandidate",
   "keeper",
   "defending",
   "playmaking",
@@ -328,9 +330,68 @@ const parsePsicoMetricValue = (value: string) => {
 };
 
 const calculateAverage = (values: Array<number | null>) => {
-  const numeric = values.filter((value): value is number => typeof value === "number");
+  const numeric = values.filter(
+    (value): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+  );
   if (numeric.length === 0) return null;
   return numeric.reduce((sum, value) => sum + value, 0) / numeric.length;
+};
+
+const calculatePsicoTsiAverage = (metricInput: SeniorPlayerMetricInput) => {
+  const psico = calculatePsicoTsiMetrics(metricInput);
+  if (!psico) return null;
+  return calculateAverage([
+    parsePsicoMetricValue(psico.formHigh),
+    parsePsicoMetricValue(psico.formAvg),
+    parsePsicoMetricValue(psico.formLow),
+  ]);
+};
+
+const calculatePsicoWageAverage = (metricInput: SeniorPlayerMetricInput) => {
+  const psico = calculatePsicoTsiMetrics(metricInput);
+  if (!psico) return null;
+  return calculateAverage([
+    parsePsicoMetricValue(psico.wageHigh),
+    parsePsicoMetricValue(psico.wageAvg),
+    parsePsicoMetricValue(psico.wageLow),
+  ]);
+};
+
+const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
+  const values = [
+    metricInput.keeper,
+    metricInput.defending,
+    metricInput.playmaking,
+    metricInput.winger,
+    metricInput.passing,
+    metricInput.scoring,
+    metricInput.setPieces,
+  ].filter(
+    (value): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+  );
+
+  return values.length > 0 ? Math.max(...values) : null;
+};
+
+const calculateSkillTradingCandidateScore = (
+  metricInput: SeniorPlayerMetricInput
+) => {
+  const mainSkill = getMainFootballSkillValue(metricInput);
+  if (mainSkill === null) return null;
+
+  const residuals = [
+    calculatePsicoTsiAverage(metricInput),
+    calculatePsicoWageAverage(metricInput),
+  ]
+    .filter(
+      (value): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+    )
+    .map((prediction) => prediction - mainSkill);
+
+  return residuals.length > 0 ? Math.max(...residuals) : null;
 };
 
 const getTransferSearchSortValue = (
@@ -347,21 +408,13 @@ const getTransferSearchSortValue = (
   if (sortKey === "htmsPotential") {
     return calculateHtmsMetrics(metricInput)?.potential ?? null;
   }
-
-  const psico = calculatePsicoTsiMetrics(metricInput);
-  if (!psico) return null;
   if (sortKey === "psicoTsiAvg") {
-    return calculateAverage([
-      parsePsicoMetricValue(psico.formHigh),
-      parsePsicoMetricValue(psico.formAvg),
-      parsePsicoMetricValue(psico.formLow),
-    ]);
+    return calculatePsicoTsiAverage(metricInput);
   }
-  return calculateAverage([
-    parsePsicoMetricValue(psico.wageHigh),
-    parsePsicoMetricValue(psico.wageAvg),
-    parsePsicoMetricValue(psico.wageLow),
-  ]);
+  if (sortKey === "psicoWageAvg") {
+    return calculatePsicoWageAverage(metricInput);
+  }
+  return calculateSkillTradingCandidateScore(metricInput);
 };
 
 const parseTransferSearchHtmsPotentialFilterValue = (value: string) => {
@@ -1602,8 +1655,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
       { value: "htmsPotential", label: messages.transferSearchSortHtmsPotential },
       { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "psicoTsiAvg", label: messages.transferSearchSortPsicoTsiAverage },
-      { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "psicoWageAvg", label: messages.transferSearchSortPsicoWageAverage },
+      {
+        value: "skillTradingCandidate",
+        label: messages.transferSearchSortSkillTradingCandidate,
+      },
       { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "keeper", label: messages.skillKeeper },
       { value: "defending", label: messages.skillDefending },

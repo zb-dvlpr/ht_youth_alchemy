@@ -204,6 +204,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_7_1_0: string;
   changelog_7_0_0: string;
   changelog_6_6_0: string;
   changelog_6_5_0: string;
@@ -1527,6 +1528,7 @@ export type Messages = {
   transferSearchSortHtmsPotential: string;
   transferSearchSortPsicoTsiAverage: string;
   transferSearchSortPsicoWageAverage: string;
+  transferSearchSortSkillTradingCandidate: string;
   transferSearchShowTableButton: string;
   transferSearchShowCardsButton: string;
   transferSearchTableNationalityColumn: string;

@@ -247,6 +247,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_7_1_0:
+      "Sortering av transfermarknadsresultat efter skilltrading-lamplighet.",
     changelog_7_0_0: "Transfermarknadsverktyget har implementerats.",
     changelog_6_8_0:
       "Lade till mojligheten att visa externa seniorspelare.",
@@ -1905,6 +1907,7 @@ export const messagesSv: Messages = {
     transferSearchSortHtmsPotential: "HTMS-potential",
     transferSearchSortPsicoTsiAverage: "Genomsnittlig TSI-baserad Psico-prognos",
     transferSearchSortPsicoWageAverage: "Genomsnittlig lonbaserad Psico-prognos",
+    transferSearchSortSkillTradingCandidate: "Skilltrading-kandidat",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",

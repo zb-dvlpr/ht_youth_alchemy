@@ -248,6 +248,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_7_1_0:
+      "Ordinamento dei risultati del mercato trasferimenti per idoneita allo skill trading.",
     changelog_7_0_0: "E stato implementato lo strumento Mercato trasferimenti.",
     changelog_6_8_0:
       "Aggiunta la possibilita di visualizzare giocatori senior esterni.",
@@ -1920,6 +1922,7 @@ export const messagesIt: Messages = {
     transferSearchSortHtmsPotential: "Potenziale HTMS",
     transferSearchSortPsicoTsiAverage: "Media delle previsioni Psico basate sul TSI",
     transferSearchSortPsicoWageAverage: "Media delle previsioni Psico basate sul salario",
+    transferSearchSortSkillTradingCandidate: "Candidato skill trading",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",

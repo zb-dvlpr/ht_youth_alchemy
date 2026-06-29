@@ -51,6 +51,8 @@ import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
+  readDebugSupporterOverride,
+  writeDebugSupporterOverride,
 } from "@/lib/settings";
 import {
   applyImportedChronicleWatchlists,
@@ -183,6 +185,7 @@ export default function SettingsButton({
     useState<AnalyticsConsent | null>(null);
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
     useState<ChppDebugOauthErrorMode>("off");
+  const [debugSupporterOverride, setDebugSupporterOverride] = useState(false);
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
   const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
@@ -248,6 +251,7 @@ export default function SettingsButton({
     setAnalyticsConsent(readAnalyticsConsent());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
+      setDebugSupporterOverride(readDebugSupporterOverride());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
@@ -636,6 +640,11 @@ export default function SettingsButton({
         })
       );
     }
+  };
+
+  const handleDebugSupporterOverrideToggle = (enabled: boolean) => {
+    setDebugSupporterOverride(enabled);
+    writeDebugSupporterOverride(enabled);
   };
 
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
@@ -1975,6 +1984,30 @@ export default function SettingsButton({
               </select>
             </label>
             <p className={styles.muted}>{messages.devOauthErrorSimHint}</p>
+            {isDev ? (
+              <>
+                <label className={styles.algorithmsToggle}>
+                  <span className={styles.algorithmsToggleText}>
+                    {messages.settingsDebugSupporterOverrideLabel}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className={styles.algorithmsToggleInput}
+                    checked={debugSupporterOverride}
+                    onChange={(event) =>
+                      handleDebugSupporterOverrideToggle(event.target.checked)
+                    }
+                  />
+                  <span
+                    className={styles.algorithmsToggleSwitch}
+                    aria-hidden="true"
+                  />
+                </label>
+                <p className={styles.muted}>
+                  {messages.settingsDebugSupporterOverrideHint}
+                </p>
+              </>
+            ) : null}
             <label className={styles.algorithmsToggle}>
               <span className={styles.algorithmsToggleText}>
                 {messages.settingsDebugRandomNewMarkersLabel}

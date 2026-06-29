@@ -797,6 +797,10 @@ export default function TransferMarketTool({
         onHtmsPotentialFilterChange={setHtmsPotentialFilter}
         onSaveAsProfile={openSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
+        canSaveAsProfile={isSupporter}
+        saveAsProfileUnavailableTooltip={
+          messages.hattrickSupporterActionRequiredTooltip
+        }
         renderResultCard={renderResultCard}
         onClose={() => undefined}
       />

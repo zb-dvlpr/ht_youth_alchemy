@@ -106,6 +106,14 @@ export const messagesFr: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppOauthAuthorizeUnavailableReason:
+      "Hattrick CHPP authorization is temporarily unavailable.",
+    chppOauthAuthorizeUnavailableDetails:
+      "Hattrick's CHPP authorization page is currently unavailable. Please retry later.",
+    chppOauthServerErrorDetails:
+      "Hattrick OAuth/CHPP returned a server-side error. Please retry later.",
+    chppOauthClientErrorDetails:
+      "Hattrick rejected the OAuth authorization request. Reconnect and retry.",
     chppPermissionSelectionTitle: "Choisir les autorisations CHPP",
     chppPermissionSelectionIntro:
       "L’accès principal à l’équipe de jeunes sera demandé automatiquement. Vous pouvez choisir les autorisations d’écriture facultatives à accorder. Vous pourrez vous reconnecter plus tard pour les modifier.",
@@ -683,6 +691,9 @@ export const messagesFr: Messages = {
     settingsDebugTitle: "Paramètres debug",
     settingsDebugDisableScalingLabel: "Afficher des dernières mises à jour fictives",
     settingsDebugRandomNewMarkersLabel: "Afficher des marqueurs NEW aléatoires",
+    settingsDebugSupporterOverrideLabel: "Traiter comme Supporter Hattrick",
+    settingsDebugSupporterOverrideHint:
+      "Développement uniquement. Force les parcours UI réservés aux Supporters sans modifier le vrai statut du compte CHPP.",
     settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
     settingsDebugStorageButton: "Stockage",
     settingsDebugStorageTitle: "Diagnostic du stockage",

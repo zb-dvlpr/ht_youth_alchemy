@@ -120,6 +120,14 @@ export const messagesNl: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppOauthAuthorizeUnavailableReason:
+      "Hattrick CHPP authorization is temporarily unavailable.",
+    chppOauthAuthorizeUnavailableDetails:
+      "Hattrick's CHPP authorization page is currently unavailable. Please retry later.",
+    chppOauthServerErrorDetails:
+      "Hattrick OAuth/CHPP returned a server-side error. Please retry later.",
+    chppOauthClientErrorDetails:
+      "Hattrick rejected the OAuth authorization request. Reconnect and retry.",
     chppPermissionSelectionTitle: "CHPP-machtigingen kiezen",
     chppPermissionSelectionIntro:
       "Basistoegang tot het jeugdteam wordt automatisch aangevraagd. Je kunt kiezen welke optionele schrijfmachtigingen je wilt verlenen. Je kunt later opnieuw verbinden om ze te wijzigen.",
@@ -774,6 +782,9 @@ export const messagesNl: Messages = {
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
   hattrickSupporterActionRequiredTooltip:
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
+  settingsDebugSupporterOverrideLabel: "Behandelen als Hattrick Supporter",
+  settingsDebugSupporterOverrideHint:
+    "Alleen ontwikkeling. Forceert Supporter-UI-paden aan of uit zonder de echte CHPP-accountstatus te wijzigen.",
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",

@@ -12618,6 +12618,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       sourceDetailsOverride?: SeniorPlayerDetails | null;
     }
   ) => {
+    if (!isSupporter) return false;
     trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return false;
@@ -17744,12 +17745,24 @@ const refreshDetailsForPlayers = async (
     refreshDetailsForPlayers,
   ]);
 
+  const seniorTransferSearchBlockedByFemaleTeam =
+    activeSeniorTeamOption?.teamGender === "female";
+  const seniorTransferSearchBlockedBySupporter = !isSupporter;
+  const seniorTransferSearchDisabled =
+    seniorTransferSearchBlockedByFemaleTeam ||
+    seniorTransferSearchBlockedBySupporter;
+  const seniorTransferSearchTooltip = seniorTransferSearchBlockedByFemaleTeam
+    ? messages.seniorTransferSearchFemaleTeamTooltip
+    : seniorTransferSearchBlockedBySupporter
+      ? messages.hattrickSupporterActionRequiredTooltip
+      : null;
+
   const seniorDetailsHeaderActions =
     selectedPlayer ? (
       <div className={styles.seniorDetailsActionGroup}>
         <Tooltip
-          content={messages.seniorTransferSearchFemaleTeamTooltip}
-          disabled={activeSeniorTeamOption?.teamGender !== "female"}
+          content={seniorTransferSearchTooltip}
+          disabled={!seniorTransferSearchTooltip}
         >
           <button
             type="button"
@@ -17761,7 +17774,7 @@ const refreshDetailsForPlayers = async (
                   : undefined,
               });
             }}
-            disabled={activeSeniorTeamOption?.teamGender === "female"}
+            disabled={seniorTransferSearchDisabled}
           >
             {effectiveSelectedPlayerSimulationState.dirty
               ? messages.seniorTransferSearchEditedButtonLabel
@@ -19071,6 +19084,10 @@ const refreshDetailsForPlayers = async (
         onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
         onSaveAsProfile={openTransferSearchSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
+        canSaveAsProfile={isSupporter}
+        saveAsProfileUnavailableTooltip={
+          messages.hattrickSupporterActionRequiredTooltip
+        }
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />

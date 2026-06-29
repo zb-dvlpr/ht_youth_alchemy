@@ -106,6 +106,14 @@ export const messagesDe: Messages = {
     chppAccessReauthorizeAction: "Re-authorize",
     chppAccessDevCloseSimulation: "Close simulated view",
     chppAccessUnknownReason: "Unknown CHPP access problem.",
+    chppOauthAuthorizeUnavailableReason:
+      "Hattrick CHPP authorization is temporarily unavailable.",
+    chppOauthAuthorizeUnavailableDetails:
+      "Hattrick's CHPP authorization page is currently unavailable. Please retry later.",
+    chppOauthServerErrorDetails:
+      "Hattrick OAuth/CHPP returned a server-side error. Please retry later.",
+    chppOauthClientErrorDetails:
+      "Hattrick rejected the OAuth authorization request. Reconnect and retry.",
     chppPermissionSelectionTitle: "CHPP-Berechtigungen auswählen",
     chppPermissionSelectionIntro:
       "Der grundlegende Zugriff auf das Jugendteam wird automatisch angefordert. Du kannst auswählen, welche optionalen Schreibberechtigungen du gewähren möchtest. Du kannst dich später erneut verbinden, um sie zu ändern.",
@@ -692,6 +700,9 @@ export const messagesDe: Messages = {
     settingsDebugTitle: "Debug-Einstellungen",
     settingsDebugDisableScalingLabel: "Dummy-Updates anzeigen",
     settingsDebugRandomNewMarkersLabel: "Zufaellige NEW-Marker anzeigen",
+    settingsDebugSupporterOverrideLabel: "Als Hattrick Supporter behandeln",
+    settingsDebugSupporterOverrideHint:
+      "Nur Entwicklung. Erzwingt Supporter-UI-Pfade ein oder aus, ohne den echten CHPP-Kontostatus zu ändern.",
     settingsDebugRandomNewMarkersOffLabel: "Zufaellige NEW-Marker ausblenden",
     clubChronicleLeaguePanelTitle: "Ligaleistung und Pokal",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",

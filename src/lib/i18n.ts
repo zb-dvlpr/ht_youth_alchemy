@@ -101,6 +101,10 @@ export type Messages = {
   chppAccessReauthorizeAction: string;
   chppAccessDevCloseSimulation: string;
   chppAccessUnknownReason: string;
+  chppOauthAuthorizeUnavailableReason: string;
+  chppOauthAuthorizeUnavailableDetails: string;
+  chppOauthServerErrorDetails: string;
+  chppOauthClientErrorDetails: string;
   chppPermissionSelectionTitle: string;
   chppPermissionSelectionIntro: string;
   chppPermissionPlaceBidLabel: string;
@@ -527,6 +531,8 @@ export type Messages = {
   settingsDebugTitle: string;
   settingsDebugDisableScalingLabel: string;
   settingsDebugRandomNewMarkersLabel: string;
+  settingsDebugSupporterOverrideLabel: string;
+  settingsDebugSupporterOverrideHint: string;
   settingsDebugRandomNewMarkersOffLabel: string;
   settingsDebugBuyCoffeePromptButton: string;
   settingsDebugStorageButton: string;

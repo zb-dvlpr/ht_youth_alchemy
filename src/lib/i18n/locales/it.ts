@@ -2106,9 +2106,9 @@ export const messagesIt: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "La previsione tramite stipendio non e disponibile per questo giocatore.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Vicino allo skill-up o sottolivelli di forma/secondarie molto bassi.",
+      "Questo giocatore ha appena fatto uno skill-up oppure le sue secondarie e/o la forma hanno un sottolivello molto basso.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Vicino allo skill-up o sottolivelli di forma/secondarie molto alti.",
+      "Questo giocatore e vicino allo skill-up oppure le sue secondarie e/o la forma hanno un sottolivello molto alto.",
     hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     hiddenSpecialtyTooltipLinkHint:
       "Clicca per aprire la partita in cui e stata scoperta",

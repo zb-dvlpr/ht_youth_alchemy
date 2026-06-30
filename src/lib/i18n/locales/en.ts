@@ -2042,9 +2042,9 @@ export const messagesEn: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Wage prediction is not available for this player.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Close to skill-up or very low form/secondary sublevels.",
+      "This player has recently skilled up or his secondary skills and/or form have a very low sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Close to skill-up or very high form/secondary sublevels.",
+      "This player is close to skill up or his secondary skills and/or form have a very high sublevel.",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",

@@ -2085,9 +2085,9 @@ export const messagesDe: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Gehaltsprognose ist für diesen Spieler nicht verfügbar.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Nahe am Skill-up oder sehr niedrige Form-/Nebenfähigkeiten-Sublevel.",
+      "Dieser Spieler hatte kurzlich einen Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr niedrige Sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Nahe am Skill-up oder sehr hohe Form-/Nebenfähigkeiten-Sublevel.",
+      "Dieser Spieler steht kurz vor einem Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr hohe Sublevel.",
     hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     hiddenSpecialtyTooltipLinkHint:
       "Klicken, um das Match zu öffnen, in dem sie entdeckt wurde",

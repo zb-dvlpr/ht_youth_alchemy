@@ -1437,9 +1437,9 @@ export const messagesPl: Messages = {
   seniorPsicoTsiWageUnavailableWarning:
     "Prognoza z pensji nie jest dostepna dla tego zawodnika.",
   seniorPsicoTsiLowSublevelsWarning:
-    "Blisko awansu umiejetnosci lub bardzo niskie podpoziomy formy/pobocznych.",
+    "Ten zawodnik niedawno awansowal w umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo niski podpoziom.",
   seniorPsicoTsiHighSublevelsWarning:
-    "Blisko awansu umiejetnosci lub bardzo wysokie podpoziomy formy/pobocznych.",
+    "Ten zawodnik jest blisko awansu umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo wysoki podpoziom.",
   hiddenSpecialtyTooltip: "Ukryta specjalność wykryta z wydarzeń meczowych",
   hiddenSpecialtyTooltipLinkHint: "Kliknij, aby otworzyć mecz, w którym ją odkryto",
   skillsLabel: "Umiejętności",

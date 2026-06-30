@@ -2091,9 +2091,9 @@ export const messagesSv: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Lonprognos ar inte tillganglig for den har spelaren.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Nara skill-up eller mycket laga form-/sekundara subnivaer.",
+      "Spelaren har nyligen hojt sin skill eller har mycket laga subnivaer i sekundara skills och/eller form.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Nara skill-up eller mycket hoga form-/sekundara subnivaer.",
+      "Spelaren ar nara att hoja sin skill eller har mycket hoga subnivaer i sekundara skills och/eller form.",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     hiddenSpecialtyTooltipLinkHint:
       "Klicka for att oppna matchen dar den upptacktes",

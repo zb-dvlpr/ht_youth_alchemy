@@ -1443,9 +1443,9 @@ export const messagesNl: Messages = {
   seniorPsicoTsiWageUnavailableWarning:
     "Loonvoorspelling is niet beschikbaar voor deze speler.",
   seniorPsicoTsiLowSublevelsWarning:
-    "Dicht bij skill-up of zeer lage vorm-/secundaire subniveaus.",
+    "Deze speler is onlangs in skill gestegen of zijn secundaire skills en/of vorm hebben een zeer laag subniveau.",
   seniorPsicoTsiHighSublevelsWarning:
-    "Dicht bij skill-up of zeer hoge vorm-/secundaire subniveaus.",
+    "Deze speler zit dicht bij een skill-up of zijn secundaire skills en/of vorm hebben een zeer hoog subniveau.",
   hiddenSpecialtyTooltip: "Verborgen specialiteit ontdekt via wedstrijdgebeurtenissen",
   hiddenSpecialtyTooltipLinkHint: "Klik om de wedstrijd te openen waarin dit ontdekt werd",
   skillsLabel: "Vaardigheden",

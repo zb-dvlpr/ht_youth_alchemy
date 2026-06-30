@@ -2102,9 +2102,9 @@ export const messagesEs: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "La prediccion por salario no esta disponible para este jugador.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Cerca de subir habilidad o subniveles de forma/secundarias muy bajos.",
+      "Este jugador ha subido habilidad recientemente o sus secundarias y/o forma tienen un subnivel muy bajo.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Cerca de subir habilidad o subniveles de forma/secundarias muy altos.",
+      "Este jugador esta cerca de subir habilidad o sus secundarias y/o forma tienen un subnivel muy alto.",
     hiddenSpecialtyTooltip:
       "Especialidad oculta descubierta desde eventos del partido",
     hiddenSpecialtyTooltipLinkHint:

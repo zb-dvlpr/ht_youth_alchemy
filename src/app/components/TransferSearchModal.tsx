@@ -281,6 +281,33 @@ type TransferSearchMarketSummary = {
 
 type TransferSearchMobilePanel = "criteria" | "results" | "summary";
 type TransferSearchTableSortDirection = "best" | "reverse";
+type TransferSearchSortSource = "cards" | "table";
+type TransferSearchTableColumnKey =
+  | "nat"
+  | "name"
+  | "spec"
+  | "inj"
+  | "age"
+  | "price"
+  | "tsi"
+  | "lead"
+  | "xp"
+  | "form"
+  | "stam"
+  | "kp"
+  | "def"
+  | "pm"
+  | "wg"
+  | "ps"
+  | "sc"
+  | "sp"
+  | "htms"
+  | "skillTrade"
+  | "ptsi"
+  | "pwage"
+  | "wage"
+  | "deadline"
+  | "bid";
 type TransferSearchCountryMeta = {
   name: string;
   flagDisplay?: OriginFlagDisplay;
@@ -305,6 +332,38 @@ const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
   "scoring",
   "setPieces",
 ] as const;
+
+const TRANSFER_SORT_KEY_TO_TABLE_COLUMN: Partial<
+  Record<TransferSearchSortKey, TransferSearchTableColumnKey>
+> = {
+  htmsPotential: "htms",
+  psicoTsiAvg: "ptsi",
+  psicoWageAvg: "pwage",
+  skillTradingCandidate: "skillTrade",
+  keeper: "kp",
+  defending: "def",
+  playmaking: "pm",
+  winger: "wg",
+  passing: "ps",
+  scoring: "sc",
+  setPieces: "sp",
+};
+
+const TABLE_COLUMN_TO_TRANSFER_SORT_KEY: Partial<
+  Record<TransferSearchTableColumnKey, TransferSearchSortKey>
+> = {
+  htms: "htmsPotential",
+  ptsi: "psicoTsiAvg",
+  pwage: "psicoWageAvg",
+  skillTrade: "skillTradingCandidate",
+  kp: "keeper",
+  def: "defending",
+  pm: "playmaking",
+  wg: "winger",
+  ps: "passing",
+  sc: "scoring",
+  sp: "setPieces",
+};
 
 const buildTransferSearchMetricInput = (
   result: TransferSearchResult
@@ -1362,9 +1421,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
     ? JSON.stringify(buildTransferSearchDraftFields(filters))
     : "null";
   const [mobilePanel, setMobilePanel] = useState<TransferSearchMobilePanel>("results");
-  const [tableSortColumn, setTableSortColumn] = useState<string>("htms");
+  const [tableSortColumn, setTableSortColumn] = useState<TransferSearchTableColumnKey>("htms");
   const [tableSortDirection, setTableSortDirection] =
     useState<TransferSearchTableSortDirection>("best");
+  const lastTransferSortSourceRef = useRef<TransferSearchSortSource | null>(null);
   const [draftState, setDraftState] = useState<{
     baseKey: string;
     fields: TransferSearchDraftFields | null;
@@ -1699,9 +1759,44 @@ const TransferSearchModal = memo(function TransferSearchModal({
       ) {
         return;
       }
+      lastTransferSortSourceRef.current = "cards";
       onSortKeyChange(nextValue as TransferSearchSortKey);
     },
     [onSortKeyChange]
+  );
+  const applyCardSortToTableSort = useCallback((nextSortKey: TransferSearchSortKey) => {
+    const mappedColumn = TRANSFER_SORT_KEY_TO_TABLE_COLUMN[nextSortKey];
+    if (!mappedColumn) return;
+    setTableSortColumn(mappedColumn);
+    setTableSortDirection("best");
+  }, []);
+  const handleResultsViewModeToggle = useCallback(() => {
+    const nextMode: TransferSearchResultsViewMode =
+      resultsViewMode === "cards" ? "table" : "cards";
+    if (
+      nextMode === "table" &&
+      lastTransferSortSourceRef.current !== "table"
+    ) {
+      applyCardSortToTableSort(sortKey);
+    }
+    onResultsViewModeChange(nextMode);
+  }, [applyCardSortToTableSort, onResultsViewModeChange, resultsViewMode, sortKey]);
+  const handleTableSortColumnClick = useCallback(
+    (columnKey: TransferSearchTableColumnKey) => {
+      lastTransferSortSourceRef.current = "table";
+      if (tableSortColumn === columnKey) {
+        setTableSortDirection((prev) => (prev === "best" ? "reverse" : "best"));
+        return;
+      }
+      setTableSortColumn(columnKey);
+      setTableSortDirection("best");
+
+      const mappedSortKey = TABLE_COLUMN_TO_TRANSFER_SORT_KEY[columnKey];
+      if (mappedSortKey) {
+        onSortKeyChange(mappedSortKey);
+      }
+    },
+    [onSortKeyChange, tableSortColumn]
   );
   const tableRows = useMemo(
     (): Array<{ result: TransferSearchResult; data: TransferSearchTableRowData }> =>
@@ -1959,7 +2054,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
     </div>
   );
 
-  const tableHeaderColumns: Array<{ key: string; label: string; higherBetter?: boolean | null }> = [
+  const tableHeaderColumns: Array<{
+    key: TransferSearchTableColumnKey;
+    label: string;
+    higherBetter?: boolean | null;
+  }> = [
     { key: "nat", label: messages.transferSearchTableNationalityColumn, higherBetter: null },
     { key: "name", label: messages.transferSearchTableNameColumn, higherBetter: null },
     { key: "spec", label: messages.transferSearchTableSpecialtyColumn },
@@ -2545,11 +2644,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     <button
                       type="button"
                       className={styles.transferSearchViewToggle}
-                      onClick={() =>
-                        onResultsViewModeChange(
-                          resultsViewMode === "cards" ? "table" : "cards"
-                        )
-                      }
+                      onClick={handleResultsViewModeToggle}
                       disabled={loading}
                     >
                       {resultsViewMode === "cards"
@@ -2614,16 +2709,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                 <button
                                   type="button"
                                   className={styles.transferSearchTableSortButton}
-                                  onClick={() => {
-                                    if (tableSortColumn === column.key) {
-                                      setTableSortDirection((prev) =>
-                                        prev === "best" ? "reverse" : "best"
-                                      );
-                                      return;
-                                    }
-                                    setTableSortColumn(column.key);
-                                    setTableSortDirection("best");
-                                  }}
+                                  onClick={() => handleTableSortColumnClick(column.key)}
                                 >
                                   <span>
                                     {column.label}

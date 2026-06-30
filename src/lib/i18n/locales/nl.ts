@@ -824,6 +824,7 @@ export const messagesNl: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-trading score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",

@@ -1922,6 +1922,7 @@ export const messagesDe: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-Trading-Score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",

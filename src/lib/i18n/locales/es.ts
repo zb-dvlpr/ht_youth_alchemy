@@ -1939,6 +1939,7 @@ export const messagesEs: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Puntuación skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",

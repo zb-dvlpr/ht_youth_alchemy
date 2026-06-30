@@ -1549,6 +1549,7 @@ export type Messages = {
   transferSearchTableScoringColumn: string;
   transferSearchTableSetPiecesColumn: string;
   transferSearchTableHtmsColumn: string;
+  transferSearchTableSkillTradingScoreColumn: string;
   transferSearchTablePsicoTsiColumn: string;
   transferSearchTablePsicoWageColumn: string;
   transferSearchTableWageColumn: string;

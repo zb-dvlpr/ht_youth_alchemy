@@ -1928,6 +1928,7 @@ export const messagesSv: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-trading-poäng",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",

@@ -1943,6 +1943,7 @@ export const messagesIt: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Punteggio skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",

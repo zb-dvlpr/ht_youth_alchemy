@@ -35,6 +35,7 @@ import TransferSearchModal, {
   ageToTotalDays,
   buildTransferSearchMinimumBidSek,
   buildTransferSearchParams,
+  calculateTransferSearchSkillTradingScore,
   clampTransferSkillValue,
   displayToSek,
   formatTransferSearchCurrencyLabel,
@@ -4432,6 +4433,7 @@ export default function Dashboard({
         scoring: metricInput.scoring ?? null,
         setPieces: metricInput.setPieces ?? null,
         htmsPotential: calculateHtmsMetrics(metricInput)?.potential ?? null,
+        skillTradingScore: calculateTransferSearchSkillTradingScore(metricInput),
         avgPsicoTsi: psico
           ? [
               Number.parseFloat(psico.formHigh),

@@ -248,6 +248,7 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_7_2_0: "Erweiterte Gegnerkaderanalyse implementiert.",
     changelog_7_1_0:
       "Transfermarktergebnisse koennen nach Skill-Trading-Eignung sortiert werden.",
     changelog_7_0_0: "Das Transfermarkt-Werkzeug wurde implementiert.",
@@ -1694,6 +1695,11 @@ export const messagesDe: Messages = {
     analyzeOpponentSummaryWith: "mit",
     analyzeOpponentStillInCup: "noch im Pokal",
     analyzeOpponentNotInCup: "nicht im Pokal",
+    seniorOpponentAnalysisTabMatches: "Spiele",
+    seniorOpponentAnalysisTabScoutTeam: "Team scouten",
+    seniorOpponentScoutTeamLoading: "Gegnerkaderanalyse wird geladen...",
+    seniorOpponentScoutTeamError: "Gegnerkaderanalyse konnte nicht geladen werden.",
+    seniorOpponentScoutTeamEmpty: "Keine Gegnerkaderdaten verfugbar.",
     loadLineupUnavailable: "Keine gespeicherte Aufstellung",
     loadLineupActive: "Geladen",
     loadLineupError: "Laden fehlgeschlagen",

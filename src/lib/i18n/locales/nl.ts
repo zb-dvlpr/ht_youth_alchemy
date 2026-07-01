@@ -510,6 +510,7 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_7_2_0: "Verbeterde analyse van de tegenstanderselectie geimplementeerd.",
     changelog_7_1_0:
       "Transfermarktresultaten sorteren op geschiktheid voor skill trading.",
     changelog_7_0_0: "De Transfermarkt-tool is geimplementeerd.",
@@ -1284,6 +1285,11 @@ export const messagesNl: Messages = {
     "Tegenstander analyseren vat recente patronen samen om AI-opstellingskeuzes te ondersteunen.",
   analyzeOpponentStillInCup: "nog in de beker",
   analyzeOpponentNotInCup: "niet meer in de beker",
+  seniorOpponentAnalysisTabMatches: "Wedstrijden",
+  seniorOpponentAnalysisTabScoutTeam: "Team scouten",
+  seniorOpponentScoutTeamLoading: "Analyse van tegenstanderselectie laden...",
+  seniorOpponentScoutTeamError: "Kan analyse van tegenstanderselectie niet laden.",
+  seniorOpponentScoutTeamEmpty: "Geen selectiegegevens van tegenstander beschikbaar.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

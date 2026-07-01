@@ -504,6 +504,7 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_7_2_0: "Wdrożono ulepszona analize kadry przeciwnika.",
     changelog_7_1_0:
       "Sortowanie wynikow rynku transferowego wedlug przydatnosci do skill tradingu.",
     changelog_7_0_0: "Wdrożono narzedzie Rynek transferowy.",
@@ -1278,6 +1279,11 @@ export const messagesPl: Messages = {
     "Analizuj przeciwnika podsumowuje ostatnie wzorce, aby wspierać decyzje AI o składzie.",
   analyzeOpponentStillInCup: "nadal w pucharze",
   analyzeOpponentNotInCup: "poza pucharem",
+  seniorOpponentAnalysisTabMatches: "Mecze",
+  seniorOpponentAnalysisTabScoutTeam: "Skautuj zespol",
+  seniorOpponentScoutTeamLoading: "Ladowanie analizy kadry przeciwnika...",
+  seniorOpponentScoutTeamError: "Nie mozna zaladowac analizy kadry przeciwnika.",
+  seniorOpponentScoutTeamEmpty: "Brak danych kadry przeciwnika.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

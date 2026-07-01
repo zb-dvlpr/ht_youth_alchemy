@@ -204,6 +204,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_7_2_0: string;
   changelog_7_1_0: string;
   changelog_7_0_0: string;
   changelog_6_6_0: string;
@@ -1355,6 +1356,11 @@ export type Messages = {
   analyzeOpponentSummaryWith: string;
   analyzeOpponentStillInCup: string;
   analyzeOpponentNotInCup: string;
+  seniorOpponentAnalysisTabMatches: string;
+  seniorOpponentAnalysisTabScoutTeam: string;
+  seniorOpponentScoutTeamLoading: string;
+  seniorOpponentScoutTeamError: string;
+  seniorOpponentScoutTeamEmpty: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;

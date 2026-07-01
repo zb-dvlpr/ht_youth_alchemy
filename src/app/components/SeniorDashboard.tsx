@@ -36,6 +36,10 @@ import {
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
+  estimateChronicleMainSkillFromWage,
+  type ChroniclePlayingPositionEntry,
+} from "@/lib/clubChronicle/mainSkillEstimation";
+import {
   readSeniorLineupAlgorithm,
   readSeniorDebugManagerUserId,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
@@ -869,7 +873,7 @@ type OpponentFormationRow = {
   trackedPlayers: OpponentTrackedLineupPlayer[];
 };
 
-type OpponentTrackedRole = "W" | "IM" | "F";
+type OpponentTrackedRole = "KP" | "WB" | "CD" | "W" | "IM" | "F";
 
 type OpponentTrackedLineupPlayer = {
   playerId: number;
@@ -1054,6 +1058,40 @@ type FormationTacticsDistribution = {
   count: number;
 };
 
+type OpponentAnalysisTab = "matches" | "scoutTeam";
+
+type OpponentScoutPlayerRow = {
+  playerId: number;
+  playerName: string;
+  playerNumber: number | null;
+  age: number | null;
+  ageDays: number | null;
+  tsi: number | null;
+  salarySek: number | null;
+  specialty: number | null;
+  form: number | null;
+  stamina: number | null;
+  experience: number | null;
+  leadership: number | null;
+  playingPositions: ChroniclePlayingPositionEntry[];
+  usedAsManMarker: boolean;
+  isLikelyTrainee: boolean;
+};
+
+type OpponentScoutTeamData = {
+  teamId: number;
+  teamName: string;
+  rows: OpponentScoutPlayerRow[];
+  likelyTrainingLabel: string;
+  matchCount: number;
+};
+
+type OpponentScoutTeamState =
+  | { status: "idle"; teamId: null; data: null; error: null }
+  | { status: "loading"; teamId: number; data: null; error: null }
+  | { status: "success"; teamId: number; data: OpponentScoutTeamData; error: null }
+  | { status: "error"; teamId: number; data: null; error: string };
+
 type OpponentFormationAverages = {
   sampleSize: number;
   ratingMidfield: number | null;
@@ -1215,6 +1253,9 @@ const normalizeOpponentTrackedRole = (
   role: string | null | undefined
 ): OpponentTrackedRole | null => {
   switch (role) {
+    case "KP":
+    case "WB":
+    case "CD":
     case "W":
     case "IM":
     case "F":
@@ -4078,9 +4119,19 @@ export default function SeniorDashboard({
     versusTactic: number | null;
     formationDistribution: FormationTacticsDistribution[];
     tacticDistribution: FormationTacticsDistribution[];
+    manMarkingTarget: OpponentTargetPlayer | null;
     loading: boolean;
     error: string | null;
   } | null>(null);
+  const [opponentAnalysisActiveTab, setOpponentAnalysisActiveTab] =
+    useState<OpponentAnalysisTab>("matches");
+  const [opponentScoutTeamState, setOpponentScoutTeamState] =
+    useState<OpponentScoutTeamState>({
+      status: "idle",
+      teamId: null,
+      data: null,
+      error: null,
+    });
   const [nonTraineeAssignmentModal, setNonTraineeAssignmentModal] = useState<{
     title: string;
     entries: NonTraineeAssignmentTraceEntry[];
@@ -4135,6 +4186,7 @@ export default function SeniorDashboard({
     new Map()
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
+  const opponentScoutTeamRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
   const otherOrdersFlashArmedRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
@@ -13033,6 +13085,133 @@ const refreshDetailsForPlayers = async (
     playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const opponentTrackedRoleLabel = (role: OpponentTrackedRole) =>
     role === "F" ? "FW" : role;
+  const opponentTrackedRoleId = (role: OpponentTrackedRole) => {
+    switch (role) {
+      case "KP":
+        return 100;
+      case "WB":
+        return 101;
+      case "CD":
+        return 103;
+      case "W":
+        return 106;
+      case "IM":
+        return 107;
+      case "F":
+        return 111;
+      default:
+        return null;
+    }
+  };
+  const opponentScoutLikelyTrainingLabel = (
+    rows: OpponentFormationRow[]
+  ): { key: OpponentTrackedRole | null; label: string } => {
+    const formationCounts = new Map<string, number>();
+    rows.forEach((row) => {
+      if (!row.formation) return;
+      formationCounts.set(row.formation, (formationCounts.get(row.formation) ?? 0) + 1);
+    });
+    const topFormation = Array.from(formationCounts.entries()).sort(
+      (left, right) => right[1] - left[1]
+    )[0]?.[0];
+    if (!topFormation) return { key: null, label: messages.unknownShort };
+    const parts = topFormation.split("-").map((value) => Number(value));
+    if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) {
+      return { key: null, label: messages.unknownShort };
+    }
+    const [defenders, midfielders, forwards] = parts;
+    if (forwards >= 3) {
+      return { key: "F", label: messages.clubChronicleLikelyTrainingScoring };
+    }
+    if (midfielders >= 5) {
+      return { key: "IM", label: messages.clubChronicleLikelyTrainingPlaymaking };
+    }
+    if (defenders >= 5) {
+      return { key: "CD", label: messages.clubChronicleLikelyTrainingDefending };
+    }
+    if (midfielders >= 4 && forwards >= 2) {
+      return { key: "W", label: messages.clubChronicleLikelyTrainingPassing };
+    }
+    return { key: null, label: messages.clubChronicleLikelyTrainingKeepingOrSetPieces };
+  };
+  const buildOpponentScoutPlayingPositions = (rows: OpponentFormationRow[]) => {
+    const minutesByPlayer = new Map<number, Map<number, number>>();
+    rows.forEach((row) => {
+      const matchMinutes = 90;
+      const uniqueEntries = new Map<number, OpponentTrackedLineupPlayer>();
+      row.trackedPlayers.forEach((player) => {
+        uniqueEntries.set(player.playerId, player);
+      });
+      uniqueEntries.forEach((player) => {
+        const roleId = opponentTrackedRoleId(player.role);
+        if (!roleId) return;
+        const current = minutesByPlayer.get(player.playerId) ?? new Map<number, number>();
+        current.set(roleId, (current.get(roleId) ?? 0) + matchMinutes);
+        minutesByPlayer.set(player.playerId, current);
+      });
+    });
+    const result = new Map<number, ChroniclePlayingPositionEntry[]>();
+    minutesByPlayer.forEach((roleMinutes, playerId) => {
+      result.set(
+        playerId,
+        Array.from(roleMinutes.entries()).map(([roleId, minutes]) => ({
+          roleId,
+          minutes,
+        }))
+      );
+    });
+    return result;
+  };
+  const formatOpponentScoutPlayingPositions = (
+    entries: ChroniclePlayingPositionEntry[]
+  ) => {
+    const total = entries.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
+    if (total <= 0) return messages.unknownShort;
+    return [...entries]
+      .sort((left, right) => right.minutes - left.minutes)
+      .map((entry) => {
+        const label = positionLabel(entry.roleId, messages);
+        const percentage = Math.round((entry.minutes / total) * 100);
+        return `${label} ${percentage}%`;
+      })
+      .join(", ");
+  };
+  const isOpponentScoutLikelyTrainee = (
+    entries: ChroniclePlayingPositionEntry[],
+    likelyTrainingRole: OpponentTrackedRole | null
+  ) => {
+    if (!likelyTrainingRole || entries.length === 0) return false;
+    const allowedRoles = new Set<OpponentTrackedRole>(
+      likelyTrainingRole === "IM"
+        ? ["IM", "W"]
+        : likelyTrainingRole === "CD"
+          ? ["CD", "WB"]
+          : likelyTrainingRole === "W"
+            ? ["W", "IM", "F"]
+            : [likelyTrainingRole]
+    );
+    const total = entries.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
+    if (total <= 0) return false;
+    const allowedMinutes = entries.reduce((sum, entry) => {
+      const role = normalizeOpponentTrackedRole(matchRoleIdToPositionKey(entry.roleId));
+      return role && allowedRoles.has(role) ? sum + Math.max(0, entry.minutes) : sum;
+    }, 0);
+    return allowedMinutes / total >= 0.8;
+  };
+  const formatOpponentScoutMainSkillEstimation = (row: OpponentScoutPlayerRow) => {
+    const estimation = estimateChronicleMainSkillFromWage({
+      salarySek: row.salarySek,
+      ageYears: row.age,
+      specialty: row.specialty,
+      wageIncludesForeignBonus: null,
+      playingPositions: row.playingPositions,
+    });
+    if (estimation.kind === "tooOld") {
+      return messages.clubChronicleMainSkillEstimationTooOld;
+    }
+    if (estimation.kind !== "estimated") return messages.unknownShort;
+    return `${estimation.level} (${estimation.mainSkill})`;
+  };
   const formatOpponentPotentialTargetDetails = (
     target: OpponentPotentialTargetPlayer
   ) => {
@@ -14122,9 +14301,11 @@ const refreshDetailsForPlayers = async (
       Math.max(SENIOR_AI_MAN_MARKING_FUZZINESS_MIN, Math.round(consistencyThresholdPct))
     );
     const counts = new Map<string, { playerId: number; role: OpponentTrackedRole; name: string; count: number }>();
+    const manMarkingRoles = new Set<OpponentTrackedRole>(["W", "IM", "F"]);
     rows.forEach((row) => {
       const uniqueEntries = new Map<string, OpponentTrackedLineupPlayer>();
       row.trackedPlayers.forEach((player) => {
+        if (!manMarkingRoles.has(player.role)) return;
         uniqueEntries.set(`${player.playerId}:${player.role}`, player);
       });
       uniqueEntries.forEach((player) => {
@@ -15633,6 +15814,14 @@ const refreshDetailsForPlayers = async (
 
   const handleAnalyzeOpponent = async (matchId: number) => {
     try {
+      opponentScoutTeamRequestIdRef.current += 1;
+      setOpponentAnalysisActiveTab("matches");
+      setOpponentScoutTeamState({
+        status: "idle",
+        teamId: null,
+        data: null,
+        error: null,
+      });
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
       const { opponentTeamId, opponentName } = opponentContext;
@@ -15652,6 +15841,7 @@ const refreshDetailsForPlayers = async (
         versusTactic: null,
         formationDistribution: [],
         tacticDistribution: [],
+        manMarkingTarget: opponentContext.manMarkingTarget,
         loading: true,
         error: null,
       });
@@ -15686,6 +15876,7 @@ const refreshDetailsForPlayers = async (
               versusTactic,
               formationDistribution: buildDistribution(formationCounts),
               tacticDistribution: buildDistribution(tacticCounts),
+              manMarkingTarget: opponentContext.manMarkingTarget,
               loading: false,
               error: null,
             }
@@ -15706,6 +15897,194 @@ const refreshDetailsForPlayers = async (
       addNotification(details);
     }
   };
+
+  const loadOpponentScoutTeam = useCallback(
+    async (force = false) => {
+      const currentModal = opponentAnalysisModal;
+      if (!currentModal || currentModal.loading || currentModal.error) return;
+      const teamId = currentModal.opponentTeamId;
+      if (
+        !force &&
+        opponentScoutTeamState.status === "success" &&
+        opponentScoutTeamState.teamId === teamId
+      ) {
+        return;
+      }
+      if (
+        !force &&
+        opponentScoutTeamState.status === "loading" &&
+        opponentScoutTeamState.teamId === teamId
+      ) {
+        return;
+      }
+      const requestId = opponentScoutTeamRequestIdRef.current + 1;
+      opponentScoutTeamRequestIdRef.current = requestId;
+      setOpponentScoutTeamState({
+        status: "loading",
+        teamId,
+        data: null,
+        error: null,
+      });
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                PlayerList?: {
+                  Player?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(`/api/chpp/players?orderBy=PlayerNumber&teamId=${teamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(
+            payload?.details ??
+              payload?.error ??
+              messages.seniorOpponentScoutTeamError
+          );
+        }
+        const raw = payload?.data?.HattrickData?.Team?.PlayerList?.Player;
+        const rawPlayers = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const playingPositionsByPlayerId = buildOpponentScoutPlayingPositions(
+          currentModal.opponentRows
+        );
+        const manMarkerPlayerIds = new Set(
+          currentModal.manMarkingTarget ? [currentModal.manMarkingTarget.playerId] : []
+        );
+        const likelyTraining = opponentScoutLikelyTrainingLabel(
+          currentModal.opponentRows
+        );
+        const rows = rawPlayers
+          .map((player) => {
+            if (!player || typeof player !== "object") return null;
+            const playerNode = player as Record<string, unknown>;
+            const playerId = parseNumber(playerNode.PlayerID);
+            if (!playerId || playerId <= 0) return null;
+            const skills =
+              playerNode.PlayerSkills && typeof playerNode.PlayerSkills === "object"
+                ? (playerNode.PlayerSkills as Record<string, unknown>)
+                : null;
+            const playingPositions =
+              playingPositionsByPlayerId.get(playerId) ?? [];
+            const playerName =
+              formatPlayerName({
+                FirstName:
+                  typeof playerNode.FirstName === "string" ? playerNode.FirstName : "",
+                NickName:
+                  typeof playerNode.NickName === "string" && playerNode.NickName
+                    ? playerNode.NickName
+                    : undefined,
+                LastName:
+                  typeof playerNode.LastName === "string" ? playerNode.LastName : "",
+              }) || String(playerId);
+            return {
+              playerId,
+              playerName,
+              playerNumber: parseNumber(playerNode.PlayerNumber),
+              age: parseNumber(playerNode.Age),
+              ageDays: parseNumber(playerNode.AgeDays),
+              tsi: parseNumber(playerNode.TSI),
+              salarySek: parseNumber(playerNode.Salary),
+              specialty: parseNumber(playerNode.Specialty),
+              form: parseNumber(playerNode.PlayerForm ?? playerNode.Form),
+              stamina: parseNumber(
+                playerNode.StaminaSkill ?? skills?.StaminaSkill
+              ),
+              experience: parseNumber(playerNode.Experience),
+              leadership: parseNumber(playerNode.Leadership),
+              playingPositions,
+              usedAsManMarker: manMarkerPlayerIds.has(playerId),
+              isLikelyTrainee: isOpponentScoutLikelyTrainee(
+                playingPositions,
+                likelyTraining.key
+              ),
+            } satisfies OpponentScoutPlayerRow;
+          })
+          .filter((row): row is OpponentScoutPlayerRow => Boolean(row))
+          .sort((left, right) => (right.tsi ?? 0) - (left.tsi ?? 0));
+        if (opponentScoutTeamRequestIdRef.current !== requestId) return;
+        setOpponentScoutTeamState({
+          status: "success",
+          teamId,
+          data: {
+            teamId,
+            teamName: currentModal.opponentName,
+            rows,
+            likelyTrainingLabel: likelyTraining.label,
+            matchCount: currentModal.opponentRows.length,
+          },
+          error: null,
+        });
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
+        if (opponentScoutTeamRequestIdRef.current !== requestId) return;
+        setOpponentScoutTeamState({
+          status: "error",
+          teamId,
+          data: null,
+          error:
+            error instanceof Error
+              ? error.message
+              : messages.seniorOpponentScoutTeamError,
+        });
+      }
+    },
+    [
+      buildOpponentScoutPlayingPositions,
+      isOpponentScoutLikelyTrainee,
+      messages.seniorOpponentScoutTeamError,
+      opponentAnalysisModal,
+      opponentScoutLikelyTrainingLabel,
+      opponentScoutTeamState,
+    ]
+  );
+
+  const closeOpponentAnalysisModal = useCallback(() => {
+    opponentScoutTeamRequestIdRef.current += 1;
+    setOpponentAnalysisModal(null);
+    setOpponentAnalysisActiveTab("matches");
+    setOpponentScoutTeamState({
+      status: "idle",
+      teamId: null,
+      data: null,
+      error: null,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (opponentAnalysisActiveTab !== "scoutTeam") return;
+    if (
+      !opponentAnalysisModal ||
+      opponentAnalysisModal.loading ||
+      opponentAnalysisModal.error
+    ) {
+      return;
+    }
+    if (
+      opponentScoutTeamState.status === "success" &&
+      opponentScoutTeamState.teamId === opponentAnalysisModal.opponentTeamId
+    ) {
+      return;
+    }
+    if (
+      opponentScoutTeamState.status === "loading" &&
+      opponentScoutTeamState.teamId === opponentAnalysisModal.opponentTeamId
+    ) {
+      return;
+    }
+    void loadOpponentScoutTeam();
+  }, [
+    loadOpponentScoutTeam,
+    opponentAnalysisActiveTab,
+    opponentAnalysisModal,
+    opponentScoutTeamState.status,
+    opponentScoutTeamState.teamId,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -21096,15 +21475,47 @@ const refreshDetailsForPlayers = async (
       <Modal
         open={!!opponentAnalysisModal}
         title={opponentAnalysisModal?.title ?? messages.analyzeOpponent}
-        className={styles.chronicleTransferHistoryModal}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorOpponentAnalysisModal}`}
         body={
           opponentAnalysisModal ? (
-            opponentAnalysisModal.loading ? (
-              <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
-            ) : opponentAnalysisModal.error ? (
-              <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
-            ) : (
-              <>
+            <div className={styles.seniorOpponentAnalysisModalBody}>
+              <div className={styles.detailsTabs} role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={opponentAnalysisActiveTab === "matches"}
+                  className={`${styles.detailsTabButton} ${
+                    opponentAnalysisActiveTab === "matches"
+                      ? styles.detailsTabActive
+                      : ""
+                  }`}
+                  onClick={() => setOpponentAnalysisActiveTab("matches")}
+                >
+                  {messages.seniorOpponentAnalysisTabMatches}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={opponentAnalysisActiveTab === "scoutTeam"}
+                  className={`${styles.detailsTabButton} ${
+                    opponentAnalysisActiveTab === "scoutTeam"
+                      ? styles.detailsTabActive
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setOpponentAnalysisActiveTab("scoutTeam");
+                    void loadOpponentScoutTeam();
+                  }}
+                >
+                  {messages.seniorOpponentAnalysisTabScoutTeam}
+                </button>
+              </div>
+              {opponentAnalysisModal.loading ? (
+                <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
+              ) : opponentAnalysisModal.error ? (
+                <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
+              ) : opponentAnalysisActiveTab === "matches" ? (
+                <div className={styles.seniorOpponentAnalysisMatchesPanel}>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
                     <thead>
@@ -21263,21 +21674,177 @@ const refreshDetailsForPlayers = async (
                     )}
                   </div>
                 </div>
-              </>
-            )
+                </div>
+              ) : (
+                <div className={styles.chronicleTsiWagesDetailModalLayout}>
+                  {opponentScoutTeamState.status === "loading" ? (
+                    <div className={styles.loadingRow}>
+                      <span className={styles.spinner} aria-hidden="true" />
+                      <span>{messages.seniorOpponentScoutTeamLoading}</span>
+                    </div>
+                  ) : null}
+                  {opponentScoutTeamState.status === "error" ? (
+                    <div className={styles.seniorOtherOrdersComboboxStatus}>
+                      <span>{opponentScoutTeamState.error}</span>
+                      <button
+                        type="button"
+                        className={styles.seniorOtherOrdersInlineButton}
+                        onClick={() => void loadOpponentScoutTeam(true)}
+                      >
+                        {messages.seniorOtherOrdersOpponentPlayersRetry}
+                      </button>
+                    </div>
+                  ) : null}
+                  {opponentScoutTeamState.status === "success" &&
+                  opponentScoutTeamState.data.rows.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.seniorOpponentScoutTeamEmpty}
+                    </p>
+                  ) : null}
+                  {opponentScoutTeamState.status === "success" &&
+                  opponentScoutTeamState.data.rows.length > 0 ? (
+                    <>
+                      <div className={styles.chronicleTsiWagesDetailModalTableScroll}>
+                        <div
+                          className={`${styles.chronicleTsiWagesDetailTable} ${styles.chronicleTableFreezeFirstTwoColumns}`}
+                          style={
+                            {
+                              "--cc-columns": 12,
+                              "--cc-template-desktop":
+                                "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px",
+                              "--cc-template-mobile":
+                                "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px",
+                              "--cc-freeze-second-left-desktop": "60px",
+                              "--cc-freeze-second-left-mobile": "44px",
+                            } as CSSProperties
+                          }
+                        >
+                          <div className={styles.chronicleTableHeader}>
+                            <span>{messages.clubChronicleTsiPlayerIndexColumn}</span>
+                            <span>{messages.clubChronicleTsiPlayerColumn}</span>
+                            <span>{messages.clubChronicleTransferListedAgeColumn}</span>
+                            <span>{messages.clubChronicleTsiValueColumn}</span>
+                            <span>{messages.clubChroniclePlayingPositionColumn}</span>
+                            <span>{messages.clubChronicleMainSkillEstimationColumn}</span>
+                            <span>{messages.clubChronicleForm7RatingColumn}</span>
+                            <span>{messages.clubChronicleManMarkerColumn}</span>
+                            <span>{messages.clubChroniclePlayerFormColumn}</span>
+                            <span>{messages.clubChroniclePlayerStaminaColumn}</span>
+                            <span>{messages.clubChroniclePlayerExperienceColumn}</span>
+                            <span>{messages.clubChroniclePlayerLeadershipColumn}</span>
+                          </div>
+                          {opponentScoutTeamState.data.rows.map((row, index) => (
+                            <div
+                              key={row.playerId}
+                              className={`${styles.chronicleTableRow}${
+                                row.isLikelyTrainee
+                                  ? ` ${styles.chronicleLikelyTraineeRow}`
+                                  : ""
+                              }`}
+                            >
+                              <span className={styles.chronicleTableCell}>
+                                {index + 1}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                <a
+                                  className={styles.chroniclePressLink}
+                                  href={hattrickPlayerUrl(row.playerId)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {row.playerName}
+                                </a>
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.age === null
+                                  ? messages.unknownShort
+                                  : `${row.age}${messages.ageYearsShort} ${
+                                      row.ageDays ?? 0
+                                    }${messages.ageDaysShort}`}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.tsi ?? messages.unknownShort}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {formatOpponentScoutPlayingPositions(
+                                  row.playingPositions
+                                )}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {formatOpponentScoutMainSkillEstimation(row)}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {messages.unknownShort}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.usedAsManMarker ? "✓" : ""}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.form ?? messages.unknownShort}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.stamina ?? messages.unknownShort}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.experience ?? messages.unknownShort}
+                              </span>
+                              <span className={styles.chronicleTableCell}>
+                                {row.leadership ?? messages.unknownShort}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={styles.chronicleTsiWagesDetailModalFooterNotes}>
+                        <div className={styles.chronicleLegend}>
+                          <span className={styles.chronicleLegendText}>
+                            {messages.clubChronicleMainSkillEstimationFootnote}
+                          </span>
+                        </div>
+                        <div className={styles.chronicleLegend}>
+                          <span className={styles.chronicleLegendItem}>
+                            <span
+                              className={`${styles.chronicleLegendSwatch} ${styles.chronicleLikelyTraineeSwatch}`}
+                              aria-hidden="true"
+                            />
+                            <span>
+                              {messages.clubChronicleLikelyTraineeLegendLabel}
+                            </span>
+                          </span>
+                          <span className={styles.chronicleLegendText}>
+                            {messages.clubChronicleLikelyTraineeLegendRegimen.replace(
+                              "{{regimen}}",
+                              opponentScoutTeamState.data.likelyTrainingLabel
+                            )}
+                          </span>
+                        </div>
+                        <div className={styles.chronicleLegend}>
+                          <span className={styles.chronicleLegendText}>
+                            {messages.clubChronicleDetailModalMatchesUsedLabel.replace(
+                              "{{count}}",
+                              String(opponentScoutTeamState.data.matchCount)
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              )}
+            </div>
           ) : null
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setOpponentAnalysisModal(null)}
+            onClick={closeOpponentAnalysisModal}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setOpponentAnalysisModal(null)}
+        onClose={closeOpponentAnalysisModal}
       />
       <Modal
         open={showSetBestLineupDebugModal && !!nonTraineeAssignmentModal}

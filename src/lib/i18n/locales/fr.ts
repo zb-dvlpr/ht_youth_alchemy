@@ -248,6 +248,7 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_7_2_0: "Analyse amelioree de l effectif adverse implementee.",
     changelog_7_1_0:
       "Tri des resultats du marche des transferts par adequation au skill-trading.",
     changelog_7_0_0: "L'outil Marche des transferts a ete implemente.",
@@ -1709,6 +1710,11 @@ export const messagesFr: Messages = {
     analyzeOpponentSummaryWith: "avec",
     analyzeOpponentStillInCup: "encore en coupe",
     analyzeOpponentNotInCup: "plus en coupe",
+    seniorOpponentAnalysisTabMatches: "Matchs",
+    seniorOpponentAnalysisTabScoutTeam: "Observer l equipe",
+    seniorOpponentScoutTeamLoading: "Chargement de l analyse de l effectif adverse...",
+    seniorOpponentScoutTeamError: "Impossible de charger l analyse de l effectif adverse.",
+    seniorOpponentScoutTeamEmpty: "Aucune donnee d effectif adverse disponible.",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",

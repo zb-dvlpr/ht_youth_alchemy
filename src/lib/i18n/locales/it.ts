@@ -248,6 +248,7 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_7_2_0: "Analisi avanzata della rosa avversaria implementata.",
     changelog_7_1_0:
       "Ordinamento dei risultati del mercato trasferimenti per idoneita allo skill trading.",
     changelog_7_0_0: "E stato implementato lo strumento Mercato trasferimenti.",
@@ -1715,6 +1716,11 @@ export const messagesIt: Messages = {
     analyzeOpponentSummaryWith: "con",
     analyzeOpponentStillInCup: "ancora in coppa",
     analyzeOpponentNotInCup: "fuori dalla coppa",
+    seniorOpponentAnalysisTabMatches: "Partite",
+    seniorOpponentAnalysisTabScoutTeam: "Osserva squadra",
+    seniorOpponentScoutTeamLoading: "Caricamento analisi rosa avversaria...",
+    seniorOpponentScoutTeamError: "Impossibile caricare l analisi della rosa avversaria.",
+    seniorOpponentScoutTeamEmpty: "Nessun dato della rosa avversaria disponibile.",
     loadLineupUnavailable: "Nessuna formazione salvata",
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",

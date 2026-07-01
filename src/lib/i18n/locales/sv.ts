@@ -247,6 +247,7 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_7_2_0: "Forbattrad analys av motstandartruppen har implementerats.",
     changelog_7_1_0:
       "Sortering av transfermarknadsresultat efter skilltrading-lamplighet.",
     changelog_7_0_0: "Transfermarknadsverktyget har implementerats.",
@@ -1700,6 +1701,11 @@ export const messagesSv: Messages = {
     analyzeOpponentSummaryWith: "med",
     analyzeOpponentStillInCup: "fortfarande kvar i cupen",
     analyzeOpponentNotInCup: "ute ur cupen",
+    seniorOpponentAnalysisTabMatches: "Matcher",
+    seniorOpponentAnalysisTabScoutTeam: "Scouta laget",
+    seniorOpponentScoutTeamLoading: "Laddar analys av motstandartruppen...",
+    seniorOpponentScoutTeamError: "Kunde inte ladda analys av motstandartruppen.",
+    seniorOpponentScoutTeamEmpty: "Ingen data om motstandartruppen tillganglig.",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",

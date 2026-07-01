@@ -246,6 +246,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_7_2_0: "Implemented enhanced opponent squad analysis.",
     changelog_7_1_0:
       "Sorting transfer market results by skill-trading candidate suitability.",
     changelog_7_0_0: "Implemented the Transfer Market tool.",
@@ -1661,6 +1662,11 @@ export const messagesEn: Messages = {
     analyzeOpponentSummaryWith: "with",
     analyzeOpponentStillInCup: "still in cup",
     analyzeOpponentNotInCup: "not in cup",
+    seniorOpponentAnalysisTabMatches: "Matches",
+    seniorOpponentAnalysisTabScoutTeam: "Scout team",
+    seniorOpponentScoutTeamLoading: "Loading opponent squad analysis...",
+    seniorOpponentScoutTeamError: "Unable to load opponent squad analysis.",
+    seniorOpponentScoutTeamEmpty: "No opponent squad data available.",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",

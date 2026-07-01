@@ -247,6 +247,7 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_7_2_0: "Se implemento el analisis mejorado de plantilla rival.",
     changelog_7_1_0:
       "Ordenacion de resultados del mercado de transferencias por idoneidad para skill trading.",
     changelog_7_0_0: "Se implemento la herramienta Mercado de transferencias.",
@@ -1711,6 +1712,11 @@ export const messagesEs: Messages = {
     analyzeOpponentSummaryWith: "con",
     analyzeOpponentStillInCup: "sigue en copa",
     analyzeOpponentNotInCup: "fuera de copa",
+    seniorOpponentAnalysisTabMatches: "Partidos",
+    seniorOpponentAnalysisTabScoutTeam: "Explorar equipo",
+    seniorOpponentScoutTeamLoading: "Cargando analisis de plantilla rival...",
+    seniorOpponentScoutTeamError: "No se pudo cargar el analisis de plantilla rival.",
+    seniorOpponentScoutTeamEmpty: "No hay datos de plantilla rival disponibles.",
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",

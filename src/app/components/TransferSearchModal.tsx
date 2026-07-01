@@ -181,6 +181,11 @@ export type TransferSearchTableRowData = {
   minBidSek: number | null;
 };
 
+export type TransferSearchTableWageData = Pick<
+  TransferSearchTableRowData,
+  "wageDisplay" | "wageValueSek" | "wageIncludesForeignBonus"
+>;
+
 type TransferSearchSkillRowProps = {
   filter: TransferSearchSkillFilter;
   index: number;
@@ -232,6 +237,7 @@ export type TransferSearchModalProps = {
   onResultsViewModeChange: (mode: TransferSearchResultsViewMode) => void;
   getSortMetricInput?: (result: TransferSearchResult) => SeniorPlayerMetricInput;
   getTableRowData?: (result: TransferSearchResult) => TransferSearchTableRowData;
+  getTableWageData?: (result: TransferSearchResult) => TransferSearchTableWageData;
   getNativeLeagueId?: (result: TransferSearchResult) => number | null | undefined;
   canQuickBid?: boolean;
   quickBidUnavailableTooltip?: ReactNode;
@@ -1403,6 +1409,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   onResultsViewModeChange,
   getSortMetricInput,
   getTableRowData,
+  getTableWageData,
   getNativeLeagueId,
   canQuickBid,
   quickBidUnavailableTooltip,
@@ -1810,6 +1817,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
             ? result.highestBidSek
             : result.askingPriceSek;
         const fallbackDeadline = parseChppDate(result.deadline ?? undefined);
+        const tableWageData = getTableWageData?.(result);
         return {
           result,
           data:
@@ -1872,19 +1880,22 @@ const TransferSearchModal = memo(function TransferSearchModal({
               avgPsicoTsi: getTransferSearchSortValue(fallbackMetricInput, "psicoTsiAvg"),
               avgPsicoWage: getTransferSearchSortValue(fallbackMetricInput, "psicoWageAvg"),
               wageDisplay:
-                typeof result.salarySek === "number"
+                tableWageData?.wageDisplay ??
+                (typeof result.salarySek === "number"
                   ? formatSekCurrency(result.salarySek, displayCurrency)
-                  : messages.unknownShort,
+                  : messages.unknownShort),
               wageValueSek:
-                typeof result.salarySek === "number" ? result.salarySek : null,
-              wageIncludesForeignBonus: Boolean(result.isAbroad),
+                tableWageData?.wageValueSek ??
+                (typeof result.salarySek === "number" ? result.salarySek : null),
+              wageIncludesForeignBonus:
+                tableWageData?.wageIncludesForeignBonus ?? Boolean(result.isAbroad),
               deadline: result.deadline,
               deadlineTimestamp: fallbackDeadline?.getTime() ?? null,
               minBidSek: typeof fallbackMinimumBid === "number" ? fallbackMinimumBid : null,
             },
         };
       }),
-    [displayCurrency, getSortMetricInput, getTableRowData, messages, sortedResults]
+    [displayCurrency, getSortMetricInput, getTableRowData, getTableWageData, messages, sortedResults]
   );
   const renderedSkillSlotCount = filters
     ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
@@ -2705,13 +2716,20 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         <thead>
                           <tr>
                             {tableHeaderColumns.map((column) => (
-                              <th key={column.key}>
+                              <th
+                                key={column.key}
+                                className={
+                                  column.key === "name"
+                                    ? styles.transferSearchTableNameColumn
+                                    : undefined
+                                }
+                              >
                                 <button
                                   type="button"
                                   className={styles.transferSearchTableSortButton}
                                   onClick={() => handleTableSortColumnClick(column.key)}
                                 >
-                                  <span>
+                                  <span className={styles.transferSearchTableHeaderLabel}>
                                     {column.label}
                                     {column.key === "price" ? (
                                       <sup className={styles.transferSearchTableFootnoteMarker}>
@@ -2762,13 +2780,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                   );
                                 })()}
                               </td>
-                              <td>
+                              <td className={styles.transferSearchTableNameColumn}>
                                 {renderTablePill(
                                   <a
-                                    className={styles.profileNameLink}
+                                    className={`${styles.profileNameLink} ${styles.transferSearchTableNameLink}`}
                                     href={hattrickPlayerUrl(result.playerId)}
                                     target="_blank"
                                     rel="noreferrer"
+                                    title={data.name}
                                   >
                                     {data.name}
                                   </a>,

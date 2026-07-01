@@ -9639,9 +9639,20 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   color: #675948;
 }
 
+.transferSearchResultsTable th {
+  white-space: normal;
+  line-height: 1.1;
+}
+
+.transferSearchResultsTable .transferSearchTableNameColumn {
+  width: 1%;
+  max-width: 10rem;
+}
+
 .transferSearchTableSortButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   border: none;
   background: transparent;
@@ -9649,8 +9660,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font: inherit;
   text-transform: inherit;
   letter-spacing: inherit;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
   color: inherit;
   cursor: pointer;
+}
+
+.transferSearchTableHeaderLabel {
+  display: inline-block;
+  max-width: 7.5rem;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .transferSearchTableSortButton:hover {
@@ -9667,6 +9689,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   border-radius: 999px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.transferSearchTableNameColumn .transferSearchTablePill {
+  max-width: 9rem;
+}
+
+.transferSearchTableNameLink {
+  display: inline-block;
+  max-width: 7.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .transferSearchTablePillNeutral {

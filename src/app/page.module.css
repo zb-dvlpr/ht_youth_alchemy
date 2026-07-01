@@ -5114,8 +5114,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleTsiWagesDetailsModal {
-  max-width: min(1280px, calc(100vw - 24px));
-  width: min(1280px, calc(100vw - 24px));
+  max-width: min(1440px, calc(100vw - 24px));
+  width: min(1440px, calc(100vw - 24px));
 }
 
 .chronicleTeamAttitudeUserModal {
@@ -5185,6 +5185,49 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .chronicleDetailFloatingScrollbarSpacer {
   height: 1px;
+}
+
+.chronicleTsiWagesDetailsModal .confirmBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chronicleTsiWagesDetailModalLayout {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.chronicleTsiWagesDetailModalMeta {
+  flex: 0 0 auto;
+}
+
+.chronicleTsiWagesDetailModalMeta .chroniclePressMeta {
+  margin-bottom: 0;
+}
+
+.chronicleTsiWagesDetailModalTableScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.chronicleTsiWagesDetailModalFooterNotes {
+  flex: 0 0 auto;
+  padding-top: 10px;
+  border-top: 1px solid #e0d6c6;
+  background: #f7f1e3;
+}
+
+.chronicleTsiWagesDetailModalFooterNotes .chronicleLegend:first-child {
+  margin-top: 0;
 }
 
 .chronicleTransferListedTableWrap .chronicleTableCell {
@@ -10953,7 +10996,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .confirmCard.chronicleTsiWagesDetailsModal {
-  width: min(1280px, calc(100vw - 24px));
+  width: min(1440px, calc(100vw - 24px));
 }
 
 .confirmCard.chronicleTransferListedModal {

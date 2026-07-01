@@ -22209,11 +22209,13 @@ type Form7LineupSnapshot = {
         className={styles.chronicleTsiWagesDetailsModal}
         body={
           selectedTsiTeam ? (
-            <>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}:{" "}
-                {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
-              </p>
+            <div className={styles.chronicleTsiWagesDetailModalLayout}>
+              <div className={styles.chronicleTsiWagesDetailModalMeta}>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleColumnTeam}:{" "}
+                  {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
+                </p>
+              </div>
               {tsiPlayerRows.length > 0 ? (
                 <>
                   {showMobileChronicleLandscapeHint ? (
@@ -22221,56 +22223,60 @@ type Form7LineupSnapshot = {
                       {messages.mobileChronicleLandscapeHint}
                     </span>
                   ) : null}
-                  <ChronicleDetailHorizontalScroll
-                    refreshKey={`tsi:${tsiDetailsOpen}:${tsiPlayerColumns.length}:${sortedTsiPlayerRows.length}`}
-                  >
-                    <ChronicleTable
-                      columns={tsiPlayerColumns}
-                      rows={sortedTsiPlayerRows}
-                      getRowKey={(row) => row.playerId}
-                      getSnapshot={(row) => row}
-                      freezeFirstColumnsCount={2}
-                      className={styles.chronicleTsiWagesDetailTable}
-                      getRowClassName={getChronicleLikelyTraineeRowClassName}
-                      formatValue={formatValue}
-                      style={
-                        {
-                          "--cc-columns": tsiPlayerColumns.length,
-                          "--cc-template-desktop":
-                            "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
-                          "--cc-template-mobile":
-                            "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
-                          "--cc-freeze-second-left-desktop": "60px",
-                          "--cc-freeze-second-left-mobile": "44px",
-                        } as CSSProperties
-                      }
-                      sortKey={tsiDetailsSortState.key}
-                      sortDirection={tsiDetailsSortState.direction}
-                      onSort={handleTsiDetailsSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss((row as { teamId: number }).teamId)
-                      }
-                    />
-                  </ChronicleDetailHorizontalScroll>
-                  <div className={styles.chronicleLegend}>
-                    <span className={styles.chronicleLegendText}>
-                      {messages.clubChronicleMainSkillEstimationFootnote}
-                    </span>
+                  <div className={styles.chronicleTsiWagesDetailModalTableScroll}>
+                    <ChronicleDetailHorizontalScroll
+                      refreshKey={`tsi:${tsiDetailsOpen}:${tsiPlayerColumns.length}:${sortedTsiPlayerRows.length}`}
+                    >
+                      <ChronicleTable
+                        columns={tsiPlayerColumns}
+                        rows={sortedTsiPlayerRows}
+                        getRowKey={(row) => row.playerId}
+                        getSnapshot={(row) => row}
+                        freezeFirstColumnsCount={2}
+                        className={styles.chronicleTsiWagesDetailTable}
+                        getRowClassName={getChronicleLikelyTraineeRowClassName}
+                        formatValue={formatValue}
+                        style={
+                          {
+                            "--cc-columns": tsiPlayerColumns.length,
+                            "--cc-template-desktop":
+                              "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
+                            "--cc-template-mobile":
+                              "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
+                            "--cc-freeze-second-left-desktop": "60px",
+                            "--cc-freeze-second-left-mobile": "44px",
+                          } as CSSProperties
+                        }
+                        sortKey={tsiDetailsSortState.key}
+                        sortDirection={tsiDetailsSortState.direction}
+                        onSort={handleTsiDetailsSort}
+                        maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                        maskText={messages.clubChronicleNoDivulgoMask}
+                        isMaskActive={noDivulgoActive}
+                        onMaskedRowClick={(row) =>
+                          handleNoDivulgoDismiss((row as { teamId: number }).teamId)
+                        }
+                      />
+                    </ChronicleDetailHorizontalScroll>
                   </div>
-                  {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
-                  {renderChronicleDetailModalMatchCountNote(
-                    selectedTsiTeam.detailModalMatchSampleSize,
-                    "tsi",
-                    selectedTsiTeam.detailModalAnalyzedMatches ?? []
-                  )}
+                  <div className={styles.chronicleTsiWagesDetailModalFooterNotes}>
+                    <div className={styles.chronicleLegend}>
+                      <span className={styles.chronicleLegendText}>
+                        {messages.clubChronicleMainSkillEstimationFootnote}
+                      </span>
+                    </div>
+                    {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
+                    {renderChronicleDetailModalMatchCountNote(
+                      selectedTsiTeam.detailModalMatchSampleSize,
+                      "tsi",
+                      selectedTsiTeam.detailModalAnalyzedMatches ?? []
+                    )}
+                  </div>
                 </>
               ) : (
                 <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
               )}
-            </>
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
           )
@@ -22294,11 +22300,13 @@ type Form7LineupSnapshot = {
         className={styles.chronicleTsiWagesDetailsModal}
         body={
           selectedWagesTeam ? (
-            <>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}:{" "}
-                {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
-              </p>
+            <div className={styles.chronicleTsiWagesDetailModalLayout}>
+              <div className={styles.chronicleTsiWagesDetailModalMeta}>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleColumnTeam}:{" "}
+                  {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
+                </p>
+              </div>
               {wagesPlayerRows.length > 0 ? (
                 <>
                   {showMobileChronicleLandscapeHint ? (
@@ -22306,63 +22314,67 @@ type Form7LineupSnapshot = {
                       {messages.mobileChronicleLandscapeHint}
                     </span>
                   ) : null}
-                  <ChronicleDetailHorizontalScroll
-                    refreshKey={`wages:${wagesDetailsOpen}:${wagesPlayerColumns.length}:${sortedWagesPlayerRows.length}`}
-                  >
-                    <ChronicleTable
-                      columns={wagesPlayerColumns}
-                      rows={sortedWagesPlayerRows}
-                      getRowKey={(row) => row.playerId}
-                      getSnapshot={(row) => row}
-                      freezeFirstColumnsCount={2}
-                      className={styles.chronicleTsiWagesDetailTable}
-                      getRowClassName={getChronicleLikelyTraineeRowClassName}
-                      formatValue={formatValue}
-                      style={
-                        {
-                          "--cc-columns": wagesPlayerColumns.length,
-                          "--cc-template-desktop":
-                            "60px 164px 82px 102px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
-                          "--cc-template-mobile":
-                            "44px 118px 64px 84px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
-                          "--cc-freeze-second-left-desktop": "60px",
-                          "--cc-freeze-second-left-mobile": "44px",
-                        } as CSSProperties
-                      }
-                      sortKey={wagesDetailsSortState.key}
-                      sortDirection={wagesDetailsSortState.direction}
-                      onSort={handleWagesDetailsSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss((row as { teamId: number }).teamId)
-                      }
-                    />
-                  </ChronicleDetailHorizontalScroll>
-                  <div className={styles.chronicleLegend}>
-                    <span className={styles.chronicleLegendText}>
-                      {messages.clubChronicleMainSkillEstimationFootnote}
-                    </span>
+                  <div className={styles.chronicleTsiWagesDetailModalTableScroll}>
+                    <ChronicleDetailHorizontalScroll
+                      refreshKey={`wages:${wagesDetailsOpen}:${wagesPlayerColumns.length}:${sortedWagesPlayerRows.length}`}
+                    >
+                      <ChronicleTable
+                        columns={wagesPlayerColumns}
+                        rows={sortedWagesPlayerRows}
+                        getRowKey={(row) => row.playerId}
+                        getSnapshot={(row) => row}
+                        freezeFirstColumnsCount={2}
+                        className={styles.chronicleTsiWagesDetailTable}
+                        getRowClassName={getChronicleLikelyTraineeRowClassName}
+                        formatValue={formatValue}
+                        style={
+                          {
+                            "--cc-columns": wagesPlayerColumns.length,
+                            "--cc-template-desktop":
+                              "60px 164px 82px 102px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
+                            "--cc-template-mobile":
+                              "44px 118px 64px 84px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
+                            "--cc-freeze-second-left-desktop": "60px",
+                            "--cc-freeze-second-left-mobile": "44px",
+                          } as CSSProperties
+                        }
+                        sortKey={wagesDetailsSortState.key}
+                        sortDirection={wagesDetailsSortState.direction}
+                        onSort={handleWagesDetailsSort}
+                        maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                        maskText={messages.clubChronicleNoDivulgoMask}
+                        isMaskActive={noDivulgoActive}
+                        onMaskedRowClick={(row) =>
+                          handleNoDivulgoDismiss((row as { teamId: number }).teamId)
+                        }
+                      />
+                    </ChronicleDetailHorizontalScroll>
                   </div>
-                  {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
-                  {wagesDetailsHasForeignWageBonus ? (
+                  <div className={styles.chronicleTsiWagesDetailModalFooterNotes}>
                     <div className={styles.chronicleLegend}>
                       <span className={styles.chronicleLegendText}>
-                        ² {messages.seniorWageForeignExtraNote}
+                        {messages.clubChronicleMainSkillEstimationFootnote}
                       </span>
                     </div>
-                  ) : null}
-                  {renderChronicleDetailModalMatchCountNote(
-                    selectedWagesTeam.detailModalMatchSampleSize,
-                    "wages",
-                    selectedWagesTeam.detailModalAnalyzedMatches ?? []
-                  )}
+                    {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
+                    {wagesDetailsHasForeignWageBonus ? (
+                      <div className={styles.chronicleLegend}>
+                        <span className={styles.chronicleLegendText}>
+                          ² {messages.seniorWageForeignExtraNote}
+                        </span>
+                      </div>
+                    ) : null}
+                    {renderChronicleDetailModalMatchCountNote(
+                      selectedWagesTeam.detailModalMatchSampleSize,
+                      "wages",
+                      selectedWagesTeam.detailModalAnalyzedMatches ?? []
+                    )}
+                  </div>
                 </>
               ) : (
                 <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
               )}
-            </>
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
           )

@@ -47,6 +47,31 @@ export const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
 export const TRANSFER_SEARCH_PAGE_SIZE = 100;
 
+/**
+ * WORKAROUND: Hattrick/CHPP transfersearch price filters currently appear to
+ * be interpreted as 10x the provided SEK value. The app's display-currency to
+ * SEK conversion is correct; only outbound transfersearch priceMin/priceMax
+ * query params need this compensation.
+ *
+ * This applies after conversion from any display currency into SEK. Do not
+ * special-case EUR or any other currency.
+ *
+ * If Hattrick fixes transfersearch price filter scaling, remove this division
+ * and send the normal SEK value directly.
+ */
+const HATTRICK_TRANSFER_SEARCH_PRICE_FILTER_SCALE_WORKAROUND = 10;
+
+export const toHattrickTransferSearchPriceFilterParam = (
+  sekValue: number,
+  kind: "min" | "max"
+): number | null => {
+  if (!Number.isFinite(sekValue)) return null;
+  const corrected =
+    sekValue / HATTRICK_TRANSFER_SEARCH_PRICE_FILTER_SCALE_WORKAROUND;
+  const rounded = kind === "min" ? Math.ceil(corrected) : Math.floor(corrected);
+  return Math.max(0, rounded);
+};
+
 export const TRANSFER_SEARCH_SKILLS = [
   { key: "KeeperSkill", skillType: 1, labelKey: "skillKeeper", min: 0, max: 20 },
   { key: "DefenderSkill", skillType: 4, labelKey: "skillDefending", min: 0, max: 20 },
@@ -892,11 +917,19 @@ export const buildTransferSearchParams = (
   );
   if (priceMinDisplay !== null) {
     const priceMinSek = displayAmountToSek(priceMinDisplay, displayCurrency);
-    if (priceMinSek !== null) params.set("priceMin", String(priceMinSek));
+    const chppPriceMin =
+      priceMinSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMinSek, "min")
+        : null;
+    if (chppPriceMin !== null) params.set("priceMin", String(chppPriceMin));
   }
   if (priceMaxDisplay !== null) {
     const priceMaxSek = displayAmountToSek(priceMaxDisplay, displayCurrency);
-    if (priceMaxSek !== null) params.set("priceMax", String(priceMaxSek));
+    const chppPriceMax =
+      priceMaxSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMaxSek, "max")
+        : null;
+    if (chppPriceMax !== null) params.set("priceMax", String(chppPriceMax));
   }
 
   return params;

@@ -93,6 +93,7 @@ import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
+  toHattrickTransferSearchPriceFilterParam,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
@@ -1992,11 +1993,19 @@ const buildTransferSearchParams = (
   );
   if (priceMinDisplay !== null) {
     const priceMinSek = displayAmountToSek(priceMinDisplay, displayCurrency);
-    if (priceMinSek !== null) params.set("priceMin", String(priceMinSek));
+    const chppPriceMin =
+      priceMinSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMinSek, "min")
+        : null;
+    if (chppPriceMin !== null) params.set("priceMin", String(chppPriceMin));
   }
   if (priceMaxDisplay !== null) {
     const priceMaxSek = displayAmountToSek(priceMaxDisplay, displayCurrency);
-    if (priceMaxSek !== null) params.set("priceMax", String(priceMaxSek));
+    const chppPriceMax =
+      priceMaxSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMaxSek, "max")
+        : null;
+    if (chppPriceMax !== null) params.set("priceMax", String(chppPriceMax));
   }
 
   return params;

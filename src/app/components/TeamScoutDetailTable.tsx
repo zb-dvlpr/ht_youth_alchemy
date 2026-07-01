@@ -16,12 +16,16 @@ import {
   hattrickPlayerUrl,
 } from "@/lib/hattrick/urls";
 import {
-  matchRoleIdToPositionKey,
   positionLabelShortByRoleId,
-  type PositionKey,
 } from "@/lib/positions";
 import { getSpecialtyEmoji } from "@/lib/specialty";
-import type { OriginFlagDisplay } from "@/lib/originFlag";
+import { isLikelyTraineeForTeamScoutDetail } from "@/lib/clubChronicle/teamScoutDetailRows";
+import type {
+  TeamScoutForm7RatingEntry,
+  TeamScoutLikelyTrainingInfo,
+  TeamScoutPlayerRow,
+  TeamScoutPlayingPositionEntry,
+} from "@/lib/clubChronicle/teamScoutDetailTypes";
 import Tooltip from "./Tooltip";
 import OriginFlag from "./OriginFlag";
 import {
@@ -54,58 +58,13 @@ export type TeamScoutDetailSortState = {
   direction: TeamScoutDetailSortDirection;
 };
 
-export type TeamScoutForm7RatingEntry = {
-  matchId: number;
-  sourceSystem: string;
-  matchDate: string | null;
-  ratingStarsEndOfMatch: number;
-  weatherId: number;
-  roleId?: number | null;
-  recordedAt: number;
+export { isLikelyTraineeForTeamScoutDetail };
+export type {
+  TeamScoutForm7RatingEntry,
+  TeamScoutLikelyTrainingInfo,
+  TeamScoutPlayerRow,
+  TeamScoutPlayingPositionEntry,
 };
-
-export type TeamScoutPlayingPositionEntry = {
-  roleId: number;
-  minutes: number;
-};
-
-export type TeamScoutPlayerRow = {
-  teamId: number;
-  playerId: number;
-  playerName: string | null;
-  originFlagDisplay?: OriginFlagDisplay | null;
-  playerNumber: number | null;
-  age: number | null;
-  ageDays: number | null;
-  injuryLevel: number | null;
-  specialty: number | null;
-  cards: number | null;
-  form: number | null;
-  stamina: number | null;
-  experience: number | null;
-  leadership: number | null;
-  loyalty: number | null;
-  motherClubBonus?: boolean | null;
-  tsi: number | null;
-  salarySek: number | null;
-  wageIncludesForeignBonus?: boolean | null;
-  form7Ratings: TeamScoutForm7RatingEntry[];
-  playingPositions: TeamScoutPlayingPositionEntry[];
-  usedAsManMarker: boolean;
-  isLikelyTrainee: boolean;
-};
-
-export type TeamScoutLikelyTrainingInfo = {
-  likelyTrainingKey:
-    | "winger"
-    | "playmaking"
-    | "defending"
-    | "passing"
-    | "scoring"
-    | "keepingOrSetPieces"
-    | null;
-  label: string;
-} | null;
 
 type TeamScoutDetailTableProps = {
   mode: TeamScoutDetailMode;
@@ -195,40 +154,6 @@ export const resolveTeamScoutPlayingPositionSortBucket = (
     resolveChronicleDominantPlayingPosition(entries)?.sortBucket ??
     PLAYING_POSITION_SORT_BUCKET_NO_VALUE
   );
-};
-
-export const isLikelyTraineeForTeamScoutDetail = (
-  entries: TeamScoutPlayingPositionEntry[] | null | undefined,
-  likelyTrainingKey: TeamScoutLikelyTrainingInfo extends infer T
-    ? T extends { likelyTrainingKey: infer K }
-      ? K
-      : never
-    : never
-) => {
-  if (!entries || entries.length === 0 || !likelyTrainingKey) return false;
-  const allowedPositionKeysByLikelyTrainingKey: Record<string, PositionKey[]> = {
-    keepingOrSetPieces: ["KP"],
-    defending: ["CD", "WB"],
-    playmaking: ["IM", "W"],
-    winger: ["W", "WB"],
-    passing: ["IM", "W", "F"],
-    scoring: ["F"],
-  };
-  const allowedPositions = new Set(
-    allowedPositionKeysByLikelyTrainingKey[String(likelyTrainingKey)] ?? []
-  );
-  if (allowedPositions.size === 0) return false;
-  const totalMinutes = entries.reduce(
-    (sum, entry) => sum + Math.max(0, entry.minutes ?? 0),
-    0
-  );
-  if (totalMinutes <= 0) return false;
-  const allowedMinutes = entries.reduce((sum, entry) => {
-    const positionKey = matchRoleIdToPositionKey(entry.roleId);
-    if (!positionKey || !allowedPositions.has(positionKey)) return sum;
-    return sum + Math.max(0, entry.minutes ?? 0);
-  }, 0);
-  return allowedMinutes / totalMinutes >= 0.8;
 };
 
 export const formatTeamScoutPlayingPositionEntries = (

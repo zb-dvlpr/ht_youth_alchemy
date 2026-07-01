@@ -108,12 +108,13 @@ import {
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import TransferSearchResultCard from "./TransferSearchResultCard";
 import TeamScoutDetailTable, {
-  isLikelyTraineeForTeamScoutDetail,
   type TeamScoutDetailSortState,
   type TeamScoutLikelyTrainingInfo,
   type TeamScoutPlayerRow,
-  type TeamScoutPlayingPositionEntry,
 } from "./TeamScoutDetailTable";
+import { loadTeamScoutDerivedData } from "@/lib/clubChronicle/teamScoutDetailData";
+import { buildTeamScoutPlayerRows } from "@/lib/clubChronicle/teamScoutDetailRows";
+import type { TeamScoutBasePlayer } from "@/lib/clubChronicle/teamScoutDetailRows";
 import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
@@ -13079,24 +13080,6 @@ const refreshDetailsForPlayers = async (
     playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const opponentTrackedRoleLabel = (role: OpponentTrackedRole) =>
     role === "F" ? "FW" : role;
-  const opponentTrackedRoleId = (role: OpponentTrackedRole) => {
-    switch (role) {
-      case "KP":
-        return 100;
-      case "WB":
-        return 101;
-      case "CD":
-        return 103;
-      case "W":
-        return 106;
-      case "IM":
-        return 107;
-      case "F":
-        return 111;
-      default:
-        return null;
-    }
-  };
   const opponentScoutLikelyTrainingLabel = (
     rows: OpponentFormationRow[]
   ): TeamScoutLikelyTrainingInfo => {
@@ -13144,34 +13127,6 @@ const refreshDetailsForPlayers = async (
       likelyTrainingKey: "keepingOrSetPieces",
       label: messages.clubChronicleLikelyTrainingKeepingOrSetPieces,
     };
-  };
-  const buildOpponentScoutPlayingPositions = (rows: OpponentFormationRow[]) => {
-    const minutesByPlayer = new Map<number, Map<number, number>>();
-    rows.forEach((row) => {
-      const matchMinutes = 90;
-      const uniqueEntries = new Map<number, OpponentTrackedLineupPlayer>();
-      row.trackedPlayers.forEach((player) => {
-        uniqueEntries.set(player.playerId, player);
-      });
-      uniqueEntries.forEach((player) => {
-        const roleId = opponentTrackedRoleId(player.role);
-        if (!roleId) return;
-        const current = minutesByPlayer.get(player.playerId) ?? new Map<number, number>();
-        current.set(roleId, (current.get(roleId) ?? 0) + matchMinutes);
-        minutesByPlayer.set(player.playerId, current);
-      });
-    });
-    const result = new Map<number, TeamScoutPlayingPositionEntry[]>();
-    minutesByPlayer.forEach((roleMinutes, playerId) => {
-      result.set(
-        playerId,
-        Array.from(roleMinutes.entries()).map(([roleId, minutes]) => ({
-          roleId,
-          minutes,
-        }))
-      );
-    });
-    return result;
   };
   const formatOpponentPotentialTargetDetails = (
     target: OpponentPotentialTargetPlayer
@@ -15933,17 +15888,11 @@ const refreshDetailsForPlayers = async (
         const detailsByPlayerId = new Map(
           playerDetailsEntries.map((entry) => [entry.playerId, entry.details])
         );
-        const playingPositionsByPlayerId = buildOpponentScoutPlayingPositions(
-          currentModal.opponentRows
-        );
-        const manMarkerPlayerIds = new Set(
-          currentModal.manMarkingTarget ? [currentModal.manMarkingTarget.playerId] : []
-        );
         const likelyTraining = opponentScoutLikelyTrainingLabel(
           currentModal.opponentRows
         );
-        const rows = rawPlayers
-          .map((player): TeamScoutPlayerRow | null => {
+        const basePlayers = rawPlayers
+          .map((player): TeamScoutBasePlayer | null => {
             if (!player || typeof player !== "object") return null;
             const playerNode = player as Record<string, unknown>;
             const playerId = parseNumber(playerNode.PlayerID);
@@ -15953,8 +15902,6 @@ const refreshDetailsForPlayers = async (
               playerNode.PlayerSkills && typeof playerNode.PlayerSkills === "object"
                 ? (playerNode.PlayerSkills as Record<string, unknown>)
                 : null;
-            const playingPositions =
-              playingPositionsByPlayerId.get(playerId) ?? [];
             const originInfo =
               typeof details?.NativeLeagueID === "number"
                 ? leagueOriginsById[details.NativeLeagueID] ?? null
@@ -15980,7 +15927,6 @@ const refreshDetailsForPlayers = async (
                   (typeof playerNode.LastName === "string" ? playerNode.LastName : ""),
               }) || String(playerId);
             return {
-              teamId,
               playerId,
               playerName,
               originFlagDisplay: originInfo?.flagDisplay ?? null,
@@ -16005,17 +15951,25 @@ const refreshDetailsForPlayers = async (
               tsi: details?.TSI ?? parseNumber(playerNode.TSI),
               salarySek: details?.Salary ?? parseNumber(playerNode.Salary),
               wageIncludesForeignBonus,
-              form7Ratings: [],
-              playingPositions,
-              usedAsManMarker: manMarkerPlayerIds.has(playerId),
-              isLikelyTrainee: isLikelyTraineeForTeamScoutDetail(
-                playingPositions,
-                likelyTraining?.likelyTrainingKey ?? null
-              ),
-            } satisfies TeamScoutPlayerRow;
+            } satisfies TeamScoutBasePlayer;
           })
-          .filter((row): row is TeamScoutPlayerRow => Boolean(row))
+          .filter((row): row is TeamScoutBasePlayer => Boolean(row))
           .sort((left, right) => (right.tsi ?? 0) - (left.tsi ?? 0));
+        const derivedData = await loadTeamScoutDerivedData({
+          teamId,
+          players: basePlayers.map((player) => ({
+            playerId: player.playerId,
+            playerName: player.playerName,
+            form: player.form,
+          })),
+          messages,
+        });
+        const rows = buildTeamScoutPlayerRows({
+          teamId,
+          players: basePlayers,
+          derivedData,
+          likelyTrainingKey: likelyTraining?.likelyTrainingKey,
+        });
         if (opponentScoutTeamRequestIdRef.current !== requestId) return;
         setOpponentScoutTeamState({
           status: "success",
@@ -16025,7 +15979,7 @@ const refreshDetailsForPlayers = async (
             teamName: currentModal.opponentName,
             rows,
             likelyTraining,
-            matchCount: currentModal.opponentRows.length,
+            matchCount: derivedData.matchSampleSize,
           },
           error: null,
         });
@@ -16044,9 +15998,9 @@ const refreshDetailsForPlayers = async (
       }
     },
     [
-      buildOpponentScoutPlayingPositions,
       fetchPlayerDetailsById,
       leagueOriginsById,
+      messages,
       messages.seniorOpponentScoutTeamError,
       opponentAnalysisModal,
       opponentScoutLikelyTrainingLabel,

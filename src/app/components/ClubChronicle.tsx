@@ -86,6 +86,12 @@ import {
   resolveChronicleDominantPlayingPosition,
 } from "@/lib/clubChronicle/mainSkillEstimation";
 import { needsChronicleDetailPlayingPositionCoverageBackfill } from "@/lib/clubChronicle/detailModalDerivedData";
+import { loadTeamScoutDerivedData } from "@/lib/clubChronicle/teamScoutDetailData";
+import { buildTeamScoutPlayerRows } from "@/lib/clubChronicle/teamScoutDetailRows";
+import type {
+  TeamScoutDerivedData,
+  TeamScoutPlayerRow,
+} from "@/lib/clubChronicle/teamScoutDetailTypes";
 import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
 import {
   matchRoleIdToPositionKey,
@@ -114,7 +120,6 @@ import TeamScoutDetailTable, {
   type TeamScoutDetailColumnKey,
   type TeamScoutDetailSortState,
   type TeamScoutLikelyTrainingInfo,
-  type TeamScoutPlayerRow,
 } from "./TeamScoutDetailTable";
 import {
   resolveLeagueOriginFlagDisplay,
@@ -11469,49 +11474,30 @@ type Form7LineupSnapshot = {
       onMatchLineupsProgress?: () => void;
     }
   ) => {
-    const matches = await fetchChronicleDetailModalMatches(team.teamId);
-    const analyzedMatches = await resolveFormationTacticMatches(
-      team.teamId,
-      matches,
-      detailCache,
-      options?.onMatchDetailsProgress
-    ).then((resolvedMatches) =>
-      resolvedMatches.map(
-        (resolved) =>
-          ({
-            matchId: resolved.match.matchId,
-            matchType: resolved.match.matchType,
-            matchDate: resolved.match.matchDate,
-            sourceSystem: resolved.match.sourceSystem,
-            matchDurationMinutes: resolved.matchDurationMinutes,
-            formation: resolved.formation,
-            tacticType: resolved.tacticType,
-          }) satisfies FormationTacticsAnalyzedMatch
-      )
-    );
-    await collectForm7RatingsForTeam(
-      nextCache,
-      team,
-      teamPlayers,
-      analyzedMatches,
-      lineupCache,
-      detailCache
-    );
-    await collectPlayingPositionsForTeam(
-      nextCache,
-      team,
-      teamPlayers,
-      lineupCache,
-      analyzedMatches,
-      options?.onMatchLineupsProgress,
-      detailCache
-    );
+    void detailCache;
+    void lineupCache;
+    const derivedData = await loadTeamScoutDerivedData({
+      teamId: team.teamId,
+      players: teamPlayers.map((player) => ({
+        playerId: player.playerId,
+        playerName: player.playerName,
+        form: player.form,
+      })),
+      messages,
+      existingForm7RatingsByPlayerId:
+        nextCache.teams[team.teamId]?.form7RatingsByPlayerId,
+      onMatchDetailsProgress: options?.onMatchDetailsProgress,
+      onMatchLineupsProgress: options?.onMatchLineupsProgress,
+    });
     nextCache.teams[team.teamId] = {
       ...nextCache.teams[team.teamId],
       teamId: team.teamId,
       teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-      detailModalMatchSampleSize: analyzedMatches.length,
-      detailModalAnalyzedMatches: analyzedMatches,
+      form7RatingsByPlayerId: derivedData.form7RatingsByPlayerId,
+      playingPositionByPlayerId: derivedData.playingPositionByPlayerId,
+      manMarkerByPlayerId: derivedData.manMarkerByPlayerId,
+      detailModalMatchSampleSize: derivedData.matchSampleSize,
+      detailModalAnalyzedMatches: derivedData.analyzedMatches,
       detailModalDerivedDataVersion: CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION,
     };
   };
@@ -15725,59 +15711,45 @@ type Form7LineupSnapshot = {
       messages.clubChronicleCoachColumnTrainerLevel,
     ]
   );
-  const wagesPlayerRows = useMemo<WagesPlayerRow[]>(
-    () =>
-      (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
-        teamId: selectedWagesTeam?.teamId ?? 0,
+  const wagesPlayerRows = useMemo<TeamScoutPlayerRow[]>(() => {
+    const derivedData: TeamScoutDerivedData = {
+      form7RatingsByPlayerId: selectedWagesTeam?.form7RatingsByPlayerId ?? {},
+      playingPositionByPlayerId: selectedWagesTeam?.playingPositionByPlayerId ?? {},
+      manMarkerByPlayerId: selectedWagesTeam?.manMarkerByPlayerId ?? {},
+      analyzedMatches: selectedWagesTeam?.detailModalAnalyzedMatches ?? [],
+      matchSampleSize: selectedWagesTeam?.detailModalMatchSampleSize ?? 0,
+    };
+    return buildTeamScoutPlayerRows({
+      teamId: selectedWagesTeam?.teamId ?? 0,
+      players: (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
         ...row,
         tsi: null,
         playerNumber: index + 1,
-        form7Ratings:
-          selectedWagesTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
-        playingPositions:
-          selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
-        usedAsManMarker:
-          selectedWagesTeam?.manMarkerByPlayerId?.[row.playerId] === true,
-        isLikelyTrainee: isLikelyTraineeForChronicleDetail(
-          row.age,
-          selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
-          selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey
-        ),
       })),
-    [selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey, selectedWagesTeam]
-  );
-  const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
-    () =>
-      (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => {
-        const wagesPlayer = selectedTsiWagesPlayersById.get(row.playerId);
-        const playingPositions =
-          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [];
-        return {
-          teamId: selectedTsiTeam?.teamId ?? 0,
-          ...row,
-          salarySek: wagesPlayer?.salarySek ?? null,
-          wageIncludesForeignBonus: wagesPlayer?.wageIncludesForeignBonus ?? null,
-          motherClubBonus:
-            row.motherClubBonus ?? wagesPlayer?.motherClubBonus ?? false,
-          playerNumber: index + 1,
-          form7Ratings:
-            selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
-          playingPositions,
-          usedAsManMarker:
-            selectedTsiTeam?.manMarkerByPlayerId?.[row.playerId] === true,
-          isLikelyTrainee: isLikelyTraineeForChronicleDetail(
-            row.age,
-            playingPositions,
-            selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey
-          ),
-        };
-      }),
-    [
-      selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey,
-      selectedTsiTeam,
-      selectedTsiWagesPlayersById,
-    ]
-  );
+      derivedData,
+      likelyTrainingKey: selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey,
+    });
+  }, [selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey, selectedWagesTeam]);
+  const tsiPlayerRows = useMemo<TeamScoutPlayerRow[]>(() => {
+    const derivedData: TeamScoutDerivedData = {
+      form7RatingsByPlayerId: selectedTsiTeam?.form7RatingsByPlayerId ?? {},
+      playingPositionByPlayerId: selectedTsiTeam?.playingPositionByPlayerId ?? {},
+      manMarkerByPlayerId: selectedTsiTeam?.manMarkerByPlayerId ?? {},
+      analyzedMatches: selectedTsiTeam?.detailModalAnalyzedMatches ?? [],
+      matchSampleSize: selectedTsiTeam?.detailModalMatchSampleSize ?? 0,
+    };
+    return buildTeamScoutPlayerRows({
+      teamId: selectedTsiTeam?.teamId ?? 0,
+      players: selectedTsiTeam?.snapshot?.players ?? [],
+      derivedData,
+      likelyTrainingKey: selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey,
+      wagesPlayersById: selectedTsiWagesPlayersById,
+    });
+  }, [
+    selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey,
+    selectedTsiTeam,
+    selectedTsiWagesPlayersById,
+  ]);
 
   const transferListedColumns = useMemo<
     ChronicleTableColumn<TransferListedPlayer, TransferListedPlayer>[]

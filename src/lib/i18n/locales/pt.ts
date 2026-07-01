@@ -248,6 +248,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_7_1_0:
+      "Ordenacao de resultados do mercado de transferencias por adequacao para skill trading.",
     changelog_7_0_0: "Foi implementada a ferramenta Mercado de transferencias.",
     changelog_6_8_0:
       "Adicionada a capacidade de ver jogadores seniores externos.",
@@ -1918,6 +1920,7 @@ export const messagesPt: Messages = {
     transferSearchSortHtmsPotential: "Potencial HTMS",
     transferSearchSortPsicoTsiAverage: "Media das previsoes Psico baseadas em TSI",
     transferSearchSortPsicoWageAverage: "Media das previsoes Psico baseadas em salario",
+    transferSearchSortSkillTradingCandidate: "Candidato a skill trading",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1938,6 +1941,7 @@ export const messagesPt: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Pontuação de skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2100,9 +2104,9 @@ export const messagesPt: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "A previsao por salario nao esta disponivel para este jogador.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Perto de subir habilidade ou subniveis de forma/secundarias muito baixos.",
+      "Este jogador subiu habilidade recentemente ou as suas secundarias e/ou forma tem um subnivel muito baixo.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Perto de subir habilidade ou subniveis de forma/secundarias muito altos.",
+      "Este jogador esta perto de subir habilidade ou as suas secundarias e/ou forma tem um subnivel muito alto.",
     hiddenSpecialtyTooltip: "Especialidade oculta descoberta por eventos da partida",
     hiddenSpecialtyTooltipLinkHint:
       "Clique para abrir a partida em que foi descoberta",

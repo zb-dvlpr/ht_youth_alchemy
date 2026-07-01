@@ -248,6 +248,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_7_1_0:
+      "Transfermarktergebnisse koennen nach Skill-Trading-Eignung sortiert werden.",
     changelog_7_0_0: "Das Transfermarkt-Werkzeug wurde implementiert.",
     changelog_6_8_0:
       "Die Möglichkeit, externe Senior-Spieler anzusehen, wurde hinzugefuegt.",
@@ -1899,6 +1901,7 @@ export const messagesDe: Messages = {
     transferSearchSortHtmsPotential: "HTMS-Potenzial",
     transferSearchSortPsicoTsiAverage: "Durchschnittliche TSI-basierte Psico-Prognose",
     transferSearchSortPsicoWageAverage: "Durchschnittliche lohnbasierte Psico-Prognose",
+    transferSearchSortSkillTradingCandidate: "Skill-Trading-Kandidat",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1919,6 +1922,7 @@ export const messagesDe: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-Trading-Score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2081,9 +2085,9 @@ export const messagesDe: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Gehaltsprognose ist für diesen Spieler nicht verfügbar.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Nahe am Skill-up oder sehr niedrige Form-/Nebenfähigkeiten-Sublevel.",
+      "Dieser Spieler hatte kurzlich einen Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr niedrige Sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Nahe am Skill-up oder sehr hohe Form-/Nebenfähigkeiten-Sublevel.",
+      "Dieser Spieler steht kurz vor einem Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr hohe Sublevel.",
     hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     hiddenSpecialtyTooltipLinkHint:
       "Klicken, um das Match zu öffnen, in dem sie entdeckt wurde",

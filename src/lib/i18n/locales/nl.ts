@@ -510,6 +510,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_7_1_0:
+      "Transfermarktresultaten sorteren op geschiktheid voor skill trading.",
     changelog_7_0_0: "De Transfermarkt-tool is geimplementeerd.",
     changelog_6_8_0:
       "De mogelijkheid toegevoegd om externe seniorspelers te bekijken.",
@@ -801,6 +803,7 @@ export const messagesNl: Messages = {
   transferSearchSortHtmsPotential: "HTMS-potentieel",
   transferSearchSortPsicoTsiAverage: "Gemiddelde TSI-gebaseerde Psico-voorspelling",
   transferSearchSortPsicoWageAverage: "Gemiddelde loon-gebaseerde Psico-voorspelling",
+  transferSearchSortSkillTradingCandidate: "Skill-trading kandidaat",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -821,6 +824,7 @@ export const messagesNl: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-trading score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -1439,9 +1443,9 @@ export const messagesNl: Messages = {
   seniorPsicoTsiWageUnavailableWarning:
     "Loonvoorspelling is niet beschikbaar voor deze speler.",
   seniorPsicoTsiLowSublevelsWarning:
-    "Dicht bij skill-up of zeer lage vorm-/secundaire subniveaus.",
+    "Deze speler is onlangs in skill gestegen of zijn secundaire skills en/of vorm hebben een zeer laag subniveau.",
   seniorPsicoTsiHighSublevelsWarning:
-    "Dicht bij skill-up of zeer hoge vorm-/secundaire subniveaus.",
+    "Deze speler zit dicht bij een skill-up of zijn secundaire skills en/of vorm hebben een zeer hoog subniveau.",
   hiddenSpecialtyTooltip: "Verborgen specialiteit ontdekt via wedstrijdgebeurtenissen",
   hiddenSpecialtyTooltipLinkHint: "Klik om de wedstrijd te openen waarin dit ontdekt werd",
   skillsLabel: "Vaardigheden",

@@ -504,6 +504,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_7_1_0:
+      "Sortowanie wynikow rynku transferowego wedlug przydatnosci do skill tradingu.",
     changelog_7_0_0: "Wdrożono narzedzie Rynek transferowy.",
     changelog_6_8_0:
       "Dodano mozliwosc przegladania zewnetrznych zawodnikow seniorow.",
@@ -795,6 +797,7 @@ export const messagesPl: Messages = {
   transferSearchSortHtmsPotential: "Potencjal HTMS",
   transferSearchSortPsicoTsiAverage: "Srednia prognoza Psico oparta na TSI",
   transferSearchSortPsicoWageAverage: "Srednia prognoza Psico oparta na placy",
+  transferSearchSortSkillTradingCandidate: "Kandydat do skill tradingu",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -815,6 +818,7 @@ export const messagesPl: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Wynik skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -1433,9 +1437,9 @@ export const messagesPl: Messages = {
   seniorPsicoTsiWageUnavailableWarning:
     "Prognoza z pensji nie jest dostepna dla tego zawodnika.",
   seniorPsicoTsiLowSublevelsWarning:
-    "Blisko awansu umiejetnosci lub bardzo niskie podpoziomy formy/pobocznych.",
+    "Ten zawodnik niedawno awansowal w umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo niski podpoziom.",
   seniorPsicoTsiHighSublevelsWarning:
-    "Blisko awansu umiejetnosci lub bardzo wysokie podpoziomy formy/pobocznych.",
+    "Ten zawodnik jest blisko awansu umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo wysoki podpoziom.",
   hiddenSpecialtyTooltip: "Ukryta specjalność wykryta z wydarzeń meczowych",
   hiddenSpecialtyTooltipLinkHint: "Kliknij, aby otworzyć mecz, w którym ją odkryto",
   skillsLabel: "Umiejętności",

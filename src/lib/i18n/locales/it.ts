@@ -248,6 +248,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_7_1_0:
+      "Ordinamento dei risultati del mercato trasferimenti per idoneita allo skill trading.",
     changelog_7_0_0: "E stato implementato lo strumento Mercato trasferimenti.",
     changelog_6_8_0:
       "Aggiunta la possibilita di visualizzare giocatori senior esterni.",
@@ -1920,6 +1922,7 @@ export const messagesIt: Messages = {
     transferSearchSortHtmsPotential: "Potenziale HTMS",
     transferSearchSortPsicoTsiAverage: "Media delle previsioni Psico basate sul TSI",
     transferSearchSortPsicoWageAverage: "Media delle previsioni Psico basate sul salario",
+    transferSearchSortSkillTradingCandidate: "Candidato skill trading",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1940,6 +1943,7 @@ export const messagesIt: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Punteggio skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2102,9 +2106,9 @@ export const messagesIt: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "La previsione tramite stipendio non e disponibile per questo giocatore.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Vicino allo skill-up o sottolivelli di forma/secondarie molto bassi.",
+      "Questo giocatore ha appena fatto uno skill-up oppure le sue secondarie e/o la forma hanno un sottolivello molto basso.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Vicino allo skill-up o sottolivelli di forma/secondarie molto alti.",
+      "Questo giocatore e vicino allo skill-up oppure le sue secondarie e/o la forma hanno un sottolivello molto alto.",
     hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     hiddenSpecialtyTooltipLinkHint:
       "Clicca per aprire la partita in cui e stata scoperta",

@@ -248,6 +248,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_7_1_0:
+      "Tri des resultats du marche des transferts par adequation au skill-trading.",
     changelog_7_0_0: "L'outil Marche des transferts a ete implemente.",
     changelog_6_8_0:
       "Ajout de la possibilite de voir des joueurs seniors externes.",
@@ -1913,6 +1915,7 @@ export const messagesFr: Messages = {
     transferSearchSortHtmsPotential: "Potentiel HTMS",
     transferSearchSortPsicoTsiAverage: "Moyenne des previsions Psico basees sur le TSI",
     transferSearchSortPsicoWageAverage: "Moyenne des previsions Psico basees sur le salaire",
+    transferSearchSortSkillTradingCandidate: "Candidat au skill-trading",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1933,6 +1936,7 @@ export const messagesFr: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Score skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2095,9 +2099,9 @@ export const messagesFr: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "La prediction par salaire n'est pas disponible pour ce joueur.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres bas.",
+      "Ce joueur vient de faire un skill-up ou ses competences secondaires et/ou sa forme ont un sous-niveau tres bas.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres hauts.",
+      "Ce joueur est proche d'un skill-up ou ses competences secondaires et/ou sa forme ont un sous-niveau tres haut.",
     hiddenSpecialtyTooltip: "Specialite cachee detectee via evenements de match",
     hiddenSpecialtyTooltipLinkHint:
       "Cliquer pour ouvrir le match ou elle a ete decouverte",

@@ -131,6 +131,7 @@ export type TransferSearchSortKey =
   | "htmsPotential"
   | "psicoTsiAvg"
   | "psicoWageAvg"
+  | "skillTradingCandidate"
   | "keeper"
   | "defending"
   | "playmaking"
@@ -169,6 +170,7 @@ export type TransferSearchTableRowData = {
   scoring: number | null;
   setPieces: number | null;
   htmsPotential: number | null;
+  skillTradingScore: number | null;
   avgPsicoTsi: number | null;
   avgPsicoWage: number | null;
   wageDisplay: string;
@@ -279,6 +281,33 @@ type TransferSearchMarketSummary = {
 
 type TransferSearchMobilePanel = "criteria" | "results" | "summary";
 type TransferSearchTableSortDirection = "best" | "reverse";
+type TransferSearchSortSource = "cards" | "table";
+type TransferSearchTableColumnKey =
+  | "nat"
+  | "name"
+  | "spec"
+  | "inj"
+  | "age"
+  | "price"
+  | "tsi"
+  | "lead"
+  | "xp"
+  | "form"
+  | "stam"
+  | "kp"
+  | "def"
+  | "pm"
+  | "wg"
+  | "ps"
+  | "sc"
+  | "sp"
+  | "htms"
+  | "skillTrade"
+  | "ptsi"
+  | "pwage"
+  | "wage"
+  | "deadline"
+  | "bid";
 type TransferSearchCountryMeta = {
   name: string;
   flagDisplay?: OriginFlagDisplay;
@@ -294,6 +323,7 @@ const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
   "htmsPotential",
   "psicoTsiAvg",
   "psicoWageAvg",
+  "skillTradingCandidate",
   "keeper",
   "defending",
   "playmaking",
@@ -302,6 +332,38 @@ const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
   "scoring",
   "setPieces",
 ] as const;
+
+const TRANSFER_SORT_KEY_TO_TABLE_COLUMN: Partial<
+  Record<TransferSearchSortKey, TransferSearchTableColumnKey>
+> = {
+  htmsPotential: "htms",
+  psicoTsiAvg: "ptsi",
+  psicoWageAvg: "pwage",
+  skillTradingCandidate: "skillTrade",
+  keeper: "kp",
+  defending: "def",
+  playmaking: "pm",
+  winger: "wg",
+  passing: "ps",
+  scoring: "sc",
+  setPieces: "sp",
+};
+
+const TABLE_COLUMN_TO_TRANSFER_SORT_KEY: Partial<
+  Record<TransferSearchTableColumnKey, TransferSearchSortKey>
+> = {
+  htms: "htmsPotential",
+  ptsi: "psicoTsiAvg",
+  pwage: "psicoWageAvg",
+  skillTrade: "skillTradingCandidate",
+  kp: "keeper",
+  def: "defending",
+  pm: "playmaking",
+  wg: "winger",
+  ps: "passing",
+  sc: "scoring",
+  sp: "setPieces",
+};
 
 const buildTransferSearchMetricInput = (
   result: TransferSearchResult
@@ -328,12 +390,71 @@ const parsePsicoMetricValue = (value: string) => {
 };
 
 const calculateAverage = (values: Array<number | null>) => {
-  const numeric = values.filter((value): value is number => typeof value === "number");
+  const numeric = values.filter(
+    (value): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+  );
   if (numeric.length === 0) return null;
   return numeric.reduce((sum, value) => sum + value, 0) / numeric.length;
 };
 
-const getTransferSearchSortValue = (
+const calculatePsicoTsiAverage = (metricInput: SeniorPlayerMetricInput) => {
+  const psico = calculatePsicoTsiMetrics(metricInput);
+  if (!psico) return null;
+  return calculateAverage([
+    parsePsicoMetricValue(psico.formHigh),
+    parsePsicoMetricValue(psico.formAvg),
+    parsePsicoMetricValue(psico.formLow),
+  ]);
+};
+
+const calculatePsicoWageAverage = (metricInput: SeniorPlayerMetricInput) => {
+  const psico = calculatePsicoTsiMetrics(metricInput);
+  if (!psico) return null;
+  return calculateAverage([
+    parsePsicoMetricValue(psico.wageHigh),
+    parsePsicoMetricValue(psico.wageAvg),
+    parsePsicoMetricValue(psico.wageLow),
+  ]);
+};
+
+const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
+  const values = [
+    metricInput.keeper,
+    metricInput.defending,
+    metricInput.playmaking,
+    metricInput.winger,
+    metricInput.passing,
+    metricInput.scoring,
+    metricInput.setPieces,
+  ].filter(
+    (value): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+  );
+
+  return values.length > 0 ? Math.max(...values) : null;
+};
+
+export const calculateTransferSearchSkillTradingScore = (
+  metricInput: SeniorPlayerMetricInput
+) => {
+  const mainSkill = getMainFootballSkillValue(metricInput);
+  if (mainSkill === null) return null;
+
+  const residuals = [
+    calculatePsicoTsiAverage(metricInput),
+    calculatePsicoWageAverage(metricInput),
+  ]
+    .filter(
+      (value): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+    )
+    .map((prediction) => prediction - mainSkill);
+
+  return residuals.length > 0 ? Math.max(...residuals) : null;
+};
+
+export const getTransferSearchSortValue = (
   metricInput: SeniorPlayerMetricInput,
   sortKey: Exclude<TransferSearchSortKey, "default">
 ) => {
@@ -347,21 +468,13 @@ const getTransferSearchSortValue = (
   if (sortKey === "htmsPotential") {
     return calculateHtmsMetrics(metricInput)?.potential ?? null;
   }
-
-  const psico = calculatePsicoTsiMetrics(metricInput);
-  if (!psico) return null;
   if (sortKey === "psicoTsiAvg") {
-    return calculateAverage([
-      parsePsicoMetricValue(psico.formHigh),
-      parsePsicoMetricValue(psico.formAvg),
-      parsePsicoMetricValue(psico.formLow),
-    ]);
+    return calculatePsicoTsiAverage(metricInput);
   }
-  return calculateAverage([
-    parsePsicoMetricValue(psico.wageHigh),
-    parsePsicoMetricValue(psico.wageAvg),
-    parsePsicoMetricValue(psico.wageLow),
-  ]);
+  if (sortKey === "psicoWageAvg") {
+    return calculatePsicoWageAverage(metricInput);
+  }
+  return calculateTransferSearchSkillTradingScore(metricInput);
 };
 
 const parseTransferSearchHtmsPotentialFilterValue = (value: string) => {
@@ -1308,9 +1421,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
     ? JSON.stringify(buildTransferSearchDraftFields(filters))
     : "null";
   const [mobilePanel, setMobilePanel] = useState<TransferSearchMobilePanel>("results");
-  const [tableSortColumn, setTableSortColumn] = useState<string>("htms");
+  const [tableSortColumn, setTableSortColumn] = useState<TransferSearchTableColumnKey>("htms");
   const [tableSortDirection, setTableSortDirection] =
     useState<TransferSearchTableSortDirection>("best");
+  const lastTransferSortSourceRef = useRef<TransferSearchSortSource | null>(null);
   const [draftState, setDraftState] = useState<{
     baseKey: string;
     fields: TransferSearchDraftFields | null;
@@ -1602,8 +1716,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
       { value: "htmsPotential", label: messages.transferSearchSortHtmsPotential },
       { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "psicoTsiAvg", label: messages.transferSearchSortPsicoTsiAverage },
-      { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "psicoWageAvg", label: messages.transferSearchSortPsicoWageAverage },
+      {
+        value: "skillTradingCandidate",
+        label: messages.transferSearchSortSkillTradingCandidate,
+      },
       { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
       { value: "keeper", label: messages.skillKeeper },
       { value: "defending", label: messages.skillDefending },
@@ -1642,9 +1759,44 @@ const TransferSearchModal = memo(function TransferSearchModal({
       ) {
         return;
       }
+      lastTransferSortSourceRef.current = "cards";
       onSortKeyChange(nextValue as TransferSearchSortKey);
     },
     [onSortKeyChange]
+  );
+  const applyCardSortToTableSort = useCallback((nextSortKey: TransferSearchSortKey) => {
+    const mappedColumn = TRANSFER_SORT_KEY_TO_TABLE_COLUMN[nextSortKey];
+    if (!mappedColumn) return;
+    setTableSortColumn(mappedColumn);
+    setTableSortDirection("best");
+  }, []);
+  const handleResultsViewModeToggle = useCallback(() => {
+    const nextMode: TransferSearchResultsViewMode =
+      resultsViewMode === "cards" ? "table" : "cards";
+    if (
+      nextMode === "table" &&
+      lastTransferSortSourceRef.current !== "table"
+    ) {
+      applyCardSortToTableSort(sortKey);
+    }
+    onResultsViewModeChange(nextMode);
+  }, [applyCardSortToTableSort, onResultsViewModeChange, resultsViewMode, sortKey]);
+  const handleTableSortColumnClick = useCallback(
+    (columnKey: TransferSearchTableColumnKey) => {
+      lastTransferSortSourceRef.current = "table";
+      if (tableSortColumn === columnKey) {
+        setTableSortDirection((prev) => (prev === "best" ? "reverse" : "best"));
+        return;
+      }
+      setTableSortColumn(columnKey);
+      setTableSortDirection("best");
+
+      const mappedSortKey = TABLE_COLUMN_TO_TRANSFER_SORT_KEY[columnKey];
+      if (mappedSortKey) {
+        onSortKeyChange(mappedSortKey);
+      }
+    },
+    [onSortKeyChange, tableSortColumn]
   );
   const tableRows = useMemo(
     (): Array<{ result: TransferSearchResult; data: TransferSearchTableRowData }> =>
@@ -1716,6 +1868,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
               scoring: fallbackMetricInput.scoring ?? null,
               setPieces: fallbackMetricInput.setPieces ?? null,
               htmsPotential: getTransferSearchSortValue(fallbackMetricInput, "htmsPotential"),
+              skillTradingScore: calculateTransferSearchSkillTradingScore(fallbackMetricInput),
               avgPsicoTsi: getTransferSearchSortValue(fallbackMetricInput, "psicoTsiAvg"),
               avgPsicoWage: getTransferSearchSortValue(fallbackMetricInput, "psicoWageAvg"),
               wageDisplay:
@@ -1901,7 +2054,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
     </div>
   );
 
-  const tableHeaderColumns: Array<{ key: string; label: string; higherBetter?: boolean | null }> = [
+  const tableHeaderColumns: Array<{
+    key: TransferSearchTableColumnKey;
+    label: string;
+    higherBetter?: boolean | null;
+  }> = [
     { key: "nat", label: messages.transferSearchTableNationalityColumn, higherBetter: null },
     { key: "name", label: messages.transferSearchTableNameColumn, higherBetter: null },
     { key: "spec", label: messages.transferSearchTableSpecialtyColumn },
@@ -1921,6 +2078,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     { key: "sc", label: messages.transferSearchTableScoringColumn, higherBetter: true },
     { key: "sp", label: messages.transferSearchTableSetPiecesColumn, higherBetter: true },
     { key: "htms", label: messages.transferSearchTableHtmsColumn, higherBetter: true },
+    { key: "skillTrade", label: messages.transferSearchTableSkillTradingScoreColumn, higherBetter: true },
     { key: "ptsi", label: messages.transferSearchTablePsicoTsiColumn, higherBetter: true },
     { key: "pwage", label: messages.transferSearchTablePsicoWageColumn, higherBetter: true },
     { key: "wage", label: tableWageLabel, higherBetter: false },
@@ -1952,6 +2110,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       sc: collect((row) => row.scoring),
       sp: collect((row) => row.setPieces),
       htms: collect((row) => row.htmsPotential),
+      skillTrade: collect((row) => row.skillTradingScore),
       ptsi: collect((row) => row.avgPsicoTsi),
       pwage: collect((row) => row.avgPsicoWage),
       wage: collect((row) => row.wageValueSek),
@@ -2001,6 +2160,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
           return (right.setPieces ?? Number.NEGATIVE_INFINITY) - (left.setPieces ?? Number.NEGATIVE_INFINITY);
         case "htms":
           return (right.htmsPotential ?? Number.NEGATIVE_INFINITY) - (left.htmsPotential ?? Number.NEGATIVE_INFINITY);
+        case "skillTrade":
+          return (right.skillTradingScore ?? Number.NEGATIVE_INFINITY) - (left.skillTradingScore ?? Number.NEGATIVE_INFINITY);
         case "ptsi":
           return (right.avgPsicoTsi ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoTsi ?? Number.NEGATIVE_INFINITY);
         case "pwage":
@@ -2483,11 +2644,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     <button
                       type="button"
                       className={styles.transferSearchViewToggle}
-                      onClick={() =>
-                        onResultsViewModeChange(
-                          resultsViewMode === "cards" ? "table" : "cards"
-                        )
-                      }
+                      onClick={handleResultsViewModeToggle}
                       disabled={loading}
                     >
                       {resultsViewMode === "cards"
@@ -2552,16 +2709,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                                 <button
                                   type="button"
                                   className={styles.transferSearchTableSortButton}
-                                  onClick={() => {
-                                    if (tableSortColumn === column.key) {
-                                      setTableSortDirection((prev) =>
-                                        prev === "best" ? "reverse" : "best"
-                                      );
-                                      return;
-                                    }
-                                    setTableSortColumn(column.key);
-                                    setTableSortDirection("best");
-                                  }}
+                                  onClick={() => handleTableSortColumnClick(column.key)}
                                 >
                                   <span>
                                     {column.label}
@@ -2686,6 +2834,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.scoring) ?? "—", { numericValue: data.scoring, stats: tableColumnStats.sc, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.setPieces) ?? "—", { numericValue: data.setPieces, stats: tableColumnStats.sp, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.htmsPotential) ?? "—", { numericValue: data.htmsPotential, stats: tableColumnStats.htms, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.skillTradingScore, 2) ?? "—", { numericValue: data.skillTradingScore, stats: tableColumnStats.skillTrade, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoTsi, 2) ?? "—", { numericValue: data.avgPsicoTsi, stats: tableColumnStats.ptsi, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoWage, 2) ?? "—", { numericValue: data.avgPsicoWage, stats: tableColumnStats.pwage, higherBetter: true })}</td>
                               <td>

@@ -92,6 +92,7 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
+  calculateTransferSearchSkillTradingScore,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
@@ -17363,6 +17364,7 @@ const refreshDetailsForPlayers = async (
         scoring: metricInput.scoring ?? null,
         setPieces: metricInput.setPieces ?? null,
         htmsPotential: calculateHtmsMetrics(metricInput)?.potential ?? null,
+        skillTradingScore: calculateTransferSearchSkillTradingScore(metricInput),
         avgPsicoTsi: psico
           ? [
               Number.parseFloat(psico.formHigh),

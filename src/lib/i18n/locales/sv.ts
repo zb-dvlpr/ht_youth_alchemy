@@ -247,6 +247,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_7_1_0:
+      "Sortering av transfermarknadsresultat efter skilltrading-lamplighet.",
     changelog_7_0_0: "Transfermarknadsverktyget har implementerats.",
     changelog_6_8_0:
       "Lade till mojligheten att visa externa seniorspelare.",
@@ -1905,6 +1907,7 @@ export const messagesSv: Messages = {
     transferSearchSortHtmsPotential: "HTMS-potential",
     transferSearchSortPsicoTsiAverage: "Genomsnittlig TSI-baserad Psico-prognos",
     transferSearchSortPsicoWageAverage: "Genomsnittlig lonbaserad Psico-prognos",
+    transferSearchSortSkillTradingCandidate: "Skilltrading-kandidat",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1925,6 +1928,7 @@ export const messagesSv: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-trading-poäng",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2087,9 +2091,9 @@ export const messagesSv: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Lonprognos ar inte tillganglig for den har spelaren.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Nara skill-up eller mycket laga form-/sekundara subnivaer.",
+      "Spelaren har nyligen hojt sin skill eller har mycket laga subnivaer i sekundara skills och/eller form.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Nara skill-up eller mycket hoga form-/sekundara subnivaer.",
+      "Spelaren ar nara att hoja sin skill eller har mycket hoga subnivaer i sekundara skills och/eller form.",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     hiddenSpecialtyTooltipLinkHint:
       "Klicka for att oppna matchen dar den upptacktes",

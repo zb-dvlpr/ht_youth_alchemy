@@ -246,6 +246,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_7_1_0:
+      "Sorting transfer market results by skill-trading candidate suitability.",
     changelog_7_0_0: "Implemented the Transfer Market tool.",
     changelog_6_8_0: "Added the ability to view external senior players.",
     changelog_6_7_0: "Skills-based player allocation for senior lineups.",
@@ -1858,6 +1860,7 @@ export const messagesEn: Messages = {
     transferSearchSortHtmsPotential: "HTMS potential",
     transferSearchSortPsicoTsiAverage: "Average TSI-based Psico prediction",
     transferSearchSortPsicoWageAverage: "Average wage-based Psico prediction",
+    transferSearchSortSkillTradingCandidate: "Skill-trading candidate",
     transferSearchShowTableButton: "Show table",
     transferSearchShowCardsButton: "Back to cards",
     transferSearchTableNationalityColumn: "Nat",
@@ -1878,6 +1881,7 @@ export const messagesEn: Messages = {
     transferSearchTableScoringColumn: "Sc",
     transferSearchTableSetPiecesColumn: "SP",
     transferSearchTableHtmsColumn: "HTMS",
+    transferSearchTableSkillTradingScoreColumn: "Skill-trading score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
     transferSearchTableWageColumn: "Wage",
@@ -2038,9 +2042,9 @@ export const messagesEn: Messages = {
     seniorPsicoTsiWageUnavailableWarning:
       "Wage prediction is not available for this player.",
     seniorPsicoTsiLowSublevelsWarning:
-      "Close to skill-up or very low form/secondary sublevels.",
+      "This player has recently skilled up or his secondary skills and/or form have a very low sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
-      "Close to skill-up or very high form/secondary sublevels.",
+      "This player is close to skill up or his secondary skills and/or form have a very high sublevel.",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",

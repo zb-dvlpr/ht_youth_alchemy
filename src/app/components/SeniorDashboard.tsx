@@ -36,10 +36,6 @@ import {
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
-  estimateChronicleMainSkillFromWage,
-  type ChroniclePlayingPositionEntry,
-} from "@/lib/clubChronicle/mainSkillEstimation";
-import {
   readSeniorLineupAlgorithm,
   readSeniorDebugManagerUserId,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
@@ -111,6 +107,13 @@ import {
 } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import TransferSearchResultCard from "./TransferSearchResultCard";
+import TeamScoutDetailTable, {
+  isLikelyTraineeForTeamScoutDetail,
+  type TeamScoutDetailSortState,
+  type TeamScoutLikelyTrainingInfo,
+  type TeamScoutPlayerRow,
+  type TeamScoutPlayingPositionEntry,
+} from "./TeamScoutDetailTable";
 import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
@@ -1060,29 +1063,11 @@ type FormationTacticsDistribution = {
 
 type OpponentAnalysisTab = "matches" | "scoutTeam";
 
-type OpponentScoutPlayerRow = {
-  playerId: number;
-  playerName: string;
-  playerNumber: number | null;
-  age: number | null;
-  ageDays: number | null;
-  tsi: number | null;
-  salarySek: number | null;
-  specialty: number | null;
-  form: number | null;
-  stamina: number | null;
-  experience: number | null;
-  leadership: number | null;
-  playingPositions: ChroniclePlayingPositionEntry[];
-  usedAsManMarker: boolean;
-  isLikelyTrainee: boolean;
-};
-
 type OpponentScoutTeamData = {
   teamId: number;
   teamName: string;
-  rows: OpponentScoutPlayerRow[];
-  likelyTrainingLabel: string;
+  rows: TeamScoutPlayerRow[];
+  likelyTraining: TeamScoutLikelyTrainingInfo;
   matchCount: number;
 };
 
@@ -4132,6 +4117,15 @@ export default function SeniorDashboard({
       data: null,
       error: null,
     });
+  const [opponentScoutTeamSortState, setOpponentScoutTeamSortState] =
+    useState<TeamScoutDetailSortState>({
+      key: "playerNumber",
+      direction: "asc",
+    });
+  const [
+    showOpponentScoutEffectiveMainSkillEstimation,
+    setShowOpponentScoutEffectiveMainSkillEstimation,
+  ] = useState(false);
   const [nonTraineeAssignmentModal, setNonTraineeAssignmentModal] = useState<{
     title: string;
     entries: NonTraineeAssignmentTraceEntry[];
@@ -13105,7 +13099,7 @@ const refreshDetailsForPlayers = async (
   };
   const opponentScoutLikelyTrainingLabel = (
     rows: OpponentFormationRow[]
-  ): { key: OpponentTrackedRole | null; label: string } => {
+  ): TeamScoutLikelyTrainingInfo => {
     const formationCounts = new Map<string, number>();
     rows.forEach((row) => {
       if (!row.formation) return;
@@ -13114,25 +13108,42 @@ const refreshDetailsForPlayers = async (
     const topFormation = Array.from(formationCounts.entries()).sort(
       (left, right) => right[1] - left[1]
     )[0]?.[0];
-    if (!topFormation) return { key: null, label: messages.unknownShort };
+    if (!topFormation) {
+      return { likelyTrainingKey: null, label: messages.unknownShort };
+    }
     const parts = topFormation.split("-").map((value) => Number(value));
     if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) {
-      return { key: null, label: messages.unknownShort };
+      return { likelyTrainingKey: null, label: messages.unknownShort };
     }
     const [defenders, midfielders, forwards] = parts;
     if (forwards >= 3) {
-      return { key: "F", label: messages.clubChronicleLikelyTrainingScoring };
+      return {
+        likelyTrainingKey: "scoring",
+        label: messages.clubChronicleLikelyTrainingScoring,
+      };
     }
     if (midfielders >= 5) {
-      return { key: "IM", label: messages.clubChronicleLikelyTrainingPlaymaking };
+      return {
+        likelyTrainingKey: "playmaking",
+        label: messages.clubChronicleLikelyTrainingPlaymaking,
+      };
     }
     if (defenders >= 5) {
-      return { key: "CD", label: messages.clubChronicleLikelyTrainingDefending };
+      return {
+        likelyTrainingKey: "defending",
+        label: messages.clubChronicleLikelyTrainingDefending,
+      };
     }
     if (midfielders >= 4 && forwards >= 2) {
-      return { key: "W", label: messages.clubChronicleLikelyTrainingPassing };
+      return {
+        likelyTrainingKey: "passing",
+        label: messages.clubChronicleLikelyTrainingPassing,
+      };
     }
-    return { key: null, label: messages.clubChronicleLikelyTrainingKeepingOrSetPieces };
+    return {
+      likelyTrainingKey: "keepingOrSetPieces",
+      label: messages.clubChronicleLikelyTrainingKeepingOrSetPieces,
+    };
   };
   const buildOpponentScoutPlayingPositions = (rows: OpponentFormationRow[]) => {
     const minutesByPlayer = new Map<number, Map<number, number>>();
@@ -13150,7 +13161,7 @@ const refreshDetailsForPlayers = async (
         minutesByPlayer.set(player.playerId, current);
       });
     });
-    const result = new Map<number, ChroniclePlayingPositionEntry[]>();
+    const result = new Map<number, TeamScoutPlayingPositionEntry[]>();
     minutesByPlayer.forEach((roleMinutes, playerId) => {
       result.set(
         playerId,
@@ -13161,56 +13172,6 @@ const refreshDetailsForPlayers = async (
       );
     });
     return result;
-  };
-  const formatOpponentScoutPlayingPositions = (
-    entries: ChroniclePlayingPositionEntry[]
-  ) => {
-    const total = entries.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-    if (total <= 0) return messages.unknownShort;
-    return [...entries]
-      .sort((left, right) => right.minutes - left.minutes)
-      .map((entry) => {
-        const label = positionLabel(entry.roleId, messages);
-        const percentage = Math.round((entry.minutes / total) * 100);
-        return `${label} ${percentage}%`;
-      })
-      .join(", ");
-  };
-  const isOpponentScoutLikelyTrainee = (
-    entries: ChroniclePlayingPositionEntry[],
-    likelyTrainingRole: OpponentTrackedRole | null
-  ) => {
-    if (!likelyTrainingRole || entries.length === 0) return false;
-    const allowedRoles = new Set<OpponentTrackedRole>(
-      likelyTrainingRole === "IM"
-        ? ["IM", "W"]
-        : likelyTrainingRole === "CD"
-          ? ["CD", "WB"]
-          : likelyTrainingRole === "W"
-            ? ["W", "IM", "F"]
-            : [likelyTrainingRole]
-    );
-    const total = entries.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-    if (total <= 0) return false;
-    const allowedMinutes = entries.reduce((sum, entry) => {
-      const role = normalizeOpponentTrackedRole(matchRoleIdToPositionKey(entry.roleId));
-      return role && allowedRoles.has(role) ? sum + Math.max(0, entry.minutes) : sum;
-    }, 0);
-    return allowedMinutes / total >= 0.8;
-  };
-  const formatOpponentScoutMainSkillEstimation = (row: OpponentScoutPlayerRow) => {
-    const estimation = estimateChronicleMainSkillFromWage({
-      salarySek: row.salarySek,
-      ageYears: row.age,
-      specialty: row.specialty,
-      wageIncludesForeignBonus: null,
-      playingPositions: row.playingPositions,
-    });
-    if (estimation.kind === "tooOld") {
-      return messages.clubChronicleMainSkillEstimationTooOld;
-    }
-    if (estimation.kind !== "estimated") return messages.unknownShort;
-    return `${estimation.level} (${estimation.mainSkill})`;
   };
   const formatOpponentPotentialTargetDetails = (
     target: OpponentPotentialTargetPlayer
@@ -15822,6 +15783,8 @@ const refreshDetailsForPlayers = async (
         data: null,
         error: null,
       });
+      setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+      setShowOpponentScoutEffectiveMainSkillEstimation(false);
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
       const { opponentTeamId, opponentName } = opponentContext;
@@ -15950,6 +15913,26 @@ const refreshDetailsForPlayers = async (
         }
         const raw = payload?.data?.HattrickData?.Team?.PlayerList?.Player;
         const rawPlayers = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const playerIds = rawPlayers
+          .map((player) =>
+            player && typeof player === "object"
+              ? parseNumber((player as Record<string, unknown>).PlayerID)
+              : null
+          )
+          .filter((playerId): playerId is number => Boolean(playerId && playerId > 0));
+        const playerDetailsEntries = await mapWithConcurrency(
+          playerIds,
+          4,
+          async (playerId) => ({
+            playerId,
+            details: await fetchPlayerDetailsById(playerId, {
+              captureEncounter: false,
+            }),
+          })
+        );
+        const detailsByPlayerId = new Map(
+          playerDetailsEntries.map((entry) => [entry.playerId, entry.details])
+        );
         const playingPositionsByPlayerId = buildOpponentScoutPlayingPositions(
           currentModal.opponentRows
         );
@@ -15960,52 +15943,78 @@ const refreshDetailsForPlayers = async (
           currentModal.opponentRows
         );
         const rows = rawPlayers
-          .map((player) => {
+          .map((player): TeamScoutPlayerRow | null => {
             if (!player || typeof player !== "object") return null;
             const playerNode = player as Record<string, unknown>;
             const playerId = parseNumber(playerNode.PlayerID);
             if (!playerId || playerId <= 0) return null;
+            const details = detailsByPlayerId.get(playerId) ?? null;
             const skills =
               playerNode.PlayerSkills && typeof playerNode.PlayerSkills === "object"
                 ? (playerNode.PlayerSkills as Record<string, unknown>)
                 : null;
             const playingPositions =
               playingPositionsByPlayerId.get(playerId) ?? [];
+            const originInfo =
+              typeof details?.NativeLeagueID === "number"
+                ? leagueOriginsById[details.NativeLeagueID] ?? null
+                : null;
+            const wageIncludesForeignBonus =
+              resolveSeniorIsAbroad(details) ??
+              (typeof details?.NativeLeagueID === "number" &&
+              typeof details?.OwningTeam?.LeagueID === "number"
+                ? details.NativeLeagueID !== details.OwningTeam.LeagueID
+                : null);
             const playerName =
               formatPlayerName({
                 FirstName:
-                  typeof playerNode.FirstName === "string" ? playerNode.FirstName : "",
+                  details?.FirstName ??
+                  (typeof playerNode.FirstName === "string" ? playerNode.FirstName : ""),
                 NickName:
-                  typeof playerNode.NickName === "string" && playerNode.NickName
+                  details?.NickName ??
+                  (typeof playerNode.NickName === "string" && playerNode.NickName
                     ? playerNode.NickName
-                    : undefined,
+                    : undefined),
                 LastName:
-                  typeof playerNode.LastName === "string" ? playerNode.LastName : "",
+                  details?.LastName ??
+                  (typeof playerNode.LastName === "string" ? playerNode.LastName : ""),
               }) || String(playerId);
             return {
+              teamId,
               playerId,
               playerName,
+              originFlagDisplay: originInfo?.flagDisplay ?? null,
               playerNumber: parseNumber(playerNode.PlayerNumber),
-              age: parseNumber(playerNode.Age),
-              ageDays: parseNumber(playerNode.AgeDays),
-              tsi: parseNumber(playerNode.TSI),
-              salarySek: parseNumber(playerNode.Salary),
-              specialty: parseNumber(playerNode.Specialty),
-              form: parseNumber(playerNode.PlayerForm ?? playerNode.Form),
+              age: details?.Age ?? parseNumber(playerNode.Age),
+              ageDays: details?.AgeDays ?? parseNumber(playerNode.AgeDays),
+              injuryLevel: details?.InjuryLevel ?? parseNumber(playerNode.InjuryLevel),
+              specialty: details?.Specialty ?? parseNumber(playerNode.Specialty),
+              cards:
+                parseNumber(playerNode.Cards) ??
+                parseNumber(playerNode.Bookings) ??
+                parseNumber(playerNode.YellowCard),
+              form:
+                details?.Form ?? parseNumber(playerNode.PlayerForm ?? playerNode.Form),
               stamina: parseNumber(
-                playerNode.StaminaSkill ?? skills?.StaminaSkill
+                details?.StaminaSkill ?? playerNode.StaminaSkill ?? skills?.StaminaSkill
               ),
-              experience: parseNumber(playerNode.Experience),
-              leadership: parseNumber(playerNode.Leadership),
+              experience: details?.Experience ?? parseNumber(playerNode.Experience),
+              leadership: details?.Leadership ?? parseNumber(playerNode.Leadership),
+              loyalty: details?.Loyalty ?? parseNumber(playerNode.Loyalty),
+              motherClubBonus: details?.MotherClubBonus ?? null,
+              tsi: details?.TSI ?? parseNumber(playerNode.TSI),
+              salarySek: details?.Salary ?? parseNumber(playerNode.Salary),
+              wageIncludesForeignBonus,
+              form7Ratings: [],
               playingPositions,
               usedAsManMarker: manMarkerPlayerIds.has(playerId),
-              isLikelyTrainee: isOpponentScoutLikelyTrainee(
+              isLikelyTrainee: isLikelyTraineeForTeamScoutDetail(
                 playingPositions,
-                likelyTraining.key
+                likelyTraining?.likelyTrainingKey ?? null
               ),
-            } satisfies OpponentScoutPlayerRow;
+            } satisfies TeamScoutPlayerRow;
           })
-          .filter((row): row is OpponentScoutPlayerRow => Boolean(row))
+          .filter((row): row is TeamScoutPlayerRow => Boolean(row))
           .sort((left, right) => (right.tsi ?? 0) - (left.tsi ?? 0));
         if (opponentScoutTeamRequestIdRef.current !== requestId) return;
         setOpponentScoutTeamState({
@@ -16015,7 +16024,7 @@ const refreshDetailsForPlayers = async (
             teamId,
             teamName: currentModal.opponentName,
             rows,
-            likelyTrainingLabel: likelyTraining.label,
+            likelyTraining,
             matchCount: currentModal.opponentRows.length,
           },
           error: null,
@@ -16036,7 +16045,8 @@ const refreshDetailsForPlayers = async (
     },
     [
       buildOpponentScoutPlayingPositions,
-      isOpponentScoutLikelyTrainee,
+      fetchPlayerDetailsById,
+      leagueOriginsById,
       messages.seniorOpponentScoutTeamError,
       opponentAnalysisModal,
       opponentScoutLikelyTrainingLabel,
@@ -16054,7 +16064,24 @@ const refreshDetailsForPlayers = async (
       data: null,
       error: null,
     });
+    setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+    setShowOpponentScoutEffectiveMainSkillEstimation(false);
   }, []);
+
+  const handleOpponentScoutTeamSort = useCallback(
+    (key: TeamScoutDetailSortState["key"]) => {
+      if (!key) return;
+      setOpponentScoutTeamSortState((current) =>
+        current.key === key
+          ? {
+              key,
+              direction: current.direction === "asc" ? "desc" : "asc",
+            }
+          : { key, direction: "asc" }
+      );
+    },
+    []
+  );
 
   useEffect(() => {
     if (opponentAnalysisActiveTab !== "scoutTeam") return;
@@ -21703,131 +21730,22 @@ const refreshDetailsForPlayers = async (
                   ) : null}
                   {opponentScoutTeamState.status === "success" &&
                   opponentScoutTeamState.data.rows.length > 0 ? (
-                    <>
-                      <div className={styles.chronicleTsiWagesDetailModalTableScroll}>
-                        <div
-                          className={`${styles.chronicleTsiWagesDetailTable} ${styles.chronicleTableFreezeFirstTwoColumns}`}
-                          style={
-                            {
-                              "--cc-columns": 12,
-                              "--cc-template-desktop":
-                                "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px",
-                              "--cc-template-mobile":
-                                "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px",
-                              "--cc-freeze-second-left-desktop": "60px",
-                              "--cc-freeze-second-left-mobile": "44px",
-                            } as CSSProperties
-                          }
-                        >
-                          <div className={styles.chronicleTableHeader}>
-                            <span>{messages.clubChronicleTsiPlayerIndexColumn}</span>
-                            <span>{messages.clubChronicleTsiPlayerColumn}</span>
-                            <span>{messages.clubChronicleTransferListedAgeColumn}</span>
-                            <span>{messages.clubChronicleTsiValueColumn}</span>
-                            <span>{messages.clubChroniclePlayingPositionColumn}</span>
-                            <span>{messages.clubChronicleMainSkillEstimationColumn}</span>
-                            <span>{messages.clubChronicleForm7RatingColumn}</span>
-                            <span>{messages.clubChronicleManMarkerColumn}</span>
-                            <span>{messages.clubChroniclePlayerFormColumn}</span>
-                            <span>{messages.clubChroniclePlayerStaminaColumn}</span>
-                            <span>{messages.clubChroniclePlayerExperienceColumn}</span>
-                            <span>{messages.clubChroniclePlayerLeadershipColumn}</span>
-                          </div>
-                          {opponentScoutTeamState.data.rows.map((row, index) => (
-                            <div
-                              key={row.playerId}
-                              className={`${styles.chronicleTableRow}${
-                                row.isLikelyTrainee
-                                  ? ` ${styles.chronicleLikelyTraineeRow}`
-                                  : ""
-                              }`}
-                            >
-                              <span className={styles.chronicleTableCell}>
-                                {index + 1}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                <a
-                                  className={styles.chroniclePressLink}
-                                  href={hattrickPlayerUrl(row.playerId)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {row.playerName}
-                                </a>
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.age === null
-                                  ? messages.unknownShort
-                                  : `${row.age}${messages.ageYearsShort} ${
-                                      row.ageDays ?? 0
-                                    }${messages.ageDaysShort}`}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.tsi ?? messages.unknownShort}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {formatOpponentScoutPlayingPositions(
-                                  row.playingPositions
-                                )}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {formatOpponentScoutMainSkillEstimation(row)}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {messages.unknownShort}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.usedAsManMarker ? "✓" : ""}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.form ?? messages.unknownShort}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.stamina ?? messages.unknownShort}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.experience ?? messages.unknownShort}
-                              </span>
-                              <span className={styles.chronicleTableCell}>
-                                {row.leadership ?? messages.unknownShort}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className={styles.chronicleTsiWagesDetailModalFooterNotes}>
-                        <div className={styles.chronicleLegend}>
-                          <span className={styles.chronicleLegendText}>
-                            {messages.clubChronicleMainSkillEstimationFootnote}
-                          </span>
-                        </div>
-                        <div className={styles.chronicleLegend}>
-                          <span className={styles.chronicleLegendItem}>
-                            <span
-                              className={`${styles.chronicleLegendSwatch} ${styles.chronicleLikelyTraineeSwatch}`}
-                              aria-hidden="true"
-                            />
-                            <span>
-                              {messages.clubChronicleLikelyTraineeLegendLabel}
-                            </span>
-                          </span>
-                          <span className={styles.chronicleLegendText}>
-                            {messages.clubChronicleLikelyTraineeLegendRegimen.replace(
-                              "{{regimen}}",
-                              opponentScoutTeamState.data.likelyTrainingLabel
-                            )}
-                          </span>
-                        </div>
-                        <div className={styles.chronicleLegend}>
-                          <span className={styles.chronicleLegendText}>
-                            {messages.clubChronicleDetailModalMatchesUsedLabel.replace(
-                              "{{count}}",
-                              String(opponentScoutTeamState.data.matchCount)
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </>
+                    <TeamScoutDetailTable
+                      mode="tsi"
+                      rows={opponentScoutTeamState.data.rows}
+                      messages={messages}
+                      displayCurrency={displayCurrency}
+                      likelyTraining={opponentScoutTeamState.data.likelyTraining}
+                      matchSampleSize={opponentScoutTeamState.data.matchCount}
+                      showEffectiveMainSkillEstimation={
+                        showOpponentScoutEffectiveMainSkillEstimation
+                      }
+                      onShowEffectiveMainSkillEstimationChange={
+                        setShowOpponentScoutEffectiveMainSkillEstimation
+                      }
+                      sortState={opponentScoutTeamSortState}
+                      onSortChange={handleOpponentScoutTeamSort}
+                    />
                   ) : null}
                 </div>
               )}

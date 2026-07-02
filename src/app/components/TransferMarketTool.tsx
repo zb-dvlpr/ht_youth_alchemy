@@ -50,7 +50,6 @@ import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import {
   TransferSearchContent,
   TRANSFER_SEARCH_SKILLS,
-  buildTransferSearchMinimumBidSek,
   buildTransferSearchParams,
   displayToSek,
   formatTransferSearchBidDraftDisplay,
@@ -58,6 +57,7 @@ import {
   formatTransferSearchPlayerName,
   normalizeTransferSearchFilters,
   normalizeTransferSearchResults,
+  resolveTransferSearchMinimumBidSek,
   type TransferSearchBidDraft,
   type TransferSearchFilters,
   type TransferSearchHtmsPotentialFilter,
@@ -467,7 +467,7 @@ export default function TransferMarketTool({
           nextResults.forEach((result) => {
             next[result.playerId] = {
               bidDisplay: formatTransferSearchBidDraftDisplay(
-                buildTransferSearchMinimumBidSek(result),
+                resolveTransferSearchMinimumBidSek(result, displayCurrency),
                 displayCurrency
               ),
               maxBidDisplay: "",
@@ -568,8 +568,8 @@ export default function TransferMarketTool({
 
   const submitQuickBid = async (result: TransferSearchResult) => {
     if (!selectedTeam?.teamId || !canPlaceBid) return;
-    const minimumBidSek = buildTransferSearchMinimumBidSek(result);
-    if (typeof minimumBidSek !== "number") return;
+    const minimumBidSek = resolveTransferSearchMinimumBidSek(result, displayCurrency);
+    if (minimumBidSek === null) return;
     setBidDrafts((prev) => ({
       ...prev,
       [result.playerId]: {

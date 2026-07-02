@@ -85,11 +85,25 @@ function formatRating(value: number | null) {
   return Number(value).toFixed(1);
 }
 
-function ratingStyle(value: number | null) {
-  if (value === null || value === undefined) {
+type RatingColumnScale = {
+  min: number;
+  max: number;
+};
+
+function ratingStyle(value: number | null, scale?: RatingColumnScale) {
+  if (
+    value === null ||
+    value === undefined ||
+    !Number.isFinite(value) ||
+    !scale
+  ) {
     return undefined;
   }
-  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  const range = scale.max - scale.min;
+  const normalized =
+    range > 0
+      ? Math.min(Math.max((value - scale.min) / range, 0), 1)
+      : 0.5;
   const hue = 120 * normalized;
   const alpha = 0.2 + normalized * 0.35;
   return {
@@ -163,6 +177,28 @@ export default function RatingsMatrix({
     () => uniquePositions(response?.positions),
     [response?.positions]
   );
+  const ratingColumnScales = useMemo(() => {
+    const scales: Record<string, RatingColumnScale> = {};
+
+    positions.forEach((position) => {
+      const key = String(position);
+      const values = players
+        .map((row) => row.ratings?.[key])
+        .filter(
+          (value): value is number =>
+            typeof value === "number" && Number.isFinite(value)
+        );
+
+      if (values.length === 0) return;
+
+      scales[key] = {
+        min: Math.min(...values),
+        max: Math.max(...values),
+      };
+    });
+
+    return scales;
+  }, [players, positions]);
   const matchesAnalyzed = useMemo(() => {
     if (
       typeof response?.matchesAnalyzed === "number" &&
@@ -590,12 +626,14 @@ export default function RatingsMatrix({
                   )}
                 </td>
                 {positions.map((position) => {
-                  const rating = row.ratings[String(position)] ?? null;
-                  const ratingMatchId = row.ratingMatchIds?.[String(position)];
+                  const positionKey = String(position);
+                  const rating = row.ratings[positionKey] ?? null;
+                  const ratingScale = ratingColumnScales[positionKey];
+                  const ratingMatchId = row.ratingMatchIds?.[positionKey];
                   const ratingMatchSourceSystem =
-                    row.ratingMatchSourceSystems?.[String(position)];
+                    row.ratingMatchSourceSystems?.[positionKey];
                   const isManuallyEdited =
-                    typeof manualEditedRatingsByPlayerId[row.id]?.[String(position)] ===
+                    typeof manualEditedRatingsByPlayerId[row.id]?.[positionKey] ===
                     "number";
                   const isNewRating =
                     newRatingsByPlayerId[row.id]?.includes(position) ?? false;
@@ -607,7 +645,7 @@ export default function RatingsMatrix({
                       } ${isManuallyEdited ? styles.matrixCellManualEdited : ""}${
                         manualEditingEnabled ? ` ${styles.matrixCellManualEditing}` : ""
                       }`}
-                      style={ratingStyle(rating)}
+                      style={ratingStyle(rating, ratingScale)}
                     >
                       {isNewRating ? (
                         <Tooltip content={messages.matrixNewNTooltip}>

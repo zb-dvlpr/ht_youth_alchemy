@@ -248,6 +248,7 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_7_2_0: "Analise melhorada do elenco adversario implementada.",
     changelog_7_1_0:
       "Ordenacao de resultados do mercado de transferencias por adequacao para skill trading.",
     changelog_7_0_0: "Foi implementada a ferramenta Mercado de transferencias.",
@@ -1714,6 +1715,11 @@ export const messagesPt: Messages = {
     analyzeOpponentSummaryWith: "com",
     analyzeOpponentStillInCup: "ainda na copa",
     analyzeOpponentNotInCup: "fora da copa",
+    seniorOpponentAnalysisTabMatches: "Partidas",
+    seniorOpponentAnalysisTabScoutTeam: "Observar equipa",
+    seniorOpponentScoutTeamLoading: "A carregar analise do elenco adversario...",
+    seniorOpponentScoutTeamError: "Nao foi possivel carregar a analise do elenco adversario.",
+    seniorOpponentScoutTeamEmpty: "Nenhum dado do elenco adversario disponivel.",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",
@@ -1873,14 +1879,11 @@ export const messagesPt: Messages = {
     transferMarketCriteriaLoaded: "Criterios carregados. Prime Pesquisa para executar.",
     transferMarketStorageError: "O armazenamento do mercado de transferencias esta indisponivel.",
     transferMarketTeamLabel: "Equipa senior",
-    transferSearchInvalidSkillRangeTitle: "Intervalo de habilidade invalido",
-    transferSearchInvalidSkillRangeBody:
-      "A CHPP permite um intervalo maximo de quatro niveis de habilidade incluidos. Por exemplo, 4 a 7 e permitido, mas 4 a 8 e demasiado amplo. {{skill}} esta definido de {{min}} a {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Intervalo de idade invalido",
     transferSearchInvalidAgeRangeBody:
       "A CHPP exige um intervalo maximo de idade de 1a111d. Por exemplo, 17a 0d a 18a 111d e permitido, mas 17a 0d a 19a 0d e demasiado amplo.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Pesquisar",
     seniorTransferSearchCloseButton: "Fechar",
     seniorTransferSearchLoading: "A pesquisar no mercado de transferencias…",

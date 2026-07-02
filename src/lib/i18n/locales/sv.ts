@@ -247,6 +247,7 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_7_2_0: "Forbattrad analys av motstandartruppen har implementerats.",
     changelog_7_1_0:
       "Sortering av transfermarknadsresultat efter skilltrading-lamplighet.",
     changelog_7_0_0: "Transfermarknadsverktyget har implementerats.",
@@ -1700,6 +1701,11 @@ export const messagesSv: Messages = {
     analyzeOpponentSummaryWith: "med",
     analyzeOpponentStillInCup: "fortfarande kvar i cupen",
     analyzeOpponentNotInCup: "ute ur cupen",
+    seniorOpponentAnalysisTabMatches: "Matcher",
+    seniorOpponentAnalysisTabScoutTeam: "Scouta laget",
+    seniorOpponentScoutTeamLoading: "Laddar analys av motstandartruppen...",
+    seniorOpponentScoutTeamError: "Kunde inte ladda analys av motstandartruppen.",
+    seniorOpponentScoutTeamEmpty: "Ingen data om motstandartruppen tillganglig.",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",
@@ -1860,14 +1866,11 @@ export const messagesSv: Messages = {
     transferMarketCriteriaLoaded: "Kriterier laddade. Tryck Sok for att kora.",
     transferMarketStorageError: "Transfermarknadens lagring ar inte tillganglig.",
     transferMarketTeamLabel: "Seniorlag",
-    transferSearchInvalidSkillRangeTitle: "Ogiltigt skillintervall",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP tillater hogst fyra skillnivaer inklusive. Till exempel ar 4 till 7 tillatet, men 4 till 8 ar for brett. {{skill}} ar satt till {{min}} till {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Ogiltigt aldersintervall",
     transferSearchInvalidAgeRangeBody:
       "CHPP kraver ett maximalt aldersintervall pa 1a111d. Till exempel ar 17a 0d till 18a 111d tillatet, men 17a 0d till 19a 0d ar for brett.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Sok",
     seniorTransferSearchCloseButton: "Stang",
     seniorTransferSearchLoading: "Soker pa transfermarknaden…",

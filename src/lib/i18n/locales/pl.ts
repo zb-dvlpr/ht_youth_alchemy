@@ -504,6 +504,7 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_7_2_0: "Wdrożono ulepszona analize kadry przeciwnika.",
     changelog_7_1_0:
       "Sortowanie wynikow rynku transferowego wedlug przydatnosci do skill tradingu.",
     changelog_7_0_0: "Wdrożono narzedzie Rynek transferowy.",
@@ -746,14 +747,11 @@ export const messagesPl: Messages = {
   transferMarketCriteriaLoaded: "Kryteria wczytane. Nacisnij Szukaj, aby uruchomic.",
   transferMarketStorageError: "Magazyn rynku transferowego jest niedostepny.",
   transferMarketTeamLabel: "Druzyna seniorska",
-  transferSearchInvalidSkillRangeTitle: "Nieprawidlowy zakres umiejetnosci",
-  transferSearchInvalidSkillRangeBody:
-    "CHPP pozwala na maksymalnie cztery poziomy umiejetnosci wlacznie. Na przyklad 4 do 7 jest dozwolone, ale 4 do 8 jest zbyt szerokie. {{skill}} ustawiono na {{min}} do {{max}}.",
-  transferSearchInvalidSkillRangeConfirm: "OK",
   transferSearchInvalidAgeRangeTitle: "Nieprawidlowy zakres wieku",
   transferSearchInvalidAgeRangeBody:
     "CHPP wymaga maksymalnego zakresu wieku 1r111d. Na przyklad 17r 0d do 18r 111d jest dozwolone, ale 17r 0d do 19r 0d jest zbyt szerokie.",
   transferSearchInvalidAgeRangeConfirm: "OK",
+  transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
   seniorTransferSearchSearchButton: "Szukaj",
   seniorTransferSearchCloseButton: "Zamknij",
   seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",
@@ -1278,6 +1276,11 @@ export const messagesPl: Messages = {
     "Analizuj przeciwnika podsumowuje ostatnie wzorce, aby wspierać decyzje AI o składzie.",
   analyzeOpponentStillInCup: "nadal w pucharze",
   analyzeOpponentNotInCup: "poza pucharem",
+  seniorOpponentAnalysisTabMatches: "Mecze",
+  seniorOpponentAnalysisTabScoutTeam: "Skautuj zespol",
+  seniorOpponentScoutTeamLoading: "Ladowanie analizy kadry przeciwnika...",
+  seniorOpponentScoutTeamError: "Nie mozna zaladowac analizy kadry przeciwnika.",
+  seniorOpponentScoutTeamEmpty: "Brak danych kadry przeciwnika.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

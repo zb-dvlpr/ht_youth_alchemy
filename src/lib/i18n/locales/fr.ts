@@ -248,6 +248,7 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_7_2_0: "Analyse amelioree de l effectif adverse implementee.",
     changelog_7_1_0:
       "Tri des resultats du marche des transferts par adequation au skill-trading.",
     changelog_7_0_0: "L'outil Marche des transferts a ete implemente.",
@@ -1709,6 +1710,11 @@ export const messagesFr: Messages = {
     analyzeOpponentSummaryWith: "avec",
     analyzeOpponentStillInCup: "encore en coupe",
     analyzeOpponentNotInCup: "plus en coupe",
+    seniorOpponentAnalysisTabMatches: "Matchs",
+    seniorOpponentAnalysisTabScoutTeam: "Observer l equipe",
+    seniorOpponentScoutTeamLoading: "Chargement de l analyse de l effectif adverse...",
+    seniorOpponentScoutTeamError: "Impossible de charger l analyse de l effectif adverse.",
+    seniorOpponentScoutTeamEmpty: "Aucune donnee d effectif adverse disponible.",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",
@@ -1868,14 +1874,11 @@ export const messagesFr: Messages = {
     transferMarketCriteriaLoaded: "Criteres charges. Appuyez sur Chercher pour lancer.",
     transferMarketStorageError: "Le stockage du marche des transferts est indisponible.",
     transferMarketTeamLabel: "Equipe senior",
-    transferSearchInvalidSkillRangeTitle: "Plage de competence invalide",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP autorise au maximum quatre niveaux de competence inclus. Par exemple, 4 a 7 est autorise, mais 4 a 8 est trop large. {{skill}} est regle sur {{min}} a {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Plage d age invalide",
     transferSearchInvalidAgeRangeBody:
       "CHPP impose une plage d age maximale de 1a111j. Par exemple, 17a 0j a 18a 111j est autorise, mais 17a 0j a 19a 0j est trop large.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Chercher",
     seniorTransferSearchCloseButton: "Fermer",
     seniorTransferSearchLoading: "Recherche sur le marche des transferts…",

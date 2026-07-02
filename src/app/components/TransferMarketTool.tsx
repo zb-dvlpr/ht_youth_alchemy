@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { fetchChppJson } from "@/lib/chpp/client";
+import { formatSekCurrency } from "@/lib/currency";
 import { formatDateTime } from "@/lib/datetime";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { mapWithConcurrency } from "@/lib/async";
@@ -40,7 +41,9 @@ import {
 } from "./MobileFloatingMenuSections";
 import { useTransferMarketActionBarSlot } from "./TransferMarketActionBarSlot";
 import TransferSearchResultCard, {
+  isForeignForSelectedLeague,
   normalizeTransferSearchResultCardDetails,
+  resolveTransferSearchSalaryForSelectedTeam,
   type TransferSearchResultCardDetails,
 } from "./TransferSearchResultCard";
 import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
@@ -63,6 +66,7 @@ import {
   type TransferSearchResultsViewMode,
   type TransferSearchSkillFilter,
   type TransferSearchSortKey,
+  type TransferSearchTableWageData,
 } from "./TransferSearchModal";
 
 type SeniorTeamOption = {
@@ -647,6 +651,38 @@ export default function TransferMarketTool({
     />
   );
 
+  const getTransferSearchTableWageData = useCallback(
+    (result: TransferSearchResult): TransferSearchTableWageData => {
+      const resultDetails = resultDetailsById[result.playerId] ?? null;
+      const resolvedSalary =
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+      const currentForeign =
+        typeof resultDetails?.IsAbroad === "boolean"
+          ? resultDetails.IsAbroad
+          : typeof result.isAbroad === "boolean"
+            ? result.isAbroad
+            : null;
+      const foreignForSelectedTeam = isForeignForSelectedLeague(
+        resultDetails?.NativeLeagueID,
+        selectedTeam?.leagueId ?? null
+      );
+      const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+        resolvedSalary,
+        currentForeign,
+        foreignForSelectedTeam
+      );
+      return {
+        wageDisplay:
+          typeof adjustedSalary === "number"
+            ? formatSekCurrency(adjustedSalary, displayCurrency)
+            : messages.unknownShort,
+        wageValueSek: typeof adjustedSalary === "number" ? adjustedSalary : null,
+        wageIncludesForeignBonus: foreignForSelectedTeam === true,
+      };
+    },
+    [displayCurrency, messages.unknownShort, resultDetailsById, selectedTeam?.leagueId]
+  );
+
   const renderCriteriaRows = (
     entries: TransferMarketPastSearchEntry[]
   ) =>
@@ -802,6 +838,7 @@ export default function TransferMarketTool({
           messages.hattrickSupporterActionRequiredTooltip
         }
         renderResultCard={renderResultCard}
+        getTableWageData={getTransferSearchTableWageData}
         onClose={() => undefined}
       />
       <Modal

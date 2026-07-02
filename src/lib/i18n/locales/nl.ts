@@ -510,6 +510,7 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_7_2_0: "Verbeterde analyse van de tegenstanderselectie geimplementeerd.",
     changelog_7_1_0:
       "Transfermarktresultaten sorteren op geschiktheid voor skill trading.",
     changelog_7_0_0: "De Transfermarkt-tool is geimplementeerd.",
@@ -752,14 +753,11 @@ export const messagesNl: Messages = {
   transferMarketCriteriaLoaded: "Criteria geladen. Druk op Zoeken om uit te voeren.",
   transferMarketStorageError: "Transfermarkt-opslag is niet beschikbaar.",
   transferMarketTeamLabel: "Seniorenteam",
-  transferSearchInvalidSkillRangeTitle: "Ongeldig vaardigheidsbereik",
-  transferSearchInvalidSkillRangeBody:
-    "CHPP staat maximaal vier vaardigheidsniveaus inclusief toe. Bijvoorbeeld 4 tot 7 is toegestaan, maar 4 tot 8 is te breed. {{skill}} staat ingesteld op {{min}} tot {{max}}.",
-  transferSearchInvalidSkillRangeConfirm: "OK",
   transferSearchInvalidAgeRangeTitle: "Ongeldig leeftijdsbereik",
   transferSearchInvalidAgeRangeBody:
     "CHPP vereist een maximaal leeftijdsbereik van 1j111d. Bijvoorbeeld 17j 0d tot 18j 111d is toegestaan, maar 17j 0d tot 19j 0d is te breed.",
   transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
   seniorTransferSearchSearchButton: "Zoeken",
   seniorTransferSearchCloseButton: "Sluiten",
   seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",
@@ -1284,6 +1282,11 @@ export const messagesNl: Messages = {
     "Tegenstander analyseren vat recente patronen samen om AI-opstellingskeuzes te ondersteunen.",
   analyzeOpponentStillInCup: "nog in de beker",
   analyzeOpponentNotInCup: "niet meer in de beker",
+  seniorOpponentAnalysisTabMatches: "Wedstrijden",
+  seniorOpponentAnalysisTabScoutTeam: "Team scouten",
+  seniorOpponentScoutTeamLoading: "Analyse van tegenstanderselectie laden...",
+  seniorOpponentScoutTeamError: "Kan analyse van tegenstanderselectie niet laden.",
+  seniorOpponentScoutTeamEmpty: "Geen selectiegegevens van tegenstander beschikbaar.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

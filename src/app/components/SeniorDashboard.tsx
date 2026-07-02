@@ -93,6 +93,7 @@ import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
+  toHattrickTransferSearchPriceFilterParam,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
@@ -107,6 +108,14 @@ import {
 } from "@/lib/currency";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import TransferSearchResultCard from "./TransferSearchResultCard";
+import TeamScoutDetailTable, {
+  type TeamScoutDetailSortState,
+  type TeamScoutLikelyTrainingInfo,
+  type TeamScoutPlayerRow,
+} from "./TeamScoutDetailTable";
+import { loadTeamScoutDerivedData } from "@/lib/clubChronicle/teamScoutDetailData";
+import { buildTeamScoutPlayerRows } from "@/lib/clubChronicle/teamScoutDetailRows";
+import type { TeamScoutBasePlayer } from "@/lib/clubChronicle/teamScoutDetailRows";
 import { useTransferMarketProfileSave } from "./useTransferMarketProfileSave";
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
@@ -869,7 +878,7 @@ type OpponentFormationRow = {
   trackedPlayers: OpponentTrackedLineupPlayer[];
 };
 
-type OpponentTrackedRole = "W" | "IM" | "F";
+type OpponentTrackedRole = "KP" | "WB" | "CD" | "W" | "IM" | "F";
 
 type OpponentTrackedLineupPlayer = {
   playerId: number;
@@ -1054,6 +1063,22 @@ type FormationTacticsDistribution = {
   count: number;
 };
 
+type OpponentAnalysisTab = "matches" | "scoutTeam";
+
+type OpponentScoutTeamData = {
+  teamId: number;
+  teamName: string;
+  rows: TeamScoutPlayerRow[];
+  likelyTraining: TeamScoutLikelyTrainingInfo;
+  matchCount: number;
+};
+
+type OpponentScoutTeamState =
+  | { status: "idle"; teamId: null; data: null; error: null }
+  | { status: "loading"; teamId: number; data: null; error: null }
+  | { status: "success"; teamId: number; data: OpponentScoutTeamData; error: null }
+  | { status: "error"; teamId: number; data: null; error: string };
+
 type OpponentFormationAverages = {
   sampleSize: number;
   ratingMidfield: number | null;
@@ -1215,6 +1240,9 @@ const normalizeOpponentTrackedRole = (
   role: string | null | undefined
 ): OpponentTrackedRole | null => {
   switch (role) {
+    case "KP":
+    case "WB":
+    case "CD":
     case "W":
     case "IM":
     case "F":
@@ -1965,11 +1993,19 @@ const buildTransferSearchParams = (
   );
   if (priceMinDisplay !== null) {
     const priceMinSek = displayAmountToSek(priceMinDisplay, displayCurrency);
-    if (priceMinSek !== null) params.set("priceMin", String(priceMinSek));
+    const chppPriceMin =
+      priceMinSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMinSek, "min")
+        : null;
+    if (chppPriceMin !== null) params.set("priceMin", String(chppPriceMin));
   }
   if (priceMaxDisplay !== null) {
     const priceMaxSek = displayAmountToSek(priceMaxDisplay, displayCurrency);
-    if (priceMaxSek !== null) params.set("priceMax", String(priceMaxSek));
+    const chppPriceMax =
+      priceMaxSek !== null
+        ? toHattrickTransferSearchPriceFilterParam(priceMaxSek, "max")
+        : null;
+    if (chppPriceMax !== null) params.set("priceMax", String(chppPriceMax));
   }
 
   return params;
@@ -4078,9 +4114,28 @@ export default function SeniorDashboard({
     versusTactic: number | null;
     formationDistribution: FormationTacticsDistribution[];
     tacticDistribution: FormationTacticsDistribution[];
+    manMarkingTarget: OpponentTargetPlayer | null;
     loading: boolean;
     error: string | null;
   } | null>(null);
+  const [opponentAnalysisActiveTab, setOpponentAnalysisActiveTab] =
+    useState<OpponentAnalysisTab>("matches");
+  const [opponentScoutTeamState, setOpponentScoutTeamState] =
+    useState<OpponentScoutTeamState>({
+      status: "idle",
+      teamId: null,
+      data: null,
+      error: null,
+    });
+  const [opponentScoutTeamSortState, setOpponentScoutTeamSortState] =
+    useState<TeamScoutDetailSortState>({
+      key: "playerNumber",
+      direction: "asc",
+    });
+  const [
+    showOpponentScoutEffectiveMainSkillEstimation,
+    setShowOpponentScoutEffectiveMainSkillEstimation,
+  ] = useState(false);
   const [nonTraineeAssignmentModal, setNonTraineeAssignmentModal] = useState<{
     title: string;
     entries: NonTraineeAssignmentTraceEntry[];
@@ -4135,6 +4190,7 @@ export default function SeniorDashboard({
     new Map()
   );
   const opponentPlayersSessionRequestIdRef = useRef(0);
+  const opponentScoutTeamRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
   const otherOrdersFlashArmedRef = useRef(false);
   const previousStartingXiCompleteRef = useRef(false);
@@ -13033,6 +13089,54 @@ const refreshDetailsForPlayers = async (
     playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const opponentTrackedRoleLabel = (role: OpponentTrackedRole) =>
     role === "F" ? "FW" : role;
+  const opponentScoutLikelyTrainingLabel = (
+    rows: OpponentFormationRow[]
+  ): TeamScoutLikelyTrainingInfo => {
+    const formationCounts = new Map<string, number>();
+    rows.forEach((row) => {
+      if (!row.formation) return;
+      formationCounts.set(row.formation, (formationCounts.get(row.formation) ?? 0) + 1);
+    });
+    const topFormation = Array.from(formationCounts.entries()).sort(
+      (left, right) => right[1] - left[1]
+    )[0]?.[0];
+    if (!topFormation) {
+      return { likelyTrainingKey: null, label: messages.unknownShort };
+    }
+    const parts = topFormation.split("-").map((value) => Number(value));
+    if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) {
+      return { likelyTrainingKey: null, label: messages.unknownShort };
+    }
+    const [defenders, midfielders, forwards] = parts;
+    if (forwards >= 3) {
+      return {
+        likelyTrainingKey: "scoring",
+        label: messages.clubChronicleLikelyTrainingScoring,
+      };
+    }
+    if (midfielders >= 5) {
+      return {
+        likelyTrainingKey: "playmaking",
+        label: messages.clubChronicleLikelyTrainingPlaymaking,
+      };
+    }
+    if (defenders >= 5) {
+      return {
+        likelyTrainingKey: "defending",
+        label: messages.clubChronicleLikelyTrainingDefending,
+      };
+    }
+    if (midfielders >= 4 && forwards >= 2) {
+      return {
+        likelyTrainingKey: "passing",
+        label: messages.clubChronicleLikelyTrainingPassing,
+      };
+    }
+    return {
+      likelyTrainingKey: "keepingOrSetPieces",
+      label: messages.clubChronicleLikelyTrainingKeepingOrSetPieces,
+    };
+  };
   const formatOpponentPotentialTargetDetails = (
     target: OpponentPotentialTargetPlayer
   ) => {
@@ -14122,9 +14226,11 @@ const refreshDetailsForPlayers = async (
       Math.max(SENIOR_AI_MAN_MARKING_FUZZINESS_MIN, Math.round(consistencyThresholdPct))
     );
     const counts = new Map<string, { playerId: number; role: OpponentTrackedRole; name: string; count: number }>();
+    const manMarkingRoles = new Set<OpponentTrackedRole>(["W", "IM", "F"]);
     rows.forEach((row) => {
       const uniqueEntries = new Map<string, OpponentTrackedLineupPlayer>();
       row.trackedPlayers.forEach((player) => {
+        if (!manMarkingRoles.has(player.role)) return;
         uniqueEntries.set(`${player.playerId}:${player.role}`, player);
       });
       uniqueEntries.forEach((player) => {
@@ -15633,6 +15739,16 @@ const refreshDetailsForPlayers = async (
 
   const handleAnalyzeOpponent = async (matchId: number) => {
     try {
+      opponentScoutTeamRequestIdRef.current += 1;
+      setOpponentAnalysisActiveTab("matches");
+      setOpponentScoutTeamState({
+        status: "idle",
+        teamId: null,
+        data: null,
+        error: null,
+      });
+      setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+      setShowOpponentScoutEffectiveMainSkillEstimation(false);
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
       const { opponentTeamId, opponentName } = opponentContext;
@@ -15652,6 +15768,7 @@ const refreshDetailsForPlayers = async (
         versusTactic: null,
         formationDistribution: [],
         tacticDistribution: [],
+        manMarkingTarget: opponentContext.manMarkingTarget,
         loading: true,
         error: null,
       });
@@ -15686,6 +15803,7 @@ const refreshDetailsForPlayers = async (
               versusTactic,
               formationDistribution: buildDistribution(formationCounts),
               tacticDistribution: buildDistribution(tacticCounts),
+              manMarkingTarget: opponentContext.manMarkingTarget,
               loading: false,
               error: null,
             }
@@ -15706,6 +15824,257 @@ const refreshDetailsForPlayers = async (
       addNotification(details);
     }
   };
+
+  const loadOpponentScoutTeam = useCallback(
+    async (force = false) => {
+      const currentModal = opponentAnalysisModal;
+      if (!currentModal || currentModal.loading || currentModal.error) return;
+      const teamId = currentModal.opponentTeamId;
+      if (
+        !force &&
+        opponentScoutTeamState.status === "success" &&
+        opponentScoutTeamState.teamId === teamId
+      ) {
+        return;
+      }
+      if (
+        !force &&
+        opponentScoutTeamState.status === "loading" &&
+        opponentScoutTeamState.teamId === teamId
+      ) {
+        return;
+      }
+      const requestId = opponentScoutTeamRequestIdRef.current + 1;
+      opponentScoutTeamRequestIdRef.current = requestId;
+      setOpponentScoutTeamState({
+        status: "loading",
+        teamId,
+        data: null,
+        error: null,
+      });
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                PlayerList?: {
+                  Player?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(`/api/chpp/players?orderBy=PlayerNumber&teamId=${teamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(
+            payload?.details ??
+              payload?.error ??
+              messages.seniorOpponentScoutTeamError
+          );
+        }
+        const raw = payload?.data?.HattrickData?.Team?.PlayerList?.Player;
+        const rawPlayers = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        const playerIds = rawPlayers
+          .map((player) =>
+            player && typeof player === "object"
+              ? parseNumber((player as Record<string, unknown>).PlayerID)
+              : null
+          )
+          .filter((playerId): playerId is number => Boolean(playerId && playerId > 0));
+        const playerDetailsEntries = await mapWithConcurrency(
+          playerIds,
+          4,
+          async (playerId) => ({
+            playerId,
+            details: await fetchPlayerDetailsById(playerId, {
+              captureEncounter: false,
+            }),
+          })
+        );
+        const detailsByPlayerId = new Map(
+          playerDetailsEntries.map((entry) => [entry.playerId, entry.details])
+        );
+        const likelyTraining = opponentScoutLikelyTrainingLabel(
+          currentModal.opponentRows
+        );
+        const basePlayers = rawPlayers
+          .map((player): TeamScoutBasePlayer | null => {
+            if (!player || typeof player !== "object") return null;
+            const playerNode = player as Record<string, unknown>;
+            const playerId = parseNumber(playerNode.PlayerID);
+            if (!playerId || playerId <= 0) return null;
+            const details = detailsByPlayerId.get(playerId) ?? null;
+            const skills =
+              playerNode.PlayerSkills && typeof playerNode.PlayerSkills === "object"
+                ? (playerNode.PlayerSkills as Record<string, unknown>)
+                : null;
+            const originInfo =
+              typeof details?.NativeLeagueID === "number"
+                ? leagueOriginsById[details.NativeLeagueID] ?? null
+                : null;
+            const wageIncludesForeignBonus =
+              resolveSeniorIsAbroad(details) ??
+              (typeof details?.NativeLeagueID === "number" &&
+              typeof details?.OwningTeam?.LeagueID === "number"
+                ? details.NativeLeagueID !== details.OwningTeam.LeagueID
+                : null);
+            const playerName =
+              formatPlayerName({
+                FirstName:
+                  details?.FirstName ??
+                  (typeof playerNode.FirstName === "string" ? playerNode.FirstName : ""),
+                NickName:
+                  details?.NickName ??
+                  (typeof playerNode.NickName === "string" && playerNode.NickName
+                    ? playerNode.NickName
+                    : undefined),
+                LastName:
+                  details?.LastName ??
+                  (typeof playerNode.LastName === "string" ? playerNode.LastName : ""),
+              }) || String(playerId);
+            return {
+              playerId,
+              playerName,
+              originFlagDisplay: originInfo?.flagDisplay ?? null,
+              playerNumber: parseNumber(playerNode.PlayerNumber),
+              age: details?.Age ?? parseNumber(playerNode.Age),
+              ageDays: details?.AgeDays ?? parseNumber(playerNode.AgeDays),
+              injuryLevel: details?.InjuryLevel ?? parseNumber(playerNode.InjuryLevel),
+              specialty: details?.Specialty ?? parseNumber(playerNode.Specialty),
+              cards:
+                parseNumber(playerNode.Cards) ??
+                parseNumber(playerNode.Bookings) ??
+                parseNumber(playerNode.YellowCard),
+              form:
+                details?.Form ?? parseNumber(playerNode.PlayerForm ?? playerNode.Form),
+              stamina: parseNumber(
+                details?.StaminaSkill ?? playerNode.StaminaSkill ?? skills?.StaminaSkill
+              ),
+              experience: details?.Experience ?? parseNumber(playerNode.Experience),
+              leadership: details?.Leadership ?? parseNumber(playerNode.Leadership),
+              loyalty: details?.Loyalty ?? parseNumber(playerNode.Loyalty),
+              motherClubBonus: details?.MotherClubBonus ?? null,
+              tsi: details?.TSI ?? parseNumber(playerNode.TSI),
+              salarySek: details?.Salary ?? parseNumber(playerNode.Salary),
+              wageIncludesForeignBonus,
+            } satisfies TeamScoutBasePlayer;
+          })
+          .filter((row): row is TeamScoutBasePlayer => Boolean(row))
+          .sort((left, right) => (right.tsi ?? 0) - (left.tsi ?? 0));
+        const derivedData = await loadTeamScoutDerivedData({
+          teamId,
+          players: basePlayers.map((player) => ({
+            playerId: player.playerId,
+            playerName: player.playerName,
+            form: player.form,
+          })),
+          messages,
+        });
+        const rows = buildTeamScoutPlayerRows({
+          teamId,
+          players: basePlayers,
+          derivedData,
+          likelyTrainingKey: likelyTraining?.likelyTrainingKey,
+        });
+        if (opponentScoutTeamRequestIdRef.current !== requestId) return;
+        setOpponentScoutTeamState({
+          status: "success",
+          teamId,
+          data: {
+            teamId,
+            teamName: currentModal.opponentName,
+            rows,
+            likelyTraining,
+            matchCount: derivedData.matchSampleSize,
+          },
+          error: null,
+        });
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
+        if (opponentScoutTeamRequestIdRef.current !== requestId) return;
+        setOpponentScoutTeamState({
+          status: "error",
+          teamId,
+          data: null,
+          error:
+            error instanceof Error
+              ? error.message
+              : messages.seniorOpponentScoutTeamError,
+        });
+      }
+    },
+    [
+      fetchPlayerDetailsById,
+      leagueOriginsById,
+      messages,
+      messages.seniorOpponentScoutTeamError,
+      opponentAnalysisModal,
+      opponentScoutLikelyTrainingLabel,
+      opponentScoutTeamState,
+    ]
+  );
+
+  const closeOpponentAnalysisModal = useCallback(() => {
+    opponentScoutTeamRequestIdRef.current += 1;
+    setOpponentAnalysisModal(null);
+    setOpponentAnalysisActiveTab("matches");
+    setOpponentScoutTeamState({
+      status: "idle",
+      teamId: null,
+      data: null,
+      error: null,
+    });
+    setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+    setShowOpponentScoutEffectiveMainSkillEstimation(false);
+  }, []);
+
+  const handleOpponentScoutTeamSort = useCallback(
+    (key: TeamScoutDetailSortState["key"]) => {
+      if (!key) return;
+      setOpponentScoutTeamSortState((current) =>
+        current.key === key
+          ? {
+              key,
+              direction: current.direction === "asc" ? "desc" : "asc",
+            }
+          : { key, direction: "asc" }
+      );
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (opponentAnalysisActiveTab !== "scoutTeam") return;
+    if (
+      !opponentAnalysisModal ||
+      opponentAnalysisModal.loading ||
+      opponentAnalysisModal.error
+    ) {
+      return;
+    }
+    if (
+      opponentScoutTeamState.status === "success" &&
+      opponentScoutTeamState.teamId === opponentAnalysisModal.opponentTeamId
+    ) {
+      return;
+    }
+    if (
+      opponentScoutTeamState.status === "loading" &&
+      opponentScoutTeamState.teamId === opponentAnalysisModal.opponentTeamId
+    ) {
+      return;
+    }
+    void loadOpponentScoutTeam();
+  }, [
+    loadOpponentScoutTeam,
+    opponentAnalysisActiveTab,
+    opponentAnalysisModal,
+    opponentScoutTeamState.status,
+    opponentScoutTeamState.teamId,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -21096,15 +21465,47 @@ const refreshDetailsForPlayers = async (
       <Modal
         open={!!opponentAnalysisModal}
         title={opponentAnalysisModal?.title ?? messages.analyzeOpponent}
-        className={styles.chronicleTransferHistoryModal}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorOpponentAnalysisModal}`}
         body={
           opponentAnalysisModal ? (
-            opponentAnalysisModal.loading ? (
-              <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
-            ) : opponentAnalysisModal.error ? (
-              <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
-            ) : (
-              <>
+            <div className={styles.seniorOpponentAnalysisModalBody}>
+              <div className={styles.detailsTabs} role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={opponentAnalysisActiveTab === "matches"}
+                  className={`${styles.detailsTabButton} ${
+                    opponentAnalysisActiveTab === "matches"
+                      ? styles.detailsTabActive
+                      : ""
+                  }`}
+                  onClick={() => setOpponentAnalysisActiveTab("matches")}
+                >
+                  {messages.seniorOpponentAnalysisTabMatches}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={opponentAnalysisActiveTab === "scoutTeam"}
+                  className={`${styles.detailsTabButton} ${
+                    opponentAnalysisActiveTab === "scoutTeam"
+                      ? styles.detailsTabActive
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setOpponentAnalysisActiveTab("scoutTeam");
+                    void loadOpponentScoutTeam();
+                  }}
+                >
+                  {messages.seniorOpponentAnalysisTabScoutTeam}
+                </button>
+              </div>
+              {opponentAnalysisModal.loading ? (
+                <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
+              ) : opponentAnalysisModal.error ? (
+                <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
+              ) : opponentAnalysisActiveTab === "matches" ? (
+                <div className={styles.seniorOpponentAnalysisMatchesPanel}>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
                     <thead>
@@ -21263,21 +21664,68 @@ const refreshDetailsForPlayers = async (
                     )}
                   </div>
                 </div>
-              </>
-            )
+                </div>
+              ) : (
+                <div className={styles.chronicleTsiWagesDetailModalLayout}>
+                  {opponentScoutTeamState.status === "loading" ? (
+                    <div className={styles.loadingRow}>
+                      <span className={styles.spinner} aria-hidden="true" />
+                      <span>{messages.seniorOpponentScoutTeamLoading}</span>
+                    </div>
+                  ) : null}
+                  {opponentScoutTeamState.status === "error" ? (
+                    <div className={styles.seniorOtherOrdersComboboxStatus}>
+                      <span>{opponentScoutTeamState.error}</span>
+                      <button
+                        type="button"
+                        className={styles.seniorOtherOrdersInlineButton}
+                        onClick={() => void loadOpponentScoutTeam(true)}
+                      >
+                        {messages.seniorOtherOrdersOpponentPlayersRetry}
+                      </button>
+                    </div>
+                  ) : null}
+                  {opponentScoutTeamState.status === "success" &&
+                  opponentScoutTeamState.data.rows.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.seniorOpponentScoutTeamEmpty}
+                    </p>
+                  ) : null}
+                  {opponentScoutTeamState.status === "success" &&
+                  opponentScoutTeamState.data.rows.length > 0 ? (
+                    <TeamScoutDetailTable
+                      mode="tsi"
+                      rows={opponentScoutTeamState.data.rows}
+                      messages={messages}
+                      displayCurrency={displayCurrency}
+                      likelyTraining={opponentScoutTeamState.data.likelyTraining}
+                      matchSampleSize={opponentScoutTeamState.data.matchCount}
+                      showEffectiveMainSkillEstimation={
+                        showOpponentScoutEffectiveMainSkillEstimation
+                      }
+                      onShowEffectiveMainSkillEstimationChange={
+                        setShowOpponentScoutEffectiveMainSkillEstimation
+                      }
+                      sortState={opponentScoutTeamSortState}
+                      onSortChange={handleOpponentScoutTeamSort}
+                    />
+                  ) : null}
+                </div>
+              )}
+            </div>
           ) : null
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setOpponentAnalysisModal(null)}
+            onClick={closeOpponentAnalysisModal}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setOpponentAnalysisModal(null)}
+        onClose={closeOpponentAnalysisModal}
       />
       <Modal
         open={showSetBestLineupDebugModal && !!nonTraineeAssignmentModal}

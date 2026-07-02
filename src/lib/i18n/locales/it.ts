@@ -248,6 +248,7 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_7_2_0: "Analisi avanzata della rosa avversaria implementata.",
     changelog_7_1_0:
       "Ordinamento dei risultati del mercato trasferimenti per idoneita allo skill trading.",
     changelog_7_0_0: "E stato implementato lo strumento Mercato trasferimenti.",
@@ -1715,6 +1716,11 @@ export const messagesIt: Messages = {
     analyzeOpponentSummaryWith: "con",
     analyzeOpponentStillInCup: "ancora in coppa",
     analyzeOpponentNotInCup: "fuori dalla coppa",
+    seniorOpponentAnalysisTabMatches: "Partite",
+    seniorOpponentAnalysisTabScoutTeam: "Osserva squadra",
+    seniorOpponentScoutTeamLoading: "Caricamento analisi rosa avversaria...",
+    seniorOpponentScoutTeamError: "Impossibile caricare l analisi della rosa avversaria.",
+    seniorOpponentScoutTeamEmpty: "Nessun dato della rosa avversaria disponibile.",
     loadLineupUnavailable: "Nessuna formazione salvata",
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",
@@ -1875,14 +1881,11 @@ export const messagesIt: Messages = {
     transferMarketCriteriaLoaded: "Criteri caricati. Premi Cerca per eseguire.",
     transferMarketStorageError: "Archivio del mercato trasferimenti non disponibile.",
     transferMarketTeamLabel: "Squadra senior",
-    transferSearchInvalidSkillRangeTitle: "Intervallo skill non valido",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP consente un intervallo massimo di quattro livelli skill inclusi. Per esempio, 4 a 7 e consentito, ma 4 a 8 e troppo ampio. {{skill}} e impostato da {{min}} a {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Intervallo eta non valido",
     transferSearchInvalidAgeRangeBody:
       "CHPP impone un intervallo massimo di eta di 1a111g. Per esempio, 17a 0g a 18a 111g e consentito, ma 17a 0g a 19a 0g e troppo ampio.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Cerca",
     seniorTransferSearchCloseButton: "Chiudi",
     seniorTransferSearchLoading: "Ricerca sul mercato trasferimenti…",

@@ -246,6 +246,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_7_2_0: "Implemented enhanced opponent squad analysis.",
     changelog_7_1_0:
       "Sorting transfer market results by skill-trading candidate suitability.",
     changelog_7_0_0: "Implemented the Transfer Market tool.",
@@ -1661,6 +1662,11 @@ export const messagesEn: Messages = {
     analyzeOpponentSummaryWith: "with",
     analyzeOpponentStillInCup: "still in cup",
     analyzeOpponentNotInCup: "not in cup",
+    seniorOpponentAnalysisTabMatches: "Matches",
+    seniorOpponentAnalysisTabScoutTeam: "Scout team",
+    seniorOpponentScoutTeamLoading: "Loading opponent squad analysis...",
+    seniorOpponentScoutTeamError: "Unable to load opponent squad analysis.",
+    seniorOpponentScoutTeamEmpty: "No opponent squad data available.",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",
@@ -1813,14 +1819,11 @@ export const messagesEn: Messages = {
     transferMarketCriteriaLoaded: "Criteria loaded. Press Search to run it.",
     transferMarketStorageError: "Transfer Market storage is unavailable.",
     transferMarketTeamLabel: "Senior team",
-    transferSearchInvalidSkillRangeTitle: "Invalid skill range",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP allows a maximum skill range of four levels inclusive. For example, 4 to 7 is allowed, but 4 to 8 is too wide. {{skill}} is set to {{min}} to {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Invalid age range",
     transferSearchInvalidAgeRangeBody:
       "CHPP mandates a maximum age range of 1y111d. For example, 17y 0d to 18y 111d is allowed, but 17y 0d to 19y 0d is too wide.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Search",
     seniorTransferSearchCloseButton: "Close",
     seniorTransferSearchLoading: "Searching transfer market…",

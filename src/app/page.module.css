@@ -5114,8 +5114,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleTsiWagesDetailsModal {
-  max-width: min(1280px, calc(100vw - 24px));
-  width: min(1280px, calc(100vw - 24px));
+  max-width: min(1440px, calc(100vw - 24px));
+  width: min(1440px, calc(100vw - 24px));
 }
 
 .chronicleTeamAttitudeUserModal {
@@ -5185,6 +5185,71 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .chronicleDetailFloatingScrollbarSpacer {
   height: 1px;
+}
+
+.chronicleTsiWagesDetailsModal .confirmBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chronicleTsiWagesDetailModalLayout {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.chronicleTsiWagesDetailModalMeta {
+  flex: 0 0 auto;
+}
+
+.chronicleTsiWagesDetailModalMeta .chroniclePressMeta {
+  margin-bottom: 0;
+}
+
+.chronicleTsiWagesDetailModalTableScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.chronicleTsiWagesDetailModalFooterNotes {
+  flex: 0 0 auto;
+  padding-top: 10px;
+  border-top: 1px solid #e0d6c6;
+  background: #f7f1e3;
+}
+
+.chronicleTsiWagesDetailModalFooterNotes .chronicleLegend:first-child {
+  margin-top: 0;
+}
+
+.seniorOpponentAnalysisModal .confirmBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.seniorOpponentAnalysisModalBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.seniorOpponentAnalysisMatchesPanel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .chronicleTransferListedTableWrap .chronicleTableCell {
@@ -9474,6 +9539,23 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   cursor: not-allowed;
 }
 
+.transferSearchSkillReadonlyValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.transferSearchSkillDraftHint {
+  grid-column: 1 / -1;
+  margin-top: -6px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
 .transferSearchSkillStepperButton {
   border: 1px solid #ccb9a0;
   background: linear-gradient(180deg, #fff, #f5ede2);
@@ -9639,9 +9721,20 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   color: #675948;
 }
 
+.transferSearchResultsTable th {
+  white-space: normal;
+  line-height: 1.1;
+}
+
+.transferSearchResultsTable .transferSearchTableNameColumn {
+  width: 1%;
+  max-width: 10rem;
+}
+
 .transferSearchTableSortButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   border: none;
   background: transparent;
@@ -9649,8 +9742,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font: inherit;
   text-transform: inherit;
   letter-spacing: inherit;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
   color: inherit;
   cursor: pointer;
+}
+
+.transferSearchTableHeaderLabel {
+  display: inline-block;
+  max-width: 7.5rem;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .transferSearchTableSortButton:hover {
@@ -9667,6 +9771,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   border-radius: 999px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.transferSearchTableNameColumn .transferSearchTablePill {
+  max-width: 9rem;
+}
+
+.transferSearchTableNameLink {
+  display: inline-block;
+  max-width: 7.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .transferSearchTablePillNeutral {
@@ -10918,7 +11035,14 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .confirmCard.chronicleTsiWagesDetailsModal {
-  width: min(1280px, calc(100vw - 24px));
+  width: min(1440px, calc(100vw - 24px));
+}
+
+@media (min-width: 901px) {
+  .confirmCard.seniorOpponentAnalysisModal {
+    max-width: min(1440px, calc(100vw - 24px));
+    width: min(1440px, calc(100vw - 24px));
+  }
 }
 
 .confirmCard.chronicleTransferListedModal {

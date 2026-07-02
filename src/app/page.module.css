@@ -9539,6 +9539,23 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   cursor: not-allowed;
 }
 
+.transferSearchSkillReadonlyValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.transferSearchSkillDraftHint {
+  grid-column: 1 / -1;
+  margin-top: -6px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
 .transferSearchSkillStepperButton {
   border: 1px solid #ccb9a0;
   background: linear-gradient(180deg, #fff, #f5ede2);

@@ -757,6 +757,7 @@ export const messagesNl: Messages = {
   transferSearchInvalidAgeRangeBody:
     "CHPP vereist een maximaal leeftijdsbereik van 1j111d. Bijvoorbeeld 17j 0d tot 18j 111d is toegestaan, maar 17j 0d tot 19j 0d is te breed.",
   transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
   seniorTransferSearchSearchButton: "Zoeken",
   seniorTransferSearchCloseButton: "Sluiten",
   seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",

@@ -1883,6 +1883,7 @@ export const messagesPt: Messages = {
     transferSearchInvalidAgeRangeBody:
       "A CHPP exige um intervalo maximo de idade de 1a111d. Por exemplo, 17a 0d a 18a 111d e permitido, mas 17a 0d a 19a 0d e demasiado amplo.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Pesquisar",
     seniorTransferSearchCloseButton: "Fechar",
     seniorTransferSearchLoading: "A pesquisar no mercado de transferencias…",

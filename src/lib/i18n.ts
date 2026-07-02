@@ -1500,6 +1500,7 @@ export type Messages = {
   transferSearchInvalidAgeRangeTitle: string;
   transferSearchInvalidAgeRangeBody: string;
   transferSearchInvalidAgeRangeConfirm: string;
+  transferSearchSkillDraftApplyHint: string;
   seniorTransferSearchSearchButton: string;
   seniorTransferSearchCloseButton: string;
   seniorTransferSearchLoading: string;

@@ -1881,6 +1881,7 @@ export const messagesEs: Messages = {
     transferSearchInvalidAgeRangeBody:
       "CHPP exige un rango maximo de edad de 1a111d. Por ejemplo, 17a 0d a 18a 111d esta permitido, pero 17a 0d a 19a 0d es demasiado amplio.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Buscar",
     seniorTransferSearchCloseButton: "Cerrar",
     seniorTransferSearchLoading: "Buscando en el mercado de transferencias…",

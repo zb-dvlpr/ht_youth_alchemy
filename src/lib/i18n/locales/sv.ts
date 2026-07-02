@@ -1870,6 +1870,7 @@ export const messagesSv: Messages = {
     transferSearchInvalidAgeRangeBody:
       "CHPP kraver ett maximalt aldersintervall pa 1a111d. Till exempel ar 17a 0d till 18a 111d tillatet, men 17a 0d till 19a 0d ar for brett.",
     transferSearchInvalidAgeRangeConfirm: "OK",
+    transferSearchSkillDraftApplyHint: "Press Enter to apply, Esc to cancel.",
     seniorTransferSearchSearchButton: "Sok",
     seniorTransferSearchCloseButton: "Stang",
     seniorTransferSearchLoading: "Soker pa transfermarknaden…",

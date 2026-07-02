@@ -16,6 +16,7 @@ import {
   useState,
   type ChangeEvent,
   type CSSProperties,
+  type KeyboardEvent,
   type ReactNode,
 } from "react";
 
@@ -216,6 +217,7 @@ type TransferSearchSkillRowProps = {
   index: number;
   selectedOtherSkillKeys: TransferSearchSkillKey[];
   disabled: boolean;
+  mobileManualInputDisabled: boolean;
   messages: Messages;
   onUpdateFilter: (
     index: number,
@@ -1194,6 +1196,10 @@ const buildTransferSearchMarketSummary = (
 };
 
 type TransferSearchValidationIssue = { type: "ageRange" };
+type TransferSearchSkillDraftEdit = {
+  edge: "min" | "max";
+  value: string;
+} | null;
 
 const validateTransferSearchCriteria = (
   filters: TransferSearchFilters
@@ -1224,38 +1230,17 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
   index,
   selectedOtherSkillKeys,
   disabled,
+  mobileManualInputDisabled,
   messages,
   onUpdateFilter,
 }: TransferSearchSkillRowProps) {
   const filterIsInactive = filter.skillKey === null;
-  const draftBaseKey = `${filter.skillKey ?? "none"}:${filter.min}:${filter.max}`;
-  const [draftState, setDraftState] = useState({
-    baseKey: draftBaseKey,
-    min: String(filter.min),
-    max: String(filter.max),
-  });
-  const draftMin =
-    draftState.baseKey === draftBaseKey ? draftState.min : String(filter.min);
-  const draftMax =
-    draftState.baseKey === draftBaseKey ? draftState.max : String(filter.max);
-  const setDraftMin = useCallback(
-    (min: string) =>
-      setDraftState((prev) => ({
-        baseKey: draftBaseKey,
-        min,
-        max: prev.baseKey === draftBaseKey ? prev.max : String(filter.max),
-      })),
-    [draftBaseKey, filter.max]
-  );
-  const setDraftMax = useCallback(
-    (max: string) =>
-      setDraftState((prev) => ({
-        baseKey: draftBaseKey,
-        min: prev.baseKey === draftBaseKey ? prev.min : String(filter.min),
-        max,
-      })),
-    [draftBaseKey, filter.min]
-  );
+  const [manualDraft, setManualDraft] =
+    useState<TransferSearchSkillDraftEdit>(null);
+  const displayedMin =
+    manualDraft?.edge === "min" ? manualDraft.value : String(filter.min);
+  const displayedMax =
+    manualDraft?.edge === "max" ? manualDraft.value : String(filter.max);
   const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
     (entry) =>
       entry.key === filter.skillKey || !selectedOtherSkillKeys.includes(entry.key)
@@ -1275,8 +1260,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
         nextValue
       );
       if (!next) return false;
-      setDraftMin(String(next.min));
-      setDraftMax(String(next.max));
+      setManualDraft(null);
       startTransition(() => {
         onUpdateFilter(index, next);
       });
@@ -1288,38 +1272,54 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
       filter.skillKey,
       index,
       onUpdateFilter,
-      setDraftMax,
-      setDraftMin,
     ]
   );
-  const handleMinInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
+  const inputIsEditable =
+    !disabled && !filterIsInactive && !mobileManualInputDisabled;
+  const updateManualDraft = useCallback(
+    (edge: "min" | "max", event: ChangeEvent<HTMLInputElement>) => {
+      if (!inputIsEditable) return;
       const nextValue = event.target.value;
       if (!/^\d*$/.test(nextValue)) return;
-      if (nextValue === "") {
-        setDraftMin(nextValue);
+      if (nextValue !== "") {
+        const parsed = parseTransferSearchDraftInteger(nextValue);
+        if (parsed === null) return;
+        if (parsed < skillDefinition.min || parsed > skillDefinition.max) return;
+      }
+      setManualDraft({ edge, value: nextValue });
+    },
+    [inputIsEditable, skillDefinition.max, skillDefinition.min]
+  );
+  const handleManualDraftKeyDown = useCallback(
+    (edge: "min" | "max", event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Escape") {
+        if (manualDraft?.edge === edge) {
+          event.preventDefault();
+          setManualDraft(null);
+        }
         return;
       }
-      const parsed = parseTransferSearchDraftInteger(nextValue);
-      if (parsed === null) return;
-      commitRange("min", parsed);
-    },
-    [commitRange, setDraftMin]
-  );
-  const handleMaxInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextValue = event.target.value;
-      if (!/^\d*$/.test(nextValue)) return;
-      if (nextValue === "") {
-        setDraftMax(nextValue);
+      if (event.key !== "Enter") return;
+      if (manualDraft?.edge !== edge) return;
+      event.preventDefault();
+      const parsed = parseTransferSearchDraftInteger(manualDraft.value);
+      if (parsed !== null) {
+        commitRange(edge, parsed);
         return;
       }
-      const parsed = parseTransferSearchDraftInteger(nextValue);
-      if (parsed === null) return;
-      commitRange("max", parsed);
+      setManualDraft(null);
     },
-    [commitRange, setDraftMax]
+    [commitRange, manualDraft]
   );
+  const cancelManualDraft = useCallback(() => {
+    setManualDraft(null);
+  }, []);
+  const draftHint =
+    manualDraft !== null && inputIsEditable ? (
+      <span className={styles.transferSearchSkillDraftHint}>
+        {messages.transferSearchSkillDraftApplyHint}
+      </span>
+    ) : null;
 
   return (
     <div className={styles.transferSearchSkillRow}>
@@ -1341,25 +1341,29 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
           >
             -
           </button>
-          <input
-            className={styles.transferSearchSkillNumberInput}
-            type={filterIsInactive ? "text" : "number"}
-            min={skillDefinition.min}
-            max={skillDefinition.max}
-            step={1}
-            value={filterIsInactive ? "-" : draftMin}
-            onChange={handleMinInputChange}
-            onBlur={() => {
-              if (!filter.skillKey) return;
-              const parsed = parseTransferSearchDraftInteger(draftMin);
-              if (parsed === null || !commitRange("min", parsed)) {
-                setDraftMin(String(filter.min));
-                return;
-              }
-            }}
-            disabled={disabled || filterIsInactive}
-            aria-label={messages.seniorTransferSearchMinLabel}
-          />
+          {mobileManualInputDisabled ? (
+            <span
+              className={`${styles.transferSearchSkillNumberInput} ${styles.transferSearchSkillReadonlyValue}`}
+              aria-label={messages.seniorTransferSearchMinLabel}
+            >
+              {filterIsInactive ? "-" : filter.min}
+            </span>
+          ) : (
+            <input
+              className={styles.transferSearchSkillNumberInput}
+              type="text"
+              inputMode="numeric"
+              min={skillDefinition.min}
+              max={skillDefinition.max}
+              step={1}
+              value={filterIsInactive ? "-" : displayedMin}
+              onChange={(event) => updateManualDraft("min", event)}
+              onKeyDown={(event) => handleManualDraftKeyDown("min", event)}
+              onBlur={cancelManualDraft}
+              disabled={disabled || filterIsInactive}
+              aria-label={messages.seniorTransferSearchMinLabel}
+            />
+          )}
           <button
             type="button"
             className={styles.transferSearchSkillStepperButton}
@@ -1397,8 +1401,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             skillKey: nextSkillKey,
             ...nextRange,
           };
-          setDraftMin(String(next.min));
-          setDraftMax(String(next.max));
+          setManualDraft(null);
           startTransition(() => {
             onUpdateFilter(index, next);
           });
@@ -1426,25 +1429,29 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
           >
             -
           </button>
-          <input
-            className={styles.transferSearchSkillNumberInput}
-            type={filterIsInactive ? "text" : "number"}
-            min={skillDefinition.min}
-            max={skillDefinition.max}
-            step={1}
-            value={filterIsInactive ? "-" : draftMax}
-            onChange={handleMaxInputChange}
-            onBlur={() => {
-              if (!filter.skillKey) return;
-              const parsed = parseTransferSearchDraftInteger(draftMax);
-              if (parsed === null || !commitRange("max", parsed)) {
-                setDraftMax(String(filter.max));
-                return;
-              }
-            }}
-            disabled={disabled || filterIsInactive}
-            aria-label={messages.seniorTransferSearchMaxLabel}
-          />
+          {mobileManualInputDisabled ? (
+            <span
+              className={`${styles.transferSearchSkillNumberInput} ${styles.transferSearchSkillReadonlyValue}`}
+              aria-label={messages.seniorTransferSearchMaxLabel}
+            >
+              {filterIsInactive ? "-" : filter.max}
+            </span>
+          ) : (
+            <input
+              className={styles.transferSearchSkillNumberInput}
+              type="text"
+              inputMode="numeric"
+              min={skillDefinition.min}
+              max={skillDefinition.max}
+              step={1}
+              value={filterIsInactive ? "-" : displayedMax}
+              onChange={(event) => updateManualDraft("max", event)}
+              onKeyDown={(event) => handleManualDraftKeyDown("max", event)}
+              onBlur={cancelManualDraft}
+              disabled={disabled || filterIsInactive}
+              aria-label={messages.seniorTransferSearchMaxLabel}
+            />
+          )}
           <button
             type="button"
             className={styles.transferSearchSkillStepperButton}
@@ -1460,6 +1467,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
           </button>
         </div>
       </div>
+      {draftHint}
     </div>
   );
 });
@@ -1524,6 +1532,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const saveAsProfileTooltip = saveAsProfileBlocked
     ? saveAsProfileUnavailableTooltip
     : null;
+  const [mobileInputMediaMatches, setMobileInputMediaMatches] = useState(false);
   const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [validationIssue, setValidationIssue] =
@@ -1653,6 +1662,20 @@ const TransferSearchModal = memo(function TransferSearchModal({
     onSearch(committedFilters);
   }, [commitAndValidateCriteria, onSearch]);
   const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mobileQuery = window.matchMedia("(max-width: 900px)");
+    const updateMobileInputMode = () => {
+      setMobileInputMediaMatches(mobileQuery.matches);
+    };
+    updateMobileInputMode();
+    mobileQuery.addEventListener("change", updateMobileInputMode);
+    return () => {
+      mobileQuery.removeEventListener("change", updateMobileInputMode);
+    };
+  }, []);
+  const mobileManualSkillInputDisabled =
+    mode === "mobileWorkspace" || mobileInputMediaMatches;
   useEffect(() => {
     if (!workspaceMode) return;
     if (typeof window === "undefined") return;
@@ -2385,11 +2408,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         .sort();
                       return (
                         <TransferSearchSkillRow
-                          key={`${filter.skillKey ?? "none"}-${index}`}
+                          key={`${filter.skillKey ?? "none"}-${index}-${filter.min}-${filter.max}-${
+                            mobileManualSkillInputDisabled ? "mobile" : "desktop"
+                          }`}
                           filter={filter}
                           index={index}
                           selectedOtherSkillKeys={selectedOtherSkillKeys}
                           disabled={loading}
+                          mobileManualInputDisabled={mobileManualSkillInputDisabled}
                           messages={messages}
                           onUpdateFilter={onUpdateSkillFilter}
                         />

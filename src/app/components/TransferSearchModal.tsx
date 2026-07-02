@@ -1201,6 +1201,16 @@ type TransferSearchSkillDraftEdit = {
   value: string;
 } | null;
 
+const detectTransferSearchTouchPrimaryInput = () => {
+  if (typeof window === "undefined") return false;
+
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  const hoverNone = window.matchMedia("(hover: none)").matches;
+  const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+  return (coarsePointer || hoverNone) && !finePointer;
+};
+
 const validateTransferSearchCriteria = (
   filters: TransferSearchFilters
 ): TransferSearchValidationIssue | null => {
@@ -1532,6 +1542,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const saveAsProfileTooltip = saveAsProfileBlocked
     ? saveAsProfileUnavailableTooltip
     : null;
+  const [touchPrimaryInput, setTouchPrimaryInput] = useState(false);
   const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [validationIssue, setValidationIssue] =
@@ -1661,7 +1672,27 @@ const TransferSearchModal = memo(function TransferSearchModal({
     onSearch(committedFilters);
   }, [commitAndValidateCriteria, onSearch]);
   const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
-  const mobileManualSkillInputDisabled = mode === "mobileWorkspace";
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const coarseQuery = window.matchMedia("(pointer: coarse)");
+    const fineQuery = window.matchMedia("(pointer: fine)");
+    const hoverNoneQuery = window.matchMedia("(hover: none)");
+    const updateTouchPrimaryInput = () => {
+      setTouchPrimaryInput(detectTransferSearchTouchPrimaryInput());
+    };
+
+    updateTouchPrimaryInput();
+    coarseQuery.addEventListener("change", updateTouchPrimaryInput);
+    fineQuery.addEventListener("change", updateTouchPrimaryInput);
+    hoverNoneQuery.addEventListener("change", updateTouchPrimaryInput);
+
+    return () => {
+      coarseQuery.removeEventListener("change", updateTouchPrimaryInput);
+      fineQuery.removeEventListener("change", updateTouchPrimaryInput);
+      hoverNoneQuery.removeEventListener("change", updateTouchPrimaryInput);
+    };
+  }, []);
+  const mobileManualSkillInputDisabled = touchPrimaryInput;
   useEffect(() => {
     if (!workspaceMode) return;
     if (typeof window === "undefined") return;

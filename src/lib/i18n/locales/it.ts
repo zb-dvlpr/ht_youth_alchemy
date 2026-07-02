@@ -1881,10 +1881,6 @@ export const messagesIt: Messages = {
     transferMarketCriteriaLoaded: "Criteri caricati. Premi Cerca per eseguire.",
     transferMarketStorageError: "Archivio del mercato trasferimenti non disponibile.",
     transferMarketTeamLabel: "Squadra senior",
-    transferSearchInvalidSkillRangeTitle: "Intervallo skill non valido",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP consente un intervallo massimo di quattro livelli skill inclusi. Per esempio, 4 a 7 e consentito, ma 4 a 8 e troppo ampio. {{skill}} e impostato da {{min}} a {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Intervallo eta non valido",
     transferSearchInvalidAgeRangeBody:
       "CHPP impone un intervallo massimo di eta di 1a111g. Per esempio, 17a 0g a 18a 111g e consentito, ma 17a 0g a 19a 0g e troppo ampio.",

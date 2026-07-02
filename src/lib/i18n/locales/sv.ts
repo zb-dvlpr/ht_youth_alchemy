@@ -1866,10 +1866,6 @@ export const messagesSv: Messages = {
     transferMarketCriteriaLoaded: "Kriterier laddade. Tryck Sok for att kora.",
     transferMarketStorageError: "Transfermarknadens lagring ar inte tillganglig.",
     transferMarketTeamLabel: "Seniorlag",
-    transferSearchInvalidSkillRangeTitle: "Ogiltigt skillintervall",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP tillater hogst fyra skillnivaer inklusive. Till exempel ar 4 till 7 tillatet, men 4 till 8 ar for brett. {{skill}} ar satt till {{min}} till {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Ogiltigt aldersintervall",
     transferSearchInvalidAgeRangeBody:
       "CHPP kraver ett maximalt aldersintervall pa 1a111d. Till exempel ar 17a 0d till 18a 111d tillatet, men 17a 0d till 19a 0d ar for brett.",

@@ -1497,9 +1497,6 @@ export type Messages = {
   transferMarketCriteriaLoaded: string;
   transferMarketStorageError: string;
   transferMarketTeamLabel: string;
-  transferSearchInvalidSkillRangeTitle: string;
-  transferSearchInvalidSkillRangeBody: string;
-  transferSearchInvalidSkillRangeConfirm: string;
   transferSearchInvalidAgeRangeTitle: string;
   transferSearchInvalidAgeRangeBody: string;
   transferSearchInvalidAgeRangeConfirm: string;

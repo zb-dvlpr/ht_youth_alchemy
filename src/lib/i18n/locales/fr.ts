@@ -1874,10 +1874,6 @@ export const messagesFr: Messages = {
     transferMarketCriteriaLoaded: "Criteres charges. Appuyez sur Chercher pour lancer.",
     transferMarketStorageError: "Le stockage du marche des transferts est indisponible.",
     transferMarketTeamLabel: "Equipe senior",
-    transferSearchInvalidSkillRangeTitle: "Plage de competence invalide",
-    transferSearchInvalidSkillRangeBody:
-      "CHPP autorise au maximum quatre niveaux de competence inclus. Par exemple, 4 a 7 est autorise, mais 4 a 8 est trop large. {{skill}} est regle sur {{min}} a {{max}}.",
-    transferSearchInvalidSkillRangeConfirm: "OK",
     transferSearchInvalidAgeRangeTitle: "Plage d age invalide",
     transferSearchInvalidAgeRangeBody:
       "CHPP impose une plage d age maximale de 1a111j. Par exemple, 17a 0j a 18a 111j est autorise, mais 17a 0j a 19a 0j est trop large.",

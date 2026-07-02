@@ -753,10 +753,6 @@ export const messagesNl: Messages = {
   transferMarketCriteriaLoaded: "Criteria geladen. Druk op Zoeken om uit te voeren.",
   transferMarketStorageError: "Transfermarkt-opslag is niet beschikbaar.",
   transferMarketTeamLabel: "Seniorenteam",
-  transferSearchInvalidSkillRangeTitle: "Ongeldig vaardigheidsbereik",
-  transferSearchInvalidSkillRangeBody:
-    "CHPP staat maximaal vier vaardigheidsniveaus inclusief toe. Bijvoorbeeld 4 tot 7 is toegestaan, maar 4 tot 8 is te breed. {{skill}} staat ingesteld op {{min}} tot {{max}}.",
-  transferSearchInvalidSkillRangeConfirm: "OK",
   transferSearchInvalidAgeRangeTitle: "Ongeldig leeftijdsbereik",
   transferSearchInvalidAgeRangeBody:
     "CHPP vereist een maximaal leeftijdsbereik van 1j111d. Bijvoorbeeld 17j 0d tot 18j 111d is toegestaan, maar 17j 0d tot 19j 0d is te breed.",

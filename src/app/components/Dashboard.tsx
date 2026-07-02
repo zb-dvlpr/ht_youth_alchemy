@@ -33,7 +33,6 @@ import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import TransferSearchModal, {
   ageToTotalDays,
-  buildTransferSearchMinimumBidSek,
   buildTransferSearchParams,
   calculateTransferSearchSkillTradingScore,
   clampTransferSkillValue,
@@ -43,6 +42,7 @@ import TransferSearchModal, {
   formatTransferSearchPlayerName,
   normalizeTransferSearchFilters,
   normalizeTransferSearchResults,
+  resolveTransferSearchMinimumBidSek,
   totalDaysToAge,
   TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS,
   TRANSFER_SEARCH_SKILLS,
@@ -4175,8 +4175,8 @@ export default function Dashboard({
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
       if (!canPlaceBid) return;
-      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
-      if (typeof minimumBidSek !== "number") {
+      const minimumBidSek = resolveTransferSearchMinimumBidSek(result, displayCurrency);
+      if (minimumBidSek === null) {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
         return;
       }
@@ -4246,7 +4246,7 @@ export default function Dashboard({
       transferSearchResults.forEach((result) => {
         const existing = next[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
         const bidDisplay = formatTransferSearchBidDraftDisplay(
-          buildTransferSearchMinimumBidSek(result),
+          resolveTransferSearchMinimumBidSek(result, displayCurrency),
           displayCurrency
         );
         if (
@@ -4357,7 +4357,7 @@ export default function Dashboard({
           : specialtyValue === 0
             ? messages.specialtyNone
             : specialtyName(specialtyValue) ?? messages.unknownShort;
-      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+      const minimumBidSek = resolveTransferSearchMinimumBidSek(result, displayCurrency);
       const nationalityText =
         typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
           ? resultDetails.NativeCountryName.trim()
@@ -4459,10 +4459,11 @@ export default function Dashboard({
         wageIncludesForeignBonus: foreignForSelectedTeam === true,
         deadline: result.deadline,
         deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
-        minBidSek: typeof minimumBidSek === "number" ? minimumBidSek : null,
+        minBidSek: minimumBidSek,
       };
     },
     [
+      displayCurrency,
       formatDisplayCurrencyFromSek,
       getTransferSearchSortMetricInput,
       messages.specialtyNone,

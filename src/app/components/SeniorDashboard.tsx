@@ -93,6 +93,7 @@ import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
+  resolveTransferSearchMinimumBidSek,
   toHattrickTransferSearchPriceFilterParam,
   type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
@@ -2088,24 +2089,11 @@ const formatTransferSearchPlayerName = (player: TransferSearchResult) =>
 const displayToSek = (value: string, displayCurrency: DisplayCurrency) =>
   displayAmountToSek(value.replace(",", ".").trim(), displayCurrency);
 
-const buildTransferSearchMinimumBidSek = (result: TransferSearchResult) => {
-  if (typeof result.highestBidSek === "number" && result.highestBidSek > 0) {
-    const nextBidSek = Math.max(
-      result.highestBidSek + 1000,
-      Math.ceil(result.highestBidSek * 1.02)
-    );
-    return nextBidSek;
-  }
-  if (typeof result.askingPriceSek === "number" && result.askingPriceSek > 0) {
-    return result.askingPriceSek;
-  }
-  return 1000;
-};
-
 const formatTransferSearchBidDraftDisplay = (
-  valueSek: number | string,
+  valueSek: number | string | null,
   displayCurrency: DisplayCurrency
 ) => {
+  if (valueSek === null) return "";
   if (typeof valueSek === "string") return valueSek;
   const displayAmount = sekToDisplayAmount(valueSek, displayCurrency);
   return displayAmount === null ? "" : String(Math.ceil(displayAmount));
@@ -12832,7 +12820,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const placeTransferQuickBid = useCallback(
     async (result: TransferSearchResult) => {
       if (!resolvedSeniorTeamId || !canPlaceBid) return;
-      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+      const minimumBidSek = resolveTransferSearchMinimumBidSek(result, displayCurrency);
       if (typeof minimumBidSek !== "number") {
         addNotification(messages.seniorTransferSearchBidMissingAmount);
         return;
@@ -17657,7 +17645,7 @@ const refreshDetailsForPlayers = async (
           : specialtyValue === 0
             ? messages.specialtyNone
             : specialtyName(specialtyValue) ?? messages.unknownShort;
-      const minimumBidSek = buildTransferSearchMinimumBidSek(result);
+      const minimumBidSek = resolveTransferSearchMinimumBidSek(result, displayCurrency);
       const nationalityText =
         typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
           ? resultDetails.NativeCountryName.trim()
@@ -17780,7 +17768,7 @@ const refreshDetailsForPlayers = async (
       transferSearchResults.forEach((result) => {
         const existing = next[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" };
         const bidDisplay = formatTransferSearchBidDraftDisplay(
-          buildTransferSearchMinimumBidSek(result),
+          resolveTransferSearchMinimumBidSek(result, displayCurrency),
           displayCurrency
         );
         if (

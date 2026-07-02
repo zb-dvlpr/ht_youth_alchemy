@@ -1101,21 +1101,47 @@ export const displayToSek = (
   displayCurrency: DisplayCurrency
 ) => displayAmountToSek(value, displayCurrency);
 
-export const buildTransferSearchMinimumBidSek = (result: TransferSearchResult) => {
-  if (typeof result.highestBidSek === "number" && result.highestBidSek > 0) {
-    return result.highestBidSek + 1000;
+export const resolveTransferSearchMinimumBidSek = (
+  result: TransferSearchResult,
+  displayCurrency: DisplayCurrency
+): number | null => {
+  const absoluteMinimumSek = displayAmountToSek("1000", displayCurrency);
+  if (
+    typeof absoluteMinimumSek !== "number" ||
+    !Number.isFinite(absoluteMinimumSek) ||
+    absoluteMinimumSek <= 0
+  ) {
+    return null;
   }
-  if (typeof result.askingPriceSek === "number" && result.askingPriceSek > 0) {
-    return result.askingPriceSek;
+
+  if (
+    typeof result.highestBidSek === "number" &&
+    Number.isFinite(result.highestBidSek) &&
+    result.highestBidSek > 0
+  ) {
+    const currentBidSek = Math.round(result.highestBidSek);
+    const percentageIncrementSek = Math.ceil(currentBidSek * 0.02);
+    return currentBidSek + Math.max(absoluteMinimumSek, percentageIncrementSek);
   }
-  return "";
+
+  if (
+    typeof result.askingPriceSek === "number" &&
+    Number.isFinite(result.askingPriceSek) &&
+    result.askingPriceSek >= 0
+  ) {
+    return Math.max(Math.round(result.askingPriceSek), absoluteMinimumSek);
+  }
+
+  return null;
 };
 
+export const buildTransferSearchMinimumBidSek = resolveTransferSearchMinimumBidSek;
+
 export const formatTransferSearchBidDraftDisplay = (
-  valueSek: number | string,
+  valueSek: number | string | null,
   displayCurrency: DisplayCurrency
 ) => {
-  if (valueSek === "") return "";
+  if (valueSek === null || valueSek === "") return "";
   const displayAmount =
     typeof valueSek === "number" ? sekToDisplayAmount(valueSek, displayCurrency) : null;
   return displayAmount === null ? "" : String(Math.ceil(displayAmount));
@@ -1929,7 +1955,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const tableRows = useMemo(
     (): Array<{ result: TransferSearchResult; data: TransferSearchTableRowData }> =>
       sortedResults.map((result) => {
-        const fallbackMinimumBid = buildTransferSearchMinimumBidSek(result);
+        const fallbackMinimumBid = resolveTransferSearchMinimumBidSek(
+          result,
+          displayCurrency
+        );
         const fallbackMetricInput = getSortMetricInput
           ? getSortMetricInput(result)
           : buildTransferSearchMetricInput(result);
@@ -2012,7 +2041,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 tableWageData?.wageIncludesForeignBonus ?? Boolean(result.isAbroad),
               deadline: result.deadline,
               deadlineTimestamp: fallbackDeadline?.getTime() ?? null,
-              minBidSek: typeof fallbackMinimumBid === "number" ? fallbackMinimumBid : null,
+              minBidSek: fallbackMinimumBid,
             },
         };
       }),

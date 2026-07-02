@@ -1532,7 +1532,6 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const saveAsProfileTooltip = saveAsProfileBlocked
     ? saveAsProfileUnavailableTooltip
     : null;
-  const [mobileInputMediaMatches, setMobileInputMediaMatches] = useState(false);
   const [internalHtmsPotentialFilter, setInternalHtmsPotentialFilter] =
     useState<TransferSearchHtmsPotentialFilter>({ min: "", max: "" });
   const [validationIssue, setValidationIssue] =
@@ -1662,20 +1661,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     onSearch(committedFilters);
   }, [commitAndValidateCriteria, onSearch]);
   const workspaceMode = mode === "workspace" || mode === "mobileWorkspace";
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mobileQuery = window.matchMedia("(max-width: 900px)");
-    const updateMobileInputMode = () => {
-      setMobileInputMediaMatches(mobileQuery.matches);
-    };
-    updateMobileInputMode();
-    mobileQuery.addEventListener("change", updateMobileInputMode);
-    return () => {
-      mobileQuery.removeEventListener("change", updateMobileInputMode);
-    };
-  }, []);
-  const mobileManualSkillInputDisabled =
-    mode === "mobileWorkspace" || mobileInputMediaMatches;
+  const mobileManualSkillInputDisabled = mode === "mobileWorkspace";
   useEffect(() => {
     if (!workspaceMode) return;
     if (typeof window === "undefined") return;

@@ -60,7 +60,9 @@ function sanitizeTeamSpiritValue(value: unknown): number | null {
 function sanitizeLevel(value: unknown): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
-  return Math.max(0, Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, Math.floor(parsed)));
+  const normalized = Math.floor(parsed);
+  if (normalized < 1) return null;
+  return Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, normalized);
 }
 
 function sanitizeAttitudes(value: unknown): Record<string, TeamSpiritAttitude> {

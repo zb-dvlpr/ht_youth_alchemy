@@ -104,9 +104,14 @@ export function driftTeamSpiritOneDay(
   sportsPsychologistLevel: number
 ): number {
   const base = 4.5;
-  const psychoReduction = Math.max(0, sportsPsychologistLevel) * 0.0075;
+  const psychoEffect = Math.max(0, sportsPsychologistLevel) * 0.0075;
   const leadershipRate = LEADERSHIP_DAILY[coachLeadership];
-  const rate = Math.max(0.01, leadershipRate - psychoReduction);
+  let rate = leadershipRate;
+  if (currentTeamSpirit > base) {
+    rate = Math.max(0.01, leadershipRate - psychoEffect);
+  } else if (currentTeamSpirit < base) {
+    rate = leadershipRate + psychoEffect;
+  }
   return clampTeamSpirit(currentTeamSpirit + (base - currentTeamSpirit) * rate);
 }
 

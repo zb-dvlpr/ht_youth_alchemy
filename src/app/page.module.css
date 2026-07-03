@@ -10862,6 +10862,47 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   min-width: 0;
 }
 
+.teamSpiritOverrideMeta {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.teamSpiritOverrideBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 1px solid rgba(154, 90, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 244, 222, 0.86);
+  color: #8a5100;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.teamSpiritInlineResetButton {
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid rgba(83, 70, 53, 0.22);
+  border-radius: 7px;
+  background: #fffaf2;
+  color: #4a3b2b;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teamSpiritInlineResetButton:hover,
+.teamSpiritInlineResetButton:focus-visible {
+  border-color: rgba(83, 70, 53, 0.42);
+  background: #f7efe2;
+}
+
 .teamSpiritStats {
   display: grid;
   gap: 6px;
@@ -10913,6 +10954,46 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .teamSpiritCompletedTable td {
+  color: #2d261f;
+  font-weight: 700;
+  text-align: right;
+}
+
+.teamSpiritMidfieldTable {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid rgba(83, 70, 53, 0.14);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.teamSpiritMidfieldTable th,
+.teamSpiritMidfieldTable td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(83, 70, 53, 0.1);
+}
+
+.teamSpiritMidfieldTable tr:last-child th,
+.teamSpiritMidfieldTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.teamSpiritMidfieldTable thead th {
+  background: rgba(242, 239, 233, 0.84);
+  color: #6b6256;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.teamSpiritMidfieldTable tbody th {
+  color: #6b6256;
+  font-weight: 700;
+  text-align: left;
+}
+
+.teamSpiritMidfieldTable td {
   color: #2d261f;
   font-weight: 700;
   text-align: right;

@@ -960,6 +960,8 @@ export type Messages = {
   teamSpiritCalculatedCurrent: string;
   teamSpiritCalculatedUnavailable: string;
   teamSpiritSelectedTeamNotInMatch: string;
+  teamSpiritManuallyOverridden: string;
+  teamSpiritReset: string;
   teamSpiritCoachLeadership: string;
   teamSpiritCoachLeadershipActual: string;
   teamSpiritSportsPsychologist: string;
@@ -979,11 +981,15 @@ export type Messages = {
   teamSpiritMainCupMatch: string;
   teamSpiritAttitude: string;
   teamSpiritAttitudePic: string;
+  teamSpiritAttitudePicShort: string;
   teamSpiritAttitudePin: string;
   teamSpiritAttitudeMots: string;
+  teamSpiritAttitudeMotsShort: string;
   teamSpiritBefore: string;
   teamSpiritBeforeMatch: string;
   teamSpiritMidfield: string;
+  teamSpiritMidfieldIfYou: string;
+  teamSpiritMidfieldPerformance: string;
   teamSpiritAfterMatch: string;
   teamSpiritRecoveryBeforeNext: string;
   teamSpiritDailyUpdates: string;

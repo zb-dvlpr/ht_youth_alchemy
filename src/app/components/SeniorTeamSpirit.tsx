@@ -59,6 +59,13 @@ type TimelineRow = {
 };
 
 const SEASON_START_TEAM_SPIRIT = 4.5;
+const MAX_SPORTS_PSYCHOLOGIST_LEVEL = 5;
+
+function clampSportsPsychologistLevel(value: unknown): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, Math.floor(parsed)));
+}
 
 function asArray<T>(value: T | T[] | null | undefined): T[] {
   if (!value) return [];
@@ -188,6 +195,10 @@ function matchStatusLabel(messages: Messages, match: TeamSpiritMatch) {
   return match.Status ?? messages.matchStatusUpcoming;
 }
 
+function rawFieldExists(source: Record<string, unknown> | null | undefined, field: string) {
+  return Boolean(source && Object.prototype.hasOwnProperty.call(source, field));
+}
+
 function buildDefaultSettings(teamId: number, season: number): SeniorTeamSpiritSettings {
   return {
     schemaVersion: 1,
@@ -267,9 +278,11 @@ export default function SeniorTeamSpirit({
   const [settings, setSettings] = useState<SeniorTeamSpiritSettings | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [matchDetails, setMatchDetails] = useState<Record<string, MatchDetailState>>({});
+  const [matchDetailsLoadingCount, setMatchDetailsLoadingCount] = useState(0);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const requestedMatchDetailKeysRef = useRef<Set<string>>(new Set());
   const matchDetailsRef = useRef<Record<string, MatchDetailState>>({});
+  const completedMatchesByKeyRef = useRef<Map<string, TeamSpiritMatch>>(new Map());
 
   useEffect(() => {
     matchDetailsRef.current = matchDetails;
@@ -308,10 +321,18 @@ export default function SeniorTeamSpirit({
   );
 
   useEffect(() => {
+    const map = new Map<string, TeamSpiritMatch>();
+    for (const match of completedMatches) map.set(matchKey(match), match);
+    completedMatchesByKeyRef.current = map;
+  }, [completedMatches, completedMatchKeysSignature]);
+
+  useEffect(() => {
     let cancelled = false;
     requestedMatchDetailKeysRef.current.clear();
     matchDetailsRef.current = {};
+    completedMatchesByKeyRef.current = new Map();
     setMatchDetails({});
+    setMatchDetailsLoadingCount(0);
     setArchiveMatches([]);
     setFetchedPsychologistLevel(null);
     setClubWarning(null);
@@ -383,7 +404,7 @@ export default function SeniorTeamSpirit({
             data?: { HattrickData?: { Team?: { Staff?: { SportPsychologistLevels?: unknown } } } };
           })?.data?.HattrickData?.Team?.Staff?.SportPsychologistLevels
         );
-        setFetchedPsychologistLevel(Math.max(0, Math.min(10, Math.floor(level ?? 0))));
+        setFetchedPsychologistLevel(clampSportsPsychologistLevel(level));
         setClubStatus("success");
       })
       .catch((error) => {
@@ -398,18 +419,23 @@ export default function SeniorTeamSpirit({
   }, [teamId, currentSeason, refreshNonce, messages.teamSpiritLoadClubFailed]);
 
   useEffect(() => {
-    if (!teamId || completedMatches.length === 0) return;
+    if (!teamId || !completedMatchKeysSignature) return;
     let cancelled = false;
-    const matchesToRequest = completedMatches.filter((match) => {
-      const key = matchKey(match);
-      const existing = matchDetailsRef.current[key];
-      return (
-        !requestedMatchDetailKeysRef.current.has(key) &&
-        existing?.status !== "success" &&
-        existing?.status !== "error"
-      );
-    });
+    const matchesToRequest = completedMatchKeysSignature
+      .split("|")
+      .map((key) => completedMatchesByKeyRef.current.get(key) ?? null)
+      .filter((match): match is TeamSpiritMatch => Boolean(match))
+      .filter((match) => {
+        const key = matchKey(match);
+        const existing = matchDetailsRef.current[key];
+        return (
+          !requestedMatchDetailKeysRef.current.has(key) &&
+          existing?.status !== "success" &&
+          existing?.status !== "error"
+        );
+      });
     if (matchesToRequest.length === 0) return;
+    setMatchDetailsLoadingCount((current) => current + matchesToRequest.length);
     for (const match of matchesToRequest) {
       requestedMatchDetailKeysRef.current.add(matchKey(match));
     }
@@ -445,21 +471,45 @@ export default function SeniorTeamSpirit({
               data?: {
                 HattrickData?: {
                   Match?: {
-                    HomeTeam?: { TeamID?: unknown; TeamAttitude?: unknown };
-                    AwayTeam?: { TeamID?: unknown; TeamAttitude?: unknown };
+                    HomeTeam?: Record<string, unknown>;
+                    AwayTeam?: Record<string, unknown>;
                   };
                 };
               };
             })?.data?.HattrickData?.Match;
-            const homeId = toNumber(detail?.HomeTeam?.TeamID);
-            const awayId = toNumber(detail?.AwayTeam?.TeamID);
-            if (homeId !== teamId && awayId !== teamId) {
-              throw new Error(messages.teamSpiritSelectedTeamNotInMatch);
-            }
+            const homeId =
+              toNumber(detail?.HomeTeam?.HomeTeamID) ??
+              toNumber(detail?.HomeTeam?.TeamID) ??
+              toNumber(detail?.HomeTeam?.TeamId);
+            const awayId =
+              toNumber(detail?.AwayTeam?.AwayTeamID) ??
+              toNumber(detail?.AwayTeam?.TeamID) ??
+              toNumber(detail?.AwayTeam?.TeamId);
             const rawAttitude =
               homeId === teamId
                 ? detail?.HomeTeam?.TeamAttitude
-                : detail?.AwayTeam?.TeamAttitude;
+                : awayId === teamId
+                ? detail?.AwayTeam?.TeamAttitude
+                : null;
+            if (process.env.NODE_ENV !== "production") {
+              console.debug("[TeamSpirit] matchdetails parsed", {
+                matchId: match.MatchID,
+                sourceSystem: match.SourceSystem,
+                selectedTeamId: teamId,
+                homeId,
+                awayId,
+                homeHasHomeTeamID: rawFieldExists(detail?.HomeTeam, "HomeTeamID"),
+                homeHasTeamID: rawFieldExists(detail?.HomeTeam, "TeamID"),
+                homeHasTeamId: rawFieldExists(detail?.HomeTeam, "TeamId"),
+                awayHasAwayTeamID: rawFieldExists(detail?.AwayTeam, "AwayTeamID"),
+                awayHasTeamID: rawFieldExists(detail?.AwayTeam, "TeamID"),
+                awayHasTeamId: rawFieldExists(detail?.AwayTeam, "TeamId"),
+                rawAttitude,
+              });
+            }
+            if (homeId !== teamId && awayId !== teamId) {
+              throw new Error(messages.teamSpiritSelectedTeamNotInMatch);
+            }
             const attitude = parseApiTeamAttitude(rawAttitude);
             if (cancelled) return;
             setMatchDetails((current) => ({
@@ -479,6 +529,10 @@ export default function SeniorTeamSpirit({
                     : messages.teamSpiritLoadMatchDetailsFailed,
               },
             }));
+          } finally {
+            if (!cancelled) {
+              setMatchDetailsLoadingCount((current) => Math.max(0, current - 1));
+            }
           }
         }
       });
@@ -492,7 +546,6 @@ export default function SeniorTeamSpirit({
     teamId,
     completedMatchKeysSignature,
     refreshNonce,
-    completedMatches,
     messages.teamSpiritLoadMatchDetailsFailed,
     messages.teamSpiritSelectedTeamNotInMatch,
   ]);
@@ -511,12 +564,37 @@ export default function SeniorTeamSpirit({
     [teamId, currentSeason]
   );
 
+  useEffect(() => {
+    if (
+      !settingsLoaded ||
+      !teamId ||
+      !currentSeason ||
+      settings?.coachLeadershipOverride !== "weak" ||
+      !defaultCoachLeadership ||
+      defaultCoachLeadership === "weak"
+    ) {
+      return;
+    }
+    persistSettings((current) => ({
+      ...current,
+      coachLeadershipOverride: null,
+    }));
+  }, [
+    currentSeason,
+    defaultCoachLeadership,
+    persistSettings,
+    settings?.coachLeadershipOverride,
+    settingsLoaded,
+    teamId,
+  ]);
+
   const effectiveCoachLeadership =
     settings?.coachLeadershipOverride ?? defaultCoachLeadership ?? "weak";
   const effectiveSportsPsychologistEnabled =
     settings?.sportsPsychologistEnabledOverride ?? ((fetchedPsychologistLevel ?? 0) > 0);
-  const selectedSportsPsychologistLevel =
-    settings?.sportsPsychologistLevelOverride ?? fetchedPsychologistLevel ?? 0;
+  const selectedSportsPsychologistLevel = clampSportsPsychologistLevel(
+    settings?.sportsPsychologistLevelOverride ?? fetchedPsychologistLevel ?? 0
+  );
   const effectiveSportsPsychologistLevel = effectiveSportsPsychologistEnabled
     ? selectedSportsPsychologistLevel
     : 0;
@@ -583,9 +661,7 @@ export default function SeniorTeamSpirit({
     );
   }
 
-  const detailsLoading = completedMatches.some(
-    (match) => matchDetails[matchKey(match)]?.status === "loading"
-  );
+  const detailsLoading = matchDetailsLoadingCount > 0;
   const currentOverrideValue =
     settings?.currentTeamSpiritOverride === null || settings?.currentTeamSpiritOverride === undefined
       ? "calculated"
@@ -648,15 +724,24 @@ export default function SeniorTeamSpirit({
             <span>{messages.teamSpiritCoachLeadership}</span>
             <select
               className={styles.sortSelect}
-              value={effectiveCoachLeadership}
+              value={settings?.coachLeadershipOverride ?? "actual"}
               disabled={!settingsLoaded}
               onChange={(event) =>
                 persistSettings((current) => ({
                   ...current,
-                  coachLeadershipOverride: event.target.value as CoachLeadership,
+                  coachLeadershipOverride:
+                    event.target.value === "actual"
+                      ? null
+                      : (event.target.value as CoachLeadership),
                 }))
               }
             >
+              <option value="actual">
+                {messages.teamSpiritCoachLeadershipActual.replace(
+                  "{{leadership}}",
+                  defaultCoachLeadership ?? messages.unknownShort
+                )}
+              </option>
               {COACH_LEADERSHIP_VALUES.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.key}
@@ -697,7 +782,7 @@ export default function SeniorTeamSpirit({
                 }))
               }
             >
-              {Array.from({ length: 11 }, (_, level) => (
+              {Array.from({ length: MAX_SPORTS_PSYCHOLOGIST_LEVEL + 1 }, (_, level) => (
                 <option key={level} value={level}>
                   {level}
                 </option>
@@ -761,6 +846,8 @@ export default function SeniorTeamSpirit({
                       <strong>
                         {detail?.status === "loading"
                           ? messages.teamSpiritLoadingDetails
+                          : detail?.status === "error"
+                          ? messages.teamSpiritCalculationUnavailable
                           : row.attitude
                           ? attitudeLabel(messages, row.attitude)
                           : messages.teamSpiritMissingTeamAttitude}
@@ -786,39 +873,55 @@ export default function SeniorTeamSpirit({
                       </select>
                     )}
                   </div>
-                  <div className={styles.teamSpiritStatRow}>
-                    <span>{messages.teamSpiritBefore}</span>
-                    <strong>{row.before !== null ? formatTeamSpirit(row.before) : messages.teamSpiritCalculationUnavailable}</strong>
-                  </div>
-                  <div className={styles.teamSpiritStatRow}>
-                    <span>{messages.teamSpiritMidfield}</span>
-                    <strong>{row.midfieldPercent !== null ? `${row.midfieldPercent}%` : messages.teamSpiritCalculationUnavailable}</strong>
-                  </div>
-                  <div className={styles.teamSpiritStatRow}>
-                    <span>{messages.teamSpiritAfterMatch}</span>
-                    <strong>{row.after !== null ? formatTeamSpirit(row.after) : messages.teamSpiritCalculationUnavailable}</strong>
-                  </div>
-                  {row.recoveryDays !== null ? (
+                  {completed ? (
+                    <table className={styles.teamSpiritCompletedTable}>
+                      <tbody>
+                        <tr>
+                          <th scope="row">{messages.teamSpiritBeforeMatch}</th>
+                          <td>
+                            {row.before !== null
+                              ? formatTeamSpirit(row.before)
+                              : messages.teamSpiritCalculationUnavailable}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th scope="row">{messages.teamSpiritAfterMatch}</th>
+                          <td>
+                            {row.after !== null
+                              ? formatTeamSpirit(row.after)
+                              : messages.teamSpiritCalculationUnavailable}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ) : (
                     <>
                       <div className={styles.teamSpiritStatRow}>
-                        <span>{messages.teamSpiritRecoveryBeforeNext}</span>
+                        <span>{messages.teamSpiritBefore}</span>
                         <strong>
-                          {messages.teamSpiritDailyUpdates.replace(
-                            "{{count}}",
-                            String(row.recoveryDays)
-                          )}
+                          {row.before !== null
+                            ? formatTeamSpirit(row.before)
+                            : messages.teamSpiritCalculationUnavailable}
                         </strong>
                       </div>
                       <div className={styles.teamSpiritStatRow}>
-                        <span>{messages.teamSpiritAfterRecovery}</span>
+                        <span>{messages.teamSpiritMidfield}</span>
                         <strong>
-                          {row.afterRecovery !== null
-                            ? formatTeamSpirit(row.afterRecovery)
+                          {row.midfieldPercent !== null
+                            ? `${row.midfieldPercent}%`
+                            : messages.teamSpiritCalculationUnavailable}
+                        </strong>
+                      </div>
+                      <div className={styles.teamSpiritStatRow}>
+                        <span>{messages.teamSpiritAfterMatch}</span>
+                        <strong>
+                          {row.after !== null
+                            ? formatTeamSpirit(row.after)
                             : messages.teamSpiritCalculationUnavailable}
                         </strong>
                       </div>
                     </>
-                  ) : null}
+                  )}
                 </div>
                 {detail?.status === "error" ? (
                   <p className={styles.teamSpiritWarning}>

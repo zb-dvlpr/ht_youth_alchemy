@@ -867,6 +867,7 @@ export const messagesNl: Messages = {
   teamSpiritSelectedTeamNotInMatch:
     "Het geselecteerde seniorenteam is niet gevonden in deze wedstrijddetails.",
   teamSpiritCoachLeadership: "Leiderschap coach",
+  teamSpiritCoachLeadershipActual: "Werkelijk: {{leadership}}",
   teamSpiritSportsPsychologist: "Sportpsycholoog",
   teamSpiritSportsPsychologistLevel: "Niveau sportpsycholoog",
   teamSpiritRefresh: "Teamgeest verversen",
@@ -889,6 +890,7 @@ export const messagesNl: Messages = {
   teamSpiritAttitudePin: "Normal",
   teamSpiritAttitudeMots: "Match of the season",
   teamSpiritBefore: "Voor",
+  teamSpiritBeforeMatch: "Voor wedstrijd",
   teamSpiritMidfield: "Middenveld",
   teamSpiritAfterMatch: "Na wedstrijd",
   teamSpiritRecoveryBeforeNext: "Herstel voor volgende TS-wedstrijd",

@@ -961,6 +961,7 @@ export type Messages = {
   teamSpiritCalculatedUnavailable: string;
   teamSpiritSelectedTeamNotInMatch: string;
   teamSpiritCoachLeadership: string;
+  teamSpiritCoachLeadershipActual: string;
   teamSpiritSportsPsychologist: string;
   teamSpiritSportsPsychologistLevel: string;
   teamSpiritRefresh: string;
@@ -981,6 +982,7 @@ export type Messages = {
   teamSpiritAttitudePin: string;
   teamSpiritAttitudeMots: string;
   teamSpiritBefore: string;
+  teamSpiritBeforeMatch: string;
   teamSpiritMidfield: string;
   teamSpiritAfterMatch: string;
   teamSpiritRecoveryBeforeNext: string;

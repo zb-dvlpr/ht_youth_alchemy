@@ -10885,6 +10885,39 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   text-align: right;
 }
 
+.teamSpiritCompletedTable {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid rgba(83, 70, 53, 0.14);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.teamSpiritCompletedTable th,
+.teamSpiritCompletedTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(83, 70, 53, 0.1);
+}
+
+.teamSpiritCompletedTable tr:last-child th,
+.teamSpiritCompletedTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.teamSpiritCompletedTable th {
+  width: 36%;
+  color: #6b6256;
+  font-weight: 600;
+  text-align: left;
+}
+
+.teamSpiritCompletedTable td {
+  color: #2d261f;
+  font-weight: 700;
+  text-align: right;
+}
+
 .teamSpiritWarning {
   margin: 0;
   color: #9a5a00;

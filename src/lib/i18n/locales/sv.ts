@@ -1200,6 +1200,7 @@ export const messagesSv: Messages = {
     teamSpiritSelectedTeamNotInMatch:
       "Det valda seniorlaget hittades inte i dessa matchdetaljer.",
     teamSpiritCoachLeadership: "Tranarens ledarskap",
+    teamSpiritCoachLeadershipActual: "Faktisk: {{leadership}}",
     teamSpiritSportsPsychologist: "Idrottspsykolog",
     teamSpiritSportsPsychologistLevel: "Idrottspsykologens niva",
     teamSpiritRefresh: "Uppdatera laganda",
@@ -1222,6 +1223,7 @@ export const messagesSv: Messages = {
     teamSpiritAttitudePin: "Normal",
     teamSpiritAttitudeMots: "Match of the season",
     teamSpiritBefore: "Fore",
+    teamSpiritBeforeMatch: "Fore match",
     teamSpiritMidfield: "Mittfalt",
     teamSpiritAfterMatch: "Efter match",
     teamSpiritRecoveryBeforeNext: "Aterhamtning fore nasta TS-match",

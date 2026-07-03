@@ -861,6 +861,7 @@ export const messagesPl: Messages = {
   teamSpiritSelectedTeamNotInMatch:
     "Wybrany zespol seniorow nie zostal znaleziony w tych szczegolach meczu.",
   teamSpiritCoachLeadership: "Przywodztwo trenera",
+  teamSpiritCoachLeadershipActual: "Rzeczywiste: {{leadership}}",
   teamSpiritSportsPsychologist: "Psycholog sportowy",
   teamSpiritSportsPsychologistLevel: "Poziom psychologa sportowego",
   teamSpiritRefresh: "Odswiez team spirit",
@@ -883,6 +884,7 @@ export const messagesPl: Messages = {
   teamSpiritAttitudePin: "Normal",
   teamSpiritAttitudeMots: "Match of the season",
   teamSpiritBefore: "Przed",
+  teamSpiritBeforeMatch: "Przed meczem",
   teamSpiritMidfield: "Pomoc",
   teamSpiritAfterMatch: "Po meczu",
   teamSpiritRecoveryBeforeNext: "Regeneracja przed nastepnym meczem TS",

@@ -20,6 +20,7 @@ const DB_NAME = "hattrick-alchemy-senior-team-spirit";
 const DB_VERSION = 1;
 const STORE_NAME = "settings";
 const LOCAL_STORAGE_PREFIX = "ya_senior_team_spirit_settings_v1_";
+const MAX_SPORTS_PSYCHOLOGIST_LEVEL = 5;
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
@@ -59,7 +60,7 @@ function sanitizeTeamSpiritValue(value: unknown): number | null {
 function sanitizeLevel(value: unknown): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
-  return Math.max(0, Math.min(10, Math.floor(parsed)));
+  return Math.max(0, Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, Math.floor(parsed)));
 }
 
 function sanitizeAttitudes(value: unknown): Record<string, TeamSpiritAttitude> {
@@ -225,9 +226,7 @@ function migrateLegacySettings(
     teamId,
     season,
     currentTeamSpiritOverride: sanitizeTeamSpiritValue(input.startingTeamSpirit),
-    coachLeadershipOverride: isCoachLeadership(input.coachLeadership)
-      ? input.coachLeadership
-      : null,
+    coachLeadershipOverride: null,
     sportsPsychologistEnabledOverride:
       typeof input.sportsPsychologistEnabled === "boolean"
         ? input.sportsPsychologistEnabled

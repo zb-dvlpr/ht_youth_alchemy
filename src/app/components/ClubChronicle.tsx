@@ -14,6 +14,7 @@ import {
 } from "react";
 import styles from "../page.module.css";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import { parseCoachLeadershipSkillValue } from "@/lib/clubChronicle/coach";
 import { Messages } from "@/lib/i18n";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
@@ -10396,7 +10397,7 @@ export default function ClubChronicle({
             countryId,
             countryName,
             trainerType: parseNumberNode(trainer.TrainerType),
-            leadership: parseNumberNode(trainer.Leadership),
+            leadership: parseCoachLeadershipSkillValue(trainer.Leadership),
             trainerSkillLevel: parseNumberNode(trainer.TrainerSkillLevel),
             trainerStatus: parseNumberNode(trainer.TrainerStatus),
             fetchedAt: Date.now(),

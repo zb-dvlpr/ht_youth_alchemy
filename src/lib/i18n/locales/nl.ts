@@ -861,12 +861,14 @@ export const messagesNl: Messages = {
   matchesTitle: "Wedstrijden",
   seniorMatchesUpcomingTab: "Komende wedstrijden",
   seniorMatchesTeamSpiritTab: "Teamgeest",
-  teamSpiritStartingTeamSpirit: "Start-teamgeest",
+  teamSpiritCurrentTeamSpirit: "Huidige teamgeest",
+  teamSpiritCalculatedCurrent: "Berekend: {{value}}",
+  teamSpiritCalculatedUnavailable: "Berekende waarde niet beschikbaar",
+  teamSpiritSelectedTeamNotInMatch:
+    "Het geselecteerde seniorenteam is niet gevonden in deze wedstrijddetails.",
   teamSpiritCoachLeadership: "Leiderschap coach",
   teamSpiritSportsPsychologist: "Sportpsycholoog",
   teamSpiritSportsPsychologistLevel: "Niveau sportpsycholoog",
-  teamSpiritFormulaNote:
-    "Berekeningen gebruiken gereconstrueerde publieke mechanieken: PIC verhoogt teamgeest, MOTS verlaagt die, en dagelijks herstel beweegt terug naar composed.",
   teamSpiritRefresh: "Teamgeest verversen",
   teamSpiritLoadingArchive: "Teamgeestwedstrijden van huidig seizoen laden...",
   teamSpiritLoadingDetails: "Details van gespeelde wedstrijden laden...",

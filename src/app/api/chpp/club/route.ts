@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       version: searchParams.get("version") ?? CLUB_VERSION,
     });
     if (teamId) {
-      params.set("teamID", teamId);
+      params.set("teamId", teamId);
     }
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);

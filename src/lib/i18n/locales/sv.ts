@@ -1194,12 +1194,14 @@ export const messagesSv: Messages = {
     matchesTitle: "Matcher",
     seniorMatchesUpcomingTab: "Kommande matcher",
     seniorMatchesTeamSpiritTab: "Laganda",
-    teamSpiritStartingTeamSpirit: "Startande laganda",
+    teamSpiritCurrentTeamSpirit: "Aktuell laganda",
+    teamSpiritCalculatedCurrent: "Beraknad: {{value}}",
+    teamSpiritCalculatedUnavailable: "Beraknat varde inte tillgangligt",
+    teamSpiritSelectedTeamNotInMatch:
+      "Det valda seniorlaget hittades inte i dessa matchdetaljer.",
     teamSpiritCoachLeadership: "Tranarens ledarskap",
     teamSpiritSportsPsychologist: "Idrottspsykolog",
     teamSpiritSportsPsychologistLevel: "Idrottspsykologens niva",
-    teamSpiritFormulaNote:
-      "Berakningarna anvander rekonstruerade offentliga mekaniker: PIC hojer lagandan, MOTS sanker den och daglig aterhamtning driver mot composed.",
     teamSpiritRefresh: "Uppdatera laganda",
     teamSpiritLoadingArchive: "Laddar lagandamatcher for aktuell sasong...",
     teamSpiritLoadingDetails: "Laddar detaljer for spelade matcher...",

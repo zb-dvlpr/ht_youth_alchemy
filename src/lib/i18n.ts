@@ -956,11 +956,13 @@ export type Messages = {
   matchesTitle: string;
   seniorMatchesUpcomingTab: string;
   seniorMatchesTeamSpiritTab: string;
-  teamSpiritStartingTeamSpirit: string;
+  teamSpiritCurrentTeamSpirit: string;
+  teamSpiritCalculatedCurrent: string;
+  teamSpiritCalculatedUnavailable: string;
+  teamSpiritSelectedTeamNotInMatch: string;
   teamSpiritCoachLeadership: string;
   teamSpiritSportsPsychologist: string;
   teamSpiritSportsPsychologistLevel: string;
-  teamSpiritFormulaNote: string;
   teamSpiritRefresh: string;
   teamSpiritLoadingArchive: string;
   teamSpiritLoadingDetails: string;

@@ -6,6 +6,7 @@ import { Messages } from "@/lib/i18n";
 import { fetchChppJson } from "@/lib/chpp/client";
 import { formatChppDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
+import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
 import {
   COACH_LEADERSHIP_VALUES,
   TEAM_SPIRIT_LABELS,
@@ -17,6 +18,12 @@ import {
   type CoachLeadership,
   type TeamSpiritAttitude,
 } from "@/lib/teamSpirit";
+import {
+  migrateSeniorTeamSpiritLocalStorageSettings,
+  readSeniorTeamSpiritSettings,
+  writeSeniorTeamSpiritSettings,
+  type SeniorTeamSpiritSettings,
+} from "@/lib/seniorTeamSpiritStorage";
 import type { Match, MatchesResponse } from "./UpcomingMatches";
 
 type SeniorTeamSpiritProps = {
@@ -35,17 +42,9 @@ type TeamSpiritMatch = Match & {
 };
 
 type MatchDetailState = {
-  status: "idle" | "loading" | "success" | "error";
+  status: "loading" | "success" | "error";
   attitude: TeamSpiritAttitude | null;
   error?: string | null;
-};
-
-type SettingsState = {
-  startingTeamSpirit: number;
-  coachLeadership: CoachLeadership;
-  sportsPsychologistEnabled: boolean;
-  sportsPsychologistLevel: number;
-  attitudes: Record<string, TeamSpiritAttitude>;
 };
 
 type TimelineRow = {
@@ -59,13 +58,7 @@ type TimelineRow = {
   uncertain: boolean;
 };
 
-const DEFAULT_SETTINGS: SettingsState = {
-  startingTeamSpirit: 4.5,
-  coachLeadership: "weak",
-  sportsPsychologistEnabled: false,
-  sportsPsychologistLevel: 0,
-  attitudes: {},
-};
+const SEASON_START_TEAM_SPIRIT = 4.5;
 
 function asArray<T>(value: T | T[] | null | undefined): T[] {
   if (!value) return [];
@@ -188,8 +181,73 @@ function matchTypeLabel(messages: Messages, match: TeamSpiritMatch) {
   return messages.matchTypeUnknown;
 }
 
-function settingsKey(teamId: number, season: number) {
-  return `ya_senior_team_spirit_settings_v1_${teamId}_${season}`;
+function matchStatusLabel(messages: Messages, match: TeamSpiritMatch) {
+  if (isCompletedMatch(match)) return messages.matchStatusFinished;
+  if (match.Status === "UPCOMING") return messages.matchStatusUpcoming;
+  if (match.Status === "ONGOING") return messages.matchStatusOngoing;
+  return match.Status ?? messages.matchStatusUpcoming;
+}
+
+function buildDefaultSettings(teamId: number, season: number): SeniorTeamSpiritSettings {
+  return {
+    schemaVersion: 1,
+    teamId,
+    season,
+    currentTeamSpiritOverride: null,
+    coachLeadershipOverride: null,
+    sportsPsychologistEnabledOverride: null,
+    sportsPsychologistLevelOverride: null,
+    upcomingAttitudes: {},
+    updatedAt: Date.now(),
+  };
+}
+
+function calculateRows(input: {
+  matches: TeamSpiritMatch[];
+  initialTeamSpirit: number | null;
+  attitudes: (match: TeamSpiritMatch) => TeamSpiritAttitude | null;
+  coachLeadership: CoachLeadership;
+  sportsPsychologistLevel: number;
+}): { rows: TimelineRow[]; finalTeamSpirit: number | null } {
+  let current = input.initialTeamSpirit;
+  let uncertain = current === null;
+  const rows = input.matches.map((match, index) => {
+    const attitude = input.attitudes(match);
+    const before = current;
+    const midfieldPercent =
+      before !== null && attitude ? calculateMidfieldPercent(before, attitude) : null;
+    const after =
+      before !== null && attitude ? applyTeamSpiritAttitude(before, attitude) : null;
+    const nextMatch = input.matches[index + 1] ?? null;
+    const recoveryDays = nextMatch ? fullElapsedDays(match.sortTime, nextMatch.sortTime) : null;
+    const afterRecovery =
+      after !== null && recoveryDays !== null
+        ? driftTeamSpiritDays(
+            after,
+            recoveryDays,
+            input.coachLeadership,
+            input.sportsPsychologistLevel
+          )
+        : null;
+    const rowUncertain = uncertain || !attitude;
+    if (!attitude) {
+      current = null;
+      uncertain = true;
+    } else {
+      current = afterRecovery ?? after;
+    }
+    return {
+      match,
+      attitude,
+      before,
+      midfieldPercent,
+      after,
+      recoveryDays,
+      afterRecovery,
+      uncertain: rowUncertain,
+    };
+  });
+  return { rows, finalTeamSpirit: current };
 }
 
 export default function SeniorTeamSpirit({
@@ -206,12 +264,18 @@ export default function SeniorTeamSpirit({
   const [clubStatus, setClubStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
   const [clubWarning, setClubWarning] = useState<string | null>(null);
   const [fetchedPsychologistLevel, setFetchedPsychologistLevel] = useState<number | null>(null);
-  const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<SeniorTeamSpiritSettings | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [matchDetails, setMatchDetails] = useState<Record<string, MatchDetailState>>({});
   const [refreshNonce, setRefreshNonce] = useState(0);
-  const initializedSettingsKeyRef = useRef<string | null>(null);
+  const requestedMatchDetailKeysRef = useRef<Set<string>>(new Set());
+  const matchDetailsRef = useRef<Record<string, MatchDetailState>>({});
 
-  const upcomingMatches = useMemo(
+  useEffect(() => {
+    matchDetailsRef.current = matchDetails;
+  }, [matchDetails]);
+
+  const upcomingSourceMatches = useMemo(
     () =>
       normalizeMatchesFromPayload(matchesResponse)
         .filter(isTeamSpiritMatch)
@@ -223,58 +287,48 @@ export default function SeniorTeamSpirit({
   const timelineMatches = useMemo(() => {
     const map = new Map<string, TeamSpiritMatch>();
     for (const match of archiveMatches) map.set(matchKey(match), match);
-    for (const match of upcomingMatches) {
+    for (const match of upcomingSourceMatches) {
       const key = matchKey(match);
-      if (!isCompletedMatch(match) || !map.has(key)) {
-        map.set(key, match);
-      }
+      if (!isCompletedMatch(match) || !map.has(key)) map.set(key, match);
     }
     return [...map.values()].sort((a, b) => a.sortTime - b.sortTime);
-  }, [archiveMatches, upcomingMatches]);
+  }, [archiveMatches, upcomingSourceMatches]);
 
   const completedMatches = useMemo(
     () => timelineMatches.filter(isCompletedMatch),
     [timelineMatches]
   );
+  const upcomingMatches = useMemo(
+    () => timelineMatches.filter((match) => !isCompletedMatch(match)),
+    [timelineMatches]
+  );
+  const completedMatchKeysSignature = useMemo(
+    () => completedMatches.map(matchKey).join("|"),
+    [completedMatches]
+  );
 
   useEffect(() => {
+    let cancelled = false;
+    requestedMatchDetailKeysRef.current.clear();
+    matchDetailsRef.current = {};
+    setMatchDetails({});
+    setArchiveMatches([]);
+    setFetchedPsychologistLevel(null);
+    setClubWarning(null);
+    setSettings(null);
+    setSettingsLoaded(false);
     if (!teamId || !currentSeason) return;
-    const key = settingsKey(teamId, currentSeason);
-    initializedSettingsKeyRef.current = key;
-    setSettings((current) => {
-      let stored: Partial<SettingsState> | null = null;
-      try {
-        stored = JSON.parse(window.localStorage.getItem(key) ?? "null");
-      } catch {
-        stored = null;
-      }
-      return {
-        ...DEFAULT_SETTINGS,
-        ...stored,
-        coachLeadership: stored?.coachLeadership ?? defaultCoachLeadership ?? "weak",
-        sportsPsychologistLevel:
-          typeof stored?.sportsPsychologistLevel === "number"
-            ? stored.sportsPsychologistLevel
-            : current.sportsPsychologistLevel,
-        sportsPsychologistEnabled:
-          typeof stored?.sportsPsychologistEnabled === "boolean"
-            ? stored.sportsPsychologistEnabled
-            : current.sportsPsychologistEnabled,
-        attitudes: stored?.attitudes ?? {},
-      };
-    });
-  }, [teamId, currentSeason, defaultCoachLeadership]);
-
-  useEffect(() => {
-    if (!teamId || !currentSeason) return;
-    const key = settingsKey(teamId, currentSeason);
-    if (initializedSettingsKeyRef.current !== key) return;
-    try {
-      window.localStorage.setItem(key, JSON.stringify(settings));
-    } catch {
-      // ignore storage failures
-    }
-  }, [teamId, currentSeason, settings]);
+    void (async () => {
+      await migrateSeniorTeamSpiritLocalStorageSettings();
+      const stored = await readSeniorTeamSpiritSettings(teamId, currentSeason);
+      if (cancelled) return;
+      setSettings(stored ?? buildDefaultSettings(teamId, currentSeason));
+      setSettingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId, currentSeason, refreshNonce]);
 
   useEffect(() => {
     if (!teamId || !currentSeason) return;
@@ -329,13 +383,7 @@ export default function SeniorTeamSpirit({
             data?: { HattrickData?: { Team?: { Staff?: { SportPsychologistLevels?: unknown } } } };
           })?.data?.HattrickData?.Team?.Staff?.SportPsychologistLevels
         );
-        const normalizedLevel = Math.max(0, Math.min(10, Math.floor(level ?? 0)));
-        setFetchedPsychologistLevel(normalizedLevel);
-        setSettings((current) => ({
-          ...current,
-          sportsPsychologistEnabled: normalizedLevel > 0,
-          sportsPsychologistLevel: normalizedLevel,
-        }));
+        setFetchedPsychologistLevel(Math.max(0, Math.min(10, Math.floor(level ?? 0))));
         setClubStatus("success");
       })
       .catch((error) => {
@@ -345,11 +393,6 @@ export default function SeniorTeamSpirit({
         setClubWarning(
           error instanceof Error ? error.message : messages.teamSpiritLoadClubFailed
         );
-        setSettings((current) => ({
-          ...current,
-          sportsPsychologistEnabled: false,
-          sportsPsychologistLevel: 0,
-        }));
       });
     return () => controller.abort();
   }, [teamId, currentSeason, refreshNonce, messages.teamSpiritLoadClubFailed]);
@@ -357,21 +400,29 @@ export default function SeniorTeamSpirit({
   useEffect(() => {
     if (!teamId || completedMatches.length === 0) return;
     let cancelled = false;
-    const missing = completedMatches.filter((match) => {
+    const matchesToRequest = completedMatches.filter((match) => {
       const key = matchKey(match);
-      return !matchDetails[key] || matchDetails[key].status === "idle";
+      const existing = matchDetailsRef.current[key];
+      return (
+        !requestedMatchDetailKeysRef.current.has(key) &&
+        existing?.status !== "success" &&
+        existing?.status !== "error"
+      );
     });
-    if (missing.length === 0) return;
+    if (matchesToRequest.length === 0) return;
+    for (const match of matchesToRequest) {
+      requestedMatchDetailKeysRef.current.add(matchKey(match));
+    }
     setMatchDetails((current) => {
       const next = { ...current };
-      for (const match of missing) {
+      for (const match of matchesToRequest) {
         next[matchKey(match)] = { status: "loading", attitude: null };
       }
       return next;
     });
 
     const run = async () => {
-      const queue = [...missing];
+      const queue = [...matchesToRequest];
       const workers = Array.from({ length: Math.min(4, queue.length) }, async () => {
         while (queue.length > 0 && !cancelled) {
           const match = queue.shift();
@@ -402,12 +453,13 @@ export default function SeniorTeamSpirit({
             })?.data?.HattrickData?.Match;
             const homeId = toNumber(detail?.HomeTeam?.TeamID);
             const awayId = toNumber(detail?.AwayTeam?.TeamID);
+            if (homeId !== teamId && awayId !== teamId) {
+              throw new Error(messages.teamSpiritSelectedTeamNotInMatch);
+            }
             const rawAttitude =
               homeId === teamId
                 ? detail?.HomeTeam?.TeamAttitude
-                : awayId === teamId
-                ? detail?.AwayTeam?.TeamAttitude
-                : null;
+                : detail?.AwayTeam?.TeamAttitude;
             const attitude = parseApiTeamAttitude(rawAttitude);
             if (cancelled) return;
             setMatchDetails((current) => ({
@@ -436,59 +488,92 @@ export default function SeniorTeamSpirit({
     return () => {
       cancelled = true;
     };
-  }, [teamId, completedMatches, matchDetails, messages.teamSpiritLoadMatchDetailsFailed]);
+  }, [
+    teamId,
+    completedMatchKeysSignature,
+    refreshNonce,
+    completedMatches,
+    messages.teamSpiritLoadMatchDetailsFailed,
+    messages.teamSpiritSelectedTeamNotInMatch,
+  ]);
 
-  const updateSettings = useCallback((updater: (current: SettingsState) => SettingsState) => {
-    setSettings((current) => updater(current));
-  }, []);
+  const persistSettings = useCallback(
+    (updater: (current: SeniorTeamSpiritSettings) => SeniorTeamSpiritSettings) => {
+      if (!teamId || !currentSeason) return;
+      setSettings((current) => {
+        const base = current ?? buildDefaultSettings(teamId, currentSeason);
+        const next = updater(base);
+        void writeSeniorTeamSpiritSettings(next);
+        return next;
+      });
+      setSettingsLoaded(true);
+    },
+    [teamId, currentSeason]
+  );
 
-  const rows = useMemo<TimelineRow[]>(() => {
-    const effectivePsychologistLevel = settings.sportsPsychologistEnabled
-      ? settings.sportsPsychologistLevel
-      : 0;
-    let current: number | null = settings.startingTeamSpirit;
-    let uncertain = false;
-    return timelineMatches.map((match, index) => {
-      const key = matchKey(match);
-      const completed = isCompletedMatch(match);
-      const attitude = completed
-        ? matchDetails[key]?.attitude ?? null
-        : settings.attitudes[key] ?? "PIN";
-      const before = current;
-      const midfieldPercent =
-        before !== null && attitude ? calculateMidfieldPercent(before, attitude) : null;
-      const after =
-        before !== null && attitude ? applyTeamSpiritAttitude(before, attitude) : null;
-      const nextMatch = timelineMatches[index + 1] ?? null;
-      const recoveryDays = nextMatch ? fullElapsedDays(match.sortTime, nextMatch.sortTime) : null;
-      const afterRecovery =
-        after !== null && recoveryDays !== null
-          ? driftTeamSpiritDays(
-              after,
-              recoveryDays,
-              settings.coachLeadership,
-              effectivePsychologistLevel
-            )
-          : null;
-      const rowUncertain = uncertain || (completed && !attitude);
-      if (completed && !attitude) {
-        current = null;
-        uncertain = true;
-      } else {
-        current = afterRecovery ?? after;
-      }
-      return {
-        match,
-        attitude,
-        before,
-        midfieldPercent,
-        after,
-        recoveryDays,
-        afterRecovery,
-        uncertain: rowUncertain,
-      };
-    });
-  }, [matchDetails, settings, timelineMatches]);
+  const effectiveCoachLeadership =
+    settings?.coachLeadershipOverride ?? defaultCoachLeadership ?? "weak";
+  const effectiveSportsPsychologistEnabled =
+    settings?.sportsPsychologistEnabledOverride ?? ((fetchedPsychologistLevel ?? 0) > 0);
+  const selectedSportsPsychologistLevel =
+    settings?.sportsPsychologistLevelOverride ?? fetchedPsychologistLevel ?? 0;
+  const effectiveSportsPsychologistLevel = effectiveSportsPsychologistEnabled
+    ? selectedSportsPsychologistLevel
+    : 0;
+
+  const completedRowsResult = useMemo(() => {
+    const completedWithBoundary =
+      upcomingMatches[0] && completedMatches.length > 0
+        ? [...completedMatches, upcomingMatches[0]]
+        : completedMatches;
+    const rows = calculateRows({
+      matches: completedWithBoundary,
+      initialTeamSpirit: SEASON_START_TEAM_SPIRIT,
+      attitudes: (match) => matchDetails[matchKey(match)]?.attitude ?? null,
+      coachLeadership: effectiveCoachLeadership,
+      sportsPsychologistLevel: effectiveSportsPsychologistLevel,
+    }).rows;
+    const completedRows = rows.slice(0, completedMatches.length);
+    const lastCompleted = completedRows[completedRows.length - 1] ?? null;
+    return {
+      rows: completedRows,
+      calculatedCurrentTeamSpirit:
+        completedMatches.length === 0
+          ? SEASON_START_TEAM_SPIRIT
+          : lastCompleted?.afterRecovery ?? lastCompleted?.after ?? null,
+    };
+  }, [
+    completedMatches,
+    effectiveCoachLeadership,
+    effectiveSportsPsychologistLevel,
+    matchDetails,
+    upcomingMatches,
+  ]);
+
+  const projectedCurrentTeamSpirit =
+    settings?.currentTeamSpiritOverride ??
+    completedRowsResult.calculatedCurrentTeamSpirit;
+
+  const upcomingRows = useMemo(() => {
+    return calculateRows({
+      matches: upcomingMatches,
+      initialTeamSpirit: projectedCurrentTeamSpirit,
+      attitudes: (match) => settings?.upcomingAttitudes[matchKey(match)] ?? "PIN",
+      coachLeadership: effectiveCoachLeadership,
+      sportsPsychologistLevel: effectiveSportsPsychologistLevel,
+    }).rows;
+  }, [
+    effectiveCoachLeadership,
+    effectiveSportsPsychologistLevel,
+    projectedCurrentTeamSpirit,
+    settings?.upcomingAttitudes,
+    upcomingMatches,
+  ]);
+
+  const rows = useMemo(
+    () => [...completedRowsResult.rows, ...upcomingRows],
+    [completedRowsResult.rows, upcomingRows]
+  );
 
   if (!currentSeason) {
     return (
@@ -501,6 +586,17 @@ export default function SeniorTeamSpirit({
   const detailsLoading = completedMatches.some(
     (match) => matchDetails[matchKey(match)]?.status === "loading"
   );
+  const currentOverrideValue =
+    settings?.currentTeamSpiritOverride === null || settings?.currentTeamSpiritOverride === undefined
+      ? "calculated"
+      : String(settings.currentTeamSpiritOverride);
+  const calculatedCurrentLabel =
+    completedRowsResult.calculatedCurrentTeamSpirit !== null
+      ? messages.teamSpiritCalculatedCurrent.replace(
+          "{{value}}",
+          formatTeamSpirit(completedRowsResult.calculatedCurrentTeamSpirit)
+        )
+      : messages.teamSpiritCalculatedUnavailable;
 
   return (
     <div className={`${styles.card} ${styles.teamSpiritCard}`}>
@@ -510,7 +606,10 @@ export default function SeniorTeamSpirit({
           type="button"
           className={styles.sortToggle}
           onClick={() => {
+            requestedMatchDetailKeysRef.current.clear();
+            matchDetailsRef.current = {};
             setMatchDetails({});
+            setArchiveMatches([]);
             setRefreshNonce((current) => current + 1);
             void onRefresh?.();
           }}
@@ -520,83 +619,94 @@ export default function SeniorTeamSpirit({
         </button>
       </div>
       <div className={styles.teamSpiritControls}>
-        <label className={styles.teamSpiritControl}>
-          <span>{messages.teamSpiritStartingTeamSpirit}</span>
-          <select
-            className={styles.sortSelect}
-            value={settings.startingTeamSpirit}
-            onChange={(event) =>
-              updateSettings((current) => ({
-                ...current,
-                startingTeamSpirit: Number(event.target.value),
-              }))
-            }
-          >
-            {TEAM_SPIRIT_LABELS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {teamSpiritLevelLabel(messages, option.value)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.teamSpiritControl}>
-          <span>{messages.teamSpiritCoachLeadership}</span>
-          <select
-            className={styles.sortSelect}
-            value={settings.coachLeadership}
-            onChange={(event) =>
-              updateSettings((current) => ({
-                ...current,
-                coachLeadership: event.target.value as CoachLeadership,
-              }))
-            }
-          >
-            {COACH_LEADERSHIP_VALUES.map((option) => (
-              <option key={option.key} value={option.key}>
-                {option.key}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.matchesFilterToggle}>
-          <input
-            type="checkbox"
-            className={styles.matchesFilterToggleInput}
-            checked={settings.sportsPsychologistEnabled}
-            onChange={(event) =>
-              updateSettings((current) => ({
-                ...current,
-                sportsPsychologistEnabled: event.target.checked,
-              }))
-            }
-          />
-          <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
-          <span className={styles.matchesFilterToggleLabel}>
-            {messages.teamSpiritSportsPsychologist}
-          </span>
-        </label>
-        <label className={styles.teamSpiritControl}>
-          <span>{messages.teamSpiritSportsPsychologistLevel}</span>
-          <select
-            className={styles.sortSelect}
-            value={settings.sportsPsychologistLevel}
-            onChange={(event) =>
-              updateSettings((current) => ({
-                ...current,
-                sportsPsychologistLevel: Number(event.target.value),
-              }))
-            }
-          >
-            {Array.from({ length: 11 }, (_, level) => (
-              <option key={level} value={level}>
-                {level}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className={styles.teamSpiritControlRow}>
+          <label className={styles.teamSpiritControl}>
+            <span>{messages.teamSpiritCurrentTeamSpirit}</span>
+            <select
+              className={styles.sortSelect}
+              value={currentOverrideValue}
+              disabled={!settingsLoaded}
+              onChange={(event) =>
+                persistSettings((current) => ({
+                  ...current,
+                  currentTeamSpiritOverride:
+                    event.target.value === "calculated" ? null : Number(event.target.value),
+                }))
+              }
+            >
+              <option value="calculated">{calculatedCurrentLabel}</option>
+              {TEAM_SPIRIT_LABELS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {teamSpiritLevelLabel(messages, option.value)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className={styles.teamSpiritControlRow}>
+          <label className={styles.teamSpiritControl}>
+            <span>{messages.teamSpiritCoachLeadership}</span>
+            <select
+              className={styles.sortSelect}
+              value={effectiveCoachLeadership}
+              disabled={!settingsLoaded}
+              onChange={(event) =>
+                persistSettings((current) => ({
+                  ...current,
+                  coachLeadershipOverride: event.target.value as CoachLeadership,
+                }))
+              }
+            >
+              {COACH_LEADERSHIP_VALUES.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.key}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className={`${styles.teamSpiritControlRow} ${styles.teamSpiritPsychologistRow}`}>
+          <label className={styles.matchesFilterToggle}>
+            <input
+              type="checkbox"
+              className={styles.matchesFilterToggleInput}
+              checked={effectiveSportsPsychologistEnabled}
+              disabled={!settingsLoaded}
+              onChange={(event) =>
+                persistSettings((current) => ({
+                  ...current,
+                  sportsPsychologistEnabledOverride: event.target.checked,
+                }))
+              }
+            />
+            <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+            <span className={styles.matchesFilterToggleLabel}>
+              {messages.teamSpiritSportsPsychologist}
+            </span>
+          </label>
+          <label className={styles.teamSpiritControl}>
+            <span>{messages.teamSpiritSportsPsychologistLevel}</span>
+            <select
+              className={styles.sortSelect}
+              value={selectedSportsPsychologistLevel}
+              disabled={!settingsLoaded}
+              onChange={(event) =>
+                persistSettings((current) => ({
+                  ...current,
+                  sportsPsychologistLevelOverride: Number(event.target.value),
+                }))
+              }
+            >
+              {Array.from({ length: 11 }, (_, level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
-      <p className={styles.teamSpiritNote}>{messages.teamSpiritFormulaNote}</p>
-      {!defaultCoachLeadership ? (
+      {!defaultCoachLeadership && !settings?.coachLeadershipOverride ? (
         <p className={styles.teamSpiritWarning}>{messages.teamSpiritCoachLeadershipDefaultWarning}</p>
       ) : null}
       {clubStatus === "loading" ? (
@@ -626,34 +736,45 @@ export default function SeniorTeamSpirit({
             const key = matchKey(row.match);
             const completed = isCompletedMatch(row.match);
             const detail = matchDetails[key];
+            const matchTitle = `${row.match.HomeTeam?.HomeTeamName ?? messages.homeLabel} vs ${
+              row.match.AwayTeam?.AwayTeamName ?? messages.awayLabel
+            }`;
             return (
               <li key={key} className={styles.matchItem}>
-                <div className={styles.matchTeams}>
-                  <span>{row.match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
-                  <span className={styles.vs}>vs</span>
-                  <span>{row.match.AwayTeam?.AwayTeamName ?? messages.awayLabel}</span>
-                </div>
+                <a
+                  className={styles.teamSpiritMatchTitleLink}
+                  href={hattrickMatchUrlWithSourceSystem(row.match.MatchID, row.match.SourceSystem)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {matchTitle}
+                </a>
                 <div className={styles.matchMeta}>
                   <span>{matchTypeLabel(messages, row.match)}</span>
                   <span>{formatChppDateTime(row.match.MatchDate) ?? row.match.MatchDate}</span>
-                  <span>{row.match.Status ?? messages.unknownLabel}</span>
+                  <span>{matchStatusLabel(messages, row.match)}</span>
                 </div>
                 <div className={styles.teamSpiritStats}>
                   <div className={styles.teamSpiritStatRow}>
                     <span>{messages.teamSpiritAttitude}</span>
                     {completed ? (
                       <strong>
-                        {row.attitude ? attitudeLabel(messages, row.attitude) : messages.teamSpiritMissingTeamAttitude}
+                        {detail?.status === "loading"
+                          ? messages.teamSpiritLoadingDetails
+                          : row.attitude
+                          ? attitudeLabel(messages, row.attitude)
+                          : messages.teamSpiritMissingTeamAttitude}
                       </strong>
                     ) : (
                       <select
                         className={styles.sortSelect}
                         value={row.attitude ?? "PIN"}
+                        disabled={!settingsLoaded}
                         onChange={(event) =>
-                          updateSettings((current) => ({
+                          persistSettings((current) => ({
                             ...current,
-                            attitudes: {
-                              ...current.attitudes,
+                            upcomingAttitudes: {
+                              ...current.upcomingAttitudes,
                               [key]: event.target.value as TeamSpiritAttitude,
                             },
                           }))

@@ -1190,12 +1190,14 @@ export const messagesDe: Messages = {
     matchesTitle: "Spiele",
     seniorMatchesUpcomingTab: "Anstehende Spiele",
     seniorMatchesTeamSpiritTab: "Teamstimmung",
-    teamSpiritStartingTeamSpirit: "Start-Teamstimmung",
+    teamSpiritCurrentTeamSpirit: "Aktuelle Teamstimmung",
+    teamSpiritCalculatedCurrent: "Berechnet: {{value}}",
+    teamSpiritCalculatedUnavailable: "Berechneter Wert nicht verfuegbar",
+    teamSpiritSelectedTeamNotInMatch:
+      "Das ausgewaehlte Senior-Team wurde in diesen Spieldetails nicht gefunden.",
     teamSpiritCoachLeadership: "Trainer-Fuehrung",
     teamSpiritSportsPsychologist: "Sportpsychologe",
     teamSpiritSportsPsychologistLevel: "Sportpsychologenstufe",
-    teamSpiritFormulaNote:
-      "Die Berechnung nutzt rekonstruierte oeffentliche Mechaniken: PIC erhoeht Teamstimmung, MOTS senkt sie, und taegliche Erholung driftet zurueck zu composed.",
     teamSpiritRefresh: "Teamstimmung aktualisieren",
     teamSpiritLoadingArchive: "Teamstimmungsspiele der aktuellen Saison werden geladen...",
     teamSpiritLoadingDetails: "Abgeschlossene Spieldetails werden geladen...",

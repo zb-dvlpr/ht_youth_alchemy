@@ -157,12 +157,3 @@ export function parseApiTeamAttitude(value: unknown): TeamSpiritAttitude | null 
   if (parsed === 1) return "MOTS";
   return null;
 }
-
-export function coachLeadershipFromSkillValue(value: unknown): CoachLeadership | null {
-  const parsed =
-    typeof value === "object" && value !== null
-      ? Number((value as Record<string, unknown>)["#text"])
-      : Number(value);
-  if (!Number.isFinite(parsed)) return null;
-  return COACH_LEADERSHIP_VALUES.find((item) => item.value === parsed)?.key ?? null;
-}

@@ -1204,12 +1204,14 @@ export const messagesEs: Messages = {
     matchesTitle: "Partidos",
     seniorMatchesUpcomingTab: "Próximos partidos",
     seniorMatchesTeamSpiritTab: "Espíritu de equipo",
-    teamSpiritStartingTeamSpirit: "Espíritu de equipo inicial",
+    teamSpiritCurrentTeamSpirit: "Espíritu de equipo actual",
+    teamSpiritCalculatedCurrent: "Calculado: {{value}}",
+    teamSpiritCalculatedUnavailable: "Valor calculado no disponible",
+    teamSpiritSelectedTeamNotInMatch:
+      "El equipo senior seleccionado no aparece en estos detalles del partido.",
     teamSpiritCoachLeadership: "Liderazgo del entrenador",
     teamSpiritSportsPsychologist: "Psicólogo deportivo",
     teamSpiritSportsPsychologistLevel: "Nivel del psicólogo deportivo",
-    teamSpiritFormulaNote:
-      "Los calculos usan mecanicas publicas reconstruidas: PIC sube el espiritu, MOTS lo baja y la recuperacion diaria vuelve hacia composed.",
     teamSpiritRefresh: "Actualizar espiritu de equipo",
     teamSpiritLoadingArchive: "Cargando partidos de espiritu de equipo de la temporada...",
     teamSpiritLoadingDetails: "Cargando detalles de partidos completados...",

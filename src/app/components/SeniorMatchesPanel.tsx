@@ -2,7 +2,6 @@
 
 import { useState, type ComponentProps } from "react";
 import styles from "../page.module.css";
-import { Messages } from "@/lib/i18n";
 import UpcomingMatches from "./UpcomingMatches";
 import SeniorTeamSpirit from "./SeniorTeamSpirit";
 import type { CoachLeadership } from "@/lib/teamSpirit";
@@ -48,7 +47,7 @@ export default function SeniorMatchesPanel({
         </div>
       </div>
       {activeTab === "upcoming" ? (
-        <UpcomingMatches messages={messages as Messages} onRefresh={onRefresh} {...upcomingProps} />
+        <UpcomingMatches messages={messages} onRefresh={onRefresh} {...upcomingProps} />
       ) : (
         <SeniorTeamSpirit
           matchesResponse={upcomingProps.response}

@@ -855,12 +855,14 @@ export const messagesPl: Messages = {
   matchesTitle: "Mecze",
   seniorMatchesUpcomingTab: "Nadchodzace mecze",
   seniorMatchesTeamSpiritTab: "Team spirit",
-  teamSpiritStartingTeamSpirit: "Poczatkowy team spirit",
+  teamSpiritCurrentTeamSpirit: "Obecny team spirit",
+  teamSpiritCalculatedCurrent: "Obliczone: {{value}}",
+  teamSpiritCalculatedUnavailable: "Obliczona wartosc niedostepna",
+  teamSpiritSelectedTeamNotInMatch:
+    "Wybrany zespol seniorow nie zostal znaleziony w tych szczegolach meczu.",
   teamSpiritCoachLeadership: "Przywodztwo trenera",
   teamSpiritSportsPsychologist: "Psycholog sportowy",
   teamSpiritSportsPsychologistLevel: "Poziom psychologa sportowego",
-  teamSpiritFormulaNote:
-    "Obliczenia uzywaja odtworzonych publicznych mechanik: PIC podnosi team spirit, MOTS go obniza, a dzienna regeneracja wraca ku composed.",
   teamSpiritRefresh: "Odswiez team spirit",
   teamSpiritLoadingArchive: "Wczytywanie meczow team spirit z obecnego sezonu...",
   teamSpiritLoadingDetails: "Wczytywanie szczegolow zakonczonych meczow...",

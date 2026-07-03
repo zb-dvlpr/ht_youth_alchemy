@@ -103,6 +103,11 @@ import {
   importTransferMarketStorage,
   type TransferMarketStorageExport,
 } from "@/lib/transferMarketStorage";
+import {
+  exportSeniorTeamSpiritSettings,
+  importSeniorTeamSpiritSettings,
+  type SeniorTeamSpiritStorageExport,
+} from "@/lib/seniorTeamSpiritStorage";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -115,6 +120,7 @@ type ExportPayload = {
   entries: Record<string, string>;
   reminders?: ReminderStorageExport;
   transferMarket?: TransferMarketStorageExport;
+  seniorTeamSpirit?: SeniorTeamSpiritStorageExport;
 };
 
 const STORAGE_PREFIX = "ya_";
@@ -394,39 +400,40 @@ export default function SettingsButton({
   const handleExport = () => {
     if (typeof window === "undefined") return;
     void (async () => {
-    try {
-      const entries: Record<string, string> = {};
-      for (let index = 0; index < window.localStorage.length; index += 1) {
-        const key = window.localStorage.key(index);
-        if (!key || !key.startsWith(STORAGE_PREFIX)) continue;
-        const value = window.localStorage.getItem(key);
-        if (value === null) continue;
-        entries[key] = value;
+      try {
+        const entries: Record<string, string> = {};
+        for (let index = 0; index < window.localStorage.length; index += 1) {
+          const key = window.localStorage.key(index);
+          if (!key || !key.startsWith(STORAGE_PREFIX)) continue;
+          const value = window.localStorage.getItem(key);
+          if (value === null) continue;
+          entries[key] = value;
+        }
+        const payload: ExportPayload = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          entries,
+          reminders: exportReminderStorageState(),
+          transferMarket: await exportTransferMarketStorage(),
+          seniorTeamSpirit: await exportSeniorTeamSpiritSettings(),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `youth-alchemy-data-${Date.now()}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        addNotification(messages.settingsExportSuccess);
+      } catch {
+        addNotification(messages.settingsExportFailed);
+      } finally {
+        setOpen(false);
       }
-      const payload: ExportPayload = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        entries,
-        reminders: exportReminderStorageState(),
-        transferMarket: await exportTransferMarketStorage(),
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `youth-alchemy-data-${Date.now()}.json`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      addNotification(messages.settingsExportSuccess);
-    } catch {
-      addNotification(messages.settingsExportFailed);
-    } finally {
-      setOpen(false);
-    }
     })();
   };
 
@@ -496,6 +503,9 @@ export default function SettingsButton({
         }
         if (parsed.transferMarket) {
           await importTransferMarketStorage(parsed.transferMarket);
+        }
+        if (parsed.seniorTeamSpirit) {
+          await importSeniorTeamSpiritSettings(parsed.seniorTeamSpirit);
         }
       }
       addNotification(messages.settingsImportSuccess);

@@ -10834,14 +10834,24 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .teamSpiritControls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.teamSpiritControlRow {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px 12px;
+  min-width: 0;
+}
+
+.teamSpiritPsychologistRow {
   align-items: end;
 }
 
 .teamSpiritControl {
   display: grid;
   gap: 4px;
+  width: min(100%, 320px);
   min-width: 0;
   color: #5b5147;
   font-size: 12px;
@@ -10850,12 +10860,6 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .teamSpiritControl select {
   min-width: 0;
-}
-
-.teamSpiritNote {
-  margin: 0;
-  color: #6b6256;
-  font-size: 13px;
 }
 
 .teamSpiritStats {
@@ -10886,6 +10890,18 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   color: #9a5a00;
   font-size: 12px;
   font-weight: 600;
+}
+
+.teamSpiritMatchTitleLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.teamSpiritMatchTitleLink:hover,
+.teamSpiritMatchTitleLink:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
 }
 
 .matchItemHasTopAction .matchTeams {

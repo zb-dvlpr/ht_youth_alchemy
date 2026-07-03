@@ -1155,12 +1155,14 @@ export const messagesEn: Messages = {
     matchesTitle: "Matches",
     seniorMatchesUpcomingTab: "Upcoming matches",
     seniorMatchesTeamSpiritTab: "Team spirit",
-    teamSpiritStartingTeamSpirit: "Starting team spirit",
+    teamSpiritCurrentTeamSpirit: "Current team spirit",
+    teamSpiritCalculatedCurrent: "Calculated: {{value}}",
+    teamSpiritCalculatedUnavailable: "Calculated value unavailable",
+    teamSpiritSelectedTeamNotInMatch:
+      "Selected senior team was not found in these match details.",
     teamSpiritCoachLeadership: "Coach leadership",
     teamSpiritSportsPsychologist: "Sports psychologist",
     teamSpiritSportsPsychologistLevel: "Sports psychologist level",
-    teamSpiritFormulaNote:
-      "Calculations use reconstructed public mechanics: PIC raises team spirit, MOTS lowers it, and daily recovery drifts team spirit back toward composed.",
     teamSpiritRefresh: "Refresh Team spirit data",
     teamSpiritLoadingArchive: "Loading current-season team spirit matches...",
     teamSpiritLoadingDetails: "Loading completed match details...",

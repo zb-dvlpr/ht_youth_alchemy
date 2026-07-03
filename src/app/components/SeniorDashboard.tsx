@@ -129,7 +129,8 @@ import {
   positionLabel,
 } from "@/lib/positions";
 import { readGlobalSeason, writeGlobalSeason } from "@/lib/season";
-import { coachLeadershipFromSkillValue, type CoachLeadership } from "@/lib/teamSpirit";
+import type { CoachLeadership } from "@/lib/teamSpirit";
+import { parseCoachLeadership } from "@/lib/clubChronicle/coach";
 import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
@@ -1190,7 +1191,7 @@ const buildSeniorTeamGeneralInfoFromStafflist = (
     trainerType: normalizeTrainerType(
       payload?.data?.HattrickData?.StaffList?.Trainer?.TrainerType
     ),
-    trainerLeadership: coachLeadershipFromSkillValue(
+    trainerLeadership: parseCoachLeadership(
       payload?.data?.HattrickData?.StaffList?.Trainer?.Leadership
     ),
   };

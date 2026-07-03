@@ -1202,12 +1202,14 @@ export const messagesFr: Messages = {
     matchesTitle: "Matchs",
     seniorMatchesUpcomingTab: "Matchs a venir",
     seniorMatchesTeamSpiritTab: "Esprit d equipe",
-    teamSpiritStartingTeamSpirit: "Esprit d equipe initial",
+    teamSpiritCurrentTeamSpirit: "Esprit d equipe actuel",
+    teamSpiritCalculatedCurrent: "Calcule : {{value}}",
+    teamSpiritCalculatedUnavailable: "Valeur calculee indisponible",
+    teamSpiritSelectedTeamNotInMatch:
+      "L equipe senior selectionnee est absente de ces details de match.",
     teamSpiritCoachLeadership: "Leadership du coach",
     teamSpiritSportsPsychologist: "Psychologue sportif",
     teamSpiritSportsPsychologistLevel: "Niveau du psychologue sportif",
-    teamSpiritFormulaNote:
-      "Les calculs utilisent des mecanismes publics reconstruits : PIC augmente l esprit d equipe, MOTS le baisse, et la recuperation quotidienne revient vers composed.",
     teamSpiritRefresh: "Actualiser l esprit d equipe",
     teamSpiritLoadingArchive: "Chargement des matchs d esprit d equipe de la saison...",
     teamSpiritLoadingDetails: "Chargement des details des matchs termines...",

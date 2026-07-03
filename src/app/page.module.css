@@ -10819,6 +10819,75 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   z-index: 4500;
 }
 
+.seniorMatchesPanel {
+  min-width: 0;
+}
+
+.seniorMatchesPanel > .detailsHeader {
+  margin-bottom: 0;
+}
+
+.teamSpiritCard {
+  display: grid;
+  gap: 12px;
+}
+
+.teamSpiritControls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+}
+
+.teamSpiritControl {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: #5b5147;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.teamSpiritControl select {
+  min-width: 0;
+}
+
+.teamSpiritNote {
+  margin: 0;
+  color: #6b6256;
+  font-size: 13px;
+}
+
+.teamSpiritStats {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.teamSpiritStatRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.teamSpiritStatRow span {
+  color: #6b6256;
+}
+
+.teamSpiritStatRow strong {
+  color: #2d261f;
+  text-align: right;
+}
+
+.teamSpiritWarning {
+  margin: 0;
+  color: #9a5a00;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .matchItemHasTopAction .matchTeams {
   padding-right: 44px;
 }

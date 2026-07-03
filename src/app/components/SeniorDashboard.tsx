@@ -82,7 +82,7 @@ import {
   type OriginFlagDisplay,
 } from "@/lib/originFlag";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
-import UpcomingMatches, {
+import {
   type LoadedLineupOrders,
   type IgnoreTrainingFormationPolicy,
   Match,
@@ -90,6 +90,7 @@ import UpcomingMatches, {
   MatchesResponse,
 } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
+import SeniorMatchesPanel from "./SeniorMatchesPanel";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
@@ -127,7 +128,8 @@ import {
   matchRoleIdToPositionKey,
   positionLabel,
 } from "@/lib/positions";
-import { readGlobalSeason } from "@/lib/season";
+import { readGlobalSeason, writeGlobalSeason } from "@/lib/season";
+import { coachLeadershipFromSkillValue, type CoachLeadership } from "@/lib/teamSpirit";
 import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
@@ -479,6 +481,7 @@ type StafflistResponse = {
       StaffList?: {
         Trainer?: {
           TrainerType?: unknown;
+          Leadership?: unknown;
         };
         StaffMembers?: {
           Staff?: StafflistStaff | StafflistStaff[];
@@ -497,6 +500,7 @@ type SeniorTeamGeneralInfo = {
   hasTacticalAssistant: boolean;
   tacticalAssistantStaffLevel: number | null;
   trainerType: 0 | 1 | 2 | null;
+  trainerLeadership: CoachLeadership | null;
 };
 
 type SortKey =
@@ -1186,6 +1190,9 @@ const buildSeniorTeamGeneralInfoFromStafflist = (
     trainerType: normalizeTrainerType(
       payload?.data?.HattrickData?.StaffList?.Trainer?.TrainerType
     ),
+    trainerLeadership: coachLeadershipFromSkillValue(
+      payload?.data?.HattrickData?.StaffList?.Trainer?.Leadership
+    ),
   };
 };
 
@@ -1231,6 +1238,20 @@ const isSeniorTeamGeneralInfo = (
     input.trainerType !== 0 &&
     input.trainerType !== 1 &&
     input.trainerType !== 2
+  ) {
+    return false;
+  }
+  if (
+    input.trainerLeadership !== undefined &&
+    input.trainerLeadership !== null &&
+    input.trainerLeadership !== "solid" &&
+    input.trainerLeadership !== "passable" &&
+    input.trainerLeadership !== "inadequate" &&
+    input.trainerLeadership !== "weak" &&
+    input.trainerLeadership !== "poor" &&
+    input.trainerLeadership !== "wretched" &&
+    input.trainerLeadership !== "disastrous" &&
+    input.trainerLeadership !== "non-existent"
   ) {
     return false;
   }
@@ -3705,6 +3726,7 @@ export default function SeniorDashboard({
   );
   const [managerCompendiumUserIdOverride, setManagerCompendiumUserIdOverride] =
     useState<string | null>(null);
+  const [currentSeason, setCurrentSeason] = useState<number | null>(() => readGlobalSeason());
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [latestFetchedRatingsResponse, setLatestFetchedRatingsResponse] =
@@ -4272,6 +4294,8 @@ export default function SeniorDashboard({
   const ownSeniorTeamTacticalAssistantStaffLevel =
     ownSeniorTeamGeneralInfo?.tacticalAssistantStaffLevel ?? null;
   const ownSeniorTeamTrainerType = ownSeniorTeamGeneralInfo?.trainerType ?? null;
+  const ownSeniorTeamTrainerLeadership =
+    ownSeniorTeamGeneralInfo?.trainerLeadership ?? null;
   const effectiveOtherOrdersTacticalAssistantContext = useMemo(() => {
     if (isDevBuild) {
       if (!devSimulateTacticalAssistant) {
@@ -12116,6 +12140,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const applyManagerCompendiumTeams = useCallback(
     async (userId?: string | null) => {
       const payload = await fetchManagerCompendium(userId);
+      if (typeof payload.season === "number" && Number.isFinite(payload.season) && payload.season > 0) {
+        const normalizedSeason = Math.floor(payload.season);
+        setCurrentSeason(normalizedSeason);
+        writeGlobalSeason(normalizedSeason);
+      }
       const managerIdentity = extractManagerIdentityFromManagerCompendium(payload.data);
       setLineupExclusionsUserKey(managerIdentity?.userId ?? "default");
       const teams = extractSeniorTeams(payload);
@@ -12137,13 +12166,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
   const fetchCurrentSeason = async () => {
     const cached = readGlobalSeason();
-    if (cached !== null) return cached;
+    if (cached !== null) {
+      setCurrentSeason(cached);
+      return cached;
+    }
     const payload = await fetchManagerCompendium(managerCompendiumUserIdOverride);
     const directSeason =
       typeof payload?.season === "number" && Number.isFinite(payload.season)
         ? Math.floor(payload.season)
         : null;
-    if (directSeason && directSeason > 0) return directSeason;
+    if (directSeason && directSeason > 0) {
+      setCurrentSeason(directSeason);
+      writeGlobalSeason(directSeason);
+      return directSeason;
+    }
 
     const teams = normalizeManagerCompendiumTeams(
       payload?.data?.HattrickData?.Manager?.Teams?.Team
@@ -12151,7 +12187,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     for (const team of teams) {
       const maybeSeason = parseNumber(team?.League?.Season);
       if (typeof maybeSeason === "number" && Number.isFinite(maybeSeason) && maybeSeason > 0) {
-        return Math.floor(maybeSeason);
+        const normalizedSeason = Math.floor(maybeSeason);
+        setCurrentSeason(normalizedSeason);
+        writeGlobalSeason(normalizedSeason);
+        return normalizedSeason;
       }
     }
     throw new Error(messages.noMatchesReturned);
@@ -19112,9 +19151,12 @@ const refreshDetailsForPlayers = async (
           lineupActionsRightContent={renderSeniorOtherOrdersButton()}
           messages={messages}
         />
-        <UpcomingMatches
+        <SeniorMatchesPanel
           response={matchesState}
           messages={messages}
+          currentSeason={currentSeason}
+          selectedSeniorTeamId={resolvedSeniorTeamId}
+          defaultCoachLeadership={ownSeniorTeamTrainerLeadership}
           assignments={assignments}
           behaviors={behaviors}
           captainId={effectiveSeniorCaptainId}
@@ -23324,9 +23366,12 @@ const refreshDetailsForPlayers = async (
               messages={messages}
             />
           </div>
-          <UpcomingMatches
+          <SeniorMatchesPanel
             response={matchesState}
             messages={messages}
+            currentSeason={currentSeason}
+            selectedSeniorTeamId={resolvedSeniorTeamId}
+            defaultCoachLeadership={ownSeniorTeamTrainerLeadership}
             assignments={assignments}
             behaviors={behaviors}
             captainId={effectiveSeniorCaptainId}

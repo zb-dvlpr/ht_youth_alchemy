@@ -1247,6 +1247,11 @@ export const messagesIt: Messages = {
     teamSpiritAttitudeMotsShort: "MOTS",
     teamSpiritBefore: "Prima",
     teamSpiritBeforeMatch: "TS prima partita",
+    teamSpiritBeforeMatchTooltip:
+      "Sovrascrivi manualmente questo valore se il tuo spirito di squadra e stato influenzato da una vendita di giocatore. Questa informazione non e disponibile via CHPP.",
+    teamSpiritBeforeMatchInfoAria: "Informazioni su TS prima partita",
+    teamSpiritSeasonStartsAtComposed:
+      "La stagione inizia sempre con un valore di spirito di squadra di 4.5 (content).",
     teamSpiritMidfield: "Centrocampo",
     teamSpiritMidfieldIfYou: "se fai ...",
     teamSpiritMidfieldPerformance: "rendimento centrocampo",

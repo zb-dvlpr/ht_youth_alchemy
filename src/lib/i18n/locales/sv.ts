@@ -1233,6 +1233,11 @@ export const messagesSv: Messages = {
     teamSpiritAttitudeMotsShort: "MOTS",
     teamSpiritBefore: "Fore",
     teamSpiritBeforeMatch: "TS fore match",
+    teamSpiritBeforeMatchTooltip:
+      "Andra detta varde manuellt om din laganda har paverkats av en spelarfoersaljning. Denna information ar inte tillganglig via CHPP.",
+    teamSpiritBeforeMatchInfoAria: "Information om TS fore match",
+    teamSpiritSeasonStartsAtComposed:
+      "Sasongen borjar alltid med laganda 4.5 (content).",
     teamSpiritMidfield: "Mittfalt",
     teamSpiritMidfieldIfYou: "om du ...",
     teamSpiritMidfieldPerformance: "mittfaltsprestation",

@@ -10904,6 +10904,14 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   min-height: 36px;
 }
 
+.teamSpiritMatchOverrideMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .teamSpiritOverrideBadge {
   display: inline-flex;
   align-items: center;
@@ -10960,7 +10968,8 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .teamSpiritStatRow > strong,
-.teamSpiritStatRow > select {
+.teamSpiritStatRow > select,
+.teamSpiritStatRow > .teamSpiritBeforeMatchControl {
   justify-self: end;
   max-width: 100%;
 }
@@ -10972,6 +10981,26 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .teamSpiritStatRow > strong {
   color: #2d261f;
   font-weight: 800;
+  text-align: right;
+}
+
+.teamSpiritBeforeMatchControl {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.teamSpiritBeforeMatchControl select {
+  max-width: 100%;
+}
+
+.teamSpiritSeasonStartNote {
+  display: inline-block;
+  max-width: 100%;
+  color: #5b5147;
+  font-weight: 700;
   text-align: right;
 }
 

@@ -991,6 +991,9 @@ export type Messages = {
   teamSpiritAttitudeMotsShort: string;
   teamSpiritBefore: string;
   teamSpiritBeforeMatch: string;
+  teamSpiritBeforeMatchTooltip: string;
+  teamSpiritBeforeMatchInfoAria: string;
+  teamSpiritSeasonStartsAtComposed: string;
   teamSpiritMidfield: string;
   teamSpiritMidfieldIfYou: string;
   teamSpiritMidfieldPerformance: string;

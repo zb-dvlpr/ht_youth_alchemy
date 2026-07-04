@@ -21,6 +21,7 @@ import {
 } from "@/lib/teamSpirit";
 import {
   migrateSeniorTeamSpiritLocalStorageSettings,
+  pruneSeniorTeamSpiritSettingsForCurrentSeason,
   readSeniorTeamSpiritSettings,
   writeSeniorTeamSpiritSettings,
   type SeniorTeamSpiritSettings,
@@ -54,13 +55,17 @@ type TeamSpiritBlockReason = "missingFinishedAttitude" | "matchInProgress";
 type TimelineRow = {
   match: TeamSpiritMatch;
   attitude: TeamSpiritAttitude | null;
+  calculatedBefore: number | null;
   before: number | null;
+  beforeOverride: number | null;
+  beforeOverridden: boolean;
   midfieldPercent: number | null;
   after: number | null;
   recoveryDays: number | null;
   afterRecovery: number | null;
   uncertain: boolean;
   blockedReason: TeamSpiritBlockReason | null;
+  isFirstTeamSpiritMatch: boolean;
 };
 
 const SEASON_START_TEAM_SPIRIT = 4.5;
@@ -243,14 +248,14 @@ function rawFieldExists(source: Record<string, unknown> | null | undefined, fiel
 
 function buildDefaultSettings(teamId: number, season: number): SeniorTeamSpiritSettings {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     teamId,
     season,
-    currentTeamSpiritOverride: null,
     coachLeadershipOverride: null,
     sportsPsychologistEnabledOverride: null,
     sportsPsychologistLevelOverride: null,
     upcomingAttitudes: {},
+    teamSpiritBeforeMatchOverrides: {},
     updatedAt: Date.now(),
   };
 }
@@ -260,6 +265,7 @@ function calculateRows(input: {
   initialTeamSpirit: number | null;
   initialBlockedReason?: TeamSpiritBlockReason | null;
   attitudes: (match: TeamSpiritMatch) => TeamSpiritAttitude | null;
+  beforeMatchOverrides: Record<string, number>;
   coachLeadership: CoachLeadership;
   sportsPsychologistLevel: number;
 }): {
@@ -269,12 +275,19 @@ function calculateRows(input: {
 } {
   let current = input.initialTeamSpirit;
   let blockedReason = input.initialBlockedReason ?? null;
-  let uncertain = current === null;
   const rows = input.matches.map((match, index) => {
+    const key = matchKey(match);
+    const isFirstTeamSpiritMatch = index === 0;
     const inProgress = isInProgressMatch(match);
     const finished = isFinishedMatch(match);
     const attitude = inProgress ? null : input.attitudes(match);
-    const before = current;
+    const calculatedBefore = isFirstTeamSpiritMatch ? SEASON_START_TEAM_SPIRIT : current;
+    const beforeOverride = isFirstTeamSpiritMatch
+      ? null
+      : input.beforeMatchOverrides[key] ?? null;
+    const before = isFirstTeamSpiritMatch
+      ? SEASON_START_TEAM_SPIRIT
+      : beforeOverride ?? calculatedBefore;
     const midfieldPercent =
       before !== null && attitude ? calculateMidfieldPercent(before, attitude) : null;
     const after =
@@ -290,33 +303,41 @@ function calculateRows(input: {
             input.sportsPsychologistLevel
           )
         : null;
-    const rowBlockedReason = inProgress
-      ? "matchInProgress"
-      : !attitude && finished
+    const rowBlockedReason =
+      before === null
+        ? blockedReason
+        : inProgress
+        ? "matchInProgress"
+        : !attitude && finished
       ? "missingFinishedAttitude"
-      : blockedReason;
-    const rowUncertain = uncertain || Boolean(rowBlockedReason);
+      : null;
+    const rowUncertain = Boolean(rowBlockedReason);
     if (inProgress) {
       current = null;
-      uncertain = true;
       blockedReason = "matchInProgress";
     } else if (!attitude) {
       current = null;
-      uncertain = true;
       if (finished) blockedReason = "missingFinishedAttitude";
-    } else {
+    } else if (after !== null) {
       current = afterRecovery ?? after;
+      blockedReason = null;
+    } else {
+      current = null;
     }
     return {
       match,
       attitude,
+      calculatedBefore,
       before,
+      beforeOverride,
+      beforeOverridden: beforeOverride !== null,
       midfieldPercent,
       after,
       recoveryDays,
       afterRecovery,
       uncertain: rowUncertain,
       blockedReason: rowBlockedReason,
+      isFirstTeamSpiritMatch,
     };
   });
   return { rows, finalTeamSpirit: current, blockedReason };
@@ -368,15 +389,7 @@ export default function SeniorTeamSpirit({
     return [...map.values()].sort((a, b) => a.sortTime - b.sortTime);
   }, [archiveMatches, upcomingSourceMatches]);
 
-  const knownMatches = useMemo(
-    () => timelineMatches.filter((match) => !isUpcomingMatch(match)),
-    [timelineMatches]
-  );
   const finishedMatches = useMemo(() => timelineMatches.filter(isFinishedMatch), [timelineMatches]);
-  const upcomingMatches = useMemo(
-    () => timelineMatches.filter(isUpcomingMatch),
-    [timelineMatches]
-  );
   const completedMatchKeysSignature = useMemo(
     () => finishedMatches.map(matchKey).join("|"),
     [finishedMatches]
@@ -402,6 +415,7 @@ export default function SeniorTeamSpirit({
     if (!teamId || !currentSeason) return;
     void (async () => {
       await migrateSeniorTeamSpiritLocalStorageSettings();
+      await pruneSeniorTeamSpiritSettingsForCurrentSeason(currentSeason);
       const stored = await readSeniorTeamSpiritSettings(teamId, currentSeason);
       if (cancelled) return;
       setSettings(stored ?? buildDefaultSettings(teamId, currentSeason));
@@ -719,64 +733,26 @@ export default function SeniorTeamSpirit({
     ? selectedSportsPsychologistLevel
     : 0;
 
-  const completedRowsResult = useMemo(() => {
-    const result = calculateRows({
-      matches: knownMatches,
-      initialTeamSpirit: SEASON_START_TEAM_SPIRIT,
-      attitudes: (match) => matchDetails[matchKey(match)]?.attitude ?? null,
-      coachLeadership: effectiveCoachLeadership,
-      sportsPsychologistLevel: effectiveSportsPsychologistLevel,
-    });
-    const completedRows = result.rows;
-    const lastCompleted = completedRows[completedRows.length - 1] ?? null;
-    return {
-      rows: completedRows,
-      calculatedCurrentTeamSpirit:
-        knownMatches.length === 0
-          ? SEASON_START_TEAM_SPIRIT
-          : result.blockedReason
-          ? null
-          : lastCompleted?.after ?? null,
-      calculatedCurrentUnavailableReason: result.blockedReason,
-    };
-  }, [
-    knownMatches,
-    effectiveCoachLeadership,
-    effectiveSportsPsychologistLevel,
-    matchDetails,
-  ]);
-
-  const projectedCurrentTeamSpirit =
-    settings?.currentTeamSpiritOverride ??
-    completedRowsResult.calculatedCurrentTeamSpirit;
-
-  const upcomingRows = useMemo(() => {
+  const rows = useMemo(() => {
     return calculateRows({
-      matches: upcomingMatches,
-      initialTeamSpirit: projectedCurrentTeamSpirit,
-      initialBlockedReason:
-        settings?.currentTeamSpiritOverride === null ||
-        settings?.currentTeamSpiritOverride === undefined
-          ? completedRowsResult.calculatedCurrentUnavailableReason
-          : null,
-      attitudes: (match) => settings?.upcomingAttitudes[matchKey(match)] ?? "PIN",
+      matches: timelineMatches,
+      initialTeamSpirit: SEASON_START_TEAM_SPIRIT,
+      attitudes: (match) =>
+        isUpcomingMatch(match)
+          ? settings?.upcomingAttitudes[matchKey(match)] ?? "PIN"
+          : matchDetails[matchKey(match)]?.attitude ?? null,
+      beforeMatchOverrides: settings?.teamSpiritBeforeMatchOverrides ?? {},
       coachLeadership: effectiveCoachLeadership,
       sportsPsychologistLevel: effectiveSportsPsychologistLevel,
     }).rows;
   }, [
     effectiveCoachLeadership,
     effectiveSportsPsychologistLevel,
-    completedRowsResult.calculatedCurrentUnavailableReason,
-    projectedCurrentTeamSpirit,
-    settings?.currentTeamSpiritOverride,
+    matchDetails,
+    settings?.teamSpiritBeforeMatchOverrides,
     settings?.upcomingAttitudes,
-    upcomingMatches,
+    timelineMatches,
   ]);
-
-  const rows = useMemo(
-    () => [...completedRowsResult.rows, ...upcomingRows],
-    [completedRowsResult.rows, upcomingRows]
-  );
 
   if (!currentSeason) {
     return (
@@ -789,23 +765,107 @@ export default function SeniorTeamSpirit({
   const detailsLoading = finishedMatches.some(
     (match) => matchDetails[matchKey(match)]?.status === "loading"
   );
-  const currentOverrideValue =
-    settings?.currentTeamSpiritOverride === null || settings?.currentTeamSpiritOverride === undefined
-      ? "calculated"
-      : String(settings.currentTeamSpiritOverride);
-  const calculatedCurrentLabel =
-    completedRowsResult.calculatedCurrentUnavailableReason === "matchInProgress"
-      ? messages.teamSpiritCalculatedUnavailableMatchInProgress
-      : completedRowsResult.calculatedCurrentTeamSpirit !== null
-      ? messages.teamSpiritCalculatedCurrent.replace(
-          "{{value}}",
-          formatTeamSpirit(completedRowsResult.calculatedCurrentTeamSpirit)
-        )
-      : messages.teamSpiritCalculatedUnavailable;
-  const currentTeamSpiritOverridden = settings?.currentTeamSpiritOverride !== null &&
-    settings?.currentTeamSpiritOverride !== undefined;
   const coachLeadershipOverridden = settings?.coachLeadershipOverride !== null &&
     settings?.coachLeadershipOverride !== undefined;
+  const renderBeforeMatchLabel = (row: TimelineRow) => {
+    if (row.isFirstTeamSpiritMatch) return messages.teamSpiritBeforeMatch;
+    return (
+      <span className={styles.teamSpiritControlLabelWithInfo}>
+        <span>{messages.teamSpiritBeforeMatch}</span>
+        <Tooltip content={messages.teamSpiritBeforeMatchTooltip}>
+          <button
+            type="button"
+            className={styles.teamSpiritInfoButton}
+            aria-label={messages.teamSpiritBeforeMatchInfoAria}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+          >
+            i
+          </button>
+        </Tooltip>
+      </span>
+    );
+  };
+  const renderBeforeMatchControl = (row: TimelineRow, key: string) => {
+    if (row.isFirstTeamSpiritMatch) {
+      return (
+        <span className={styles.teamSpiritSeasonStartNote}>
+          {messages.teamSpiritSeasonStartsAtComposed}
+        </span>
+      );
+    }
+    const selectValue = row.beforeOverridden
+      ? String(row.beforeOverride)
+      : row.calculatedBefore !== null
+      ? "calculated"
+      : "unavailable";
+    return (
+      <div className={styles.teamSpiritBeforeMatchControl}>
+        <select
+          className={styles.sortSelect}
+          value={selectValue}
+          disabled={!settingsLoaded}
+          onChange={(event) =>
+            persistSettings((current) => {
+              const nextOverrides = { ...current.teamSpiritBeforeMatchOverrides };
+              if (event.target.value === "calculated") {
+                delete nextOverrides[key];
+              } else if (event.target.value !== "unavailable") {
+                nextOverrides[key] = Number(event.target.value);
+              }
+              return {
+                ...current,
+                teamSpiritBeforeMatchOverrides: nextOverrides,
+              };
+            })
+          }
+        >
+          {row.calculatedBefore !== null ? (
+            <option value="calculated">
+              {messages.teamSpiritCalculatedCurrent.replace(
+                "{{value}}",
+                formatTeamSpirit(row.calculatedBefore)
+              )}
+            </option>
+          ) : (
+            <option value="unavailable" disabled>
+              {messages.teamSpiritCalculationUnavailable}
+            </option>
+          )}
+          {TEAM_SPIRIT_LABELS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {teamSpiritLevelLabel(messages, option.value)}
+            </option>
+          ))}
+        </select>
+        {row.beforeOverridden ? (
+          <div className={styles.teamSpiritMatchOverrideMeta}>
+            <span className={styles.teamSpiritOverrideBadge}>
+              {messages.teamSpiritManuallyOverridden}
+            </span>
+            <button
+              type="button"
+              className={styles.teamSpiritInlineResetButton}
+              onClick={() =>
+                persistSettings((current) => {
+                  const nextOverrides = { ...current.teamSpiritBeforeMatchOverrides };
+                  delete nextOverrides[key];
+                  return {
+                    ...current,
+                    teamSpiritBeforeMatchOverrides: nextOverrides,
+                  };
+                })
+              }
+            >
+              {messages.teamSpiritReset}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div className={`${styles.card} ${styles.teamSpiritCard}`}>
@@ -829,64 +889,6 @@ export default function SeniorTeamSpirit({
         </button>
       </div>
       <div className={styles.teamSpiritControls}>
-        <div className={styles.teamSpiritControlRow}>
-          <label className={styles.teamSpiritControl}>
-            <span className={styles.teamSpiritControlLabelWithInfo}>
-              <span>{messages.teamSpiritCurrentTeamSpirit}</span>
-              <Tooltip content={messages.teamSpiritCurrentTeamSpiritTooltip}>
-                <button
-                  type="button"
-                  className={styles.teamSpiritInfoButton}
-                  aria-label={messages.teamSpiritCurrentTeamSpiritInfoAria}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                  }}
-                >
-                  i
-                </button>
-              </Tooltip>
-            </span>
-            <select
-              className={styles.sortSelect}
-              value={currentOverrideValue}
-              disabled={!settingsLoaded}
-              onChange={(event) =>
-                persistSettings((current) => ({
-                  ...current,
-                  currentTeamSpiritOverride:
-                    event.target.value === "calculated" ? null : Number(event.target.value),
-                }))
-              }
-            >
-              <option value="calculated">{calculatedCurrentLabel}</option>
-              {TEAM_SPIRIT_LABELS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {teamSpiritLevelLabel(messages, option.value)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {currentTeamSpiritOverridden ? (
-            <div className={styles.teamSpiritOverrideMeta}>
-              <span className={styles.teamSpiritOverrideBadge}>
-                {messages.teamSpiritManuallyOverridden}
-              </span>
-              <button
-                type="button"
-                className={styles.teamSpiritInlineResetButton}
-                onClick={() =>
-                  persistSettings((current) => ({
-                    ...current,
-                    currentTeamSpiritOverride: null,
-                  }))
-                }
-              >
-                {messages.teamSpiritReset}
-              </button>
-            </div>
-          ) : null}
-        </div>
         <div className={styles.teamSpiritControlRow}>
           <label className={styles.teamSpiritControl}>
             <span>{messages.teamSpiritCoachLeadership}</span>
@@ -1076,12 +1078,8 @@ export default function SeniorTeamSpirit({
                     <table className={styles.teamSpiritCompletedTable}>
                       <tbody>
                         <tr>
-                          <th scope="row">{messages.teamSpiritBeforeMatch}</th>
-                          <td>
-                            {row.before !== null
-                              ? formatTeamSpirit(row.before)
-                              : unavailableValue}
-                          </td>
+                          <th scope="row">{renderBeforeMatchLabel(row)}</th>
+                          <td>{renderBeforeMatchControl(row, key)}</td>
                         </tr>
                         <tr>
                           <th scope="row">{messages.teamSpiritAfterMatch}</th>
@@ -1096,12 +1094,8 @@ export default function SeniorTeamSpirit({
                   ) : (
                     <>
                       <div className={styles.teamSpiritStatRow}>
-                        <span>{messages.teamSpiritBeforeMatch}</span>
-                        <strong>
-                          {row.before !== null
-                            ? formatTeamSpirit(row.before)
-                            : unavailableValue}
-                        </strong>
+                        <span>{renderBeforeMatchLabel(row)}</span>
+                        {renderBeforeMatchControl(row, key)}
                       </div>
                       <div className={styles.teamSpiritStatRow}>
                         <span>{messages.teamSpiritAfterMatch}</span>

@@ -1,14 +1,14 @@
-import type { CoachLeadership, TeamSpiritAttitude } from "@/lib/teamSpirit";
+import { TEAM_SPIRIT_LABELS, type CoachLeadership, type TeamSpiritAttitude } from "@/lib/teamSpirit";
 
 export type SeniorTeamSpiritSettings = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   teamId: number;
   season: number;
-  currentTeamSpiritOverride: number | null;
   coachLeadershipOverride: CoachLeadership | null;
   sportsPsychologistEnabledOverride: boolean | null;
   sportsPsychologistLevelOverride: number | null;
   upcomingAttitudes: Record<string, TeamSpiritAttitude>;
+  teamSpiritBeforeMatchOverrides: Record<string, number>;
   updatedAt: number;
 };
 
@@ -21,6 +21,7 @@ const DB_VERSION = 1;
 const STORE_NAME = "settings";
 const LOCAL_STORAGE_PREFIX = "ya_senior_team_spirit_settings_v1_";
 const MAX_SPORTS_PSYCHOLOGIST_LEVEL = 5;
+const VALID_TEAM_SPIRIT_VALUES = new Set(TEAM_SPIRIT_LABELS.map((entry) => entry.value));
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
@@ -54,7 +55,7 @@ function isTeamSpiritAttitude(value: unknown): value is TeamSpiritAttitude {
 function sanitizeTeamSpiritValue(value: unknown): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
-  return parsed >= 0.5 && parsed <= 10.5 ? parsed : null;
+  return VALID_TEAM_SPIRIT_VALUES.has(parsed) ? parsed : null;
 }
 
 function sanitizeLevel(value: unknown): number | null {
@@ -75,6 +76,15 @@ function sanitizeAttitudes(value: unknown): Record<string, TeamSpiritAttitude> {
   );
 }
 
+function sanitizeTeamSpiritOverrides(value: unknown): Record<string, number> {
+  if (!value || typeof value !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .map(([key, rawValue]) => [key, sanitizeTeamSpiritValue(rawValue)] as const)
+      .filter((entry): entry is [string, number] => Boolean(entry[0]) && entry[1] !== null)
+  );
+}
+
 function sanitizeSettings(value: unknown): SeniorTeamSpiritSettings | null {
   if (!value || typeof value !== "object") return null;
   const input = value as Partial<SeniorTeamSpiritSettings>;
@@ -82,10 +92,9 @@ function sanitizeSettings(value: unknown): SeniorTeamSpiritSettings | null {
   const season = sanitizePositiveInteger(input.season);
   if (teamId === null || season === null) return null;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     teamId,
     season,
-    currentTeamSpiritOverride: sanitizeTeamSpiritValue(input.currentTeamSpiritOverride),
     coachLeadershipOverride: isCoachLeadership(input.coachLeadershipOverride)
       ? input.coachLeadershipOverride
       : null,
@@ -95,6 +104,9 @@ function sanitizeSettings(value: unknown): SeniorTeamSpiritSettings | null {
         : null,
     sportsPsychologistLevelOverride: sanitizeLevel(input.sportsPsychologistLevelOverride),
     upcomingAttitudes: sanitizeAttitudes(input.upcomingAttitudes),
+    teamSpiritBeforeMatchOverrides: sanitizeTeamSpiritOverrides(
+      input.teamSpiritBeforeMatchOverrides
+    ),
     updatedAt:
       typeof input.updatedAt === "number" && Number.isFinite(input.updatedAt)
         ? input.updatedAt
@@ -190,6 +202,34 @@ export async function deleteSeniorTeamSpiritSettings(
   );
 }
 
+export async function pruneSeniorTeamSpiritSettingsForCurrentSeason(
+  currentSeason: number
+): Promise<void> {
+  const db = await openDb();
+  if (!db) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.openCursor();
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        const sanitized = sanitizeSettings(cursor.value);
+        if (sanitized && sanitized.season !== currentSeason) {
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => resolve();
+      transaction.onabort = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
 export async function exportSeniorTeamSpiritSettings(): Promise<SeniorTeamSpiritStorageExport> {
   const records = await runStore<unknown[]>("readonly", (store) => store.getAll());
   return {
@@ -224,10 +264,9 @@ function migrateLegacySettings(
 ): SeniorTeamSpiritSettings {
   const input = legacy && typeof legacy === "object" ? legacy as Record<string, unknown> : {};
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     teamId,
     season,
-    currentTeamSpiritOverride: sanitizeTeamSpiritValue(input.startingTeamSpirit),
     coachLeadershipOverride: null,
     sportsPsychologistEnabledOverride:
       typeof input.sportsPsychologistEnabled === "boolean"
@@ -235,6 +274,7 @@ function migrateLegacySettings(
         : null,
     sportsPsychologistLevelOverride: sanitizeLevel(input.sportsPsychologistLevel),
     upcomingAttitudes: sanitizeAttitudes(input.attitudes),
+    teamSpiritBeforeMatchOverrides: {},
     updatedAt: Date.now(),
   };
 }

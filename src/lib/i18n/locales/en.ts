@@ -1195,6 +1195,11 @@ export const messagesEn: Messages = {
     teamSpiritAttitudeMotsShort: "MOTS",
     teamSpiritBefore: "Before",
     teamSpiritBeforeMatch: "TS before match",
+    teamSpiritBeforeMatchTooltip:
+      "Override this value manually if your team spirit has been affected by a player sale. This information is not available via CHPP.",
+    teamSpiritBeforeMatchInfoAria: "TS before match information",
+    teamSpiritSeasonStartsAtComposed:
+      "The season always starts with a team spirit value of 4.5 (content).",
     teamSpiritMidfield: "Midfield",
     teamSpiritMidfieldIfYou: "if you ...",
     teamSpiritMidfieldPerformance: "midfield performance",

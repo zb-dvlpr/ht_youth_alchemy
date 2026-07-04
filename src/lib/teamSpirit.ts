@@ -63,6 +63,17 @@ export const LEADERSHIP_DAILY: Record<CoachLeadership, number> = {
   "non-existent": 0.286,
 };
 
+const LEADERSHIP_RECOVERY_DAILY: Record<CoachLeadership, number> = {
+  solid: 0.286,
+  passable: 0.22,
+  inadequate: 0.169,
+  weak: 0.13,
+  poor: 0.1,
+  wretched: 0.078,
+  disastrous: 0.06,
+  "non-existent": 0.045,
+};
+
 const ATTITUDE_MIDFIELD_FACTOR: Record<TeamSpiritAttitude, number> = {
   PIC: 0.83945,
   PIN: 1,
@@ -104,15 +115,19 @@ export function driftTeamSpiritOneDay(
   sportsPsychologistLevel: number
 ): number {
   const base = 4.5;
+  const ts = clampTeamSpirit(currentTeamSpirit);
   const psychoEffect = Math.max(0, sportsPsychologistLevel) * 0.0075;
-  const leadershipRate = LEADERSHIP_DAILY[coachLeadership];
-  let rate = leadershipRate;
-  if (currentTeamSpirit > base) {
-    rate = Math.max(0.01, leadershipRate - psychoEffect);
-  } else if (currentTeamSpirit < base) {
-    rate = leadershipRate + psychoEffect;
+  if (ts > base) {
+    const leadershipRate = LEADERSHIP_DAILY[coachLeadership];
+    const rate = Math.max(0.01, leadershipRate - psychoEffect);
+    return clampTeamSpirit(ts + (base - ts) * rate);
   }
-  return clampTeamSpirit(currentTeamSpirit + (base - currentTeamSpirit) * rate);
+  if (ts < base) {
+    const leadershipRate = LEADERSHIP_RECOVERY_DAILY[coachLeadership];
+    const rate = leadershipRate + psychoEffect;
+    return clampTeamSpirit(ts + (base - ts) * rate);
+  }
+  return ts;
 }
 
 export function driftTeamSpiritDays(

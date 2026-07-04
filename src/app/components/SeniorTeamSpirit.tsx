@@ -819,7 +819,7 @@ export default function SeniorTeamSpirit({
             <select
               className={styles.sortSelect}
               value={selectedSportsPsychologistLevel}
-              disabled={!settingsLoaded}
+              disabled={!settingsLoaded || !effectiveSportsPsychologistEnabled}
               onChange={(event) =>
                 persistSettings((current) => ({
                   ...current,

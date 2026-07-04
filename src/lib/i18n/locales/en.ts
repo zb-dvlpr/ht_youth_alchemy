@@ -1166,9 +1166,17 @@ export const messagesEn: Messages = {
     teamSpiritManuallyOverridden: "Manually overridden",
     teamSpiritReset: "Reset",
     teamSpiritCoachLeadership: "Coach leadership",
-    teamSpiritCoachLeadershipActual: "Actual: {{leadership}}",
+    teamSpiritCoachLeadershipActual: "Detected: {{leadership}}",
+    teamSpiritCoachLeadershipTooltip:
+      "Override this value to see how a different coach leadership level would affect team spirit.",
+    teamSpiritCoachLeadershipInfoAria: "About coach leadership overrides",
     teamSpiritSportsPsychologist: "Sports psychologist",
     teamSpiritSportsPsychologistLevel: "Sports psychologist level",
+    teamSpiritSportsPsychologistTooltip:
+      "Even if your team does not have a sports psychologist, you can simulate one to see its effect on team spirit.",
+    teamSpiritSportsPsychologistInfoAria: "About sports psychologist simulation",
+    teamSpiritSportsPsychologistLevelDetected: "Detected: {{level}}",
+    teamSpiritNoSportsPsychologistDetected: "No sports psychologist detected.",
     teamSpiritRefresh: "Refresh Team spirit data",
     teamSpiritLoadingArchive: "Loading current-season team spirit matches...",
     teamSpiritLoadingDetails: "Loading completed match details...",

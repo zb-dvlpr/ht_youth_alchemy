@@ -1205,9 +1205,17 @@ export const messagesSv: Messages = {
     teamSpiritManuallyOverridden: "Manuellt andrad",
     teamSpiritReset: "Aterstall",
     teamSpiritCoachLeadership: "Tranarens ledarskap",
-    teamSpiritCoachLeadershipActual: "Faktisk: {{leadership}}",
+    teamSpiritCoachLeadershipActual: "Upptackt: {{leadership}}",
+    teamSpiritCoachLeadershipTooltip:
+      "Andra detta varde for att se hur en annan ledarskapsniva hos tranaren skulle paverka lagandan.",
+    teamSpiritCoachLeadershipInfoAria: "Om andringar av tranarens ledarskap",
     teamSpiritSportsPsychologist: "Idrottspsykolog",
     teamSpiritSportsPsychologistLevel: "Idrottspsykologens niva",
+    teamSpiritSportsPsychologistTooltip:
+      "Aven om ditt lag inte har en idrottspsykolog kan du simulera en for att se dess effekt pa lagandan.",
+    teamSpiritSportsPsychologistInfoAria: "Om simulering av idrottspsykolog",
+    teamSpiritSportsPsychologistLevelDetected: "Upptackt: {{level}}",
+    teamSpiritNoSportsPsychologistDetected: "Ingen idrottspsykolog upptackt.",
     teamSpiritRefresh: "Uppdatera laganda",
     teamSpiritLoadingArchive: "Laddar lagandamatcher for aktuell sasong...",
     teamSpiritLoadingDetails: "Laddar detaljer for spelade matcher...",

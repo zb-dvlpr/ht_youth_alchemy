@@ -724,11 +724,16 @@ export default function SeniorTeamSpirit({
   const actualCoachLeadership = defaultCoachLeadership ?? fetchedCoachLeadership;
   const effectiveCoachLeadership =
     settings?.coachLeadershipOverride ?? actualCoachLeadership ?? "weak";
+  const detectedSportsPsychologistLevel = fetchedPsychologistLevel ?? 0;
   const effectiveSportsPsychologistEnabled =
-    settings?.sportsPsychologistEnabledOverride ?? ((fetchedPsychologistLevel ?? 0) > 0);
+    settings?.sportsPsychologistEnabledOverride ?? (detectedSportsPsychologistLevel > 0);
   const selectedSportsPsychologistLevel = normalizeSportsPsychologistOnLevel(
-    settings?.sportsPsychologistLevelOverride ?? fetchedPsychologistLevel ?? 1
+    settings?.sportsPsychologistLevelOverride ?? (detectedSportsPsychologistLevel || 1)
   );
+  const sportsPsychologistLevelSelectValue =
+    settings?.sportsPsychologistLevelOverride == null && detectedSportsPsychologistLevel > 0
+      ? "detected"
+      : String(selectedSportsPsychologistLevel);
   const effectiveSportsPsychologistLevel = effectiveSportsPsychologistEnabled
     ? selectedSportsPsychologistLevel
     : 0;
@@ -891,7 +896,22 @@ export default function SeniorTeamSpirit({
       <div className={styles.teamSpiritControls}>
         <div className={styles.teamSpiritControlRow}>
           <label className={styles.teamSpiritControl}>
-            <span>{messages.teamSpiritCoachLeadership}</span>
+            <span className={styles.teamSpiritControlLabelWithInfo}>
+              <span>{messages.teamSpiritCoachLeadership}</span>
+              <Tooltip content={messages.teamSpiritCoachLeadershipTooltip}>
+                <button
+                  type="button"
+                  className={styles.teamSpiritInfoButton}
+                  aria-label={messages.teamSpiritCoachLeadershipInfoAria}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
+                  i
+                </button>
+              </Tooltip>
+            </span>
             <select
               className={styles.sortSelect}
               value={settings?.coachLeadershipOverride ?? "actual"}
@@ -955,22 +975,46 @@ export default function SeniorTeamSpirit({
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
             <span className={styles.matchesFilterToggleLabel}>
-              {messages.teamSpiritSportsPsychologist}
+              <span className={styles.teamSpiritControlLabelWithInfo}>
+                <span>{messages.teamSpiritSportsPsychologist}</span>
+                <Tooltip content={messages.teamSpiritSportsPsychologistTooltip}>
+                  <button
+                    type="button"
+                    className={styles.teamSpiritInfoButton}
+                    aria-label={messages.teamSpiritSportsPsychologistInfoAria}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                  >
+                    i
+                  </button>
+                </Tooltip>
+              </span>
             </span>
           </label>
           <label className={styles.teamSpiritControl}>
             <span>{messages.teamSpiritSportsPsychologistLevel}</span>
             <select
               className={styles.sortSelect}
-              value={selectedSportsPsychologistLevel}
+              value={sportsPsychologistLevelSelectValue}
               disabled={!settingsLoaded || !effectiveSportsPsychologistEnabled}
               onChange={(event) =>
                 persistSettings((current) => ({
                   ...current,
-                  sportsPsychologistLevelOverride: Number(event.target.value),
+                  sportsPsychologistLevelOverride:
+                    event.target.value === "detected" ? null : Number(event.target.value),
                 }))
               }
             >
+              {detectedSportsPsychologistLevel > 0 ? (
+                <option value="detected">
+                  {messages.teamSpiritSportsPsychologistLevelDetected.replace(
+                    "{{level}}",
+                    String(detectedSportsPsychologistLevel)
+                  )}
+                </option>
+              ) : null}
               {Array.from({ length: MAX_SPORTS_PSYCHOLOGIST_LEVEL }, (_, index) => (
                 <option key={index + 1} value={index + 1}>
                   {index + 1}
@@ -987,13 +1031,8 @@ export default function SeniorTeamSpirit({
         <p className={styles.muted}>{messages.teamSpiritLoadingClub}</p>
       ) : null}
       {clubWarning ? <p className={styles.teamSpiritWarning}>{clubWarning}</p> : null}
-      {typeof fetchedPsychologistLevel === "number" ? (
-        <p className={styles.muted}>
-          {messages.teamSpiritFetchedPsychologistLevel.replace(
-            "{{level}}",
-            String(fetchedPsychologistLevel)
-          )}
-        </p>
+      {clubStatus === "success" && fetchedPsychologistLevel === 0 ? (
+        <p className={styles.muted}>{messages.teamSpiritNoSportsPsychologistDetected}</p>
       ) : null}
       {archiveStatus === "loading" ? (
         <p className={styles.muted}>{messages.teamSpiritLoadingArchive}</p>

@@ -872,9 +872,17 @@ export const messagesNl: Messages = {
   teamSpiritManuallyOverridden: "Handmatig overschreven",
   teamSpiritReset: "Resetten",
   teamSpiritCoachLeadership: "Leiderschap coach",
-  teamSpiritCoachLeadershipActual: "Werkelijk: {{leadership}}",
+  teamSpiritCoachLeadershipActual: "Gedetecteerd: {{leadership}}",
+  teamSpiritCoachLeadershipTooltip:
+    "Overschrijf deze waarde om te zien hoe een ander coachleiderschapsniveau de teamgeest zou beinvloeden.",
+  teamSpiritCoachLeadershipInfoAria: "Over coachleiderschap overschrijven",
   teamSpiritSportsPsychologist: "Sportpsycholoog",
   teamSpiritSportsPsychologistLevel: "Niveau sportpsycholoog",
+  teamSpiritSportsPsychologistTooltip:
+    "Ook als je team geen sportpsycholoog heeft, kun je er een simuleren om het effect op teamgeest te zien.",
+  teamSpiritSportsPsychologistInfoAria: "Over simulatie van sportpsycholoog",
+  teamSpiritSportsPsychologistLevelDetected: "Gedetecteerd: {{level}}",
+  teamSpiritNoSportsPsychologistDetected: "Geen sportpsycholoog gedetecteerd.",
   teamSpiritRefresh: "Teamgeest verversen",
   teamSpiritLoadingArchive: "Teamgeestwedstrijden van huidig seizoen laden...",
   teamSpiritLoadingDetails: "Details van gespeelde wedstrijden laden...",

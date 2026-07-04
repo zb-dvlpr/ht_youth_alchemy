@@ -866,9 +866,17 @@ export const messagesPl: Messages = {
   teamSpiritManuallyOverridden: "Nadpisane recznie",
   teamSpiritReset: "Resetuj",
   teamSpiritCoachLeadership: "Przywodztwo trenera",
-  teamSpiritCoachLeadershipActual: "Rzeczywiste: {{leadership}}",
+  teamSpiritCoachLeadershipActual: "Wykryte: {{leadership}}",
+  teamSpiritCoachLeadershipTooltip:
+    "Nadpisz te wartosc, aby zobaczyc, jak inny poziom przywodztwa trenera wplynalby na team spirit.",
+  teamSpiritCoachLeadershipInfoAria: "O nadpisywaniu przywodztwa trenera",
   teamSpiritSportsPsychologist: "Psycholog sportowy",
   teamSpiritSportsPsychologistLevel: "Poziom psychologa sportowego",
+  teamSpiritSportsPsychologistTooltip:
+    "Nawet jesli twoj zespol nie ma psychologa sportowego, mozesz go zasymulowac, aby zobaczyc wplyw na team spirit.",
+  teamSpiritSportsPsychologistInfoAria: "O symulacji psychologa sportowego",
+  teamSpiritSportsPsychologistLevelDetected: "Wykryte: {{level}}",
+  teamSpiritNoSportsPsychologistDetected: "Nie wykryto psychologa sportowego.",
   teamSpiritRefresh: "Odswiez team spirit",
   teamSpiritLoadingArchive: "Wczytywanie meczow team spirit z obecnego sezonu...",
   teamSpiritLoadingDetails: "Wczytywanie szczegolow zakonczonych meczow...",

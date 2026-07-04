@@ -1218,9 +1218,17 @@ export const messagesPt: Messages = {
     teamSpiritManuallyOverridden: "Substituido manualmente",
     teamSpiritReset: "Redefinir",
     teamSpiritCoachLeadership: "Liderança do treinador",
-    teamSpiritCoachLeadershipActual: "Atual: {{leadership}}",
+    teamSpiritCoachLeadershipActual: "Detectado: {{leadership}}",
+    teamSpiritCoachLeadershipTooltip:
+      "Substitua este valor para ver como outro nivel de liderança do treinador afetaria o espírito de equipe.",
+    teamSpiritCoachLeadershipInfoAria: "Sobre substituições da liderança do treinador",
     teamSpiritSportsPsychologist: "Psicólogo esportivo",
     teamSpiritSportsPsychologistLevel: "Nível do psicólogo esportivo",
+    teamSpiritSportsPsychologistTooltip:
+      "Mesmo que seu time não tenha psicólogo esportivo, você pode simular um para ver seu efeito no espírito de equipe.",
+    teamSpiritSportsPsychologistInfoAria: "Sobre simulação de psicólogo esportivo",
+    teamSpiritSportsPsychologistLevelDetected: "Detectado: {{level}}",
+    teamSpiritNoSportsPsychologistDetected: "Nenhum psicólogo esportivo detectado.",
     teamSpiritRefresh: "Atualizar espírito de equipe",
     teamSpiritLoadingArchive: "Carregando partidas de espirito de equipe da temporada...",
     teamSpiritLoadingDetails: "Carregando detalhes de partidas concluídas...",

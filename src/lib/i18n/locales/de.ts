@@ -1201,9 +1201,17 @@ export const messagesDe: Messages = {
     teamSpiritManuallyOverridden: "Manuell ueberschrieben",
     teamSpiritReset: "Zuruecksetzen",
     teamSpiritCoachLeadership: "Trainer-Fuehrung",
-    teamSpiritCoachLeadershipActual: "Tatsaechlich: {{leadership}}",
+    teamSpiritCoachLeadershipActual: "Erkannt: {{leadership}}",
+    teamSpiritCoachLeadershipTooltip:
+      "Ueberschreibe diesen Wert, um zu sehen, wie eine andere Trainer-Fuehrung die Teamstimmung beeinflussen wuerde.",
+    teamSpiritCoachLeadershipInfoAria: "Info zu Trainer-Fuehrungs-Ueberschreibungen",
     teamSpiritSportsPsychologist: "Sportpsychologe",
     teamSpiritSportsPsychologistLevel: "Sportpsychologenstufe",
+    teamSpiritSportsPsychologistTooltip:
+      "Auch wenn dein Team keinen Sportpsychologen hat, kannst du einen simulieren, um den Effekt auf die Teamstimmung zu sehen.",
+    teamSpiritSportsPsychologistInfoAria: "Info zur Sportpsychologen-Simulation",
+    teamSpiritSportsPsychologistLevelDetected: "Erkannt: {{level}}",
+    teamSpiritNoSportsPsychologistDetected: "Kein Sportpsychologe erkannt.",
     teamSpiritRefresh: "Teamstimmung aktualisieren",
     teamSpiritLoadingArchive: "Teamstimmungsspiele der aktuellen Saison werden geladen...",
     teamSpiritLoadingDetails: "Abgeschlossene Spieldetails werden geladen...",

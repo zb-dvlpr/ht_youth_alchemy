@@ -966,8 +966,14 @@ export type Messages = {
   teamSpiritReset: string;
   teamSpiritCoachLeadership: string;
   teamSpiritCoachLeadershipActual: string;
+  teamSpiritCoachLeadershipTooltip: string;
+  teamSpiritCoachLeadershipInfoAria: string;
   teamSpiritSportsPsychologist: string;
   teamSpiritSportsPsychologistLevel: string;
+  teamSpiritSportsPsychologistTooltip: string;
+  teamSpiritSportsPsychologistInfoAria: string;
+  teamSpiritSportsPsychologistLevelDetected: string;
+  teamSpiritNoSportsPsychologistDetected: string;
   teamSpiritRefresh: string;
   teamSpiritLoadingArchive: string;
   teamSpiritLoadingDetails: string;

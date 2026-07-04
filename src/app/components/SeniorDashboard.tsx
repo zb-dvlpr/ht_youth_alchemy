@@ -1857,6 +1857,7 @@ const seniorMetricInputMatches = (
     left.tsi === right.tsi &&
     left.salarySek === right.salarySek &&
     left.isAbroad === right.isAbroad &&
+    left.specialty === right.specialty &&
     left.form === right.form &&
     left.stamina === right.stamina &&
     left.keeper === right.keeper &&
@@ -17657,6 +17658,7 @@ const refreshDetailsForPlayers = async (
         tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
         salarySek: resolvedSalary,
         isAbroad: resolvedIsAbroad ?? undefined,
+        specialty: resultDetails?.Specialty ?? result.specialty,
         form: resolvedForm,
         stamina: resolvedStamina,
         keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,

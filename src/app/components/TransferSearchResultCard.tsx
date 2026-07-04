@@ -542,6 +542,7 @@ export default function TransferSearchResultCard({
     tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
     salarySek: resolvedSalary,
     isAbroad: resolvedIsAbroad ?? undefined,
+    specialty: specialtyValue ?? null,
     form: resolvedForm,
     stamina: resolvedStamina,
     keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,

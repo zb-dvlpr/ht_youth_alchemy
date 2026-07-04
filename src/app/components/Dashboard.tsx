@@ -4318,6 +4318,7 @@ export default function Dashboard({
             : typeof result.isAbroad === "boolean"
               ? result.isAbroad
               : undefined,
+        specialty: resultDetails?.Specialty ?? result.specialty,
         form: resolvedForm,
         stamina: resolvedStamina,
         keeper:

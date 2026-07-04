@@ -339,14 +339,13 @@ export default function SeniorTeamSpirit({
   const [settings, setSettings] = useState<SeniorTeamSpiritSettings | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [matchDetails, setMatchDetails] = useState<Record<string, MatchDetailState>>({});
-  const [matchDetailsLoadingCount, setMatchDetailsLoadingCount] = useState(0);
   const [refreshNonce, setRefreshNonce] = useState(0);
-  const requestedMatchDetailKeysRef = useRef<Set<string>>(new Set());
-  const matchDetailsRef = useRef<Record<string, MatchDetailState>>({});
-  const completedMatchesByKeyRef = useRef<Map<string, TeamSpiritMatch>>(new Map());
+  const matchDetailsRunIdRef = useRef(0);
+  const inFlightMatchDetailKeysRef = useRef<Set<string>>(new Set());
+  const currentMatchDetailsRef = useRef<Record<string, MatchDetailState>>({});
 
   useEffect(() => {
-    matchDetailsRef.current = matchDetails;
+    currentMatchDetailsRef.current = matchDetails;
   }, [matchDetails]);
 
   const upcomingSourceMatches = useMemo(
@@ -381,20 +380,18 @@ export default function SeniorTeamSpirit({
     () => finishedMatches.map(matchKey).join("|"),
     [finishedMatches]
   );
-
-  useEffect(() => {
+  const finishedMatchesByKey = useMemo(() => {
     const map = new Map<string, TeamSpiritMatch>();
     for (const match of finishedMatches) map.set(matchKey(match), match);
-    completedMatchesByKeyRef.current = map;
-  }, [finishedMatches, completedMatchKeysSignature]);
+    return map;
+  }, [finishedMatches]);
 
   useEffect(() => {
     let cancelled = false;
-    requestedMatchDetailKeysRef.current.clear();
-    matchDetailsRef.current = {};
-    completedMatchesByKeyRef.current = new Map();
+    matchDetailsRunIdRef.current += 1;
+    inFlightMatchDetailKeysRef.current.clear();
+    currentMatchDetailsRef.current = {};
     setMatchDetails({});
-    setMatchDetailsLoadingCount(0);
     setArchiveMatches([]);
     setFetchedPsychologistLevel(null);
     setFetchedCoachLeadership(null);
@@ -504,30 +501,64 @@ export default function SeniorTeamSpirit({
   }, [teamId, currentSeason, refreshNonce, defaultCoachLeadership]);
 
   useEffect(() => {
-    if (!teamId || !completedMatchKeysSignature) return;
-    let cancelled = false;
-    const matchesToRequest = completedMatchKeysSignature
+    const runId = matchDetailsRunIdRef.current + 1;
+    matchDetailsRunIdRef.current = runId;
+    const inFlightMatchDetailKeys = inFlightMatchDetailKeysRef.current;
+    inFlightMatchDetailKeys.clear();
+
+    const finishedKeys = completedMatchKeysSignature
       .split("|")
-      .map((key) => completedMatchesByKeyRef.current.get(key) ?? null)
-      .filter((match): match is TeamSpiritMatch => Boolean(match))
-      .filter((match) => {
-        const key = matchKey(match);
-        const existing = matchDetailsRef.current[key];
-        return (
-          !requestedMatchDetailKeysRef.current.has(key) &&
-          existing?.status !== "success" &&
-          existing?.status !== "error"
-        );
+      .filter(Boolean);
+    const currentKeys = new Set(finishedKeys);
+
+    setMatchDetails((current) => {
+      const next: Record<string, MatchDetailState> = {};
+      for (const key of currentKeys) {
+        const existing = current[key];
+        if (existing?.status === "success" || existing?.status === "error") {
+          next[key] = existing;
+        }
+      }
+      return next;
+    });
+
+    if (!teamId || !currentSeason || finishedKeys.length === 0) {
+      return () => {
+        if (matchDetailsRunIdRef.current === runId) {
+          matchDetailsRunIdRef.current += 1;
+          inFlightMatchDetailKeys.clear();
+        }
+      };
+    }
+
+    const matchesToRequest = finishedKeys
+      .map((key) => finishedMatchesByKey.get(key) ?? null)
+      .filter((match): match is TeamSpiritMatch => {
+        if (!match) return false;
+        const existing = currentMatchDetailsRef.current[matchKey(match)];
+        return existing?.status !== "success" && existing?.status !== "error";
       });
-    if (matchesToRequest.length === 0) return;
-    setMatchDetailsLoadingCount((current) => current + matchesToRequest.length);
+
+    if (matchesToRequest.length === 0) {
+      return () => {
+        if (matchDetailsRunIdRef.current === runId) {
+          matchDetailsRunIdRef.current += 1;
+          inFlightMatchDetailKeys.clear();
+        }
+      };
+    }
+
+    const controller = new AbortController();
     for (const match of matchesToRequest) {
-      requestedMatchDetailKeysRef.current.add(matchKey(match));
+      inFlightMatchDetailKeys.add(matchKey(match));
     }
     setMatchDetails((current) => {
       const next = { ...current };
       for (const match of matchesToRequest) {
-        next[matchKey(match)] = { status: "loading", attitude: null };
+        const key = matchKey(match);
+        if (next[key]?.status !== "success" && next[key]?.status !== "error") {
+          next[key] = { status: "loading", attitude: null };
+        }
       }
       return next;
     });
@@ -535,7 +566,7 @@ export default function SeniorTeamSpirit({
     const run = async () => {
       const queue = [...matchesToRequest];
       const workers = Array.from({ length: Math.min(4, queue.length) }, async () => {
-        while (queue.length > 0 && !cancelled) {
+        while (queue.length > 0) {
           const match = queue.shift();
           if (!match) return;
           const key = matchKey(match);
@@ -544,7 +575,7 @@ export default function SeniorTeamSpirit({
               `/api/chpp/matchdetails?matchId=${match.MatchID}&sourceSystem=${encodeURIComponent(
                 match.SourceSystem
               )}&matchEvents=false`,
-              { cache: "no-store" }
+              { cache: "no-store", signal: controller.signal }
             );
             if (!response.ok) {
               throw new Error(
@@ -596,28 +627,48 @@ export default function SeniorTeamSpirit({
               throw new Error(messages.teamSpiritSelectedTeamNotInMatch);
             }
             const attitude = parseApiTeamAttitude(rawAttitude);
-            if (cancelled) return;
+            if (matchDetailsRunIdRef.current !== runId) {
+              if (process.env.NODE_ENV !== "production") {
+                console.debug("[TeamSpirit] stale matchdetails success ignored", {
+                  runId,
+                  key,
+                  matchId: match.MatchID,
+                  sourceSystem: match.SourceSystem,
+                });
+              }
+              continue;
+            }
+            inFlightMatchDetailKeys.delete(key);
             setMatchDetails((current) => ({
               ...current,
               [key]: { status: "success", attitude },
             }));
           } catch (error) {
-            if (cancelled) return;
+            if (matchDetailsRunIdRef.current !== runId) {
+              if (process.env.NODE_ENV !== "production") {
+                console.debug("[TeamSpirit] stale matchdetails error ignored", {
+                  runId,
+                  key,
+                  matchId: match.MatchID,
+                  sourceSystem: match.SourceSystem,
+                });
+              }
+              continue;
+            }
+            inFlightMatchDetailKeys.delete(key);
             setMatchDetails((current) => ({
               ...current,
               [key]: {
                 status: "error",
                 attitude: null,
                 error:
-                  error instanceof Error
+                  controller.signal.aborted
+                    ? messages.teamSpiritLoadMatchDetailsFailed
+                    : error instanceof Error
                     ? error.message
                     : messages.teamSpiritLoadMatchDetailsFailed,
               },
             }));
-          } finally {
-            if (!cancelled) {
-              setMatchDetailsLoadingCount((current) => Math.max(0, current - 1));
-            }
           }
         }
       });
@@ -625,11 +676,17 @@ export default function SeniorTeamSpirit({
     };
     void run();
     return () => {
-      cancelled = true;
+      if (matchDetailsRunIdRef.current === runId) {
+        matchDetailsRunIdRef.current += 1;
+        inFlightMatchDetailKeys.clear();
+      }
+      controller.abort();
     };
   }, [
     teamId,
+    currentSeason,
     completedMatchKeysSignature,
+    finishedMatchesByKey,
     refreshNonce,
     messages.teamSpiritLoadMatchDetailsFailed,
     messages.teamSpiritSelectedTeamNotInMatch,
@@ -728,7 +785,9 @@ export default function SeniorTeamSpirit({
     );
   }
 
-  const detailsLoading = matchDetailsLoadingCount > 0;
+  const detailsLoading = finishedMatches.some(
+    (match) => matchDetails[matchKey(match)]?.status === "loading"
+  );
   const currentOverrideValue =
     settings?.currentTeamSpiritOverride === null || settings?.currentTeamSpiritOverride === undefined
       ? "calculated"
@@ -755,8 +814,9 @@ export default function SeniorTeamSpirit({
           type="button"
           className={styles.sortToggle}
           onClick={() => {
-            requestedMatchDetailKeysRef.current.clear();
-            matchDetailsRef.current = {};
+            matchDetailsRunIdRef.current += 1;
+            inFlightMatchDetailKeysRef.current.clear();
+            currentMatchDetailsRef.current = {};
             setMatchDetails({});
             setArchiveMatches([]);
             setRefreshNonce((current) => current + 1);

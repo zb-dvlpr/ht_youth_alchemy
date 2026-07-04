@@ -942,7 +942,7 @@ export default function SeniorTeamSpirit({
                   ) : (
                     <>
                       <div className={styles.teamSpiritStatRow}>
-                        <span>{messages.teamSpiritBefore}</span>
+                        <span>{messages.teamSpiritBeforeMatch}</span>
                         <strong>
                           {row.before !== null
                             ? formatTeamSpirit(row.before)

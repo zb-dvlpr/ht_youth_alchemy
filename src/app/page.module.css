@@ -10905,103 +10905,119 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .teamSpiritStats {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   margin-top: 4px;
+  min-width: 0;
 }
 
 .teamSpiritStatRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, auto);
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
   font-size: 13px;
 }
 
-.teamSpiritStatRow span {
-  color: #6b6256;
+.teamSpiritStatRow > span {
+  min-width: 0;
+  color: #5b5147;
+  font-weight: 700;
 }
 
-.teamSpiritStatRow strong {
+.teamSpiritStatRow > strong,
+.teamSpiritStatRow > select {
+  justify-self: end;
+  max-width: 100%;
+}
+
+.teamSpiritStatRow > select {
+  min-width: min(120px, 100%);
+}
+
+.teamSpiritStatRow > strong {
   color: #2d261f;
+  font-weight: 800;
   text-align: right;
 }
 
 .teamSpiritCompletedTable {
   width: 100%;
   border-collapse: collapse;
-  overflow: hidden;
-  border: 1px solid rgba(83, 70, 53, 0.14);
-  border-radius: 8px;
+  margin-top: 2px;
   font-size: 13px;
 }
 
 .teamSpiritCompletedTable th,
 .teamSpiritCompletedTable td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(83, 70, 53, 0.1);
+  padding: 8px 0;
+  border-top: 1px solid rgba(83, 70, 53, 0.12);
 }
 
 .teamSpiritCompletedTable tr:last-child th,
 .teamSpiritCompletedTable tr:last-child td {
-  border-bottom: 0;
+  border-bottom: 1px solid rgba(83, 70, 53, 0.12);
 }
 
 .teamSpiritCompletedTable th {
-  width: 36%;
-  color: #6b6256;
-  font-weight: 600;
+  width: 42%;
+  color: #5b5147;
+  font-weight: 700;
   text-align: left;
 }
 
 .teamSpiritCompletedTable td {
   color: #2d261f;
-  font-weight: 700;
+  font-weight: 800;
   text-align: right;
 }
 
 .teamSpiritMidfieldTable {
   width: 100%;
+  margin-top: 10px;
   border-collapse: collapse;
   table-layout: fixed;
-  overflow: hidden;
-  border: 1px solid rgba(83, 70, 53, 0.14);
-  border-radius: 8px;
+  border-top: 1px solid rgba(83, 70, 53, 0.18);
+  border-bottom: 1px solid rgba(83, 70, 53, 0.18);
+  background: rgba(255, 250, 242, 0.56);
   font-size: 13px;
 }
 
 .teamSpiritMidfieldTable th,
 .teamSpiritMidfieldTable td {
-  padding: 7px 10px;
-  border-bottom: 1px solid rgba(83, 70, 53, 0.1);
-}
-
-.teamSpiritMidfieldTable tr:last-child th,
-.teamSpiritMidfieldTable tr:last-child td {
-  border-bottom: 0;
+  padding: 8px 10px;
 }
 
 .teamSpiritMidfieldTable thead th {
   background: rgba(242, 239, 233, 0.84);
   color: #6b6256;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   text-align: left;
+  border-bottom: 1px solid rgba(83, 70, 53, 0.16);
 }
 
 .teamSpiritMidfieldTable thead th:last-child {
   text-align: right;
 }
 
+.teamSpiritMidfieldTable tbody th,
+.teamSpiritMidfieldTable tbody td {
+  border-top: 1px solid rgba(83, 70, 53, 0.1);
+}
+
 .teamSpiritMidfieldTable tbody th {
   color: #4a3b2b;
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
 }
 
 .teamSpiritMidfieldTable tbody td {
   color: #2d261f;
-  font-weight: 700;
+  font-weight: 800;
   text-align: right;
 }
 

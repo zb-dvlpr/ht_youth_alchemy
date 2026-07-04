@@ -48,6 +48,8 @@ type MatchDetailState = {
   error?: string | null;
 };
 
+type TeamSpiritBlockReason = "missingFinishedAttitude" | "matchInProgress";
+
 type TimelineRow = {
   match: TeamSpiritMatch;
   attitude: TeamSpiritAttitude | null;
@@ -57,6 +59,7 @@ type TimelineRow = {
   recoveryDays: number | null;
   afterRecovery: number | null;
   uncertain: boolean;
+  blockedReason: TeamSpiritBlockReason | null;
 };
 
 const SEASON_START_TEAM_SPIRIT = 4.5;
@@ -142,9 +145,40 @@ function normalizeTimelineMatch(match: Match): TeamSpiritMatch | null {
   };
 }
 
-function isCompletedMatch(match: TeamSpiritMatch) {
-  if (match.Status === "FINISHED") return true;
-  return match.sortTime < Date.now() && match.Status !== "UPCOMING";
+function normalizeMatchStatus(value: unknown): string {
+  return String(value ?? "").trim().toUpperCase();
+}
+
+function isInProgressMatch(match: TeamSpiritMatch) {
+  const status = normalizeMatchStatus(match.Status);
+  return (
+    status === "ONGOING" ||
+    status === "IN_PROGRESS" ||
+    status === "LIVE" ||
+    status === "PLAYING"
+  );
+}
+
+function isUpcomingMatch(match: TeamSpiritMatch) {
+  const status = normalizeMatchStatus(match.Status);
+  if (status === "UPCOMING") return true;
+  if (
+    status === "FINISHED" ||
+    status === "ONGOING" ||
+    status === "IN_PROGRESS" ||
+    status === "LIVE" ||
+    status === "PLAYING"
+  ) {
+    return false;
+  }
+  return match.sortTime >= Date.now();
+}
+
+function isFinishedMatch(match: TeamSpiritMatch) {
+  const status = normalizeMatchStatus(match.Status);
+  if (status === "FINISHED") return true;
+  if (isInProgressMatch(match) || isUpcomingMatch(match)) return false;
+  return match.sortTime < Date.now();
 }
 
 function fullElapsedDays(fromTime: number, toTime: number) {
@@ -196,9 +230,9 @@ function matchTypeLabel(messages: Messages, match: TeamSpiritMatch) {
 }
 
 function matchStatusLabel(messages: Messages, match: TeamSpiritMatch) {
-  if (isCompletedMatch(match)) return messages.matchStatusFinished;
-  if (match.Status === "UPCOMING") return messages.matchStatusUpcoming;
-  if (match.Status === "ONGOING") return messages.matchStatusOngoing;
+  if (isFinishedMatch(match)) return messages.matchStatusFinished;
+  if (isUpcomingMatch(match)) return messages.matchStatusUpcoming;
+  if (isInProgressMatch(match)) return messages.matchStatusOngoing;
   return match.Status ?? messages.matchStatusUpcoming;
 }
 
@@ -223,14 +257,22 @@ function buildDefaultSettings(teamId: number, season: number): SeniorTeamSpiritS
 function calculateRows(input: {
   matches: TeamSpiritMatch[];
   initialTeamSpirit: number | null;
+  initialBlockedReason?: TeamSpiritBlockReason | null;
   attitudes: (match: TeamSpiritMatch) => TeamSpiritAttitude | null;
   coachLeadership: CoachLeadership;
   sportsPsychologistLevel: number;
-}): { rows: TimelineRow[]; finalTeamSpirit: number | null } {
+}): {
+  rows: TimelineRow[];
+  finalTeamSpirit: number | null;
+  blockedReason: TeamSpiritBlockReason | null;
+} {
   let current = input.initialTeamSpirit;
+  let blockedReason = input.initialBlockedReason ?? null;
   let uncertain = current === null;
   const rows = input.matches.map((match, index) => {
-    const attitude = input.attitudes(match);
+    const inProgress = isInProgressMatch(match);
+    const finished = isFinishedMatch(match);
+    const attitude = inProgress ? null : input.attitudes(match);
     const before = current;
     const midfieldPercent =
       before !== null && attitude ? calculateMidfieldPercent(before, attitude) : null;
@@ -247,10 +289,20 @@ function calculateRows(input: {
             input.sportsPsychologistLevel
           )
         : null;
-    const rowUncertain = uncertain || !attitude;
-    if (!attitude) {
+    const rowBlockedReason = inProgress
+      ? "matchInProgress"
+      : !attitude && finished
+      ? "missingFinishedAttitude"
+      : blockedReason;
+    const rowUncertain = uncertain || Boolean(rowBlockedReason);
+    if (inProgress) {
       current = null;
       uncertain = true;
+      blockedReason = "matchInProgress";
+    } else if (!attitude) {
+      current = null;
+      uncertain = true;
+      if (finished) blockedReason = "missingFinishedAttitude";
     } else {
       current = afterRecovery ?? after;
     }
@@ -263,9 +315,10 @@ function calculateRows(input: {
       recoveryDays,
       afterRecovery,
       uncertain: rowUncertain,
+      blockedReason: rowBlockedReason,
     };
   });
-  return { rows, finalTeamSpirit: current };
+  return { rows, finalTeamSpirit: current, blockedReason };
 }
 
 export default function SeniorTeamSpirit({
@@ -310,29 +363,30 @@ export default function SeniorTeamSpirit({
     for (const match of archiveMatches) map.set(matchKey(match), match);
     for (const match of upcomingSourceMatches) {
       const key = matchKey(match);
-      if (!isCompletedMatch(match) || !map.has(key)) map.set(key, match);
+      if (!isFinishedMatch(match) || !map.has(key)) map.set(key, match);
     }
     return [...map.values()].sort((a, b) => a.sortTime - b.sortTime);
   }, [archiveMatches, upcomingSourceMatches]);
 
-  const completedMatches = useMemo(
-    () => timelineMatches.filter(isCompletedMatch),
+  const knownMatches = useMemo(
+    () => timelineMatches.filter((match) => !isUpcomingMatch(match)),
     [timelineMatches]
   );
+  const finishedMatches = useMemo(() => timelineMatches.filter(isFinishedMatch), [timelineMatches]);
   const upcomingMatches = useMemo(
-    () => timelineMatches.filter((match) => !isCompletedMatch(match)),
+    () => timelineMatches.filter(isUpcomingMatch),
     [timelineMatches]
   );
   const completedMatchKeysSignature = useMemo(
-    () => completedMatches.map(matchKey).join("|"),
-    [completedMatches]
+    () => finishedMatches.map(matchKey).join("|"),
+    [finishedMatches]
   );
 
   useEffect(() => {
     const map = new Map<string, TeamSpiritMatch>();
-    for (const match of completedMatches) map.set(matchKey(match), match);
+    for (const match of finishedMatches) map.set(matchKey(match), match);
     completedMatchesByKeyRef.current = map;
-  }, [completedMatches, completedMatchKeysSignature]);
+  }, [finishedMatches, completedMatchKeysSignature]);
 
   useEffect(() => {
     let cancelled = false;
@@ -608,24 +662,27 @@ export default function SeniorTeamSpirit({
     : 0;
 
   const completedRowsResult = useMemo(() => {
-    const rows = calculateRows({
-      matches: completedMatches,
+    const result = calculateRows({
+      matches: knownMatches,
       initialTeamSpirit: SEASON_START_TEAM_SPIRIT,
       attitudes: (match) => matchDetails[matchKey(match)]?.attitude ?? null,
       coachLeadership: effectiveCoachLeadership,
       sportsPsychologistLevel: effectiveSportsPsychologistLevel,
-    }).rows;
-    const completedRows = rows;
+    });
+    const completedRows = result.rows;
     const lastCompleted = completedRows[completedRows.length - 1] ?? null;
     return {
       rows: completedRows,
       calculatedCurrentTeamSpirit:
-        completedMatches.length === 0
+        knownMatches.length === 0
           ? SEASON_START_TEAM_SPIRIT
+          : result.blockedReason
+          ? null
           : lastCompleted?.after ?? null,
+      calculatedCurrentUnavailableReason: result.blockedReason,
     };
   }, [
-    completedMatches,
+    knownMatches,
     effectiveCoachLeadership,
     effectiveSportsPsychologistLevel,
     matchDetails,
@@ -639,6 +696,11 @@ export default function SeniorTeamSpirit({
     return calculateRows({
       matches: upcomingMatches,
       initialTeamSpirit: projectedCurrentTeamSpirit,
+      initialBlockedReason:
+        settings?.currentTeamSpiritOverride === null ||
+        settings?.currentTeamSpiritOverride === undefined
+          ? completedRowsResult.calculatedCurrentUnavailableReason
+          : null,
       attitudes: (match) => settings?.upcomingAttitudes[matchKey(match)] ?? "PIN",
       coachLeadership: effectiveCoachLeadership,
       sportsPsychologistLevel: effectiveSportsPsychologistLevel,
@@ -646,7 +708,9 @@ export default function SeniorTeamSpirit({
   }, [
     effectiveCoachLeadership,
     effectiveSportsPsychologistLevel,
+    completedRowsResult.calculatedCurrentUnavailableReason,
     projectedCurrentTeamSpirit,
+    settings?.currentTeamSpiritOverride,
     settings?.upcomingAttitudes,
     upcomingMatches,
   ]);
@@ -670,7 +734,9 @@ export default function SeniorTeamSpirit({
       ? "calculated"
       : String(settings.currentTeamSpiritOverride);
   const calculatedCurrentLabel =
-    completedRowsResult.calculatedCurrentTeamSpirit !== null
+    completedRowsResult.calculatedCurrentUnavailableReason === "matchInProgress"
+      ? messages.teamSpiritCalculatedUnavailableMatchInProgress
+      : completedRowsResult.calculatedCurrentTeamSpirit !== null
       ? messages.teamSpiritCalculatedCurrent.replace(
           "{{value}}",
           formatTeamSpirit(completedRowsResult.calculatedCurrentTeamSpirit)
@@ -864,11 +930,17 @@ export default function SeniorTeamSpirit({
         <ul className={styles.matchList}>
           {rows.map((row) => {
             const key = matchKey(row.match);
-            const completed = isCompletedMatch(row.match);
+            const finished = isFinishedMatch(row.match);
+            const inProgress = isInProgressMatch(row.match);
+            const upcoming = isUpcomingMatch(row.match);
             const detail = matchDetails[key];
             const matchTitle = `${row.match.HomeTeam?.HomeTeamName ?? messages.homeLabel} vs ${
               row.match.AwayTeam?.AwayTeamName ?? messages.awayLabel
             }`;
+            const unavailableValue =
+              row.blockedReason === "matchInProgress"
+                ? messages.teamSpiritUnavailableMatchInProgress
+                : messages.teamSpiritCalculationUnavailable;
             return (
               <li key={key} className={styles.matchItem}>
                 <a
@@ -886,8 +958,12 @@ export default function SeniorTeamSpirit({
                 </div>
                 <div className={styles.teamSpiritStats}>
                   <div className={styles.teamSpiritStatRow}>
-                    <span>{messages.teamSpiritAttitude}</span>
-                    {completed ? (
+                    <span>
+                      {upcoming
+                        ? messages.teamSpiritAttitudeToBeUsed
+                        : messages.teamSpiritAttitudeUsed}
+                    </span>
+                    {finished ? (
                       <strong>
                         {detail?.status === "loading"
                           ? messages.teamSpiritLoadingDetails
@@ -897,6 +973,8 @@ export default function SeniorTeamSpirit({
                           ? attitudeLabel(messages, row.attitude)
                           : messages.teamSpiritMissingTeamAttitude}
                       </strong>
+                    ) : inProgress ? (
+                      <strong>{messages.teamSpiritUnavailableMatchInProgress}</strong>
                     ) : (
                       <select
                         className={styles.sortSelect}
@@ -918,7 +996,7 @@ export default function SeniorTeamSpirit({
                       </select>
                     )}
                   </div>
-                  {completed ? (
+                  {!upcoming ? (
                     <table className={styles.teamSpiritCompletedTable}>
                       <tbody>
                         <tr>
@@ -926,7 +1004,7 @@ export default function SeniorTeamSpirit({
                           <td>
                             {row.before !== null
                               ? formatTeamSpirit(row.before)
-                              : messages.teamSpiritCalculationUnavailable}
+                              : unavailableValue}
                           </td>
                         </tr>
                         <tr>
@@ -934,7 +1012,7 @@ export default function SeniorTeamSpirit({
                           <td>
                             {row.after !== null
                               ? formatTeamSpirit(row.after)
-                              : messages.teamSpiritCalculationUnavailable}
+                              : unavailableValue}
                           </td>
                         </tr>
                       </tbody>
@@ -946,7 +1024,7 @@ export default function SeniorTeamSpirit({
                         <strong>
                           {row.before !== null
                             ? formatTeamSpirit(row.before)
-                            : messages.teamSpiritCalculationUnavailable}
+                            : unavailableValue}
                         </strong>
                       </div>
                       <div className={styles.teamSpiritStatRow}>
@@ -954,7 +1032,7 @@ export default function SeniorTeamSpirit({
                         <strong>
                           {row.after !== null
                             ? formatTeamSpirit(row.after)
-                            : messages.teamSpiritCalculationUnavailable}
+                            : unavailableValue}
                         </strong>
                       </div>
                       <table className={styles.teamSpiritMidfieldTable}>
@@ -992,12 +1070,16 @@ export default function SeniorTeamSpirit({
                     {messages.teamSpiritLoadMatchDetailsFailed}: {detail.error}
                   </p>
                 ) : null}
-                {completed && detail?.status === "success" && !detail.attitude ? (
+                {finished && detail?.status === "success" && !detail.attitude ? (
                   <p className={styles.teamSpiritWarning}>
                     {messages.teamSpiritMissingTeamAttitude}
                   </p>
                 ) : null}
-                {row.uncertain ? (
+                {row.blockedReason === "matchInProgress" ? (
+                  <p className={styles.teamSpiritWarning}>
+                    {messages.teamSpiritCalculationUnavailableMatchInProgress}
+                  </p>
+                ) : row.uncertain ? (
                   <p className={styles.teamSpiritWarning}>{messages.teamSpiritCalculationUncertain}</p>
                 ) : null}
               </li>

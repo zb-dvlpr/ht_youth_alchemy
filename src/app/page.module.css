@@ -10862,6 +10862,39 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   min-width: 0;
 }
 
+.teamSpiritControlLabelWithInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.teamSpiritInfoButton {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid rgba(83, 70, 53, 0.28);
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #5b5147;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.teamSpiritInfoButton:hover,
+.teamSpiritInfoButton:focus-visible {
+  border-color: rgba(83, 70, 53, 0.48);
+  background: #f7efe2;
+  color: #2d261f;
+  outline: 2px solid rgba(154, 90, 0, 0.22);
+  outline-offset: 2px;
+}
+
 .teamSpiritOverrideMeta {
   display: flex;
   align-items: center;

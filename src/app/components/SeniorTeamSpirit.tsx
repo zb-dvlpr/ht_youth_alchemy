@@ -26,6 +26,7 @@ import {
   type SeniorTeamSpiritSettings,
 } from "@/lib/seniorTeamSpiritStorage";
 import type { Match, MatchesResponse } from "./UpcomingMatches";
+import Tooltip from "./Tooltip";
 
 type SeniorTeamSpiritProps = {
   matchesResponse: MatchesResponse;
@@ -830,7 +831,22 @@ export default function SeniorTeamSpirit({
       <div className={styles.teamSpiritControls}>
         <div className={styles.teamSpiritControlRow}>
           <label className={styles.teamSpiritControl}>
-            <span>{messages.teamSpiritCurrentTeamSpirit}</span>
+            <span className={styles.teamSpiritControlLabelWithInfo}>
+              <span>{messages.teamSpiritCurrentTeamSpirit}</span>
+              <Tooltip content={messages.teamSpiritCurrentTeamSpiritTooltip}>
+                <button
+                  type="button"
+                  className={styles.teamSpiritInfoButton}
+                  aria-label={messages.teamSpiritCurrentTeamSpiritInfoAria}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
+                  i
+                </button>
+              </Tooltip>
+            </span>
             <select
               className={styles.sortSelect}
               value={currentOverrideValue}

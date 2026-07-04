@@ -862,6 +862,9 @@ export const messagesNl: Messages = {
   seniorMatchesUpcomingTab: "Komende wedstrijden",
   seniorMatchesTeamSpiritTab: "Teamgeest",
   teamSpiritCurrentTeamSpirit: "Huidige teamgeest",
+  teamSpiritCurrentTeamSpiritTooltip:
+    "Overschrijf deze waarde handmatig als je teamgeest is beinvloed door een spelersverkoop. Deze informatie is niet beschikbaar via CHPP.",
+  teamSpiritCurrentTeamSpiritInfoAria: "Informatie over huidige teamgeest",
   teamSpiritCalculatedCurrent: "Berekend: {{value}}",
   teamSpiritCalculatedUnavailable: "Berekende waarde niet beschikbaar",
   teamSpiritSelectedTeamNotInMatch:

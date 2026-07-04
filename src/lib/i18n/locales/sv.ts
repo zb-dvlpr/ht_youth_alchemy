@@ -1195,6 +1195,9 @@ export const messagesSv: Messages = {
     seniorMatchesUpcomingTab: "Kommande matcher",
     seniorMatchesTeamSpiritTab: "Laganda",
     teamSpiritCurrentTeamSpirit: "Aktuell laganda",
+    teamSpiritCurrentTeamSpiritTooltip:
+      "Andra detta varde manuellt om din laganda har paverkats av en spelarfoersaljning. Denna information ar inte tillganglig via CHPP.",
+    teamSpiritCurrentTeamSpiritInfoAria: "Information om aktuell laganda",
     teamSpiritCalculatedCurrent: "Beraknad: {{value}}",
     teamSpiritCalculatedUnavailable: "Beraknat varde inte tillgangligt",
     teamSpiritSelectedTeamNotInMatch:

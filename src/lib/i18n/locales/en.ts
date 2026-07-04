@@ -1156,6 +1156,9 @@ export const messagesEn: Messages = {
     seniorMatchesUpcomingTab: "Upcoming matches",
     seniorMatchesTeamSpiritTab: "Team spirit",
     teamSpiritCurrentTeamSpirit: "Current team spirit",
+    teamSpiritCurrentTeamSpiritTooltip:
+      "Override this value manually if your team spirit has been affected by a player sale. This information is not available via CHPP.",
+    teamSpiritCurrentTeamSpiritInfoAria: "Current team spirit information",
     teamSpiritCalculatedCurrent: "Calculated: {{value}}",
     teamSpiritCalculatedUnavailable: "Calculated value unavailable",
     teamSpiritSelectedTeamNotInMatch:

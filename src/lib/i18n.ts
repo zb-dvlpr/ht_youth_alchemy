@@ -957,6 +957,8 @@ export type Messages = {
   seniorMatchesUpcomingTab: string;
   seniorMatchesTeamSpiritTab: string;
   teamSpiritCurrentTeamSpirit: string;
+  teamSpiritCurrentTeamSpiritTooltip: string;
+  teamSpiritCurrentTeamSpiritInfoAria: string;
   teamSpiritCalculatedCurrent: string;
   teamSpiritCalculatedUnavailable: string;
   teamSpiritSelectedTeamNotInMatch: string;

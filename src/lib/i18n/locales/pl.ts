@@ -856,6 +856,9 @@ export const messagesPl: Messages = {
   seniorMatchesUpcomingTab: "Nadchodzace mecze",
   seniorMatchesTeamSpiritTab: "Team spirit",
   teamSpiritCurrentTeamSpirit: "Obecny team spirit",
+  teamSpiritCurrentTeamSpiritTooltip:
+    "Nadpisz te wartosc recznie, jesli team spirit zostal zmieniony przez sprzedaz zawodnika. Ta informacja nie jest dostepna przez CHPP.",
+  teamSpiritCurrentTeamSpiritInfoAria: "Informacja o obecnym team spirit",
   teamSpiritCalculatedCurrent: "Obliczone: {{value}}",
   teamSpiritCalculatedUnavailable: "Obliczona wartosc niedostepna",
   teamSpiritSelectedTeamNotInMatch:

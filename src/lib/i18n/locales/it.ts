@@ -1326,7 +1326,6 @@ export const messagesIt: Messages = {
     matchType106: "Amichevole giovanile int. (coppa)",
     matchType107: "Riservato",
     vsLabel: "contro",
-    seniorPredictedRatingsTitle: "Valutazioni previste",
     seniorPredictedRatingsLeftDef: "Dif sin",
     seniorPredictedRatingsMidDef: "Dif cen",
     seniorPredictedRatingsRightDef: "Dif des",

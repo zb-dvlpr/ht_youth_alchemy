@@ -10764,23 +10764,21 @@ function buildSeniorAiManMarkingReadySignature(params: {
       className?: string
     ) => (
       <div
+        aria-label={label}
         className={
           className
             ? `${styles.seniorPredictedRatingsCell} ${className}`
             : styles.seniorPredictedRatingsCell
         }
+        title={label}
       >
-        <span>{label}</span>
-        <strong>{formatSeniorPredictedRating(value)}</strong>
+        {formatSeniorPredictedRating(value)}
       </div>
     );
 
     return (
       <div className={styles.seniorPredictedRatingsCard}>
         <div className={styles.seniorPredictedRatingsHeader}>
-          <div className={styles.seniorPredictedRatingsLabel}>
-            {messages.seniorPredictedRatingsTitle}
-          </div>
           <div className={styles.seniorPredictedRatingsMatchTitle}>
             {seniorRatingsMatchContext.displayTitle}
           </div>
@@ -10801,16 +10799,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
         ) : liveSeniorPredictedRatingsStatus === "ready" && liveSeniorPredictedRatings ? (
           <div className={styles.seniorPredictedRatingsGrid}>
             {renderCell(
-              messages.seniorPredictedRatingsLeftDef,
-              liveSeniorPredictedRatings.ratingLeftDef
+              messages.seniorPredictedRatingsRightDef,
+              liveSeniorPredictedRatings.ratingRightDef
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidDef,
               liveSeniorPredictedRatings.ratingMidDef
             )}
             {renderCell(
-              messages.seniorPredictedRatingsRightDef,
-              liveSeniorPredictedRatings.ratingRightDef
+              messages.seniorPredictedRatingsLeftDef,
+              liveSeniorPredictedRatings.ratingLeftDef
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidfield,
@@ -10818,16 +10816,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
               styles.seniorPredictedRatingsMidfield
             )}
             {renderCell(
-              messages.seniorPredictedRatingsLeftOff,
-              liveSeniorPredictedRatings.ratingLeftAtt
+              messages.seniorPredictedRatingsRightOff,
+              liveSeniorPredictedRatings.ratingRightAtt
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidOff,
               liveSeniorPredictedRatings.ratingMidAtt
             )}
             {renderCell(
-              messages.seniorPredictedRatingsRightOff,
-              liveSeniorPredictedRatings.ratingRightAtt
+              messages.seniorPredictedRatingsLeftOff,
+              liveSeniorPredictedRatings.ratingLeftAtt
             )}
           </div>
         ) : null}

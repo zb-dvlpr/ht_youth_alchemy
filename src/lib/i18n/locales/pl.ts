@@ -1370,7 +1370,6 @@ export const messagesPl: Messages = {
   loadLineupError: "Błąd wczytywania składu",
   loadLineupTooltip: "Wczytaj zapisany skład z Hattrick dla tego meczu.",
   vsLabel: "przeciw",
-  seniorPredictedRatingsTitle: "Przewidywane oceny",
   seniorPredictedRatingsLeftDef: "Lew obr",
   seniorPredictedRatingsMidDef: "Sr obr",
   seniorPredictedRatingsRightDef: "Pr obr",

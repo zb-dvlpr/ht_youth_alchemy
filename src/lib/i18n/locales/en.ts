@@ -1274,7 +1274,6 @@ export const messagesEn: Messages = {
     matchType106: "Youth int’l friendly (cup)",
     matchType107: "Reserved",
     vsLabel: "vs",
-    seniorPredictedRatingsTitle: "Predicted ratings",
     seniorPredictedRatingsLeftDef: "Left def",
     seniorPredictedRatingsMidDef: "Mid def",
     seniorPredictedRatingsRightDef: "Right def",

@@ -1320,7 +1320,6 @@ export const messagesFr: Messages = {
     matchType106: "Amical jeunes int. (coupe)",
     matchType107: "Réservé",
     vsLabel: "contre",
-    seniorPredictedRatingsTitle: "Notes predites",
     seniorPredictedRatingsLeftDef: "Def gauche",
     seniorPredictedRatingsMidDef: "Def centre",
     seniorPredictedRatingsRightDef: "Def droite",

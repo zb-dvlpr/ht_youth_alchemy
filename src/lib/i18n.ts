@@ -1062,7 +1062,6 @@ export type Messages = {
   matchType106: string;
   matchType107: string;
   vsLabel: string;
-  seniorPredictedRatingsTitle: string;
   seniorPredictedRatingsLeftDef: string;
   seniorPredictedRatingsMidDef: string;
   seniorPredictedRatingsRightDef: string;

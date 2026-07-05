@@ -1376,7 +1376,6 @@ export const messagesNl: Messages = {
   loadLineupError: "Fout bij laden opstelling",
   loadLineupTooltip: "Laad de opgeslagen opstelling uit Hattrick voor deze wedstrijd.",
   vsLabel: "tegen",
-  seniorPredictedRatingsTitle: "Voorspelde ratings",
   seniorPredictedRatingsLeftDef: "Links verd",
   seniorPredictedRatingsMidDef: "Mid verd",
   seniorPredictedRatingsRightDef: "Rechts verd",

@@ -12851,9 +12851,9 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .seniorPredictedRatingsCard {
-  width: min(12rem, calc(100vw - 2rem));
-  max-width: 12rem;
-  padding: 0.4rem 0.45rem;
+  width: min(8.6rem, calc(100vw - 2rem));
+  max-width: 8.6rem;
+  padding: 0.34rem 0.38rem;
   border: 1px solid rgba(236, 243, 227, 0.34);
   border-radius: 8px;
   background: rgba(36, 58, 35, 0.82);
@@ -12867,14 +12867,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorPredictedRatingsHeader {
   display: grid;
   gap: 1px;
-  margin-bottom: 0.32rem;
-}
-
-.seniorPredictedRatingsLabel {
-  color: rgba(243, 247, 237, 0.72);
-  font-size: 0.58rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  margin-bottom: 0.26rem;
 }
 
 .seniorPredictedRatingsMatchTitle {
@@ -12902,30 +12895,22 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorPredictedRatingsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.18rem;
+  gap: 0.16rem;
 }
 
 .seniorPredictedRatingsCell {
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  gap: 1px;
-  padding: 0.18rem 0.2rem;
+  min-height: 1.25rem;
+  padding: 0.12rem 0.16rem;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.12);
-  text-align: center;
-}
-
-.seniorPredictedRatingsCell span {
-  overflow: hidden;
-  color: rgba(243, 247, 237, 0.72);
-  font-size: 0.56rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.seniorPredictedRatingsCell strong {
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .seniorPredictedRatingsMidfield {
@@ -14273,17 +14258,15 @@ html[data-mobile-shell="true"] .transferSearchResultsTable {
   }
 
   .seniorPredictedRatingsCard {
-    width: 9.6rem;
-    padding: 0.34rem 0.36rem;
+    width: 8rem;
+    padding: 0.3rem 0.32rem;
     font-size: 0.62rem;
   }
 
   .seniorPredictedRatingsCell {
-    padding: 0.14rem 0.16rem;
-  }
-
-  .seniorPredictedRatingsCell span {
-    font-size: 0.5rem;
+    min-height: 1.14rem;
+    padding: 0.1rem 0.12rem;
+    font-size: 0.66rem;
   }
 
   .topBar {

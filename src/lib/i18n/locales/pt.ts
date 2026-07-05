@@ -1325,7 +1325,6 @@ export const messagesPt: Messages = {
     matchType106: "Amigável juvenil int. (taça)",
     matchType107: "Reservado",
     vsLabel: "contra",
-    seniorPredictedRatingsTitle: "Previsoes de notas",
     seniorPredictedRatingsLeftDef: "Def esq",
     seniorPredictedRatingsMidDef: "Def cen",
     seniorPredictedRatingsRightDef: "Def dir",

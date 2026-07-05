@@ -1308,7 +1308,6 @@ export const messagesDe: Messages = {
     matchType106: "Jugend intl. Freundschaft (Pokal)",
     matchType107: "Reserviert",
     vsLabel: "gegen",
-    seniorPredictedRatingsTitle: "Prognostizierte Ratings",
     seniorPredictedRatingsLeftDef: "Linke Abw",
     seniorPredictedRatingsMidDef: "Zentr. Abw",
     seniorPredictedRatingsRightDef: "Rechte Abw",

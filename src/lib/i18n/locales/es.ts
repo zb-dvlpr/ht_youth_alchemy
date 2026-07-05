@@ -1322,7 +1322,6 @@ export const messagesEs: Messages = {
     matchType106: "Amistoso juvenil int. (copa)",
     matchType107: "Reservado",
     vsLabel: "vs",
-    seniorPredictedRatingsTitle: "Valoraciones previstas",
     seniorPredictedRatingsLeftDef: "Def izq",
     seniorPredictedRatingsMidDef: "Def cen",
     seniorPredictedRatingsRightDef: "Def der",

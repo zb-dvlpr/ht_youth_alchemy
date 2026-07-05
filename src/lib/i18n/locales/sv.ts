@@ -1312,7 +1312,6 @@ export const messagesSv: Messages = {
     matchType106: "Ungdom int. träningsmatch (cup)",
     matchType107: "Reserverad",
     vsLabel: "mot",
-    seniorPredictedRatingsTitle: "Prognostiserade betyg",
     seniorPredictedRatingsLeftDef: "Van def",
     seniorPredictedRatingsMidDef: "Mit def",
     seniorPredictedRatingsRightDef: "Hog def",

@@ -12895,6 +12895,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorPredictedRatingsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, auto);
   gap: 0.16rem;
 }
 
@@ -12913,8 +12914,39 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   text-align: center;
 }
 
+.seniorPredictedRatingsDefenseLeft {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.seniorPredictedRatingsDefenseCenter {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.seniorPredictedRatingsDefenseRight {
+  grid-column: 3;
+  grid-row: 1;
+}
+
 .seniorPredictedRatingsMidfield {
   grid-column: 2;
+  grid-row: 2;
+}
+
+.seniorPredictedRatingsAttackLeft {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.seniorPredictedRatingsAttackCenter {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.seniorPredictedRatingsAttackRight {
+  grid-column: 3;
+  grid-row: 3;
 }
 
 .lineupTrainingControlStack {

@@ -10800,15 +10800,18 @@ function buildSeniorAiManMarkingReadySignature(params: {
           <div className={styles.seniorPredictedRatingsGrid}>
             {renderCell(
               messages.seniorPredictedRatingsRightDef,
-              liveSeniorPredictedRatings.ratingRightDef
+              liveSeniorPredictedRatings.ratingRightDef,
+              styles.seniorPredictedRatingsDefenseLeft
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidDef,
-              liveSeniorPredictedRatings.ratingMidDef
+              liveSeniorPredictedRatings.ratingMidDef,
+              styles.seniorPredictedRatingsDefenseCenter
             )}
             {renderCell(
               messages.seniorPredictedRatingsLeftDef,
-              liveSeniorPredictedRatings.ratingLeftDef
+              liveSeniorPredictedRatings.ratingLeftDef,
+              styles.seniorPredictedRatingsDefenseRight
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidfield,
@@ -10817,15 +10820,18 @@ function buildSeniorAiManMarkingReadySignature(params: {
             )}
             {renderCell(
               messages.seniorPredictedRatingsRightOff,
-              liveSeniorPredictedRatings.ratingRightAtt
+              liveSeniorPredictedRatings.ratingRightAtt,
+              styles.seniorPredictedRatingsAttackLeft
             )}
             {renderCell(
               messages.seniorPredictedRatingsMidOff,
-              liveSeniorPredictedRatings.ratingMidAtt
+              liveSeniorPredictedRatings.ratingMidAtt,
+              styles.seniorPredictedRatingsAttackCenter
             )}
             {renderCell(
               messages.seniorPredictedRatingsLeftOff,
-              liveSeniorPredictedRatings.ratingLeftAtt
+              liveSeniorPredictedRatings.ratingLeftAtt,
+              styles.seniorPredictedRatingsAttackRight
             )}
           </div>
         ) : null}

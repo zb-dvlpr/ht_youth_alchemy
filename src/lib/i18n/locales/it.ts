@@ -248,6 +248,7 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_8_1_0: "Sono state implementate le valutazioni previste per le formazioni senior di partita.",
     changelog_8_0_0: "Calcolatore spirito di squadra implementato.",
     changelog_7_2_0: "Analisi avanzata della rosa avversaria implementata.",
     changelog_7_1_0:
@@ -1135,6 +1136,8 @@ export const messagesIt: Messages = {
       "Un nuovo confronto viene salvato solo quando un refresh rileva cambiamenti reali (per esempio nuovo giocatore, cambi di rating/skill, infortuni, cartellini, forma, resistenza o tratti).",
     seniorHelpBulletAiOverview:
       "Imposta formazione con IA applica la formazione piu efficace in base alle informazioni Hattrick disponibili, incluse le modalita con allenamento, ignora allenamento, tempi supplementari e formazione fissa.",
+    seniorHelpBulletPredictedRatings:
+      "Quando una formazione senior viene caricata o generata per una partita specifica, il campo mostra valutazioni previste live per quella partita appena l'undici iniziale ha 11 giocatori unici.",
     seniorHelpBulletAiTrainingAware:
       "Modalita con allenamento: rispetta il regime di allenamento corrente e privilegia formazioni che coprono gli slot di allenamento rilevanti.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1322,6 +1325,17 @@ export const messagesIt: Messages = {
     matchType105: "Amichevole giovanile int.",
     matchType106: "Amichevole giovanile int. (coppa)",
     matchType107: "Riservato",
+    vsLabel: "contro",
+    seniorPredictedRatingsTitle: "Valutazioni previste",
+    seniorPredictedRatingsLeftDef: "Dif sin",
+    seniorPredictedRatingsMidDef: "Dif cen",
+    seniorPredictedRatingsRightDef: "Dif des",
+    seniorPredictedRatingsMidfield: "Centrocampo",
+    seniorPredictedRatingsLeftOff: "Att sin",
+    seniorPredictedRatingsMidOff: "Att cen",
+    seniorPredictedRatingsRightOff: "Att des",
+    seniorPredictedRatingsUpdating: "Aggiornamento...",
+    seniorPredictedRatingsUnavailable: "Previsione non disponibile",
     submitOrders: "Invia formazione",
     submitOrdersPending: "Invio…",
     submitOrdersSuccess: "Ordini inviati",

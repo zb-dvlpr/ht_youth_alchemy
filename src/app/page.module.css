@@ -7336,6 +7336,11 @@ html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger:hover {
   background: rgba(36, 47, 34, 0.95);
 }
 
+html[data-theme="dark"] .seniorPredictedRatingsCard {
+  border-color: rgba(200, 222, 186, 0.28);
+  background: rgba(22, 38, 24, 0.88);
+}
+
 html[data-theme="dark"] .langSelect {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.12);
@@ -12837,6 +12842,96 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   z-index: 80;
 }
 
+.fieldTopRightOverlay {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 80;
+  pointer-events: auto;
+}
+
+.seniorPredictedRatingsCard {
+  width: min(12rem, calc(100vw - 2rem));
+  max-width: 12rem;
+  padding: 0.4rem 0.45rem;
+  border: 1px solid rgba(236, 243, 227, 0.34);
+  border-radius: 8px;
+  background: rgba(36, 58, 35, 0.82);
+  color: #f3f7ed;
+  box-shadow: 0 8px 20px rgba(16, 30, 18, 0.22);
+  backdrop-filter: blur(8px);
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+
+.seniorPredictedRatingsHeader {
+  display: grid;
+  gap: 1px;
+  margin-bottom: 0.32rem;
+}
+
+.seniorPredictedRatingsLabel {
+  color: rgba(243, 247, 237, 0.72);
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.seniorPredictedRatingsMatchTitle {
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seniorPredictedRatingsMatchSubtitle {
+  overflow: hidden;
+  color: rgba(243, 247, 237, 0.78);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seniorPredictedRatingsState {
+  color: rgba(243, 247, 237, 0.82);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.seniorPredictedRatingsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.18rem;
+}
+
+.seniorPredictedRatingsCell {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  padding: 0.18rem 0.2rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+
+.seniorPredictedRatingsCell span {
+  overflow: hidden;
+  color: rgba(243, 247, 237, 0.72);
+  font-size: 0.56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seniorPredictedRatingsCell strong {
+  color: #ffffff;
+  font-size: 0.7rem;
+}
+
+.seniorPredictedRatingsMidfield {
+  grid-column: 2;
+}
+
 .lineupTrainingControlStack {
   display: grid;
   gap: 4px;
@@ -14170,6 +14265,25 @@ html[data-mobile-shell="true"] .transferSearchResultsTable {
 
   .fieldPitch {
     min-height: 420px;
+  }
+
+  .fieldTopRightOverlay {
+    top: 4px;
+    right: 4px;
+  }
+
+  .seniorPredictedRatingsCard {
+    width: 9.6rem;
+    padding: 0.34rem 0.36rem;
+    font-size: 0.62rem;
+  }
+
+  .seniorPredictedRatingsCell {
+    padding: 0.14rem 0.16rem;
+  }
+
+  .seniorPredictedRatingsCell span {
+    font-size: 0.5rem;
   }
 
   .topBar {

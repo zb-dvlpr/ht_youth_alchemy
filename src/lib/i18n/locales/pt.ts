@@ -248,6 +248,7 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_8_1_0: "Foram implementadas previsoes de notas para escalacoes seniores de partida.",
     changelog_8_0_0: "Calculadora de espirito de equipe implementada.",
     changelog_7_2_0: "Analise melhorada do elenco adversario implementada.",
     changelog_7_1_0:
@@ -1134,6 +1135,8 @@ export const messagesPt: Messages = {
       "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
     seniorHelpBulletAiOverview:
       "Definir escalacao com IA aplica a escalacao mais eficaz com base nas informacoes disponiveis do Hattrick, incluindo os modos com treino, ignorar treino, prorrogação e formacao fixa.",
+    seniorHelpBulletPredictedRatings:
+      "Quando uma escalacao senior e carregada ou gerada para uma partida especifica, o campo mostra previsoes de notas ao vivo para essa partida assim que o onze inicial tiver 11 jogadores unicos.",
     seniorHelpBulletAiTrainingAware:
       "Modo com treino: respeita o regime de treino atual e prioriza escalacoes que cobrem os slots de treino relevantes.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1321,6 +1324,17 @@ export const messagesPt: Messages = {
     matchType105: "Amigável juvenil int.",
     matchType106: "Amigável juvenil int. (taça)",
     matchType107: "Reservado",
+    vsLabel: "contra",
+    seniorPredictedRatingsTitle: "Previsoes de notas",
+    seniorPredictedRatingsLeftDef: "Def esq",
+    seniorPredictedRatingsMidDef: "Def cen",
+    seniorPredictedRatingsRightDef: "Def dir",
+    seniorPredictedRatingsMidfield: "Meio",
+    seniorPredictedRatingsLeftOff: "Ata esq",
+    seniorPredictedRatingsMidOff: "Ata cen",
+    seniorPredictedRatingsRightOff: "Ata dir",
+    seniorPredictedRatingsUpdating: "Atualizando...",
+    seniorPredictedRatingsUnavailable: "Previsao indisponivel",
     submitOrders: "Enviar escalação",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Ordens enviadas",

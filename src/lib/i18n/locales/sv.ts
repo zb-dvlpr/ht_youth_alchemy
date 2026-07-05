@@ -247,6 +247,7 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_8_1_0: "Prognostiserade betyg for seniora matchuppstallningar har implementerats.",
     changelog_8_0_0: "Lagandaberaknaren har implementerats.",
     changelog_7_2_0: "Forbattrad analys av motstandartruppen har implementerats.",
     changelog_7_1_0:
@@ -1123,6 +1124,8 @@ export const messagesSv: Messages = {
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
       "Satt uppstallning med AI anvander den mest effektiva uppstallningen utifran tillganglig Hattrick-information, inklusive lagen for traningsmedveten, ignorera traning, forlangning och fast formation.",
+    seniorHelpBulletPredictedRatings:
+      "Nar en senioruppstallning laddas eller skapas for en specifik match visar planen liveprognoser for den matchen nar startelvan har 11 unika spelare.",
     seniorHelpBulletAiTrainingAware:
       "Traningsmedvetet lage foljer aktuell traning och prioriterar uppstallningar som fyller relevanta traningsplatser.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1308,6 +1311,17 @@ export const messagesSv: Messages = {
     matchType105: "Ungdom int. träningsmatch",
     matchType106: "Ungdom int. träningsmatch (cup)",
     matchType107: "Reserverad",
+    vsLabel: "mot",
+    seniorPredictedRatingsTitle: "Prognostiserade betyg",
+    seniorPredictedRatingsLeftDef: "Van def",
+    seniorPredictedRatingsMidDef: "Mit def",
+    seniorPredictedRatingsRightDef: "Hog def",
+    seniorPredictedRatingsMidfield: "Mittfalt",
+    seniorPredictedRatingsLeftOff: "Van anf",
+    seniorPredictedRatingsMidOff: "Mit anf",
+    seniorPredictedRatingsRightOff: "Hog anf",
+    seniorPredictedRatingsUpdating: "Uppdaterar...",
+    seniorPredictedRatingsUnavailable: "Prognos ej tillganglig",
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",
     submitOrdersSuccess: "Order skickade",

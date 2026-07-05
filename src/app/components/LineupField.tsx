@@ -78,6 +78,7 @@ type LineupFieldProps = {
   onTacticChange?: (value: number) => void;
   tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
   topLeftOverlayContent?: ReactNode;
+  topRightOverlayContent?: ReactNode;
   trainingType?: number | null;
   onTrainingTypeChange?: (value: number) => void;
   onTrainingTypeSet?: (value: number) => void | Promise<void>;
@@ -436,6 +437,7 @@ export default function LineupField({
   onTacticChange,
   tacticPlacement = "headerRight",
   topLeftOverlayContent,
+  topRightOverlayContent,
   trainingType = null,
   onTrainingTypeChange,
   onTrainingTypeSet,
@@ -1114,6 +1116,9 @@ export default function LineupField({
       <div className={styles.fieldPitch}>
         {topLeftOverlayContent ? (
           <div className={styles.fieldTopLeftOverlay}>{topLeftOverlayContent}</div>
+        ) : null}
+        {topRightOverlayContent ? (
+          <div className={styles.fieldTopRightOverlay}>{topRightOverlayContent}</div>
         ) : null}
         {showFieldTopLeftTrainingType ? (
           <div className={styles.fieldTopLeftOverlay}>

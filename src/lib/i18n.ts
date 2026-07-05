@@ -204,6 +204,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_8_1_0: string;
   changelog_8_0_0: string;
   changelog_7_2_0: string;
   changelog_7_1_0: string;
@@ -897,6 +898,7 @@ export type Messages = {
   seniorHelpCalloutAnalyzeOpponent: string;
   seniorHelpBulletLatestUpdates: string;
   seniorHelpBulletAiOverview: string;
+  seniorHelpBulletPredictedRatings: string;
   seniorHelpBulletAiTrainingAware: string;
   seniorHelpBulletAiIgnoreTraining: string;
   seniorHelpBulletAiMatchTypes: string;
@@ -1059,6 +1061,17 @@ export type Messages = {
   matchType105: string;
   matchType106: string;
   matchType107: string;
+  vsLabel: string;
+  seniorPredictedRatingsTitle: string;
+  seniorPredictedRatingsLeftDef: string;
+  seniorPredictedRatingsMidDef: string;
+  seniorPredictedRatingsRightDef: string;
+  seniorPredictedRatingsMidfield: string;
+  seniorPredictedRatingsLeftOff: string;
+  seniorPredictedRatingsMidOff: string;
+  seniorPredictedRatingsRightOff: string;
+  seniorPredictedRatingsUpdating: string;
+  seniorPredictedRatingsUnavailable: string;
   submitOrders: string;
   submitOrdersPending: string;
   submitOrdersSuccess: string;

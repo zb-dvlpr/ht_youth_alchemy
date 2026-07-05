@@ -247,6 +247,7 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_8_1_0: "Se implementaron valoraciones previstas para alineaciones senior de partido.",
     changelog_8_0_0: "Se implemento la calculadora de espiritu de equipo.",
     changelog_7_2_0: "Se implemento el analisis mejorado de plantilla rival.",
     changelog_7_1_0:
@@ -1131,6 +1132,8 @@ export const messagesEs: Messages = {
       "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
     seniorHelpBulletAiOverview:
       "Definir alineacion con IA aplica la alineacion mas efectiva segun la informacion de Hattrick disponible, incluidos los modos con entrenamiento, sin entrenamiento, tiempo extra y formacion fija.",
+    seniorHelpBulletPredictedRatings:
+      "Cuando se carga o genera una alineacion senior para un partido concreto, el campo muestra valoraciones previstas en vivo para ese partido cuando el once inicial tiene 11 jugadores unicos.",
     seniorHelpBulletAiTrainingAware:
       "Modo con entrenamiento: respeta el regimen de entrenamiento actual y prioriza alineaciones que cubren los puestos de entrenamiento relevantes.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1318,6 +1321,17 @@ export const messagesEs: Messages = {
     matchType105: "Amistoso juvenil int.",
     matchType106: "Amistoso juvenil int. (copa)",
     matchType107: "Reservado",
+    vsLabel: "vs",
+    seniorPredictedRatingsTitle: "Valoraciones previstas",
+    seniorPredictedRatingsLeftDef: "Def izq",
+    seniorPredictedRatingsMidDef: "Def cen",
+    seniorPredictedRatingsRightDef: "Def der",
+    seniorPredictedRatingsMidfield: "Medio",
+    seniorPredictedRatingsLeftOff: "Ata izq",
+    seniorPredictedRatingsMidOff: "Ata cen",
+    seniorPredictedRatingsRightOff: "Ata der",
+    seniorPredictedRatingsUpdating: "Actualizando...",
+    seniorPredictedRatingsUnavailable: "Prediccion no disponible",
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Órdenes enviadas",

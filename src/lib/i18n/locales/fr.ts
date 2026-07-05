@@ -248,6 +248,7 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_8_1_0: "Les notes predites pour les compositions de matchs seniors ont ete implementees.",
     changelog_8_0_0: "Calculateur d esprit d equipe implemente.",
     changelog_7_2_0: "Analyse amelioree de l effectif adverse implementee.",
     changelog_7_1_0:
@@ -1130,6 +1131,8 @@ export const messagesFr: Messages = {
       "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
     seniorHelpBulletAiOverview:
       "Definir la composition avec IA applique la composition la plus efficace selon les informations Hattrick disponibles, y compris les modes avec entrainement, sans entrainement, prolongation et formation fixe.",
+    seniorHelpBulletPredictedRatings:
+      "Quand une composition senior est chargee ou generee pour un match precis, le terrain affiche les notes predites en direct pour ce match des que le onze de depart contient 11 joueurs distincts.",
     seniorHelpBulletAiTrainingAware:
       "Mode avec entrainement: respecte le regime d entrainement actuel et privilegie les compositions qui couvrent les postes d entrainement concernes.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1316,6 +1319,17 @@ export const messagesFr: Messages = {
     matchType105: "Amical jeunes int.",
     matchType106: "Amical jeunes int. (coupe)",
     matchType107: "Réservé",
+    vsLabel: "contre",
+    seniorPredictedRatingsTitle: "Notes predites",
+    seniorPredictedRatingsLeftDef: "Def gauche",
+    seniorPredictedRatingsMidDef: "Def centre",
+    seniorPredictedRatingsRightDef: "Def droite",
+    seniorPredictedRatingsMidfield: "Milieu",
+    seniorPredictedRatingsLeftOff: "Att gauche",
+    seniorPredictedRatingsMidOff: "Att centre",
+    seniorPredictedRatingsRightOff: "Att droite",
+    seniorPredictedRatingsUpdating: "Actualisation...",
+    seniorPredictedRatingsUnavailable: "Prediction indisponible",
     submitOrders: "Envoyer la composition",
     submitOrdersPending: "Envoi…",
     submitOrdersSuccess: "Ordres envoyés",

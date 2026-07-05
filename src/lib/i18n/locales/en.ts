@@ -246,6 +246,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_8_1_0: "Implemented predicted ratings for senior match lineups.",
     changelog_8_0_0: "Implemented team spirit calculator.",
     changelog_7_2_0: "Implemented enhanced opponent squad analysis.",
     changelog_7_1_0:
@@ -1085,6 +1086,8 @@ export const messagesEn: Messages = {
       "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
     seniorHelpBulletAiOverview:
       "Set lineup using AI applies the most effective lineup identified from the Hattrick information currently available, including training-aware, ignore-training, extra-time, and fixed-formation modes.",
+    seniorHelpBulletPredictedRatings:
+      "When a senior lineup is loaded or generated for a specific match, the pitch shows live predicted ratings for that match after the starting XI has 11 unique players.",
     seniorHelpBulletAiTrainingAware:
       "Training-aware mode respects the current training regimen and prioritizes lineups that cover the relevant training slots.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1270,6 +1273,17 @@ export const messagesEn: Messages = {
     matchType105: "Youth int’l friendly",
     matchType106: "Youth int’l friendly (cup)",
     matchType107: "Reserved",
+    vsLabel: "vs",
+    seniorPredictedRatingsTitle: "Predicted ratings",
+    seniorPredictedRatingsLeftDef: "Left def",
+    seniorPredictedRatingsMidDef: "Mid def",
+    seniorPredictedRatingsRightDef: "Right def",
+    seniorPredictedRatingsMidfield: "Midfield",
+    seniorPredictedRatingsLeftOff: "Left off",
+    seniorPredictedRatingsMidOff: "Mid off",
+    seniorPredictedRatingsRightOff: "Right off",
+    seniorPredictedRatingsUpdating: "Updating...",
+    seniorPredictedRatingsUnavailable: "Prediction unavailable",
     submitOrders: "Submit lineup",
     submitOrdersPending: "Submitting…",
     submitOrdersSuccess: "Orders submitted",

@@ -504,6 +504,7 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_8_1_0: "Wdrożono przewidywane oceny dla seniorskich skladow meczowych.",
     changelog_8_0_0: "Wdrożono kalkulator team spirit.",
     changelog_7_2_0: "Wdrożono ulepszona analize kadry przeciwnika.",
     changelog_7_1_0:
@@ -1345,6 +1346,8 @@ export const messagesPl: Messages = {
     "Nowe porównanie zapisywane jest tylko wtedy, gdy odświeżenie wykryje realne zmiany (np. nowy zawodnik, zmiany ocen/umiejętności, kontuzje, kartki, forma, kondycja lub cechy).",
   seniorHelpBulletAiOverview:
     "Ustaw skład przez AI dobiera najbardziej efektywny skład na podstawie dostępnych danych Hattrick, w tym tryby uwzględniające trening, ignorujące trening, pod dogrywkę i pod stałą formację.",
+  seniorHelpBulletPredictedRatings:
+    "Gdy seniorski sklad zostanie wczytany lub wygenerowany dla konkretnego meczu, boisko pokazuje przewidywane oceny na zywo dla tego meczu, kiedy wyjsciowa jedenastka ma 11 unikalnych zawodnikow.",
   seniorHelpBulletAiTrainingAware:
     "Tryb uwzględniający trening respektuje aktualny reżim treningowy i priorytetyzuje składy pokrywające odpowiednie sloty treningowe.",
   seniorHelpBulletAiIgnoreTraining:
@@ -1366,6 +1369,17 @@ export const messagesPl: Messages = {
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",
   loadLineupTooltip: "Wczytaj zapisany skład z Hattrick dla tego meczu.",
+  vsLabel: "przeciw",
+  seniorPredictedRatingsTitle: "Przewidywane oceny",
+  seniorPredictedRatingsLeftDef: "Lew obr",
+  seniorPredictedRatingsMidDef: "Sr obr",
+  seniorPredictedRatingsRightDef: "Pr obr",
+  seniorPredictedRatingsMidfield: "Pomoc",
+  seniorPredictedRatingsLeftOff: "Lew at",
+  seniorPredictedRatingsMidOff: "Sr at",
+  seniorPredictedRatingsRightOff: "Pr at",
+  seniorPredictedRatingsUpdating: "Aktualizacja...",
+  seniorPredictedRatingsUnavailable: "Predykcja niedostepna",
   submitOrders: "Wyślij skład",
   submitOrdersPending: "Wysyłanie…",
   submitOrdersSuccess: "Wysłano",

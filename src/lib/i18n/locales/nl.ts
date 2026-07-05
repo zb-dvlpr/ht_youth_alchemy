@@ -510,6 +510,7 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_8_1_0: "Voorspelde ratings voor seniorenwedstrijdopstellingen zijn geimplementeerd.",
     changelog_8_0_0: "Teamgeestcalculator geimplementeerd.",
     changelog_7_2_0: "Verbeterde analyse van de tegenstanderselectie geimplementeerd.",
     changelog_7_1_0:
@@ -1351,6 +1352,8 @@ export const messagesNl: Messages = {
     "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
   seniorHelpBulletAiOverview:
     "Opstelling met AI zetten gebruikt op basis van de beschikbare Hattrick-informatie de meest effectieve opstelling, inclusief trainingsbewuste, training-negerende, verlengings- en vaste-formaties modi.",
+  seniorHelpBulletPredictedRatings:
+    "Wanneer een seniorenopstelling voor een specifieke wedstrijd wordt geladen of gegenereerd, toont het veld live voorspelde ratings voor die wedstrijd zodra de basiself 11 unieke spelers heeft.",
   seniorHelpBulletAiTrainingAware:
     "Trainingsbewuste modus houdt rekening met het huidige trainingsregime en prioriteert opstellingen die de relevante trainingsslots vullen.",
   seniorHelpBulletAiIgnoreTraining:
@@ -1372,6 +1375,17 @@ export const messagesNl: Messages = {
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",
   loadLineupTooltip: "Laad de opgeslagen opstelling uit Hattrick voor deze wedstrijd.",
+  vsLabel: "tegen",
+  seniorPredictedRatingsTitle: "Voorspelde ratings",
+  seniorPredictedRatingsLeftDef: "Links verd",
+  seniorPredictedRatingsMidDef: "Mid verd",
+  seniorPredictedRatingsRightDef: "Rechts verd",
+  seniorPredictedRatingsMidfield: "Middenveld",
+  seniorPredictedRatingsLeftOff: "Links aan",
+  seniorPredictedRatingsMidOff: "Mid aan",
+  seniorPredictedRatingsRightOff: "Rechts aan",
+  seniorPredictedRatingsUpdating: "Bijwerken...",
+  seniorPredictedRatingsUnavailable: "Voorspelling niet beschikbaar",
   submitOrders: "Opstelling verzenden",
   submitOrdersPending: "Verzenden…",
   submitOrdersSuccess: "Verzonden",

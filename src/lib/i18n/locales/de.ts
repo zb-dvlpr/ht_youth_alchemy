@@ -248,6 +248,7 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_8_1_0: "Prognostizierte Ratings fuer Senioren-Spielaufstellungen wurden implementiert.",
     changelog_8_0_0: "Teamstimmungsrechner implementiert.",
     changelog_7_2_0: "Erweiterte Gegnerkaderanalyse implementiert.",
     changelog_7_1_0:
@@ -1120,6 +1121,8 @@ export const messagesDe: Messages = {
       "Ein neuer Vergleich wird nur gespeichert, wenn ein Refresh echte Änderungen erkennt (z. B. neue Spieler, Ratings-/Skill-Änderungen, Verletzungen, Karten, Form, Kondition oder Merkmale).",
     seniorHelpBulletAiOverview:
       "Aufstellung per KI setzen nutzt anhand der verfügbaren Hattrick-Daten die effektivste Aufstellung, einschließlich trainingsbezogener, training-ignorierender, Verlängerungs- und fester Formationsmodi.",
+    seniorHelpBulletPredictedRatings:
+      "Wenn eine Seniorenaufstellung fuer ein bestimmtes Spiel geladen oder erzeugt wird, zeigt das Spielfeld Live-Prognoseratings fuer dieses Spiel, sobald die Startelf 11 unterschiedliche Spieler hat.",
     seniorHelpBulletAiTrainingAware:
       "Modus Trainingsbezogen berücksichtigt das aktuelle Trainingsschema und priorisiert Aufstellungen mit den relevanten Trainingsslots.",
     seniorHelpBulletAiIgnoreTraining:
@@ -1304,6 +1307,17 @@ export const messagesDe: Messages = {
     matchType105: "Jugend intl. Freundschaft",
     matchType106: "Jugend intl. Freundschaft (Pokal)",
     matchType107: "Reserviert",
+    vsLabel: "gegen",
+    seniorPredictedRatingsTitle: "Prognostizierte Ratings",
+    seniorPredictedRatingsLeftDef: "Linke Abw",
+    seniorPredictedRatingsMidDef: "Zentr. Abw",
+    seniorPredictedRatingsRightDef: "Rechte Abw",
+    seniorPredictedRatingsMidfield: "Mittelfeld",
+    seniorPredictedRatingsLeftOff: "Linker Ang",
+    seniorPredictedRatingsMidOff: "Zentr. Ang",
+    seniorPredictedRatingsRightOff: "Rechter Ang",
+    seniorPredictedRatingsUpdating: "Aktualisierung...",
+    seniorPredictedRatingsUnavailable: "Prognose nicht verfuegbar",
     submitOrders: "Aufstellung senden",
     submitOrdersPending: "Wird gesendet…",
     submitOrdersSuccess: "Anweisungen gesendet",

@@ -1283,6 +1283,9 @@ export const messagesEn: Messages = {
     seniorPredictedRatingsRightOff: "Right off",
     seniorPredictedRatingsUpdating: "Updating...",
     seniorPredictedRatingsUnavailable: "Prediction unavailable",
+    seniorPredictedRatingsChppInfoTooltip:
+      "These ratings are returned by CHPP and are not numerically identical to the ratings shown on Hattrick.",
+    seniorPredictedRatingsChppInfoAriaLabel: "About CHPP ratings",
     submitOrders: "Submit lineup",
     submitOrdersPending: "Submitting…",
     submitOrdersSuccess: "Orders submitted",

@@ -12865,9 +12865,15 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .seniorPredictedRatingsHeader {
-  display: grid;
-  gap: 1px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.24rem;
   margin-bottom: 0.26rem;
+}
+
+.seniorPredictedRatingsMatchText {
+  min-width: 0;
 }
 
 .seniorPredictedRatingsMatchTitle {
@@ -12884,6 +12890,34 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   font-size: 0.62rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.seniorPredictedRatingsInfoButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: -0.02rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(243, 247, 237, 0.86);
+  cursor: help;
+  font: inherit;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.seniorPredictedRatingsInfoButton:hover {
+  color: #ffffff;
+}
+
+.seniorPredictedRatingsInfoButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .seniorPredictedRatingsState {

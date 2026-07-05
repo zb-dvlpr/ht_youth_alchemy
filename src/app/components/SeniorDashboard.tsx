@@ -10779,14 +10779,25 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return (
       <div className={styles.seniorPredictedRatingsCard}>
         <div className={styles.seniorPredictedRatingsHeader}>
-          <div className={styles.seniorPredictedRatingsMatchTitle}>
-            {seniorRatingsMatchContext.displayTitle}
-          </div>
-          {seniorRatingsMatchContext.displaySubtitle ? (
-            <div className={styles.seniorPredictedRatingsMatchSubtitle}>
-              {seniorRatingsMatchContext.displaySubtitle}
+          <div className={styles.seniorPredictedRatingsMatchText}>
+            <div className={styles.seniorPredictedRatingsMatchTitle}>
+              {seniorRatingsMatchContext.displayTitle}
             </div>
-          ) : null}
+            {seniorRatingsMatchContext.displaySubtitle ? (
+              <div className={styles.seniorPredictedRatingsMatchSubtitle}>
+                {seniorRatingsMatchContext.displaySubtitle}
+              </div>
+            ) : null}
+          </div>
+          <Tooltip content={messages.seniorPredictedRatingsChppInfoTooltip}>
+            <button
+              type="button"
+              className={styles.seniorPredictedRatingsInfoButton}
+              aria-label={messages.seniorPredictedRatingsChppInfoAriaLabel}
+            >
+              ⓘ
+            </button>
+          </Tooltip>
         </div>
         {liveSeniorPredictedRatingsStatus === "loading" ? (
           <div className={styles.seniorPredictedRatingsState}>

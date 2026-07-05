@@ -1071,6 +1071,8 @@ export type Messages = {
   seniorPredictedRatingsRightOff: string;
   seniorPredictedRatingsUpdating: string;
   seniorPredictedRatingsUnavailable: string;
+  seniorPredictedRatingsChppInfoTooltip: string;
+  seniorPredictedRatingsChppInfoAriaLabel: string;
   submitOrders: string;
   submitOrdersPending: string;
   submitOrdersSuccess: string;

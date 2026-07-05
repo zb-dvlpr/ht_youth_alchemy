@@ -1321,6 +1321,9 @@ export const messagesSv: Messages = {
     seniorPredictedRatingsRightOff: "Hog anf",
     seniorPredictedRatingsUpdating: "Uppdaterar...",
     seniorPredictedRatingsUnavailable: "Prognos ej tillganglig",
+    seniorPredictedRatingsChppInfoTooltip:
+      "Dessa betyg returneras av CHPP och ar inte numeriskt identiska med betygen som visas pa Hattrick.",
+    seniorPredictedRatingsChppInfoAriaLabel: "Om CHPP-betyg",
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",
     submitOrdersSuccess: "Order skickade",

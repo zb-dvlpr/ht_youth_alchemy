@@ -1385,6 +1385,9 @@ export const messagesNl: Messages = {
   seniorPredictedRatingsRightOff: "Rechts aan",
   seniorPredictedRatingsUpdating: "Bijwerken...",
   seniorPredictedRatingsUnavailable: "Voorspelling niet beschikbaar",
+  seniorPredictedRatingsChppInfoTooltip:
+    "Deze ratings worden door CHPP teruggegeven en zijn numeriek niet identiek aan de ratings die op Hattrick worden getoond.",
+  seniorPredictedRatingsChppInfoAriaLabel: "Over CHPP-ratings",
   submitOrders: "Opstelling verzenden",
   submitOrdersPending: "Verzenden…",
   submitOrdersSuccess: "Verzonden",

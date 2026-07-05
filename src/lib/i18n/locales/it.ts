@@ -1335,6 +1335,9 @@ export const messagesIt: Messages = {
     seniorPredictedRatingsRightOff: "Att des",
     seniorPredictedRatingsUpdating: "Aggiornamento...",
     seniorPredictedRatingsUnavailable: "Previsione non disponibile",
+    seniorPredictedRatingsChppInfoTooltip:
+      "Queste valutazioni sono restituite da CHPP e non sono numericamente identiche alle valutazioni mostrate su Hattrick.",
+    seniorPredictedRatingsChppInfoAriaLabel: "Informazioni sulle valutazioni CHPP",
     submitOrders: "Invia formazione",
     submitOrdersPending: "Invio…",
     submitOrdersSuccess: "Ordini inviati",

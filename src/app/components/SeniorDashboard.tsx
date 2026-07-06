@@ -3836,6 +3836,9 @@ export default function SeniorDashboard({
   const [liveSeniorPredictedRatingsStatus, setLiveSeniorPredictedRatingsStatus] =
     useState<"idle" | "loading" | "ready" | "error">("idle");
   const liveSeniorPredictedRatingsRequestRef = useRef(0);
+  const liveSeniorPredictedRatingsPayloadKeyRef = useRef("");
+  const liveSeniorPredictedRatingsLineupPayloadRef =
+    useRef<ReturnType<typeof buildLineupPayload> | null>(null);
   const [loadedLineupOrdersByMatchId, setLoadedLineupOrdersByMatchId] = useState<
     Record<number, LoadedLineupOrders>
   >({});
@@ -10570,6 +10573,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
   );
   const clearSeniorRatingsPrediction = useCallback(() => {
     liveSeniorPredictedRatingsRequestRef.current += 1;
+    liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+    liveSeniorPredictedRatingsLineupPayloadRef.current = null;
     setSeniorRatingsMatchContext(null);
     setLiveSeniorPredictedRatings(null);
     setLiveSeniorPredictedRatingsStatus("idle");
@@ -10673,10 +10678,145 @@ function buildSeniorAiManMarkingReadySignature(params: {
     activeOtherOrdersMatch ?? undefined,
     resolvedSeniorTeamId
   );
+  const isSeniorOtherOrdersMatchAttitudeEligible = useCallback((matchId: number | null) => {
+    if (typeof matchId !== "number") return false;
+    const match = findSeniorMatchById(matchId);
+    const matchType = parseNumber(match?.MatchType);
+    if (matchType !== null && LEAGUE_QUALI_MATCH_TYPES.has(matchType)) return true;
+    if (matchType !== null && CUP_MATCH_TYPES.has(matchType)) {
+      const cupLevel = parseNumber(match?.CupLevel);
+      return cupLevel === null || cupLevel === 1;
+    }
+    return false;
+  }, [findSeniorMatchById]);
+  const seniorOtherOrdersCoachModifierRange = useMemo(() => {
+    if (!effectiveOtherOrdersHasTacticalAssistant) return null;
+    if (effectiveOtherOrdersTacticalAssistantStaffLevel === null) return null;
+    const level = Math.max(0, effectiveOtherOrdersTacticalAssistantStaffLevel);
+    if (effectiveOtherOrdersTrainerType === 0) {
+      return { min: -10, max: -10 + 2 * level };
+    }
+    if (effectiveOtherOrdersTrainerType === 1) {
+      return { min: 10 - 2 * level, max: 10 };
+    }
+    if (effectiveOtherOrdersTrainerType === 2) {
+      return { min: -level, max: level };
+    }
+    return null;
+  }, [
+    effectiveOtherOrdersHasTacticalAssistant,
+    effectiveOtherOrdersTacticalAssistantStaffLevel,
+    effectiveOtherOrdersTrainerType,
+  ]);
+  const buildSeniorGeneratedLineupPayloadBase = useCallback(
+    (
+      matchId: number,
+      defaultPayload: ReturnType<typeof buildLineupPayload>
+    ) => {
+      const basePayload = buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload);
+      const seniorAiSetPiecesPlayerId = selectSeniorAiSetPiecesPlayerId(
+        seniorAiPreparedSubmissionMode
+      );
+      const payloadWithSeniorAiSetPieces =
+        seniorAiSetPiecesPlayerId > 0 && seniorAiSubmitEnabledMatchId === matchId
+          ? {
+              ...basePayload,
+              setPieces: seniorAiSetPiecesPlayerId,
+            }
+          : basePayload;
+      if (
+        !effectiveSeniorAiManMarkingEnabled ||
+        !seniorAiManMarkingSelection ||
+        !seniorAiManMarkingReady ||
+        !seniorAiManMarkingSupported ||
+        seniorAiSubmitEnabledMatchId !== matchId
+      ) {
+        return payloadWithSeniorAiSetPieces;
+      }
+      return {
+        ...payloadWithSeniorAiSetPieces,
+        settings: {
+          ...payloadWithSeniorAiSetPieces.settings,
+          manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
+          manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
+        },
+      };
+    },
+    [
+      buildPreparedExtraTimeSubmitPayload,
+      effectiveSeniorAiManMarkingEnabled,
+      selectSeniorAiSetPiecesPlayerId,
+      seniorAiManMarkingReady,
+      seniorAiManMarkingSelection,
+      seniorAiManMarkingSupported,
+      seniorAiPreparedSubmissionMode,
+      seniorAiSubmitEnabledMatchId,
+    ]
+  );
+  const seniorPredictedRatingsLineupPayload = useMemo(() => {
+    if (!seniorRatingsMatchContext) return null;
+    if (!hasCompleteSeniorStartingXi) return null;
+    const defaultLineup = buildLineupPayload(assignments, tacticType, {
+      behaviors,
+      kickerIds: effectiveSeniorPenaltyKickerIds,
+      captainId: effectiveSeniorCaptainId,
+      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+    });
+    let lineup = defaultLineup;
+    try {
+      lineup = buildSeniorGeneratedLineupPayloadBase(
+        seniorRatingsMatchContext.matchId,
+        defaultLineup
+      );
+    } catch {
+      lineup = defaultLineup;
+    }
+    const committedOrders =
+      seniorEditableOrdersState?.matchId === seniorRatingsMatchContext.matchId
+        ? seniorEditableOrdersState
+        : null;
+    if (committedOrders) {
+      lineup = serializeSeniorEditableOrdersToPayload(lineup, committedOrders, {
+        includeMatchAttitude: isSeniorOtherOrdersMatchAttitudeEligible(
+          seniorRatingsMatchContext.matchId
+        ),
+        includeCoachModifier:
+          effectiveOtherOrdersHasTacticalAssistant &&
+          Boolean(seniorOtherOrdersCoachModifierRange),
+      });
+    }
+    return lineup;
+  }, [
+    assignments,
+    behaviors,
+    buildSeniorGeneratedLineupPayloadBase,
+    effectiveOtherOrdersHasTacticalAssistant,
+    effectiveSeniorCaptainId,
+    effectiveSeniorPenaltyKickerIds,
+    effectiveSeniorSetPiecesPlayerId,
+    hasCompleteSeniorStartingXi,
+    isSeniorOtherOrdersMatchAttitudeEligible,
+    seniorEditableOrdersState,
+    seniorOtherOrdersCoachModifierRange,
+    seniorRatingsMatchContext,
+    tacticType,
+  ]);
+  const seniorPredictedRatingsLineupPayloadKey = useMemo(
+    () =>
+      seniorPredictedRatingsLineupPayload
+        ? JSON.stringify(seniorPredictedRatingsLineupPayload)
+        : "",
+    [seniorPredictedRatingsLineupPayload]
+  );
+  useEffect(() => {
+    liveSeniorPredictedRatingsLineupPayloadRef.current =
+      seniorPredictedRatingsLineupPayload;
+  }, [seniorPredictedRatingsLineupPayload]);
 
   useEffect(() => {
     if (!seniorRatingsMatchContext) {
       liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
       setLiveSeniorPredictedRatings(null);
       setLiveSeniorPredictedRatingsStatus("idle");
       return;
@@ -10703,29 +10843,49 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
     if (!hasCompleteSeniorStartingXi) {
       liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+      setLiveSeniorPredictedRatings(null);
+      setLiveSeniorPredictedRatingsStatus("idle");
+      return;
+    }
+    const requestLineup = liveSeniorPredictedRatingsLineupPayloadRef.current;
+    if (!requestLineup) {
+      liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
       setLiveSeniorPredictedRatings(null);
       setLiveSeniorPredictedRatingsStatus("idle");
       return;
     }
 
     const requestId = ++liveSeniorPredictedRatingsRequestRef.current;
+    const requestPayloadKey = seniorPredictedRatingsLineupPayloadKey;
+    liveSeniorPredictedRatingsPayloadKeyRef.current = requestPayloadKey;
     setLiveSeniorPredictedRatings(null);
     setLiveSeniorPredictedRatingsStatus("loading");
     const timeoutId = window.setTimeout(() => {
-      const lineup = buildLineupPayload(assignments, tacticType, { behaviors });
       void predictSeniorRatingsForLineup({
         matchId: seniorRatingsMatchContext.matchId,
         teamId: seniorRatingsMatchContext.teamId,
         sourceSystem: seniorRatingsMatchContext.sourceSystem,
-        lineup,
+        lineup: requestLineup,
       })
         .then((predicted) => {
-          if (liveSeniorPredictedRatingsRequestRef.current !== requestId) return;
+          if (
+            liveSeniorPredictedRatingsRequestRef.current !== requestId ||
+            liveSeniorPredictedRatingsPayloadKeyRef.current !== requestPayloadKey
+          ) {
+            return;
+          }
           setLiveSeniorPredictedRatings(predicted);
           setLiveSeniorPredictedRatingsStatus("ready");
         })
         .catch(() => {
-          if (liveSeniorPredictedRatingsRequestRef.current !== requestId) return;
+          if (
+            liveSeniorPredictedRatingsRequestRef.current !== requestId ||
+            liveSeniorPredictedRatingsPayloadKeyRef.current !== requestPayloadKey
+          ) {
+            return;
+          }
           setLiveSeniorPredictedRatings(null);
           setLiveSeniorPredictedRatingsStatus("error");
         });
@@ -10735,12 +10895,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
       window.clearTimeout(timeoutId);
     };
   }, [
-    assignments,
-    behaviors,
-    tacticType,
     seniorRatingsMatchContext,
     resolvedSeniorTeamId,
     hasCompleteSeniorStartingXi,
+    seniorPredictedRatingsLineupPayloadKey,
     buildSeniorRatingsMatchContext,
     clearSeniorRatingsPrediction,
     predictSeniorRatingsForLineup,
@@ -10867,36 +11025,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
     messages,
   ]);
 
-  const isSeniorOtherOrdersMatchAttitudeEligible = (matchId: number | null) => {
-    if (typeof matchId !== "number") return false;
-    const match = findSeniorMatchById(matchId);
-    const matchType = parseNumber(match?.MatchType);
-    if (matchType !== null && LEAGUE_QUALI_MATCH_TYPES.has(matchType)) return true;
-    if (matchType !== null && CUP_MATCH_TYPES.has(matchType)) {
-      const cupLevel = parseNumber(match?.CupLevel);
-      return cupLevel === null || cupLevel === 1;
-    }
-    return false;
-  };
-  const seniorOtherOrdersCoachModifierRange = useMemo(() => {
-    if (!effectiveOtherOrdersHasTacticalAssistant) return null;
-    if (effectiveOtherOrdersTacticalAssistantStaffLevel === null) return null;
-    const level = Math.max(0, effectiveOtherOrdersTacticalAssistantStaffLevel);
-    if (effectiveOtherOrdersTrainerType === 0) {
-      return { min: -10, max: -10 + 2 * level };
-    }
-    if (effectiveOtherOrdersTrainerType === 1) {
-      return { min: 10 - 2 * level, max: 10 };
-    }
-    if (effectiveOtherOrdersTrainerType === 2) {
-      return { min: -level, max: level };
-    }
-    return null;
-  }, [
-    effectiveOtherOrdersHasTacticalAssistant,
-    effectiveOtherOrdersTacticalAssistantStaffLevel,
-    effectiveOtherOrdersTrainerType,
-  ]);
   const availableOrderPlayerOptions = useMemo<SeniorOrderPlayerOption[]>(() => {
     const ids = [
       ...FIELD_SLOT_ORDER.map((slot) => assignments[slot]),
@@ -11305,36 +11433,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const buildSeniorGeneratedLineupPayload = (
     matchId: number,
     defaultPayload: ReturnType<typeof buildLineupPayload>
-  ) => {
-    const basePayload = buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload);
-    const seniorAiSetPiecesPlayerId = selectSeniorAiSetPiecesPlayerId(
-      seniorAiPreparedSubmissionMode
-    );
-    const payloadWithSeniorAiSetPieces =
-      seniorAiSetPiecesPlayerId > 0 && seniorAiSubmitEnabledMatchId === matchId
-        ? {
-            ...basePayload,
-            setPieces: seniorAiSetPiecesPlayerId,
-          }
-        : basePayload;
-    if (
-      !effectiveSeniorAiManMarkingEnabled ||
-      !seniorAiManMarkingSelection ||
-      !seniorAiManMarkingReady ||
-      !seniorAiManMarkingSupported ||
-      seniorAiSubmitEnabledMatchId !== matchId
-    ) {
-      return payloadWithSeniorAiSetPieces;
-    }
-    return {
-      ...payloadWithSeniorAiSetPieces,
-      settings: {
-        ...payloadWithSeniorAiSetPieces.settings,
-        manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
-        manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
-      },
-    };
-  };
+  ) => buildSeniorGeneratedLineupPayloadBase(matchId, defaultPayload);
 
   const validateSeniorEditableOrders = (
     orders: SeniorEditableOrdersState

@@ -601,6 +601,8 @@ type TeamAttitudeAnalyzedMatch = {
 };
 
 type TeamAttitudeVenueSnapshot = {
+  // Legacy field names are retained for stored snapshot compatibility; values are
+  // HatStats baselines/series for TEAM_ATTITUDE_INFERENCE_VERSION >= 2.
   baselineMidfield: number | null;
   initialBaselineMidfield: number | null;
   initialThreshold: number | null;
@@ -613,6 +615,7 @@ type TeamAttitudeVenueSnapshot = {
 };
 
 type TeamAttitudeSnapshot = {
+  teamAttitudeInferenceVersion?: number;
   topFormation: string | null;
   sampleSize: number;
   home: TeamAttitudeVenueSnapshot;
@@ -1220,6 +1223,7 @@ const TEAM_ATTITUDE_MATCH_TYPES = new Set([1]);
 const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
 const CHRONICLE_DETAIL_MODAL_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
 const CHRONICLE_DETAIL_MODAL_DERIVED_DATA_VERSION = 3;
+const TEAM_ATTITUDE_INFERENCE_VERSION = 2;
 const ONGOING_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
 const ONGOING_TOURNAMENT_MATCH_TYPES = new Set([50, 51, 62]);
 const POSSIBLE_FORMATIONS = new Set([
@@ -1876,6 +1880,16 @@ const EMPTY_TEAM_ATTITUDE_VENUE_SNAPSHOT: TeamAttitudeVenueSnapshot = {
   baselineUnionPlayerIds: [],
 };
 
+const isCurrentTeamAttitudeSnapshot = (
+  snapshot: TeamAttitudeSnapshot | null | undefined
+): snapshot is TeamAttitudeSnapshot =>
+  snapshot?.teamAttitudeInferenceVersion === TEAM_ATTITUDE_INFERENCE_VERSION;
+
+const resolveCurrentTeamAttitudeSnapshot = (
+  snapshot: TeamAttitudeSnapshot | null | undefined
+): TeamAttitudeSnapshot | null =>
+  isCurrentTeamAttitudeSnapshot(snapshot) ? snapshot : null;
+
 const resolveTeamAttitudeVenueSnapshot = (
   snapshot: TeamAttitudeSnapshot | null | undefined,
   venue: TeamAttitudeVenue
@@ -1886,28 +1900,37 @@ const resolveTeamAttitudeVenueSnapshot = (
   return EMPTY_TEAM_ATTITUDE_VENUE_SNAPSHOT;
 };
 
-const teamAttitudeThreshold = (values: number[]) => {
-  const median = medianOfNumbers(values);
-  if (median === null) return 2;
-  const deviations = values.map((value) => Math.abs(value - median));
+const teamAttitudeHatStatsThreshold = (values: number[]) => {
+  const baseline = medianOfNumbers(values);
+  if (baseline === null || !Number.isFinite(baseline)) return 12;
+  const deviations = values.map((value) => Math.abs(value - baseline));
   const mad = medianOfNumbers(deviations) ?? 0;
-  return Math.max(2, Math.ceil(Math.max(1, mad * 1.5)));
+  const absoluteFloor = 12;
+  const relativeFloor = Math.ceil(baseline * 0.05);
+  const noiseThreshold = Math.ceil(Math.max(1, mad) * 1.5);
+  const noiseCap = Math.ceil(baseline * 0.08);
+
+  return Math.max(
+    absoluteFloor,
+    relativeFloor,
+    Math.min(noiseThreshold, noiseCap)
+  );
 };
 
-const classifyTeamAttitude = (
-  midfieldRating: number | null,
-  baselineMidfield: number | null,
+const classifyTeamAttitudeByHatStats = (
+  hatStats: number | null,
+  baselineHatStats: number | null,
   threshold: number
 ): TeamAttitudeKind => {
   if (
-    midfieldRating === null ||
-    baselineMidfield === null ||
-    !Number.isFinite(midfieldRating) ||
-    !Number.isFinite(baselineMidfield)
+    hatStats === null ||
+    baselineHatStats === null ||
+    !Number.isFinite(hatStats) ||
+    !Number.isFinite(baselineHatStats)
   ) {
     return "normal";
   }
-  const delta = midfieldRating - baselineMidfield;
+  const delta = hatStats - baselineHatStats;
   if (delta >= threshold) return "mots";
   if (delta <= -threshold) return "pic";
   return "normal";
@@ -2706,6 +2729,27 @@ const sanitizeChronicleTeamData = (
       ...nextTeam,
       manMarkerByPlayerId: sanitized.value,
     };
+  }
+
+  if (team.teamAttitude) {
+    const current = resolveCurrentTeamAttitudeSnapshot(team.teamAttitude.current);
+    const previous = resolveCurrentTeamAttitudeSnapshot(team.teamAttitude.previous);
+    if (current !== team.teamAttitude.current || previous !== team.teamAttitude.previous) {
+      didChange = true;
+    }
+    if (current) {
+      nextTeam = {
+        ...nextTeam,
+        teamAttitude: {
+          current,
+          ...(previous ? { previous } : {}),
+        },
+      };
+    } else {
+      const teamWithoutTeamAttitude = { ...nextTeam };
+      delete teamWithoutTeamAttitude.teamAttitude;
+      nextTeam = teamWithoutTeamAttitude;
+    }
   }
 
   if (
@@ -9691,9 +9735,9 @@ export default function ClubChronicle({
 
       if (panels.includes("teamAttitude")) {
         const previous = baselineCache
-          ? baselineTeam?.teamAttitude?.current
-          : cached.teamAttitude?.previous;
-        const current = cached.teamAttitude?.current;
+          ? resolveCurrentTeamAttitudeSnapshot(baselineTeam?.teamAttitude?.current)
+          : resolveCurrentTeamAttitudeSnapshot(cached.teamAttitude?.previous);
+        const current = resolveCurrentTeamAttitudeSnapshot(cached.teamAttitude?.current);
         if (current && previous) {
           const previousLabel = formatTeamAttitudeSummary(previous);
           const currentLabel = formatTeamAttitudeSummary(current);
@@ -11976,38 +12020,38 @@ type Form7LineupSnapshot = {
   const buildTeamAttitudeVenuePlan = (
     venueMatches: TeamAttitudeMidfieldPassMatch[]
   ): TeamAttitudeVenuePlan => {
-    const midfieldValues = venueMatches
-      .map((entry) => entry.midfieldRating)
+    const hatStatsValues = venueMatches
+      .map((entry) => entry.hatStats)
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-    if (midfieldValues.length === 0) {
+    if (hatStatsValues.length === 0) {
       return {
         ...buildEmptyTeamAttitudeVenuePlan(venueMatches),
-        allMidfieldValues: midfieldValues,
-        finalBaselineMidfieldValues: midfieldValues,
+        allMidfieldValues: hatStatsValues,
+        finalBaselineMidfieldValues: hatStatsValues,
       };
     }
-    const initialBaseline = medianOfNumbers(midfieldValues);
-    const initialThreshold = teamAttitudeThreshold(midfieldValues);
+    const initialBaseline = medianOfNumbers(hatStatsValues);
+    const initialThreshold = teamAttitudeHatStatsThreshold(hatStatsValues);
     const initialClassified = venueMatches.map((entry) => ({
       ...entry,
-      inferredAttitude: classifyTeamAttitude(
-        entry.midfieldRating,
+      inferredAttitude: classifyTeamAttitudeByHatStats(
+        entry.hatStats,
         initialBaseline,
         initialThreshold
       ),
     }));
-    const normalMidfieldValues = initialClassified
+    const normalHatStatsValues = initialClassified
       .filter((entry) => entry.inferredAttitude === "normal")
-      .map((entry) => entry.midfieldRating)
+      .map((entry) => entry.hatStats)
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-    const baselineRatings =
-      normalMidfieldValues.length >= 2 ? normalMidfieldValues : midfieldValues;
-    const finalBaseline = medianOfNumbers(baselineRatings);
-    const finalThreshold = teamAttitudeThreshold(baselineRatings);
+    const baselineHatStatsValues =
+      normalHatStatsValues.length >= 2 ? normalHatStatsValues : hatStatsValues;
+    const finalBaseline = medianOfNumbers(baselineHatStatsValues);
+    const finalThreshold = teamAttitudeHatStatsThreshold(baselineHatStatsValues);
     const finalMatches = venueMatches.map((entry) => ({
       ...entry,
-      inferredAttitude: classifyTeamAttitude(
-        entry.midfieldRating,
+      inferredAttitude: classifyTeamAttitudeByHatStats(
+        entry.hatStats,
         finalBaseline,
         finalThreshold
       ),
@@ -12022,29 +12066,42 @@ type Form7LineupSnapshot = {
       finalThreshold,
       normalMatches,
       analyzedMatches: finalMatches,
-      allMidfieldValues: midfieldValues,
-      initialNormalMidfieldValues: normalMidfieldValues,
-      finalBaselineMidfieldValues: baselineRatings,
+      allMidfieldValues: hatStatsValues,
+      initialNormalMidfieldValues: normalHatStatsValues,
+      finalBaselineMidfieldValues: baselineHatStatsValues,
     };
   };
 
   const selectTeamAttitudeBaselineLeagueMatches = (
     matches: TeamAttitudeMidfieldPassMatch[],
-    baselineMidfield: number | null
+    baselineHatStats: number | null,
+    finalThreshold: number | null
   ) => {
-    if (baselineMidfield === null || !Number.isFinite(baselineMidfield)) return [];
+    if (
+      baselineHatStats === null ||
+      finalThreshold === null ||
+      !Number.isFinite(baselineHatStats) ||
+      !Number.isFinite(finalThreshold)
+    ) {
+      return [];
+    }
     const leagueMatches = matches.filter(
       (entry) =>
         entry.match.matchType === 1 &&
-        entry.midfieldRating !== null &&
-        Number.isFinite(entry.midfieldRating)
+        entry.hatStats !== null &&
+        Number.isFinite(entry.hatStats)
     );
-    const withinOne = leagueMatches.filter(
-      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
+    const tightBand = Math.max(6, Math.round(finalThreshold * 0.5));
+    const closeToBaseline = leagueMatches.filter(
+      (entry) => Math.abs((entry.hatStats ?? 0) - baselineHatStats) <= tightBand
     );
-    if (withinOne.length >= 3) return withinOne;
+    if (closeToBaseline.length >= 3) return closeToBaseline;
+    const normalMatches = leagueMatches.filter(
+      (entry) => entry.inferredAttitude === "normal"
+    );
+    if (normalMatches.length >= 2) return normalMatches;
     return leagueMatches.filter(
-      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 2
+      (entry) => Math.abs((entry.hatStats ?? 0) - baselineHatStats) <= finalThreshold
     );
   };
 
@@ -12533,14 +12590,16 @@ type Form7LineupSnapshot = {
         "home",
         selectTeamAttitudeBaselineLeagueMatches(
           plan.home.analyzedMatches,
-          plan.home.baselineMidfield
+          plan.home.baselineMidfield,
+          plan.home.finalThreshold
         ),
       ],
       [
         "away",
         selectTeamAttitudeBaselineLeagueMatches(
           plan.away.analyzedMatches,
-          plan.away.baselineMidfield
+          plan.away.baselineMidfield,
+          plan.away.finalThreshold
         ),
       ],
     ];
@@ -12599,6 +12658,7 @@ type Form7LineupSnapshot = {
       (entry) => entry.inferredAttitude === "pic" || entry.inferredAttitude === "mots"
     );
     return {
+      teamAttitudeInferenceVersion: TEAM_ATTITUDE_INFERENCE_VERSION,
       topFormation: plan.topFormation,
       sampleSize: plan.sampleSize,
       home: {
@@ -12817,14 +12877,16 @@ type Form7LineupSnapshot = {
           preparedTeam.teamAttitudePlan,
           lineupCache
         );
-        const previous = nextCache.teams[preparedTeam.teamId]?.teamAttitude?.current;
+        const previous = resolveCurrentTeamAttitudeSnapshot(
+          nextCache.teams[preparedTeam.teamId]?.teamAttitude?.current
+        );
         nextCache.teams[preparedTeam.teamId] = {
           ...nextCache.teams[preparedTeam.teamId],
           teamId: preparedTeam.teamId,
           teamName: preparedTeam.teamName,
           teamAttitude: {
             current: snapshot,
-            previous,
+            ...(previous ? { previous } : {}),
           },
         };
       } catch (error) {
@@ -14255,7 +14317,7 @@ type Form7LineupSnapshot = {
       return {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-        snapshot: cached?.teamAttitude?.current,
+        snapshot: resolveCurrentTeamAttitudeSnapshot(cached?.teamAttitude?.current),
       };
     });
 
@@ -15142,11 +15204,15 @@ type Form7LineupSnapshot = {
     }
     const selectedMatches = (["home", "away"] as TeamAttitudeVenue[]).flatMap((venue) => {
       const venueSnapshot = resolveTeamAttitudeVenueSnapshot(snapshot, venue);
-      const baselineMidfield = venueSnapshot.baselineMidfield;
+      const baselineHatStats = venueSnapshot.baselineMidfield;
+      const finalThreshold = venueSnapshot.finalThreshold;
       if (
-        baselineMidfield === null ||
-        baselineMidfield === undefined ||
-        !Number.isFinite(baselineMidfield)
+        baselineHatStats === null ||
+        baselineHatStats === undefined ||
+        finalThreshold === null ||
+        finalThreshold === undefined ||
+        !Number.isFinite(baselineHatStats) ||
+        !Number.isFinite(finalThreshold)
       ) {
         return [];
       }
@@ -15154,17 +15220,21 @@ type Form7LineupSnapshot = {
         (entry) =>
           entry.venue === venue &&
           entry.matchType === 1 &&
-          entry.midfieldRating !== null &&
-          Number.isFinite(entry.midfieldRating)
+          entry.hatStats !== null &&
+          Number.isFinite(entry.hatStats)
       );
-      const withinOne = leagueMatches.filter(
-        (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
+      const tightBand = Math.max(6, Math.round(finalThreshold * 0.5));
+      const closeToBaseline = leagueMatches.filter(
+        (entry) => Math.abs((entry.hatStats ?? 0) - baselineHatStats) <= tightBand
       );
-      return withinOne.length >= 3
-        ? withinOne
-        : leagueMatches.filter(
-            (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 2
-          );
+      if (closeToBaseline.length >= 3) return closeToBaseline;
+      const normalMatches = leagueMatches.filter(
+        (entry) => entry.inferredAttitude === "normal"
+      );
+      if (normalMatches.length >= 2) return normalMatches;
+      return leagueMatches.filter(
+        (entry) => Math.abs((entry.hatStats ?? 0) - baselineHatStats) <= finalThreshold
+      );
     });
     return new Set(selectedMatches.map((entry) => `${entry.matchId}:${entry.sourceSystem}`));
   }, [selectedTeamAttitudeTeam]);
@@ -15195,7 +15265,7 @@ type Form7LineupSnapshot = {
           hatStatsLabel: hatStats !== null ? formatValue(hatStats) : messages.unknownShort,
           midfieldRatingLabel:
             entry.midfieldRating !== null ? String(entry.midfieldRating) : messages.unknownShort,
-          midfieldUsedForUnion: selectedTeamAttitudeUnionBaselineMatchKeys.has(
+          hatStatsUsedForUnion: selectedTeamAttitudeUnionBaselineMatchKeys.has(
             `${entry.matchId}:${entry.sourceSystem}`
           ),
           lineupLabel: formatTeamAttitudeDebugNumberList(entry.lineupPlayerIds),
@@ -15243,7 +15313,7 @@ type Form7LineupSnapshot = {
         hatStatsRaw: number | null;
         hatStatsLabel: string;
         midfieldRatingLabel: string;
-        midfieldUsedForUnion: boolean;
+        hatStatsUsedForUnion: boolean;
         lineupLabel: string;
         baselineUnionLabel: string;
         overlapLabel: string;
@@ -15263,7 +15333,7 @@ type Form7LineupSnapshot = {
         hatStatsRaw: number | null;
         hatStatsLabel: string;
         midfieldRatingLabel: string;
-        midfieldUsedForUnion: boolean;
+        hatStatsUsedForUnion: boolean;
         lineupLabel: string;
         baselineUnionLabel: string;
         overlapLabel: string;
@@ -15287,7 +15357,7 @@ type Form7LineupSnapshot = {
           hatStatsRaw: number | null;
           hatStatsLabel: string;
           midfieldRatingLabel: string;
-          midfieldUsedForUnion: boolean;
+          hatStatsUsedForUnion: boolean;
           lineupLabel: string;
           baselineUnionLabel: string;
           overlapLabel: string;
@@ -15307,7 +15377,7 @@ type Form7LineupSnapshot = {
           hatStatsRaw: number | null;
           hatStatsLabel: string;
           midfieldRatingLabel: string;
-          midfieldUsedForUnion: boolean;
+          hatStatsUsedForUnion: boolean;
           lineupLabel: string;
           baselineUnionLabel: string;
           overlapLabel: string;
@@ -15353,6 +15423,20 @@ type Form7LineupSnapshot = {
           label: messages.clubChronicleTeamAttitudeHatStatsColumn,
           getValue: (snapshot) => snapshot?.hatStatsLabel ?? null,
           getSortValue: (snapshot) => snapshot?.hatStatsRaw ?? null,
+          renderCell: (snapshot) =>
+            snapshot ? (
+              <span
+                style={
+                  snapshot.hatStatsUsedForUnion
+                    ? { textDecoration: "underline" }
+                    : undefined
+                }
+              >
+                {snapshot.hatStatsLabel}
+              </span>
+            ) : (
+              messages.unknownShort
+            ),
         },
         {
           key: "attitude",
@@ -15376,20 +15460,6 @@ type Form7LineupSnapshot = {
             key: "midfield",
             label: messages.clubChronicleTeamAttitudeMidfieldColumn,
             getValue: (snapshot) => snapshot?.midfieldRatingLabel ?? null,
-            renderCell: (snapshot) =>
-              snapshot ? (
-                <span
-                  style={
-                    snapshot.midfieldUsedForUnion
-                      ? { textDecoration: "underline" }
-                      : undefined
-                  }
-                >
-                  {snapshot.midfieldRatingLabel}
-                </span>
-              ) : (
-                messages.unknownShort
-              ),
           },
           {
             key: "overlap",

@@ -1271,7 +1271,7 @@ export const messagesPl: Messages = {
   clubChronicleFormationsAnalyzedFormationColumn: "Formacja",
   clubChronicleFormationsAnalyzedTacticColumn: "Taktyka",
   clubChronicleHelpBulletTeamAttitude:
-    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+    "Team Attitude wykorzystuje najczestsza formacje, porownuje HatStats z meczow ligowych w tej samej formacji osobno dla domu i wyjazdu, i oznacza mecze prawdopodobnie PIC, MOTS albo normalne. Etykiety potencjalne uzywaja bazowego skladu tylko z ligi, blisko normalnego poziomu HatStats dla danego boiska.",
   clubChronicleHelpBulletTsi:
     "TSI: laczne TSI zespolu i TSI top 11. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), TSI oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleHelpBulletWages:
@@ -1291,7 +1291,7 @@ export const messagesPl: Messages = {
   clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
   clubChronicleTeamAttitudeOverlapColumn: "Overlap",
   clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
-  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "Wszystkie wartosci HatStats",
     clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
     clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
     clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
@@ -1309,7 +1309,7 @@ export const messagesPl: Messages = {
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
   clubChronicleTeamAttitudeDetailsDisclaimer:
-    "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach ratingu pomocy. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
+    "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach HatStats. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleMainSkillEstimationColumn: "Szac. glownej umiejetnosci¹",
   clubChronicleMainSkillEstimationFootnote:
@@ -1380,7 +1380,7 @@ export const messagesPl: Messages = {
   seniorPredictedRatingsUpdating: "Aktualizacja...",
   seniorPredictedRatingsUnavailable: "Predykcja niedostepna",
   seniorPredictedRatingsChppInfoTooltip:
-    "Te oceny sa zwracane przez CHPP i nie sa liczbowo identyczne z ocenami pokazywanymi w Hattricku.",
+    "Te oceny sa zwracane przez CHPP i przeliczane na 20-poziomowa skale ocen Hattricka.",
   seniorPredictedRatingsChppInfoAriaLabel: "O ocenach CHPP",
   submitOrders: "Wyślij skład",
   submitOrdersPending: "Wysyłanie…",

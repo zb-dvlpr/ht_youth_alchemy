@@ -10746,10 +10746,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
     predictSeniorRatingsForLineup,
   ]);
 
-  const formatSeniorPredictedRating = (value: number | null) =>
-    typeof value === "number" && Number.isFinite(value)
-      ? value.toFixed(1)
-      : messages.unknownShort;
+  const convertChppPredictedRatingToHattrickScale = (
+    value: number | null | undefined
+  ): number | null => {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return null;
+    }
+
+    return value / 4 + 0.75;
+  };
+
+  const formatSeniorPredictedRating = (value: number | null | undefined) => {
+    const converted = convertChppPredictedRatingToHattrickScale(value);
+    return converted === null ? messages.unknownShort : converted.toFixed(2);
+  };
   const seniorPredictedRatingsOverlay = useMemo(() => {
     if (!seniorRatingsMatchContext || !hasCompleteSeniorStartingXi) return null;
     if (

@@ -800,7 +800,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletFormations:
       "Formationer och taktik: mest anvand formation och taktik fran de senaste 20 relevanta matcherna. Klicka pa en rad for fordelningsdiagram.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude ateranvander den vanligaste formationen, jamfor ligamatchers HatStats med samma formation med separata hemma- och bortabaser, och markerar troliga PIC-, MOTS- eller normalmatcher. Potentiella etiketter anvander en ligabaserad referenstrupp nara venue-matchad normal HatStats-niva.",
     clubChronicleHelpBulletTsi:
       "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), TSI och sparade form-7-matchbetyg med vaderemoji.",
     clubChronicleHelpBulletLikelyTraining:
@@ -872,7 +872,7 @@ export const messagesSv: Messages = {
     clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
     clubChronicleTeamAttitudeOverlapColumn: "Overlap",
     clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
-    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "Alla HatStats-varden",
     clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
     clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
     clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
@@ -890,7 +890,7 @@ export const messagesSv: Messages = {
     clubChronicleTeamAttitudeDisclaimer:
       "Dessa värden är uppskattade och är inte alltid helt exakta. Lag som konsekvent spelar PIC och sedan spelar normalt kan se ut som MOTS, och lag som konsekvent spelar MOTS och sedan spelar normalt kan se ut som PIC.",
     clubChronicleTeamAttitudeDetailsDisclaimer:
-      "Harledd installning ar en heuristisk uppskattning baserad pa avvikelser i mittfaltsbetyg. Tabellen visar matcherna som anvands for slutsatsen: matcher med den mest dominerande formationen ({formation}) och en spelarkonstellation som ar representativ for en ligamatchuppstallning.",
+      "Harledd installning ar en heuristisk uppskattning baserad pa HatStats-avvikelser. Tabellen visar matcherna som anvands for slutsatsen: matcher med den mest dominerande formationen ({formation}) och en spelarkonstellation som ar representativ for en ligamatchuppstallning.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",
@@ -1322,7 +1322,7 @@ export const messagesSv: Messages = {
     seniorPredictedRatingsUpdating: "Uppdaterar...",
     seniorPredictedRatingsUnavailable: "Prognos ej tillganglig",
     seniorPredictedRatingsChppInfoTooltip:
-      "Dessa betyg returneras av CHPP och ar inte numeriskt identiska med betygen som visas pa Hattrick.",
+      "Dessa betyg returneras av CHPP och konverteras till Hattricks 20-nivaers betygsskala.",
     seniorPredictedRatingsChppInfoAriaLabel: "Om CHPP-betyg",
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",

@@ -808,7 +808,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletFormations:
       "Formaciones y tacticas: formacion y tactica mas usadas en los ultimos 20 partidos relevantes. Haz clic en una fila para ver graficos de distribucion.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude reutiliza la formacion mas comun, compara HatStats de liga con la misma formacion con bases separadas de local y visitante, y marca partidos probablemente PIC, MOTS o normales. Las etiquetas potenciales usan una plantilla base solo de liga cercana al nivel normal de HatStats para ese campo.",
     clubChronicleHelpBulletTsi:
       "TSI: TSI total del equipo y TSI del top 11. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias), TSI y valoraciones guardadas de forma 7 con emoji del clima.",
     clubChronicleHelpBulletLikelyTraining:
@@ -880,7 +880,7 @@ export const messagesEs: Messages = {
     clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
     clubChronicleTeamAttitudeOverlapColumn: "Overlap",
     clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
-    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "Todos los valores HatStats",
     clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
     clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
     clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
@@ -898,7 +898,7 @@ export const messagesEs: Messages = {
     clubChronicleTeamAttitudeDisclaimer:
       "Estos valores son inferidos y puede que no siempre sean exactos. Los equipos que hacen PIC de forma constante y luego juegan normal pueden parecer MOTS, y los equipos que hacen MOTS de forma constante y luego juegan normal pueden parecer PIC.",
     clubChronicleTeamAttitudeDetailsDisclaimer:
-      "La actitud inferida es una estimacion heuristica basada en desviaciones de la calificacion de medio campo. Esta tabla muestra los partidos usados para la inferencia: partidos jugados con la formacion mas dominante ({formation}) y una constelacion de jugadores representativa de una alineacion de liga.",
+      "La actitud inferida es una estimacion heuristica basada en desviaciones de HatStats. Esta tabla muestra los partidos usados para la inferencia: partidos jugados con la formacion mas dominante ({formation}) y una constelacion de jugadores representativa de una alineacion de liga.",
     clubChronicleMatchTypeLeague: "Partido de liga",
     clubChronicleMatchTypeQualification: "Partido de clasificación",
     clubChronicleMatchTypeCup: "Partido de copa",
@@ -1332,7 +1332,7 @@ export const messagesEs: Messages = {
     seniorPredictedRatingsUpdating: "Actualizando...",
     seniorPredictedRatingsUnavailable: "Prediccion no disponible",
     seniorPredictedRatingsChppInfoTooltip:
-      "Estas valoraciones son devueltas por CHPP y no son numericamente identicas a las valoraciones mostradas en Hattrick.",
+      "Estas valoraciones son devueltas por CHPP y convertidas a la escala de 20 niveles de Hattrick.",
     seniorPredictedRatingsChppInfoAriaLabel: "Acerca de las valoraciones CHPP",
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",

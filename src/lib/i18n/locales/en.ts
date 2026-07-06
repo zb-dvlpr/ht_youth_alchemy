@@ -764,7 +764,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude: reuses the most common formation, compares same-formation league HatStats with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal HatStats level.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), TSI, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLikelyTraining:
@@ -836,7 +836,7 @@ export const messagesEn: Messages = {
     clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
     clubChronicleTeamAttitudeOverlapColumn: "Overlap",
     clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
-    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All HatStats values",
     clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
     clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
     clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
@@ -854,7 +854,7 @@ export const messagesEn: Messages = {
     clubChronicleTeamAttitudeDisclaimer:
       "These values are inferred and may not always be accurate. Teams that consistently PIC and then play normal can look like MOTS, and teams that consistently MOTS and then play normal can look like PIC.",
     clubChronicleTeamAttitudeDetailsDisclaimer:
-      "Inferred attitude is a heuristic estimate based on midfield-rating deviations. This table shows the matches used for the inference: matches played with the most dominant formation ({formation}) and a player constellation representative of a league-match lineup.",
+      "Inferred attitude is a heuristic estimate based on HatStats deviations. This table shows the matches used for the inference: matches played with the most dominant formation ({formation}) and a player constellation representative of a league-match lineup.",
     clubChronicleMatchTypeLeague: "League match",
     clubChronicleMatchTypeQualification: "Qualification match",
     clubChronicleMatchTypeCup: "Cup match",
@@ -1284,7 +1284,7 @@ export const messagesEn: Messages = {
     seniorPredictedRatingsUpdating: "Updating...",
     seniorPredictedRatingsUnavailable: "Prediction unavailable",
     seniorPredictedRatingsChppInfoTooltip:
-      "These ratings are returned by CHPP and are not numerically identical to the ratings shown on Hattrick.",
+      "These ratings are returned by CHPP and converted to Hattrick's 20-level rating scale.",
     seniorPredictedRatingsChppInfoAriaLabel: "About CHPP ratings",
     submitOrders: "Submit lineup",
     submitOrdersPending: "Submitting…",

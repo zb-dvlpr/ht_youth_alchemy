@@ -1277,7 +1277,7 @@ export const messagesNl: Messages = {
   clubChronicleFormationsAnalyzedFormationColumn: "Formatie",
   clubChronicleFormationsAnalyzedTacticColumn: "Tactiek",
   clubChronicleHelpBulletTeamAttitude:
-    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+    "Team Attitude hergebruikt de meest voorkomende formatie, vergelijkt HatStats uit competitiewedstrijden met dezelfde formatie met aparte thuis- en uitbaselines, en markeert wedstrijden als waarschijnlijk PIC, MOTS of normaal. Potentiele labels gebruiken een competitie-basisteam dicht bij het normale HatStats-niveau voor die speelplaats.",
   clubChronicleHelpBulletTsi:
     "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleHelpBulletWages:
@@ -1297,7 +1297,7 @@ export const messagesNl: Messages = {
   clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
   clubChronicleTeamAttitudeOverlapColumn: "Overlap",
   clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
-  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "Alle HatStats-waarden",
     clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
     clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
     clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
@@ -1315,7 +1315,7 @@ export const messagesNl: Messages = {
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
   clubChronicleTeamAttitudeDetailsDisclaimer:
-    "Afgeleide instelling is een heuristische schatting op basis van afwijkingen in middenveldrating. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
+    "Afgeleide instelling is een heuristische schatting op basis van HatStats-afwijkingen. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleMainSkillEstimationColumn: "Schatting hoofdskill¹",
   clubChronicleMainSkillEstimationFootnote:
@@ -1386,7 +1386,7 @@ export const messagesNl: Messages = {
   seniorPredictedRatingsUpdating: "Bijwerken...",
   seniorPredictedRatingsUnavailable: "Voorspelling niet beschikbaar",
   seniorPredictedRatingsChppInfoTooltip:
-    "Deze ratings worden door CHPP teruggegeven en zijn numeriek niet identiek aan de ratings die op Hattrick worden getoond.",
+    "Deze ratings worden door CHPP teruggegeven en omgezet naar Hattricks ratingschaal met 20 niveaus.",
   seniorPredictedRatingsChppInfoAriaLabel: "Over CHPP-ratings",
   submitOrders: "Opstelling verzenden",
   submitOrdersPending: "Verzenden…",

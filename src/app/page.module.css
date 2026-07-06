@@ -1174,32 +1174,6 @@ html[data-mobile-shell="true"] .mobileYouthContent .fieldPitch {
   --slot-height: clamp(68px, 14vw, 92px);
 }
 
-html[data-mobile-shell="true"] .mobileYouthContent .seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeControl {
-  min-width: 0;
-  max-width: 124px;
-}
-
-html[data-mobile-shell="true"] .mobileYouthContent .seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeControl .feedbackWrap {
-  min-width: 0;
-  max-width: 100%;
-}
-
-html[data-mobile-shell="true"] .mobileYouthContent .seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeTrigger {
-  min-width: 0;
-  width: 124px;
-  max-width: 124px;
-  padding: 4px 22px 4px 8px;
-}
-
-html[data-mobile-shell="true"] .mobileYouthContent .seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeValue {
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 html[data-mobile-shell="true"] .mobileYouthContent .lineupActions {
   left: 10px;
   right: 10px;
@@ -13226,6 +13200,37 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .lineupTrainingTypeMenu {
   min-width: 230px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeControl {
+  min-width: 0;
+  max-width: 120px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeControl .feedbackWrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeTrigger {
+  min-width: 0;
+  width: 120px;
+  max-width: 120px;
+  padding: 4px 22px 4px 8px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeValue {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeMenu {
+  min-width: 168px;
+  max-width: min(220px, calc(100vw - 32px));
 }
 
 .lineupTrainingTypeOption {

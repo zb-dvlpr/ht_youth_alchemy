@@ -1331,9 +1331,6 @@ export const messagesEs: Messages = {
     seniorPredictedRatingsRightOff: "Ata der",
     seniorPredictedRatingsUpdating: "Actualizando...",
     seniorPredictedRatingsUnavailable: "Prediccion no disponible",
-    seniorPredictedRatingsChppInfoTooltip:
-      "Estas valoraciones son devueltas por CHPP y convertidas a la escala de 20 niveles de Hattrick.",
-    seniorPredictedRatingsChppInfoAriaLabel: "Acerca de las valoraciones CHPP",
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Órdenes enviadas",

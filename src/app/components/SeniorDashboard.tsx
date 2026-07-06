@@ -10957,15 +10957,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
               </div>
             ) : null}
           </div>
-          <Tooltip content={messages.seniorPredictedRatingsChppInfoTooltip}>
-            <button
-              type="button"
-              className={styles.seniorPredictedRatingsInfoButton}
-              aria-label={messages.seniorPredictedRatingsChppInfoAriaLabel}
-            >
-              ⓘ
-            </button>
-          </Tooltip>
         </div>
         {liveSeniorPredictedRatingsStatus === "loading" ? (
           <div className={styles.seniorPredictedRatingsState}>

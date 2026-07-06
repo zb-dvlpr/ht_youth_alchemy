@@ -1317,9 +1317,6 @@ export const messagesDe: Messages = {
     seniorPredictedRatingsRightOff: "Rechter Ang",
     seniorPredictedRatingsUpdating: "Aktualisierung...",
     seniorPredictedRatingsUnavailable: "Prognose nicht verfuegbar",
-    seniorPredictedRatingsChppInfoTooltip:
-      "Diese Ratings werden von CHPP zurueckgegeben und in Hattricks 20-stufige Ratingskala umgerechnet.",
-    seniorPredictedRatingsChppInfoAriaLabel: "Ueber CHPP-Ratings",
     submitOrders: "Aufstellung senden",
     submitOrdersPending: "Wird gesendet…",
     submitOrdersSuccess: "Anweisungen gesendet",

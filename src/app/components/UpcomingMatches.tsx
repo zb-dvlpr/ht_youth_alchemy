@@ -381,11 +381,30 @@ function parseLoadedTacticType(payload: unknown): number | null {
   return null;
 }
 
+function readLoadedSettingsNumber(
+  settingsCandidates: unknown[],
+  fieldNames: string[]
+): number | null {
+  for (const candidate of settingsCandidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const record = candidate as Record<string, unknown>;
+    for (const fieldName of fieldNames) {
+      const parsed = toLoadedNumber(record[fieldName]);
+      if (parsed !== null) return parsed;
+    }
+  }
+  return null;
+}
+
 function parseLoadedLineupOrders(payload: unknown): LoadedLineupOrders {
   const matchDataRecord = getLoadedMatchData(payload);
   const lineupNode =
     matchDataRecord?.Lineup && typeof matchDataRecord.Lineup === "object"
       ? (matchDataRecord.Lineup as Record<string, unknown>)
+      : null;
+  const matchOrdersNode =
+    matchDataRecord?.MatchOrders && typeof matchDataRecord.MatchOrders === "object"
+      ? (matchDataRecord.MatchOrders as Record<string, unknown>)
       : null;
   const playerOrdersNode =
     matchDataRecord?.PlayerOrders && typeof matchDataRecord.PlayerOrders === "object"
@@ -418,20 +437,26 @@ function parseLoadedLineupOrders(payload: unknown): LoadedLineupOrders {
       lineupNode?.CaptainPlayerId ??
       lineupNode?.Captain
   );
-  const settingsNode =
-    matchDataRecord?.Settings && typeof matchDataRecord.Settings === "object"
-      ? (matchDataRecord.Settings as Record<string, unknown>)
-      : lineupNode?.Settings && typeof lineupNode.Settings === "object"
-        ? (lineupNode.Settings as Record<string, unknown>)
-        : null;
-  const matchAttitude = toLoadedNumber(
-    settingsNode?.SpeechLevel ??
-      settingsNode?.MatchAttitude ??
-      settingsNode?.MatchAttitudeType
-  );
-  const coachModifier = toLoadedNumber(
-    settingsNode?.CoachModifier ?? settingsNode?.StyleOfPlay
-  );
+  const settingsCandidates: unknown[] = [
+    matchDataRecord?.Settings,
+    lineupNode?.Settings,
+    matchOrdersNode?.Settings,
+  ];
+  const matchAttitude = readLoadedSettingsNumber(settingsCandidates, [
+    "SpeechLevel",
+    "Speechlevel",
+    "speechLevel",
+    "MatchAttitude",
+    "matchAttitude",
+    "MatchAttitudeType",
+    "matchAttitudeType",
+  ]);
+  const coachModifier = readLoadedSettingsNumber(settingsCandidates, [
+    "CoachModifier",
+    "coachModifier",
+    "StyleOfPlay",
+    "styleOfPlay",
+  ]);
   const substitutions = normalizeLoadedArray<Record<string, unknown>>(
     playerOrdersNode?.PlayerOrder
   ).map((order) => ({

@@ -303,10 +303,10 @@ export const messagesNl: Messages = {
   settingsSeniorPredictedRatingsExperimentalLabel: "Experimenteel",
   settingsSeniorPredictedRatingsToggleLabel: "Voorspelde ratings inschakelen",
   settingsSeniorPredictedRatingsDescription:
-    "Deze functie is experimenteel omdat CHPP momenteel onjuiste waarden voor voorspelde wedstrijdratings retourneert. Schakel dit alleen in als je de functie toch nuttig vindt. Overweeg het probleem te melden via Hattrick Staff Messages en vermeld dat het endpoint matchorders onjuiste waarden retourneert wanneer het wordt aangeroepen met actionType=predictratings.",
+    "Deze functie is experimenteel omdat CHPP momenteel onjuiste waarden voor voorspelde wedstrijdratings retourneert. Schakel dit alleen in als je de functie toch nuttig vindt. Overweeg het probleem te melden via Hattrick Staff Messages en vermeld dat het endpoint matchorders onjuiste waarden retourneert wanneer het wordt aangeroepen met predictratings=true.",
   settingsSeniorPredictedRatingsReportLabel: "Bugrapport",
   settingsSeniorPredictedRatingsReportText:
-    "Onderwerp: Onjuiste voorspelde ratings geretourneerd door het CHPP-endpoint matchorders\n\nHallo,\n\nHet CHPP-endpoint matchorders lijkt onjuiste waarden te retourneren wanneer voorspelde ratings worden aangevraagd met actionType=predictratings.\n\nDe geretourneerde sectorratings komen niet overeen met de verwachte ratings voor de gekozen opstelling, spelerorders, tactiek, wedstrijdmentaliteit en wedstrijdcontext. Daardoor kunnen CHPP-applicaties geen betrouwbare voorspelde wedstrijdratings leveren.\n\nKunnen jullie de berekening van voorspelde ratings of het antwoord van het endpoint matchorders onderzoeken?\n\nBedankt.",
+    "Onderwerp: Onjuiste voorspelde ratings geretourneerd door het CHPP-endpoint matchorders\n\nHallo,\n\nHet CHPP-endpoint matchorders lijkt onjuiste waarden te retourneren wanneer voorspelde ratings worden aangevraagd met predictratings=true.\n\nDe geretourneerde sectorratings komen niet overeen met de verwachte ratings voor de gekozen opstelling, spelerorders, tactiek, wedstrijdmentaliteit en wedstrijdcontext. Daardoor kunnen CHPP-applicaties geen betrouwbare voorspelde wedstrijdratings leveren.\n\nKunnen jullie de berekening van voorspelde ratings of het antwoord van het endpoint matchorders onderzoeken?\n\nBedankt.",
   settingsSeniorPredictedRatingsCopyReportButton: "Rapport kopiëren",
   settingsSeniorPredictedRatingsReportButton: "Melden",
   settingsSeniorPredictedRatingsReportCopied: "Rapport gekopieerd.",

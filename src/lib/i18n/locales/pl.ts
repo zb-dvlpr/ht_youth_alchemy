@@ -303,10 +303,10 @@ export const messagesPl: Messages = {
   settingsSeniorPredictedRatingsExperimentalLabel: "Eksperymentalne",
   settingsSeniorPredictedRatingsToggleLabel: "Włącz przewidywane oceny",
   settingsSeniorPredictedRatingsDescription:
-    "Ta funkcja jest eksperymentalna, ponieważ CHPP obecnie zwraca nieprawidłowe wartości przewidywanych ocen meczowych. Włącz ją tylko wtedy, gdy mimo to uważasz ją za przydatną. Rozważ zgłoszenie problemu przez Hattrick Staff Messages i wspomnij, że endpoint matchorders zwraca nieprawidłowe wartości przy wywołaniu z actionType=predictratings.",
+    "Ta funkcja jest eksperymentalna, ponieważ CHPP obecnie zwraca nieprawidłowe wartości przewidywanych ocen meczowych. Włącz ją tylko wtedy, gdy mimo to uważasz ją za przydatną. Rozważ zgłoszenie problemu przez Hattrick Staff Messages i wspomnij, że endpoint matchorders zwraca nieprawidłowe wartości przy wywołaniu z predictratings=true.",
   settingsSeniorPredictedRatingsReportLabel: "Zgłoszenie błędu",
   settingsSeniorPredictedRatingsReportText:
-    "Temat: Nieprawidłowe przewidywane oceny zwracane przez endpoint CHPP matchorders\n\nCześć,\n\nEndpoint CHPP matchorders wydaje się zwracać nieprawidłowe wartości, gdy przewidywane oceny są żądane z użyciem actionType=predictratings.\n\nZwracane oceny sektorów nie odpowiadają oczekiwanym ocenom dla wybranego składu, poleceń zawodników, taktyki, nastawienia meczowego i kontekstu meczu. Uniemożliwia to aplikacjom CHPP dostarczanie wiarygodnych przewidywanych ocen meczowych.\n\nCzy możecie zbadać obliczanie przewidywanych ocen albo odpowiedź zwracaną przez endpoint matchorders?\n\nDziękuję.",
+    "Temat: Nieprawidłowe przewidywane oceny zwracane przez endpoint CHPP matchorders\n\nCześć,\n\nEndpoint CHPP matchorders wydaje się zwracać nieprawidłowe wartości, gdy przewidywane oceny są żądane z użyciem predictratings=true.\n\nZwracane oceny sektorów nie odpowiadają oczekiwanym ocenom dla wybranego składu, poleceń zawodników, taktyki, nastawienia meczowego i kontekstu meczu. Uniemożliwia to aplikacjom CHPP dostarczanie wiarygodnych przewidywanych ocen meczowych.\n\nCzy możecie zbadać obliczanie przewidywanych ocen albo odpowiedź zwracaną przez endpoint matchorders?\n\nDziękuję.",
   settingsSeniorPredictedRatingsCopyReportButton: "Kopiuj zgłoszenie",
   settingsSeniorPredictedRatingsReportButton: "Zgłoś",
   settingsSeniorPredictedRatingsReportCopied: "Zgłoszenie skopiowane.",

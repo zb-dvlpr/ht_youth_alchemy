@@ -18,8 +18,6 @@ const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const FORM_MAX_LEVEL = 8;
 const STAMINA_MAX_LEVEL = 9;
 const SENIOR_SKILL_MAX_LEVEL = 20;
-const SIMULATION_MIN_AGE_DAYS = 17 * HATTRICK_AGE_DAYS_PER_YEAR;
-const SIMULATION_MAX_AGE_DAYS = 28 * HATTRICK_AGE_DAYS_PER_YEAR;
 const SIMULATION_MAX_WAGE_DISPLAY = 100_000_000;
 const SIMULATION_MAX_TSI = 10_000_000;
 
@@ -146,16 +144,18 @@ type SeniorFoxtrickSimulatorProps = {
 const clamp = (value: number, min: number, max: number) =>
   Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : min;
 
-const clampAgeTotalDays = (years: number | null, days: number | null) => {
-  const totalDays =
-    (typeof years === "number" ? years : 17) * HATTRICK_AGE_DAYS_PER_YEAR +
-    Math.max(0, typeof days === "number" ? days : 0);
-  return clamp(totalDays, SIMULATION_MIN_AGE_DAYS, SIMULATION_MAX_AGE_DAYS);
-};
-
-const agePartsFromTotalDays = (totalDays: number) => ({
-  ageYears: Math.floor(totalDays / HATTRICK_AGE_DAYS_PER_YEAR),
-  ageDays: totalDays % HATTRICK_AGE_DAYS_PER_YEAR,
+const normalizeAgeParts = (years: number | null, days: number | null) => ({
+  ageYears:
+    typeof years === "number" && Number.isFinite(years)
+      ? Math.max(17, Math.round(years))
+      : 17,
+  ageDays:
+    typeof days === "number" && Number.isFinite(days)
+      ? Math.min(
+          HATTRICK_AGE_DAYS_PER_YEAR - 1,
+          Math.max(0, Math.round(days))
+        )
+      : 0,
 });
 
 const valueFromInput = (
@@ -178,7 +178,7 @@ const buildInitialValues = (
   input: SeniorPlayerMetricInput,
   displayCurrencyRate: number
 ): SimulatedValues => {
-  const age = agePartsFromTotalDays(clampAgeTotalDays(input.ageYears, input.ageDays));
+  const age = normalizeAgeParts(input.ageYears, input.ageDays);
   return {
     ...age,
     wageDisplay:
@@ -279,13 +279,13 @@ export default function SeniorFoxtrickSimulator({
   const updateAge = (patch: Partial<Pick<SimulatedValues, "ageYears" | "ageDays">>) => {
     setDirty(true);
     setValues((prev) => {
-      const totalDays = clampAgeTotalDays(
+      const age = normalizeAgeParts(
         patch.ageYears ?? prev.ageYears,
         patch.ageDays ?? prev.ageDays
       );
       return {
         ...prev,
-        ...agePartsFromTotalDays(totalDays),
+        ...age,
       };
     });
   };
@@ -301,35 +301,31 @@ export default function SeniorFoxtrickSimulator({
     if (parsed === null) return;
 
     if (key === "ageYears") {
-      if (parsed < 17 || parsed > 28) return;
-      const totalDays = clampAgeTotalDays(parsed, values.ageDays);
-      const age = agePartsFromTotalDays(totalDays);
+      if (!Number.isFinite(parsed) || parsed < 17) return;
       setDirty(true);
       setValues((prev) => ({
         ...prev,
-        ...age,
+        ageYears: Math.round(parsed),
       }));
-      if (age.ageDays !== values.ageDays) {
-        setControlDraft((prev) => ({
-          ...prev,
-          ageDays: String(age.ageDays),
-        }));
-      }
       return;
     }
 
-    const maxDays = values.ageYears >= 28 ? 0 : HATTRICK_AGE_DAYS_PER_YEAR - 1;
-    if (parsed < 0 || parsed > maxDays) return;
-    updateAge({ ageDays: parsed });
+    if (
+      !Number.isFinite(parsed) ||
+      parsed < 0 ||
+      parsed > HATTRICK_AGE_DAYS_PER_YEAR - 1
+    ) {
+      return;
+    }
+    updateAge({ ageDays: Math.round(parsed) });
   };
 
   const commitAgeDraft = (key: "ageYears" | "ageDays") => {
     const parsed = parseDraftNumber(controlDraft[key]);
-    const totalDays =
+    const age =
       key === "ageYears"
-        ? clampAgeTotalDays(parsed, values.ageDays)
-        : clampAgeTotalDays(values.ageYears, parsed);
-    const age = agePartsFromTotalDays(totalDays);
+        ? normalizeAgeParts(parsed, values.ageDays)
+        : normalizeAgeParts(values.ageYears, parsed);
     setValues((prev) => ({
       ...prev,
       ...age,

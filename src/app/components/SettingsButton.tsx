@@ -34,6 +34,8 @@ import {
   YOUTH_SETTINGS_EVENT,
   readSeniorStalenessDays,
   writeSeniorStalenessDays,
+  readSeniorPredictedRatingsEnabled,
+  writeSeniorPredictedRatingsEnabled,
   SENIOR_SETTINGS_EVENT,
   readSeniorDebugManagerUserId,
   writeSeniorDebugManagerUserId,
@@ -54,6 +56,8 @@ import {
   readDebugSupporterOverride,
   writeDebugSupporterOverride,
 } from "@/lib/settings";
+import { copyTextToClipboard } from "@/lib/clipboard";
+import { hattrickStaffMessagesUrl } from "@/lib/hattrick/urls";
 import {
   applyImportedChronicleWatchlists,
   buildChronicleWatchlistsImportUrl,
@@ -181,6 +185,10 @@ export default function SettingsButton({
     useState(true);
   const [stalenessDays, setStalenessDays] = useState(1);
   const [seniorStalenessDays, setSeniorStalenessDays] = useState(1);
+  const [
+    seniorPredictedRatingsEnabled,
+    setSeniorPredictedRatingsEnabled,
+  ] = useState(false);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
     useState(5);
@@ -250,6 +258,7 @@ export default function SettingsButton({
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessDays(readYouthStalenessDays());
     setSeniorStalenessDays(readSeniorStalenessDays());
+    setSeniorPredictedRatingsEnabled(readSeniorPredictedRatingsEnabled());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
@@ -552,10 +561,48 @@ export default function SettingsButton({
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent(SENIOR_SETTINGS_EVENT, {
-          detail: { stalenessDays: nextValue },
+          detail: {
+            stalenessDays: nextValue,
+            seniorPredictedRatingsEnabled,
+          },
         })
       );
     }
+  };
+
+  const handleSeniorPredictedRatingsToggle = (nextValue: boolean) => {
+    setSeniorPredictedRatingsEnabled(nextValue);
+    writeSeniorPredictedRatingsEnabled(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SENIOR_SETTINGS_EVENT, {
+          detail: {
+            stalenessDays: seniorStalenessDays,
+            seniorPredictedRatingsEnabled: nextValue,
+          },
+        })
+      );
+    }
+  };
+
+  const handleCopySeniorPredictedRatingsReport = async () => {
+    try {
+      const copied = await copyTextToClipboard(
+        messages.settingsSeniorPredictedRatingsReportText
+      );
+      addNotification(
+        copied
+          ? messages.settingsSeniorPredictedRatingsReportCopied
+          : messages.settingsSeniorPredictedRatingsReportCopyFailed
+      );
+    } catch {
+      addNotification(messages.settingsSeniorPredictedRatingsReportCopyFailed);
+    }
+  };
+
+  const handleOpenSeniorPredictedRatingsReport = () => {
+    if (typeof window === "undefined") return;
+    window.open(hattrickStaffMessagesUrl(), "_blank", "noopener,noreferrer");
   };
 
   const handleChronicleStalenessChange = (value: number) => {
@@ -1040,26 +1087,90 @@ export default function SettingsButton({
         title={messages.settingsSeniorTitle}
         body={
           <div className={styles.settingsModalBody}>
-            <Tooltip content={messages.settingsSeniorStalenessHint} fullWidth>
-              <label className={styles.settingsField}>
-                <span className={styles.settingsFieldLabel}>
-                  {messages.settingsSeniorStalenessLabel}
+            <section className={styles.settingsField}>
+              <h3 className={styles.settingsCardTitle}>
+                {messages.settingsAutoRefreshTitle}
+              </h3>
+              <Tooltip content={messages.settingsSeniorStalenessHint} fullWidth>
+                <label className={styles.settingsFieldInner}>
+                  <span className={styles.settingsFieldLabel}>
+                    {messages.settingsSeniorStalenessLabel}
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={7}
+                    step={1}
+                    value={seniorStalenessDays}
+                    className={styles.settingsFieldInput}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      if (Number.isNaN(value)) return;
+                      handleSeniorStalenessDaysChange(value);
+                    }}
+                  />
+                </label>
+              </Tooltip>
+            </section>
+            <section className={styles.settingsField}>
+              <div className={styles.settingsCardHeader}>
+                <h3 className={styles.settingsCardTitle}>
+                  {messages.settingsSeniorPredictedRatingsTitle}
+                </h3>
+                <span className={styles.settingsCardBadge}>
+                  {messages.settingsSeniorPredictedRatingsExperimentalLabel}
+                </span>
+              </div>
+              <label className={styles.settingsCardToggle}>
+                <span className={styles.algorithmsToggleText}>
+                  {messages.settingsSeniorPredictedRatingsToggleLabel}
                 </span>
                 <input
-                  type="number"
-                  min={1}
-                  max={7}
-                  step={1}
-                  value={seniorStalenessDays}
-                  className={styles.settingsFieldInput}
-                  onChange={(event) => {
-                    const value = Number(event.target.value);
-                    if (Number.isNaN(value)) return;
-                    handleSeniorStalenessDaysChange(value);
-                  }}
+                  type="checkbox"
+                  className={styles.algorithmsToggleInput}
+                  checked={seniorPredictedRatingsEnabled}
+                  onChange={(event) =>
+                    handleSeniorPredictedRatingsToggle(event.target.checked)
+                  }
+                />
+                <span
+                  className={styles.algorithmsToggleSwitch}
+                  aria-hidden="true"
                 />
               </label>
-            </Tooltip>
+              <p className={styles.settingsCardDescription}>
+                {messages.settingsSeniorPredictedRatingsDescription}
+              </p>
+              <label className={styles.settingsReportField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsSeniorPredictedRatingsReportLabel}
+                </span>
+                <textarea
+                  readOnly
+                  aria-label={
+                    messages.settingsSeniorPredictedRatingsReportAriaLabel
+                  }
+                  value={messages.settingsSeniorPredictedRatingsReportText}
+                  className={styles.settingsReportTextarea}
+                />
+              </label>
+              <div className={styles.settingsReportActions}>
+                <button
+                  type="button"
+                  className={styles.confirmCancel}
+                  onClick={() => void handleCopySeniorPredictedRatingsReport()}
+                >
+                  {messages.settingsSeniorPredictedRatingsCopyReportButton}
+                </button>
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={handleOpenSeniorPredictedRatingsReport}
+                >
+                  {messages.settingsSeniorPredictedRatingsReportButton}
+                </button>
+              </div>
+            </section>
           </div>
         }
         actions={

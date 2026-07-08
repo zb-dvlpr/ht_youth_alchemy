@@ -38,6 +38,7 @@ import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   readSeniorLineupAlgorithm,
   readSeniorDebugManagerUserId,
+  readSeniorPredictedRatingsEnabled,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
   SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
   readSeniorStalenessDays,
@@ -4018,6 +4019,10 @@ export default function SeniorDashboard({
   >([]);
   const [stateRestored, setStateRestored] = useState(false);
   const [stalenessDays, setStalenessDays] = useState(1);
+  const [
+    seniorPredictedRatingsEnabled,
+    setSeniorPredictedRatingsEnabled,
+  ] = useState(false);
   const [dataRestored, setDataRestored] = useState(false);
   const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
     matchId: number | null;
@@ -10571,14 +10576,17 @@ function buildSeniorAiManMarkingReadySignature(params: {
         : null,
     [seniorMatchesList]
   );
-  const clearSeniorRatingsPrediction = useCallback(() => {
+  const clearLiveSeniorRatingsPredictionState = useCallback(() => {
     liveSeniorPredictedRatingsRequestRef.current += 1;
     liveSeniorPredictedRatingsPayloadKeyRef.current = "";
     liveSeniorPredictedRatingsLineupPayloadRef.current = null;
-    setSeniorRatingsMatchContext(null);
     setLiveSeniorPredictedRatings(null);
     setLiveSeniorPredictedRatingsStatus("idle");
   }, []);
+  const clearSeniorRatingsPrediction = useCallback(() => {
+    clearLiveSeniorRatingsPredictionState();
+    setSeniorRatingsMatchContext(null);
+  }, [clearLiveSeniorRatingsPredictionState]);
   const buildSeniorRatingsMatchContext = useCallback(
     (matchId: number): SeniorRatingsPredictionMatchContext | null => {
       if (
@@ -10754,6 +10762,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ]
   );
   const seniorPredictedRatingsLineupPayload = useMemo(() => {
+    if (!seniorPredictedRatingsEnabled) return null;
     if (!seniorRatingsMatchContext) return null;
     if (!hasCompleteSeniorStartingXi) return null;
     const defaultLineup = buildLineupPayload(assignments, tacticType, {
@@ -10796,6 +10805,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     effectiveSeniorSetPiecesPlayerId,
     hasCompleteSeniorStartingXi,
     isSeniorOtherOrdersMatchAttitudeEligible,
+    seniorPredictedRatingsEnabled,
     seniorEditableOrdersState,
     seniorOtherOrdersCoachModifierRange,
     seniorRatingsMatchContext,
@@ -10814,6 +10824,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
   }, [seniorPredictedRatingsLineupPayload]);
 
   useEffect(() => {
+    if (!seniorPredictedRatingsEnabled) {
+      clearLiveSeniorRatingsPredictionState();
+      return;
+    }
     if (!seniorRatingsMatchContext) {
       liveSeniorPredictedRatingsRequestRef.current += 1;
       liveSeniorPredictedRatingsPayloadKeyRef.current = "";
@@ -10901,7 +10915,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     seniorPredictedRatingsLineupPayloadKey,
     buildSeniorRatingsMatchContext,
     clearSeniorRatingsPrediction,
+    clearLiveSeniorRatingsPredictionState,
     predictSeniorRatingsForLineup,
+    seniorPredictedRatingsEnabled,
   ]);
 
   const convertChppPredictedRatingToHattrickScale = (
@@ -10919,6 +10935,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return converted === null ? messages.unknownShort : converted.toFixed(2);
   };
   const seniorPredictedRatingsOverlay = useMemo(() => {
+    if (!seniorPredictedRatingsEnabled) return null;
     if (!seniorRatingsMatchContext || !hasCompleteSeniorStartingXi) return null;
     if (
       typeof resolvedSeniorTeamId !== "number" ||
@@ -11013,6 +11030,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     resolvedSeniorTeamId,
     liveSeniorPredictedRatingsStatus,
     liveSeniorPredictedRatings,
+    seniorPredictedRatingsEnabled,
     messages,
   ]);
 
@@ -17079,13 +17097,27 @@ const refreshDetailsForPlayers = async (
         }
       }
       if (event instanceof CustomEvent) {
-        const detail = event.detail as { stalenessDays?: number } | null;
+        const detail = event.detail as {
+          stalenessDays?: number;
+          seniorPredictedRatingsEnabled?: boolean;
+        } | null;
         if (typeof detail?.stalenessDays === "number") {
           setStalenessDays(Math.min(7, Math.max(1, Math.round(detail.stalenessDays))));
+        }
+        if (typeof detail?.seniorPredictedRatingsEnabled === "boolean") {
+          setSeniorPredictedRatingsEnabled(
+            detail.seniorPredictedRatingsEnabled === true
+          );
+        }
+        if (
+          typeof detail?.stalenessDays === "number" ||
+          typeof detail?.seniorPredictedRatingsEnabled === "boolean"
+        ) {
           return;
         }
       }
       setStalenessDays(readSeniorStalenessDays());
+      setSeniorPredictedRatingsEnabled(readSeniorPredictedRatingsEnabled());
     };
     const handleWipeRatingsMatrix = () => {
       setLatestFetchedRatingsResponse(null);
@@ -17100,6 +17132,7 @@ const refreshDetailsForPlayers = async (
         ratingsByPlayerId: {},
       };
     };
+    handle(new Event(SENIOR_SETTINGS_EVENT));
     window.addEventListener("storage", handle);
     window.addEventListener(SENIOR_SETTINGS_EVENT, handle);
     window.addEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);

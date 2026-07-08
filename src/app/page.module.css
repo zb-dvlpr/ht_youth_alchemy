@@ -1927,6 +1927,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #3f362c;
 }
 
+.settingsFieldInner {
+  display: grid;
+  gap: 8px;
+}
+
 .settingsFieldLabel {
   font-size: 13px;
   font-weight: 600;
@@ -1940,6 +1945,81 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-size: 13px;
   background: #f8f3ea;
   color: #3f362c;
+}
+
+.settingsCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settingsCardTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d261d;
+}
+
+.settingsCardBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 92, 42, 0.35);
+  background: rgba(148, 92, 42, 0.1);
+  color: #69411f;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.settingsCardToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  color: #3f362c;
+  cursor: pointer;
+}
+
+.settingsCardDescription {
+  margin: 0;
+  color: #5d5246;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.settingsReportField {
+  display: grid;
+  gap: 8px;
+}
+
+.settingsReportTextarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  border-radius: 10px;
+  border: 1px solid #d8cbb6;
+  padding: 10px 12px;
+  background: #f8f3ea;
+  color: #3f362c;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.settingsReportActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .storageDiagnosticsSection {
@@ -6469,7 +6549,31 @@ html[data-theme="dark"] .settingsField {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .settingsCardTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .settingsCardBadge {
+  border-color: rgba(213, 154, 94, 0.45);
+  background: rgba(213, 154, 94, 0.16);
+  color: #f0c28e;
+}
+
+html[data-theme="dark"] .settingsCardDescription {
+  color: #c9bfb2;
+}
+
+html[data-theme="dark"] .settingsCardToggle {
+  color: #f3ede4;
+}
+
 html[data-theme="dark"] .settingsFieldInput {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #2a241d;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .settingsReportTextarea {
   border-color: rgba(255, 255, 255, 0.12);
   background: #2a241d;
   color: #f3ede4;

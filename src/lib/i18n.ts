@@ -333,6 +333,7 @@ export type Messages = {
   settingsAlgorithmsTitle: string;
   settingsAlgorithmsAllowTrainingLabel: string;
   settingsAlgorithmsAllowTrainingTooltip: string;
+  settingsAutoRefreshTitle: string;
   settingsYouth: string;
   settingsYouthTitle: string;
   settingsYouthStalenessLabel: string;
@@ -341,6 +342,17 @@ export type Messages = {
   settingsSeniorTitle: string;
   settingsSeniorStalenessLabel: string;
   settingsSeniorStalenessHint: string;
+  settingsSeniorPredictedRatingsTitle: string;
+  settingsSeniorPredictedRatingsExperimentalLabel: string;
+  settingsSeniorPredictedRatingsToggleLabel: string;
+  settingsSeniorPredictedRatingsDescription: string;
+  settingsSeniorPredictedRatingsReportLabel: string;
+  settingsSeniorPredictedRatingsReportText: string;
+  settingsSeniorPredictedRatingsCopyReportButton: string;
+  settingsSeniorPredictedRatingsReportButton: string;
+  settingsSeniorPredictedRatingsReportCopied: string;
+  settingsSeniorPredictedRatingsReportCopyFailed: string;
+  settingsSeniorPredictedRatingsReportAriaLabel: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;

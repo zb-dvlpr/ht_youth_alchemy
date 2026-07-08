@@ -1765,7 +1765,7 @@ const buildInitialTransferSearchFilters = (
         TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === right.skillKey)
     );
 
-  const totalAgeDays = ageToTotalDays(player.Age ?? details?.Age ?? 0, player.AgeDays ?? details?.AgeDays ?? 0);
+  const totalAgeDays = ageToTotalDays(details?.Age ?? player.Age ?? 0, details?.AgeDays ?? player.AgeDays ?? 0);
   const ageMin = totalDaysToAge(Math.max(0, totalAgeDays - 20));
   const ageMax = totalDaysToAge(totalAgeDays + 20);
 
@@ -1891,7 +1891,7 @@ const buildFallbackTransferSearchFilters = (
   details: SeniorPlayerDetails | null
 ): TransferSearchFilters => {
   const exact = buildInitialTransferSearchFilters(player, details);
-  const totalAgeDays = ageToTotalDays(player.Age ?? details?.Age ?? 0, player.AgeDays ?? details?.AgeDays ?? 0);
+  const totalAgeDays = ageToTotalDays(details?.Age ?? player.Age ?? 0, details?.AgeDays ?? player.AgeDays ?? 0);
   const ageMin = totalDaysToAge(Math.max(0, totalAgeDays - 50));
   const ageMax = totalDaysToAge(totalAgeDays + 50);
   return {

@@ -81,7 +81,17 @@ export function buildDisplayCurrencyOptionLabel(
 }
 
 export function parseCurrencyRate(value: unknown): number | null {
-  return parsePositiveNumber(value);
+  const unwrapped = unwrapNodeValue(value);
+  if (typeof unwrapped === "number") {
+    return Number.isFinite(unwrapped) && unwrapped > 0 ? unwrapped : null;
+  }
+  if (typeof unwrapped !== "string") return null;
+  const trimmed = unwrapped.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.replace(",", ".");
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 export function normalizeCurrencyName(value: unknown): string | null {

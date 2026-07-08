@@ -33,7 +33,7 @@ import { fetchChppJson } from "@/lib/chpp/client";
 
 const DISPLAY_CURRENCY_WORLDDETAILS_STORAGE_KEY =
   "ya_worlddetails_currencies_v1";
-const DISPLAY_CURRENCY_WORLDDETAILS_SCHEMA_VERSION = 2;
+const DISPLAY_CURRENCY_WORLDDETAILS_SCHEMA_VERSION = 3;
 const DISPLAY_CURRENCY_WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 
 type StoredCurrenciesCache = {

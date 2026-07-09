@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 
 import type { Messages } from "@/lib/i18n";
@@ -237,6 +237,7 @@ export default function SeniorFoxtrickSimulator({
   const [controlDraft, setControlDraft] = useState<SimulationControlDraft>(() =>
     buildControlDraft(buildInitialValues(input, displayCurrencyRate))
   );
+  const activeSkillPointerIdRef = useRef<number | null>(null);
   const editingEnabled = !editingBlocked && editing;
   const effectiveDirty = editingEnabled && dirty;
 
@@ -366,6 +367,7 @@ export default function SeniorFoxtrickSimulator({
 
   const toggleEditing = (enabled: boolean) => {
     const nextValues = buildInitialValues(input, displayCurrencyRate);
+    activeSkillPointerIdRef.current = null;
     setEditing(enabled);
     setDirty(false);
     setValues(nextValues);
@@ -390,6 +392,18 @@ export default function SeniorFoxtrickSimulator({
       definition.key,
       valueFromPointer(event, definition.min, definition.max)
     );
+  };
+
+  const finishSkillPointerInteraction = (event: PointerEvent<HTMLDivElement>) => {
+    if (activeSkillPointerIdRef.current !== event.pointerId) {
+      return;
+    }
+
+    activeSkillPointerIdRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   const handleSkillKeyDown = (
@@ -457,6 +471,18 @@ export default function SeniorFoxtrickSimulator({
           onPointerDown={
             editingEnabled
               ? (event) => {
+                  if (
+                    !event.isPrimary ||
+                    event.button !== 0 ||
+                    activeSkillPointerIdRef.current !== null
+                  ) {
+                    return;
+                  }
+
+                  event.preventDefault();
+                  event.currentTarget.focus({ preventScroll: true });
+
+                  activeSkillPointerIdRef.current = event.pointerId;
                   event.currentTarget.setPointerCapture(event.pointerId);
                   updateSkillFromPointer(event, definition);
                 }
@@ -465,11 +491,35 @@ export default function SeniorFoxtrickSimulator({
           onPointerMove={
             editingEnabled
               ? (event) => {
-                  if (event.buttons === 1) {
-                    updateSkillFromPointer(event, definition);
+                  if (activeSkillPointerIdRef.current !== event.pointerId) {
+                    return;
+                  }
+
+                  updateSkillFromPointer(event, definition);
+                }
+              : undefined
+          }
+          onPointerUp={
+            editingEnabled
+              ? (event) => finishSkillPointerInteraction(event)
+              : undefined
+          }
+          onPointerCancel={
+            editingEnabled
+              ? (event) => finishSkillPointerInteraction(event)
+              : undefined
+          }
+          onLostPointerCapture={
+            editingEnabled
+              ? (event) => {
+                  if (activeSkillPointerIdRef.current === event.pointerId) {
+                    activeSkillPointerIdRef.current = null;
                   }
                 }
               : undefined
+          }
+          onDragStart={
+            editingEnabled ? (event) => event.preventDefault() : undefined
           }
           onKeyDown={
             editingEnabled

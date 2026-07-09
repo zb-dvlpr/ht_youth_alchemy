@@ -18,6 +18,7 @@ export type SeniorPlayerMetricInput = SeniorPlayerMetricSkills & {
   tsi?: number | null;
   salarySek?: number | null;
   isAbroad?: boolean;
+  specialty?: number | null;
 };
 
 export type HtmsMetrics = {
@@ -43,6 +44,8 @@ const DAYS_IN_WEEK = 7;
 const DAYS_IN_SEASON = 112;
 const HTMS_TARGET_AGE = 28;
 const INTERNAL_SEK_PER_PSICO_WAGE_UNIT = 10;
+const PSICO_BASE_WAGE = 250;
+const SPECIALTY_WAGE_FACTOR = 1.1;
 
 const WEEK_POINTS_PER_AGE: Record<number, number> = {
   17: 10,
@@ -141,6 +144,37 @@ const normalizeLevel = (value: number | null | undefined) => {
   return Math.max(0, Math.floor(value));
 };
 
+const hasPlayerSpecialty = (input: SeniorPlayerMetricInput) =>
+  typeof input.specialty === "number" &&
+  Number.isFinite(input.specialty) &&
+  input.specialty > 0;
+
+export const adjustPsicoWageForSpecialty = (
+  normalizedWage: number,
+  hasSpecialty: boolean
+) => {
+  if (!hasSpecialty) return normalizedWage;
+  if (!Number.isFinite(normalizedWage)) return normalizedWage;
+  if (normalizedWage <= PSICO_BASE_WAGE) return normalizedWage;
+  return PSICO_BASE_WAGE + (normalizedWage - PSICO_BASE_WAGE) / SPECIALTY_WAGE_FACTOR;
+};
+
+export function normalizePsicoWage(input: SeniorPlayerMetricInput): number {
+  if (typeof input.salarySek !== "number" || !Number.isFinite(input.salarySek)) {
+    return 0;
+  }
+
+  const wageWithoutForeignPremium =
+    input.salarySek /
+    INTERNAL_SEK_PER_PSICO_WAGE_UNIT /
+    (input.isAbroad ? 1.2 : 1);
+  const adjustedWage = adjustPsicoWageForSpecialty(
+    wageWithoutForeignPremium,
+    hasPlayerSpecialty(input)
+  );
+  return Math.floor(adjustedWage);
+}
+
 export function calculateHtmsMetrics(input: SeniorPlayerMetricInput): HtmsMetrics | null {
   const ageYears = normalizeLevel(input.ageYears);
   const ageDays = normalizeLevel(input.ageDays) ?? 0;
@@ -191,11 +225,13 @@ export function calculatePsicoTsiMetrics(
   const ageYears = normalizeLevel(input.ageYears);
   if (tsi === null || ageYears === null) return null;
 
-  const salarySek =
-    typeof input.salarySek === "number" && Number.isFinite(input.salarySek)
-      ? Math.floor(input.salarySek / INTERNAL_SEK_PER_PSICO_WAGE_UNIT / (input.isAbroad ? 1.2 : 1))
-      : 0;
-  const prediction = foxtrickPsico.getPrediction(normalizedLevels, tsi, salarySek, ageYears);
+  const psicoWageInput = normalizePsicoWage(input);
+  const prediction = foxtrickPsico.getPrediction(
+    normalizedLevels,
+    tsi,
+    psicoWageInput,
+    ageYears
+  );
   if (!prediction) return null;
 
   const mainSkillIndex = Number(prediction.maxSkill);

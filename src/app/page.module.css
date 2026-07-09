@@ -1927,6 +1927,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #3f362c;
 }
 
+.settingsFieldInner {
+  display: grid;
+  gap: 8px;
+}
+
 .settingsFieldLabel {
   font-size: 13px;
   font-weight: 600;
@@ -1940,6 +1945,81 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-size: 13px;
   background: #f8f3ea;
   color: #3f362c;
+}
+
+.settingsCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settingsCardTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d261d;
+}
+
+.settingsCardBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 92, 42, 0.35);
+  background: rgba(148, 92, 42, 0.1);
+  color: #69411f;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.settingsCardToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  color: #3f362c;
+  cursor: pointer;
+}
+
+.settingsCardDescription {
+  margin: 0;
+  color: #5d5246;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.settingsReportField {
+  display: grid;
+  gap: 8px;
+}
+
+.settingsReportTextarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  border-radius: 10px;
+  border: 1px solid #d8cbb6;
+  padding: 10px 12px;
+  background: #f8f3ea;
+  color: #3f362c;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.settingsReportActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .storageDiagnosticsSection {
@@ -6469,7 +6549,31 @@ html[data-theme="dark"] .settingsField {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .settingsCardTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .settingsCardBadge {
+  border-color: rgba(213, 154, 94, 0.45);
+  background: rgba(213, 154, 94, 0.16);
+  color: #f0c28e;
+}
+
+html[data-theme="dark"] .settingsCardDescription {
+  color: #c9bfb2;
+}
+
+html[data-theme="dark"] .settingsCardToggle {
+  color: #f3ede4;
+}
+
 html[data-theme="dark"] .settingsFieldInput {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #2a241d;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .settingsReportTextarea {
   border-color: rgba(255, 255, 255, 0.12);
   background: #2a241d;
   color: #f3ede4;
@@ -7334,6 +7438,11 @@ html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger {
 
 html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger:hover {
   background: rgba(36, 47, 34, 0.95);
+}
+
+html[data-theme="dark"] .seniorPredictedRatingsCard {
+  border-color: rgba(200, 222, 186, 0.28);
+  background: rgba(22, 38, 24, 0.88);
 }
 
 html[data-theme="dark"] .langSelect {
@@ -10819,6 +10928,289 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   z-index: 4500;
 }
 
+.seniorMatchesPanel {
+  min-width: 0;
+}
+
+.seniorMatchesPanel > .detailsHeader {
+  margin-bottom: 0;
+}
+
+.teamSpiritCard {
+  display: grid;
+  gap: 12px;
+}
+
+.teamSpiritControls {
+  display: grid;
+  gap: 12px;
+}
+
+.teamSpiritControlRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  min-width: 0;
+}
+
+.teamSpiritPsychologistRow {
+  align-items: end;
+}
+
+.teamSpiritControl {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 320px);
+  min-width: 0;
+  color: #5b5147;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.teamSpiritControl select {
+  min-width: 0;
+}
+
+.teamSpiritControlLabelWithInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.teamSpiritInfoButton {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid rgba(83, 70, 53, 0.28);
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #5b5147;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.teamSpiritInfoButton:hover,
+.teamSpiritInfoButton:focus-visible {
+  border-color: rgba(83, 70, 53, 0.48);
+  background: #f7efe2;
+  color: #2d261f;
+  outline: 2px solid rgba(154, 90, 0, 0.22);
+  outline-offset: 2px;
+}
+
+.teamSpiritOverrideMeta {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.teamSpiritMatchOverrideMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.teamSpiritOverrideBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 1px solid rgba(154, 90, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 244, 222, 0.86);
+  color: #8a5100;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.teamSpiritInlineResetButton {
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid rgba(83, 70, 53, 0.22);
+  border-radius: 7px;
+  background: #fffaf2;
+  color: #4a3b2b;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teamSpiritInlineResetButton:hover,
+.teamSpiritInlineResetButton:focus-visible {
+  border-color: rgba(83, 70, 53, 0.42);
+  background: #f7efe2;
+}
+
+.teamSpiritStats {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+  min-width: 0;
+}
+
+.teamSpiritStatRow {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.teamSpiritStatRow > span {
+  min-width: 0;
+  color: #5b5147;
+  font-weight: 700;
+}
+
+.teamSpiritStatRow > strong,
+.teamSpiritStatRow > select,
+.teamSpiritStatRow > .teamSpiritBeforeMatchControl {
+  justify-self: end;
+  max-width: 100%;
+}
+
+.teamSpiritStatRow > select {
+  min-width: min(120px, 100%);
+}
+
+.teamSpiritStatRow > strong {
+  color: #2d261f;
+  font-weight: 800;
+  text-align: right;
+}
+
+.teamSpiritBeforeMatchControl {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.teamSpiritBeforeMatchControl select {
+  max-width: 100%;
+}
+
+.teamSpiritSeasonStartNote {
+  display: inline-block;
+  max-width: 100%;
+  color: #5b5147;
+  font-weight: 700;
+  text-align: right;
+}
+
+.teamSpiritCompletedTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.teamSpiritCompletedTable th,
+.teamSpiritCompletedTable td {
+  padding: 8px 0;
+  border-top: 1px solid rgba(83, 70, 53, 0.12);
+}
+
+.teamSpiritCompletedTable tr:last-child th,
+.teamSpiritCompletedTable tr:last-child td {
+  border-bottom: 1px solid rgba(83, 70, 53, 0.12);
+}
+
+.teamSpiritCompletedTable th {
+  width: 42%;
+  color: #5b5147;
+  font-weight: 700;
+  text-align: left;
+}
+
+.teamSpiritCompletedTable td {
+  color: #2d261f;
+  font-weight: 800;
+  text-align: right;
+}
+
+.teamSpiritMidfieldTable {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border-top: 1px solid rgba(83, 70, 53, 0.18);
+  border-bottom: 1px solid rgba(83, 70, 53, 0.18);
+  background: rgba(255, 250, 242, 0.56);
+  font-size: 13px;
+}
+
+.teamSpiritMidfieldTable th,
+.teamSpiritMidfieldTable td {
+  padding: 8px 10px;
+}
+
+.teamSpiritMidfieldTable thead th {
+  background: rgba(242, 239, 233, 0.84);
+  color: #6b6256;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-align: left;
+  border-bottom: 1px solid rgba(83, 70, 53, 0.16);
+}
+
+.teamSpiritMidfieldTable thead th:last-child {
+  text-align: right;
+}
+
+.teamSpiritMidfieldTable tbody th,
+.teamSpiritMidfieldTable tbody td {
+  border-top: 1px solid rgba(83, 70, 53, 0.1);
+}
+
+.teamSpiritMidfieldTable tbody th {
+  color: #4a3b2b;
+  font-weight: 700;
+  text-align: left;
+}
+
+.teamSpiritMidfieldTable tbody td {
+  color: #2d261f;
+  font-weight: 800;
+  text-align: right;
+}
+
+.teamSpiritWarning {
+  margin: 0;
+  color: #9a5a00;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.teamSpiritMatchTitleLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.teamSpiritMatchTitleLink:hover,
+.teamSpiritMatchTitleLink:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
 .matchItemHasTopAction .matchTeams {
   padding-right: 44px;
 }
@@ -12554,6 +12946,119 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   z-index: 80;
 }
 
+.fieldTopRightOverlay {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 80;
+  pointer-events: auto;
+}
+
+.seniorPredictedRatingsCard {
+  width: min(8.6rem, calc(100vw - 2rem));
+  max-width: 8.6rem;
+  padding: 0.34rem 0.38rem;
+  border: 1px solid rgba(236, 243, 227, 0.34);
+  border-radius: 8px;
+  background: rgba(36, 58, 35, 0.82);
+  color: #f3f7ed;
+  box-shadow: 0 8px 20px rgba(16, 30, 18, 0.22);
+  backdrop-filter: blur(8px);
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+
+.seniorPredictedRatingsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.24rem;
+  margin-bottom: 0.26rem;
+}
+
+.seniorPredictedRatingsMatchText {
+  min-width: 0;
+}
+
+.seniorPredictedRatingsMatchTitle {
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seniorPredictedRatingsMatchSubtitle {
+  overflow: hidden;
+  color: rgba(243, 247, 237, 0.78);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seniorPredictedRatingsState {
+  color: rgba(243, 247, 237, 0.82);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.seniorPredictedRatingsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, auto);
+  gap: 0.16rem;
+}
+
+.seniorPredictedRatingsCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 1.25rem;
+  padding: 0.12rem 0.16rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.seniorPredictedRatingsDefenseLeft {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.seniorPredictedRatingsDefenseCenter {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.seniorPredictedRatingsDefenseRight {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.seniorPredictedRatingsMidfield {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.seniorPredictedRatingsAttackLeft {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.seniorPredictedRatingsAttackCenter {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.seniorPredictedRatingsAttackRight {
+  grid-column: 3;
+  grid-row: 3;
+}
+
 .lineupTrainingControlStack {
   display: grid;
   gap: 4px;
@@ -12771,6 +13276,37 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .lineupTrainingTypeMenu {
   min-width: 230px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeControl {
+  min-width: 0;
+  max-width: 120px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeControl .feedbackWrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeTrigger {
+  min-width: 0;
+  width: 120px;
+  max-width: 120px;
+  padding: 4px 22px 4px 8px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeValue {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupTrainingTypeMenu {
+  min-width: 168px;
+  max-width: min(220px, calc(100vw - 32px));
 }
 
 .lineupTrainingTypeOption {
@@ -13887,6 +14423,23 @@ html[data-mobile-shell="true"] .transferSearchResultsTable {
 
   .fieldPitch {
     min-height: 420px;
+  }
+
+  .fieldTopRightOverlay {
+    top: 4px;
+    right: 4px;
+  }
+
+  .seniorPredictedRatingsCard {
+    width: 8rem;
+    padding: 0.3rem 0.32rem;
+    font-size: 0.62rem;
+  }
+
+  .seniorPredictedRatingsCell {
+    min-height: 1.14rem;
+    padding: 0.1rem 0.12rem;
+    font-size: 0.66rem;
   }
 
   .topBar {

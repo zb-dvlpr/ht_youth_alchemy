@@ -38,6 +38,7 @@ import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   readSeniorLineupAlgorithm,
   readSeniorDebugManagerUserId,
+  readSeniorPredictedRatingsEnabled,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
   SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
   readSeniorStalenessDays,
@@ -82,7 +83,7 @@ import {
   type OriginFlagDisplay,
 } from "@/lib/originFlag";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
-import UpcomingMatches, {
+import {
   type LoadedLineupOrders,
   type IgnoreTrainingFormationPolicy,
   Match,
@@ -90,6 +91,7 @@ import UpcomingMatches, {
   MatchesResponse,
 } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
+import SeniorMatchesPanel from "./SeniorMatchesPanel";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
@@ -127,7 +129,9 @@ import {
   matchRoleIdToPositionKey,
   positionLabel,
 } from "@/lib/positions";
-import { readGlobalSeason } from "@/lib/season";
+import { readGlobalSeason, writeGlobalSeason } from "@/lib/season";
+import type { CoachLeadership } from "@/lib/teamSpirit";
+import { parseCoachLeadership } from "@/lib/clubChronicle/coach";
 import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
@@ -153,7 +157,10 @@ import {
   setSeniorLineupExcludedPlayer,
   type ExcludedPlayersState,
 } from "@/lib/lineupExclusions";
-import { resolveOpponentTeam } from "@/lib/matches/visibility";
+import {
+  resolveMatchSourceSystem,
+  resolveOpponentTeam,
+} from "@/lib/matches/visibility";
 import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 
 type SeniorPlayer = {
@@ -479,6 +486,7 @@ type StafflistResponse = {
       StaffList?: {
         Trainer?: {
           TrainerType?: unknown;
+          Leadership?: unknown;
         };
         StaffMembers?: {
           Staff?: StafflistStaff | StafflistStaff[];
@@ -497,6 +505,7 @@ type SeniorTeamGeneralInfo = {
   hasTacticalAssistant: boolean;
   tacticalAssistantStaffLevel: number | null;
   trainerType: 0 | 1 | 2 | null;
+  trainerLeadership: CoachLeadership | null;
 };
 
 type SortKey =
@@ -807,6 +816,18 @@ type PredictedRatings = {
   ratingRightAtt: number | null;
   ratingMidAtt: number | null;
   ratingLeftAtt: number | null;
+};
+
+type SeniorRatingsPredictionMatchContext = {
+  matchId: number;
+  teamId: number;
+  sourceSystem: string;
+  homeTeamName?: string | null;
+  awayTeamName?: string | null;
+  opponentName?: string | null;
+  matchDate?: string | null;
+  displayTitle: string;
+  displaySubtitle?: string | null;
 };
 
 type GeneratedFormationRow = {
@@ -1186,6 +1207,9 @@ const buildSeniorTeamGeneralInfoFromStafflist = (
     trainerType: normalizeTrainerType(
       payload?.data?.HattrickData?.StaffList?.Trainer?.TrainerType
     ),
+    trainerLeadership: parseCoachLeadership(
+      payload?.data?.HattrickData?.StaffList?.Trainer?.Leadership
+    ),
   };
 };
 
@@ -1231,6 +1255,20 @@ const isSeniorTeamGeneralInfo = (
     input.trainerType !== 0 &&
     input.trainerType !== 1 &&
     input.trainerType !== 2
+  ) {
+    return false;
+  }
+  if (
+    input.trainerLeadership !== undefined &&
+    input.trainerLeadership !== null &&
+    input.trainerLeadership !== "solid" &&
+    input.trainerLeadership !== "passable" &&
+    input.trainerLeadership !== "inadequate" &&
+    input.trainerLeadership !== "weak" &&
+    input.trainerLeadership !== "poor" &&
+    input.trainerLeadership !== "wretched" &&
+    input.trainerLeadership !== "disastrous" &&
+    input.trainerLeadership !== "non-existent"
   ) {
     return false;
   }
@@ -1727,7 +1765,7 @@ const buildInitialTransferSearchFilters = (
         TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === right.skillKey)
     );
 
-  const totalAgeDays = ageToTotalDays(player.Age ?? details?.Age ?? 0, player.AgeDays ?? details?.AgeDays ?? 0);
+  const totalAgeDays = ageToTotalDays(details?.Age ?? player.Age ?? 0, details?.AgeDays ?? player.AgeDays ?? 0);
   const ageMin = totalDaysToAge(Math.max(0, totalAgeDays - 20));
   const ageMax = totalDaysToAge(totalAgeDays + 20);
 
@@ -1835,6 +1873,7 @@ const seniorMetricInputMatches = (
     left.tsi === right.tsi &&
     left.salarySek === right.salarySek &&
     left.isAbroad === right.isAbroad &&
+    left.specialty === right.specialty &&
     left.form === right.form &&
     left.stamina === right.stamina &&
     left.keeper === right.keeper &&
@@ -1852,7 +1891,7 @@ const buildFallbackTransferSearchFilters = (
   details: SeniorPlayerDetails | null
 ): TransferSearchFilters => {
   const exact = buildInitialTransferSearchFilters(player, details);
-  const totalAgeDays = ageToTotalDays(player.Age ?? details?.Age ?? 0, player.AgeDays ?? details?.AgeDays ?? 0);
+  const totalAgeDays = ageToTotalDays(details?.Age ?? player.Age ?? 0, details?.AgeDays ?? player.AgeDays ?? 0);
   const ageMin = totalDaysToAge(Math.max(0, totalAgeDays - 50));
   const ageMax = totalDaysToAge(totalAgeDays + 50);
   return {
@@ -3705,6 +3744,7 @@ export default function SeniorDashboard({
   );
   const [managerCompendiumUserIdOverride, setManagerCompendiumUserIdOverride] =
     useState<string | null>(null);
+  const [currentSeason, setCurrentSeason] = useState<number | null>(() => readGlobalSeason());
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [latestFetchedRatingsResponse, setLatestFetchedRatingsResponse] =
@@ -3790,6 +3830,16 @@ export default function SeniorDashboard({
     Record<number, boolean>
   >({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [seniorRatingsMatchContext, setSeniorRatingsMatchContext] =
+    useState<SeniorRatingsPredictionMatchContext | null>(null);
+  const [liveSeniorPredictedRatings, setLiveSeniorPredictedRatings] =
+    useState<PredictedRatings | null>(null);
+  const [liveSeniorPredictedRatingsStatus, setLiveSeniorPredictedRatingsStatus] =
+    useState<"idle" | "loading" | "ready" | "error">("idle");
+  const liveSeniorPredictedRatingsRequestRef = useRef(0);
+  const liveSeniorPredictedRatingsPayloadKeyRef = useRef("");
+  const liveSeniorPredictedRatingsLineupPayloadRef =
+    useRef<ReturnType<typeof buildLineupPayload> | null>(null);
   const [loadedLineupOrdersByMatchId, setLoadedLineupOrdersByMatchId] = useState<
     Record<number, LoadedLineupOrders>
   >({});
@@ -3969,6 +4019,10 @@ export default function SeniorDashboard({
   >([]);
   const [stateRestored, setStateRestored] = useState(false);
   const [stalenessDays, setStalenessDays] = useState(1);
+  const [
+    seniorPredictedRatingsEnabled,
+    setSeniorPredictedRatingsEnabled,
+  ] = useState(false);
   const [dataRestored, setDataRestored] = useState(false);
   const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
     matchId: number | null;
@@ -4272,6 +4326,8 @@ export default function SeniorDashboard({
   const ownSeniorTeamTacticalAssistantStaffLevel =
     ownSeniorTeamGeneralInfo?.tacticalAssistantStaffLevel ?? null;
   const ownSeniorTeamTrainerType = ownSeniorTeamGeneralInfo?.trainerType ?? null;
+  const ownSeniorTeamTrainerLeadership =
+    ownSeniorTeamGeneralInfo?.trainerLeadership ?? null;
   const effectiveOtherOrdersTacticalAssistantContext = useMemo(() => {
     if (isDevBuild) {
       if (!devSimulateTacticalAssistant) {
@@ -10513,16 +10569,124 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!matchNode) return [] as Match[];
     return Array.isArray(matchNode) ? matchNode : [matchNode];
   }, [matchesState]);
-  const findSeniorMatchById = (matchId: number | null) =>
-    typeof matchId === "number"
-      ? seniorMatchesList.find((match) => Number(match.MatchID) === matchId) ?? null
-      : null;
+  const findSeniorMatchById = useCallback(
+    (matchId: number | null) =>
+      typeof matchId === "number"
+        ? seniorMatchesList.find((match) => Number(match.MatchID) === matchId) ?? null
+        : null,
+    [seniorMatchesList]
+  );
+  const clearLiveSeniorRatingsPredictionState = useCallback(() => {
+    liveSeniorPredictedRatingsRequestRef.current += 1;
+    liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+    liveSeniorPredictedRatingsLineupPayloadRef.current = null;
+    setLiveSeniorPredictedRatings(null);
+    setLiveSeniorPredictedRatingsStatus("idle");
+  }, []);
+  const clearSeniorRatingsPrediction = useCallback(() => {
+    clearLiveSeniorRatingsPredictionState();
+    setSeniorRatingsMatchContext(null);
+  }, [clearLiveSeniorRatingsPredictionState]);
+  const buildSeniorRatingsMatchContext = useCallback(
+    (matchId: number): SeniorRatingsPredictionMatchContext | null => {
+      if (
+        typeof resolvedSeniorTeamId !== "number" ||
+        !Number.isFinite(resolvedSeniorTeamId) ||
+        resolvedSeniorTeamId <= 0
+      ) {
+        return null;
+      }
+      const match = findSeniorMatchById(matchId);
+      if (!match) return null;
+      const homeTeamId = Number(match.HomeTeam?.HomeTeamID ?? 0);
+      const awayTeamId = Number(match.AwayTeam?.AwayTeamID ?? 0);
+      const isHome = homeTeamId === resolvedSeniorTeamId;
+      const isAway = awayTeamId === resolvedSeniorTeamId;
+      if (!isHome && !isAway) return null;
+      const homeTeamName = match.HomeTeam?.HomeTeamName?.trim() || null;
+      const awayTeamName = match.AwayTeam?.AwayTeamName?.trim() || null;
+      const opponentName = isHome ? awayTeamName : homeTeamName;
+      if (!opponentName) return null;
+      const parsedDate = parseChppDate(match.MatchDate);
+      return {
+        matchId,
+        teamId: resolvedSeniorTeamId,
+        sourceSystem: resolveMatchSourceSystem(match, "Hattrick"),
+        homeTeamName,
+        awayTeamName,
+        opponentName,
+        matchDate: match.MatchDate ?? null,
+        displayTitle: `${messages.vsLabel} ${opponentName}`,
+        displaySubtitle: parsedDate ? formatDateTime(parsedDate) : null,
+      };
+    },
+    [findSeniorMatchById, messages.vsLabel, resolvedSeniorTeamId]
+  );
+  const startingXiPlayerIds = useMemo(
+    () =>
+      FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+        (playerId): playerId is number =>
+          typeof playerId === "number" && Number.isFinite(playerId) && playerId > 0
+      ),
+    [assignments]
+  );
+  const hasCompleteSeniorStartingXi = useMemo(
+    () =>
+      startingXiPlayerIds.length === 11 &&
+      new Set(startingXiPlayerIds).size === 11,
+    [startingXiPlayerIds]
+  );
+  const predictSeniorRatingsForLineup = useCallback(
+    async ({
+      matchId,
+      teamId,
+      sourceSystem,
+      lineup,
+    }: {
+      matchId: number;
+      teamId: number;
+      sourceSystem: string;
+      lineup: ReturnType<typeof buildLineupPayload>;
+    }): Promise<PredictedRatings> => {
+      const { response, payload } = await fetchChppJson<{
+        data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
+        error?: string;
+        details?: string;
+      }>("/api/chpp/matchorders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId,
+          teamId,
+          sourceSystem,
+          actionType: "predictratings",
+          lineup,
+        }),
+      });
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
+      }
+      const matchData = payload?.data?.HattrickData?.MatchData ?? {};
+      return {
+        tacticType: parseNumber(matchData.TacticType),
+        tacticSkill: parseNumber(matchData.TacticSkill),
+        ratingMidfield: parseNumber(matchData.RatingMidfield),
+        ratingRightDef: parseNumber(matchData.RatingRightDef),
+        ratingMidDef: parseNumber(matchData.RatingMidDef),
+        ratingLeftDef: parseNumber(matchData.RatingLeftDef),
+        ratingRightAtt: parseNumber(matchData.RatingRightAtt),
+        ratingMidAtt: parseNumber(matchData.RatingMidAtt),
+        ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
+      };
+    },
+    [messages.submitOrdersError]
+  );
   const activeOtherOrdersMatch = findSeniorMatchById(otherOrdersModalMatchId);
   const activeOtherOrdersOpponentTeam = resolveOpponentTeam(
     activeOtherOrdersMatch ?? undefined,
     resolvedSeniorTeamId
   );
-  const isSeniorOtherOrdersMatchAttitudeEligible = (matchId: number | null) => {
+  const isSeniorOtherOrdersMatchAttitudeEligible = useCallback((matchId: number | null) => {
     if (typeof matchId !== "number") return false;
     const match = findSeniorMatchById(matchId);
     const matchType = parseNumber(match?.MatchType);
@@ -10532,7 +10696,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       return cupLevel === null || cupLevel === 1;
     }
     return false;
-  };
+  }, [findSeniorMatchById]);
   const seniorOtherOrdersCoachModifierRange = useMemo(() => {
     if (!effectiveOtherOrdersHasTacticalAssistant) return null;
     if (effectiveOtherOrdersTacticalAssistantStaffLevel === null) return null;
@@ -10552,6 +10716,324 @@ function buildSeniorAiManMarkingReadySignature(params: {
     effectiveOtherOrdersTacticalAssistantStaffLevel,
     effectiveOtherOrdersTrainerType,
   ]);
+  const buildSeniorGeneratedLineupPayloadBase = useCallback(
+    (
+      matchId: number,
+      defaultPayload: ReturnType<typeof buildLineupPayload>
+    ) => {
+      const basePayload = buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload);
+      const seniorAiSetPiecesPlayerId = selectSeniorAiSetPiecesPlayerId(
+        seniorAiPreparedSubmissionMode
+      );
+      const payloadWithSeniorAiSetPieces =
+        seniorAiSetPiecesPlayerId > 0 && seniorAiSubmitEnabledMatchId === matchId
+          ? {
+              ...basePayload,
+              setPieces: seniorAiSetPiecesPlayerId,
+            }
+          : basePayload;
+      if (
+        !effectiveSeniorAiManMarkingEnabled ||
+        !seniorAiManMarkingSelection ||
+        !seniorAiManMarkingReady ||
+        !seniorAiManMarkingSupported ||
+        seniorAiSubmitEnabledMatchId !== matchId
+      ) {
+        return payloadWithSeniorAiSetPieces;
+      }
+      return {
+        ...payloadWithSeniorAiSetPieces,
+        settings: {
+          ...payloadWithSeniorAiSetPieces.settings,
+          manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
+          manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
+        },
+      };
+    },
+    [
+      buildPreparedExtraTimeSubmitPayload,
+      effectiveSeniorAiManMarkingEnabled,
+      selectSeniorAiSetPiecesPlayerId,
+      seniorAiManMarkingReady,
+      seniorAiManMarkingSelection,
+      seniorAiManMarkingSupported,
+      seniorAiPreparedSubmissionMode,
+      seniorAiSubmitEnabledMatchId,
+    ]
+  );
+  const seniorPredictedRatingsLineupPayload = useMemo(() => {
+    if (!seniorPredictedRatingsEnabled) return null;
+    if (!seniorRatingsMatchContext) return null;
+    if (!hasCompleteSeniorStartingXi) return null;
+    const defaultLineup = buildLineupPayload(assignments, tacticType, {
+      behaviors,
+      kickerIds: effectiveSeniorPenaltyKickerIds,
+      captainId: effectiveSeniorCaptainId,
+      setPiecesId: effectiveSeniorSetPiecesPlayerId,
+    });
+    let lineup = defaultLineup;
+    try {
+      lineup = buildSeniorGeneratedLineupPayloadBase(
+        seniorRatingsMatchContext.matchId,
+        defaultLineup
+      );
+    } catch {
+      lineup = defaultLineup;
+    }
+    const committedOrders =
+      seniorEditableOrdersState?.matchId === seniorRatingsMatchContext.matchId
+        ? seniorEditableOrdersState
+        : null;
+    if (committedOrders) {
+      lineup = serializeSeniorEditableOrdersToPayload(lineup, committedOrders, {
+        includeMatchAttitude: isSeniorOtherOrdersMatchAttitudeEligible(
+          seniorRatingsMatchContext.matchId
+        ),
+        includeCoachModifier:
+          effectiveOtherOrdersHasTacticalAssistant &&
+          Boolean(seniorOtherOrdersCoachModifierRange),
+      });
+    }
+    return lineup;
+  }, [
+    assignments,
+    behaviors,
+    buildSeniorGeneratedLineupPayloadBase,
+    effectiveOtherOrdersHasTacticalAssistant,
+    effectiveSeniorCaptainId,
+    effectiveSeniorPenaltyKickerIds,
+    effectiveSeniorSetPiecesPlayerId,
+    hasCompleteSeniorStartingXi,
+    isSeniorOtherOrdersMatchAttitudeEligible,
+    seniorPredictedRatingsEnabled,
+    seniorEditableOrdersState,
+    seniorOtherOrdersCoachModifierRange,
+    seniorRatingsMatchContext,
+    tacticType,
+  ]);
+  const seniorPredictedRatingsLineupPayloadKey = useMemo(
+    () =>
+      seniorPredictedRatingsLineupPayload
+        ? JSON.stringify(seniorPredictedRatingsLineupPayload)
+        : "",
+    [seniorPredictedRatingsLineupPayload]
+  );
+  useEffect(() => {
+    liveSeniorPredictedRatingsLineupPayloadRef.current =
+      seniorPredictedRatingsLineupPayload;
+  }, [seniorPredictedRatingsLineupPayload]);
+
+  useEffect(() => {
+    if (!seniorPredictedRatingsEnabled) {
+      clearLiveSeniorRatingsPredictionState();
+      return;
+    }
+    if (!seniorRatingsMatchContext) {
+      liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+      setLiveSeniorPredictedRatings(null);
+      setLiveSeniorPredictedRatingsStatus("idle");
+      return;
+    }
+    if (
+      typeof resolvedSeniorTeamId !== "number" ||
+      !Number.isFinite(resolvedSeniorTeamId) ||
+      resolvedSeniorTeamId <= 0 ||
+      seniorRatingsMatchContext.teamId !== resolvedSeniorTeamId
+    ) {
+      clearSeniorRatingsPrediction();
+      return;
+    }
+    const resolvedContext = buildSeniorRatingsMatchContext(
+      seniorRatingsMatchContext.matchId
+    );
+    if (
+      !resolvedContext ||
+      resolvedContext.teamId !== seniorRatingsMatchContext.teamId ||
+      resolvedContext.sourceSystem !== seniorRatingsMatchContext.sourceSystem
+    ) {
+      clearSeniorRatingsPrediction();
+      return;
+    }
+    if (!hasCompleteSeniorStartingXi) {
+      liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+      setLiveSeniorPredictedRatings(null);
+      setLiveSeniorPredictedRatingsStatus("idle");
+      return;
+    }
+    const requestLineup = liveSeniorPredictedRatingsLineupPayloadRef.current;
+    if (!requestLineup) {
+      liveSeniorPredictedRatingsRequestRef.current += 1;
+      liveSeniorPredictedRatingsPayloadKeyRef.current = "";
+      setLiveSeniorPredictedRatings(null);
+      setLiveSeniorPredictedRatingsStatus("idle");
+      return;
+    }
+
+    const requestId = ++liveSeniorPredictedRatingsRequestRef.current;
+    const requestPayloadKey = seniorPredictedRatingsLineupPayloadKey;
+    liveSeniorPredictedRatingsPayloadKeyRef.current = requestPayloadKey;
+    setLiveSeniorPredictedRatings(null);
+    setLiveSeniorPredictedRatingsStatus("loading");
+    const timeoutId = window.setTimeout(() => {
+      void predictSeniorRatingsForLineup({
+        matchId: seniorRatingsMatchContext.matchId,
+        teamId: seniorRatingsMatchContext.teamId,
+        sourceSystem: seniorRatingsMatchContext.sourceSystem,
+        lineup: requestLineup,
+      })
+        .then((predicted) => {
+          if (
+            liveSeniorPredictedRatingsRequestRef.current !== requestId ||
+            liveSeniorPredictedRatingsPayloadKeyRef.current !== requestPayloadKey
+          ) {
+            return;
+          }
+          setLiveSeniorPredictedRatings(predicted);
+          setLiveSeniorPredictedRatingsStatus("ready");
+        })
+        .catch(() => {
+          if (
+            liveSeniorPredictedRatingsRequestRef.current !== requestId ||
+            liveSeniorPredictedRatingsPayloadKeyRef.current !== requestPayloadKey
+          ) {
+            return;
+          }
+          setLiveSeniorPredictedRatings(null);
+          setLiveSeniorPredictedRatingsStatus("error");
+        });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    seniorRatingsMatchContext,
+    resolvedSeniorTeamId,
+    hasCompleteSeniorStartingXi,
+    seniorPredictedRatingsLineupPayloadKey,
+    buildSeniorRatingsMatchContext,
+    clearSeniorRatingsPrediction,
+    clearLiveSeniorRatingsPredictionState,
+    predictSeniorRatingsForLineup,
+    seniorPredictedRatingsEnabled,
+  ]);
+
+  const convertChppPredictedRatingToHattrickScale = (
+    value: number | null | undefined
+  ): number | null => {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return null;
+    }
+
+    return value / 4 + 0.75;
+  };
+
+  const formatSeniorPredictedRating = (value: number | null | undefined) => {
+    const converted = convertChppPredictedRatingToHattrickScale(value);
+    return converted === null ? messages.unknownShort : converted.toFixed(2);
+  };
+  const seniorPredictedRatingsOverlay = useMemo(() => {
+    if (!seniorPredictedRatingsEnabled) return null;
+    if (!seniorRatingsMatchContext || !hasCompleteSeniorStartingXi) return null;
+    if (
+      typeof resolvedSeniorTeamId !== "number" ||
+      seniorRatingsMatchContext.teamId !== resolvedSeniorTeamId
+    ) {
+      return null;
+    }
+    const renderCell = (
+      label: string,
+      value: number | null,
+      className?: string
+    ) => (
+      <div
+        aria-label={label}
+        className={
+          className
+            ? `${styles.seniorPredictedRatingsCell} ${className}`
+            : styles.seniorPredictedRatingsCell
+        }
+        title={label}
+      >
+        {formatSeniorPredictedRating(value)}
+      </div>
+    );
+
+    return (
+      <div className={styles.seniorPredictedRatingsCard}>
+        <div className={styles.seniorPredictedRatingsHeader}>
+          <div className={styles.seniorPredictedRatingsMatchText}>
+            <div className={styles.seniorPredictedRatingsMatchTitle}>
+              {seniorRatingsMatchContext.displayTitle}
+            </div>
+            {seniorRatingsMatchContext.displaySubtitle ? (
+              <div className={styles.seniorPredictedRatingsMatchSubtitle}>
+                {seniorRatingsMatchContext.displaySubtitle}
+              </div>
+            ) : null}
+          </div>
+        </div>
+        {liveSeniorPredictedRatingsStatus === "loading" ? (
+          <div className={styles.seniorPredictedRatingsState}>
+            {messages.seniorPredictedRatingsUpdating}
+          </div>
+        ) : liveSeniorPredictedRatingsStatus === "error" ? (
+          <div className={styles.seniorPredictedRatingsState}>
+            {messages.seniorPredictedRatingsUnavailable}
+          </div>
+        ) : liveSeniorPredictedRatingsStatus === "ready" && liveSeniorPredictedRatings ? (
+          <div className={styles.seniorPredictedRatingsGrid}>
+            {renderCell(
+              messages.seniorPredictedRatingsRightDef,
+              liveSeniorPredictedRatings.ratingRightDef,
+              styles.seniorPredictedRatingsDefenseLeft
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsMidDef,
+              liveSeniorPredictedRatings.ratingMidDef,
+              styles.seniorPredictedRatingsDefenseCenter
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsLeftDef,
+              liveSeniorPredictedRatings.ratingLeftDef,
+              styles.seniorPredictedRatingsDefenseRight
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsMidfield,
+              liveSeniorPredictedRatings.ratingMidfield,
+              styles.seniorPredictedRatingsMidfield
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsRightOff,
+              liveSeniorPredictedRatings.ratingRightAtt,
+              styles.seniorPredictedRatingsAttackLeft
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsMidOff,
+              liveSeniorPredictedRatings.ratingMidAtt,
+              styles.seniorPredictedRatingsAttackCenter
+            )}
+            {renderCell(
+              messages.seniorPredictedRatingsLeftOff,
+              liveSeniorPredictedRatings.ratingLeftAtt,
+              styles.seniorPredictedRatingsAttackRight
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
+  }, [
+    seniorRatingsMatchContext,
+    hasCompleteSeniorStartingXi,
+    resolvedSeniorTeamId,
+    liveSeniorPredictedRatingsStatus,
+    liveSeniorPredictedRatings,
+    seniorPredictedRatingsEnabled,
+    messages,
+  ]);
+
   const availableOrderPlayerOptions = useMemo<SeniorOrderPlayerOption[]>(() => {
     const ids = [
       ...FIELD_SLOT_ORDER.map((slot) => assignments[slot]),
@@ -10960,36 +11442,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const buildSeniorGeneratedLineupPayload = (
     matchId: number,
     defaultPayload: ReturnType<typeof buildLineupPayload>
-  ) => {
-    const basePayload = buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload);
-    const seniorAiSetPiecesPlayerId = selectSeniorAiSetPiecesPlayerId(
-      seniorAiPreparedSubmissionMode
-    );
-    const payloadWithSeniorAiSetPieces =
-      seniorAiSetPiecesPlayerId > 0 && seniorAiSubmitEnabledMatchId === matchId
-        ? {
-            ...basePayload,
-            setPieces: seniorAiSetPiecesPlayerId,
-          }
-        : basePayload;
-    if (
-      !effectiveSeniorAiManMarkingEnabled ||
-      !seniorAiManMarkingSelection ||
-      !seniorAiManMarkingReady ||
-      !seniorAiManMarkingSupported ||
-      seniorAiSubmitEnabledMatchId !== matchId
-    ) {
-      return payloadWithSeniorAiSetPieces;
-    }
-    return {
-      ...payloadWithSeniorAiSetPieces,
-      settings: {
-        ...payloadWithSeniorAiSetPieces.settings,
-        manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
-        manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
-      },
-    };
-  };
+  ) => buildSeniorGeneratedLineupPayloadBase(matchId, defaultPayload);
 
   const validateSeniorEditableOrders = (
     orders: SeniorEditableOrdersState
@@ -12116,6 +12569,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
   const applyManagerCompendiumTeams = useCallback(
     async (userId?: string | null) => {
       const payload = await fetchManagerCompendium(userId);
+      if (typeof payload.season === "number" && Number.isFinite(payload.season) && payload.season > 0) {
+        const normalizedSeason = Math.floor(payload.season);
+        setCurrentSeason(normalizedSeason);
+        writeGlobalSeason(normalizedSeason);
+      }
       const managerIdentity = extractManagerIdentityFromManagerCompendium(payload.data);
       setLineupExclusionsUserKey(managerIdentity?.userId ?? "default");
       const teams = extractSeniorTeams(payload);
@@ -12137,13 +12595,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
   const fetchCurrentSeason = async () => {
     const cached = readGlobalSeason();
-    if (cached !== null) return cached;
+    if (cached !== null) {
+      setCurrentSeason(cached);
+      return cached;
+    }
     const payload = await fetchManagerCompendium(managerCompendiumUserIdOverride);
     const directSeason =
       typeof payload?.season === "number" && Number.isFinite(payload.season)
         ? Math.floor(payload.season)
         : null;
-    if (directSeason && directSeason > 0) return directSeason;
+    if (directSeason && directSeason > 0) {
+      setCurrentSeason(directSeason);
+      writeGlobalSeason(directSeason);
+      return directSeason;
+    }
 
     const teams = normalizeManagerCompendiumTeams(
       payload?.data?.HattrickData?.Manager?.Teams?.Team
@@ -12151,7 +12616,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     for (const team of teams) {
       const maybeSeason = parseNumber(team?.League?.Season);
       if (typeof maybeSeason === "number" && Number.isFinite(maybeSeason) && maybeSeason > 0) {
-        return Math.floor(maybeSeason);
+        const normalizedSeason = Math.floor(maybeSeason);
+        setCurrentSeason(normalizedSeason);
+        writeGlobalSeason(normalizedSeason);
+        return normalizedSeason;
       }
     }
     throw new Error(messages.noMatchesReturned);
@@ -15124,36 +15592,12 @@ const refreshDetailsForPlayers = async (
         nextTacticType: number
       ) => {
         const lineup = buildLineupPayload(assignmentsForFormation, nextTacticType);
-        const { response, payload } = await fetchChppJson<{
-          data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
-          error?: string;
-          details?: string;
-        }>("/api/chpp/matchorders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            matchId,
-            teamId: teamIdValue,
-            sourceSystem: selectedMatchSourceSystem,
-            actionType: "predictratings",
-            lineup,
-          }),
+        return predictSeniorRatingsForLineup({
+          matchId,
+          teamId: teamIdValue,
+          sourceSystem: selectedMatchSourceSystem,
+          lineup,
         });
-        if (!response.ok || payload?.error) {
-          throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
-        }
-        const matchData = payload?.data?.HattrickData?.MatchData ?? {};
-        return {
-          tacticType: parseNumber(matchData.TacticType),
-          tacticSkill: parseNumber(matchData.TacticSkill),
-          ratingMidfield: parseNumber(matchData.RatingMidfield),
-          ratingRightDef: parseNumber(matchData.RatingRightDef),
-          ratingMidDef: parseNumber(matchData.RatingMidDef),
-          ratingLeftDef: parseNumber(matchData.RatingLeftDef),
-          ratingRightAtt: parseNumber(matchData.RatingRightAtt),
-          ratingMidAtt: parseNumber(matchData.RatingMidAtt),
-          ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
-        } satisfies PredictedRatings;
       };
 
       const baseRows =
@@ -15478,6 +15922,7 @@ const refreshDetailsForPlayers = async (
         setBehaviors({});
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
+        setSeniorRatingsMatchContext(buildSeniorRatingsMatchContext(matchId));
         setSeniorAiManMarkingTarget(opponentContext.manMarkingTarget);
         setSeniorAiManMarkingReadyContext({
           signature:
@@ -16652,13 +17097,27 @@ const refreshDetailsForPlayers = async (
         }
       }
       if (event instanceof CustomEvent) {
-        const detail = event.detail as { stalenessDays?: number } | null;
+        const detail = event.detail as {
+          stalenessDays?: number;
+          seniorPredictedRatingsEnabled?: boolean;
+        } | null;
         if (typeof detail?.stalenessDays === "number") {
           setStalenessDays(Math.min(7, Math.max(1, Math.round(detail.stalenessDays))));
+        }
+        if (typeof detail?.seniorPredictedRatingsEnabled === "boolean") {
+          setSeniorPredictedRatingsEnabled(
+            detail.seniorPredictedRatingsEnabled === true
+          );
+        }
+        if (
+          typeof detail?.stalenessDays === "number" ||
+          typeof detail?.seniorPredictedRatingsEnabled === "boolean"
+        ) {
           return;
         }
       }
       setStalenessDays(readSeniorStalenessDays());
+      setSeniorPredictedRatingsEnabled(readSeniorPredictedRatingsEnabled());
     };
     const handleWipeRatingsMatrix = () => {
       setLatestFetchedRatingsResponse(null);
@@ -16673,6 +17132,7 @@ const refreshDetailsForPlayers = async (
         ratingsByPlayerId: {},
       };
     };
+    handle(new Event(SENIOR_SETTINGS_EVENT));
     window.addEventListener("storage", handle);
     window.addEventListener(SENIOR_SETTINGS_EVENT, handle);
     window.addEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
@@ -17617,6 +18077,7 @@ const refreshDetailsForPlayers = async (
         tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
         salarySek: resolvedSalary,
         isAbroad: resolvedIsAbroad ?? undefined,
+        specialty: resultDetails?.Specialty ?? result.specialty,
         form: resolvedForm,
         stamina: resolvedStamina,
         keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
@@ -18800,6 +19261,7 @@ const refreshDetailsForPlayers = async (
           <ul className={styles.helpList}>
             <li>{messages.seniorHelpBulletLatestUpdates}</li>
             <li>{messages.seniorHelpBulletAiOverview}</li>
+            <li>{messages.seniorHelpBulletPredictedRatings}</li>
             <li>{messages.seniorHelpBulletAiTrainingAware}</li>
             <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
             <li>{messages.seniorHelpBulletAiMatchTypes}</li>
@@ -19074,6 +19536,7 @@ const refreshDetailsForPlayers = async (
             markSeniorLineupMutated();
             setBehaviors({});
             setLoadedMatchId(null);
+            clearSeniorRatingsPrediction();
             clearSeniorAiSubmitLock();
             addNotification(messages.notificationLineupReset);
           }}
@@ -19093,6 +19556,7 @@ const refreshDetailsForPlayers = async (
           trainingTypeSetPending={trainingTypeSetPending}
           trainingTypeSetPendingValue={trainingTypeSetPendingValue}
           trainingTypePlacement="fieldTopLeft"
+          topRightOverlayContent={seniorPredictedRatingsOverlay}
           trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
           trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
           trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
@@ -19112,9 +19576,12 @@ const refreshDetailsForPlayers = async (
           lineupActionsRightContent={renderSeniorOtherOrdersButton()}
           messages={messages}
         />
-        <UpcomingMatches
+        <SeniorMatchesPanel
           response={matchesState}
           messages={messages}
+          currentSeason={currentSeason}
+          selectedSeniorTeamId={resolvedSeniorTeamId}
+          defaultCoachLeadership={ownSeniorTeamTrainerLeadership}
           assignments={assignments}
           behaviors={behaviors}
           captainId={effectiveSeniorCaptainId}
@@ -19222,6 +19689,7 @@ const refreshDetailsForPlayers = async (
               );
             }
             setLoadedMatchId(matchId);
+            setSeniorRatingsMatchContext(buildSeniorRatingsMatchContext(matchId));
             setOtherOrdersModalMatchId(matchId);
             setOtherOrdersEditorOpen(true);
           }}
@@ -23076,6 +23544,7 @@ const refreshDetailsForPlayers = async (
               <ul className={styles.helpList}>
                 <li>{messages.seniorHelpBulletLatestUpdates}</li>
                 <li>{messages.seniorHelpBulletAiOverview}</li>
+                <li>{messages.seniorHelpBulletPredictedRatings}</li>
                 <li>{messages.seniorHelpBulletAiTrainingAware}</li>
                 <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
                 <li>{messages.seniorHelpBulletAiMatchTypes}</li>
@@ -23285,6 +23754,7 @@ const refreshDetailsForPlayers = async (
                 markSeniorLineupMutated();
                 setBehaviors({});
                 setLoadedMatchId(null);
+                clearSeniorRatingsPrediction();
                 clearSeniorAiSubmitLock();
                 addNotification(messages.notificationLineupReset);
               }}
@@ -23304,6 +23774,7 @@ const refreshDetailsForPlayers = async (
               trainingTypeSetPending={trainingTypeSetPending}
               trainingTypeSetPendingValue={trainingTypeSetPendingValue}
               trainingTypePlacement="fieldTopLeft"
+              topRightOverlayContent={seniorPredictedRatingsOverlay}
               trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
               trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
               trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
@@ -23324,9 +23795,12 @@ const refreshDetailsForPlayers = async (
               messages={messages}
             />
           </div>
-          <UpcomingMatches
+          <SeniorMatchesPanel
             response={matchesState}
             messages={messages}
+            currentSeason={currentSeason}
+            selectedSeniorTeamId={resolvedSeniorTeamId}
+            defaultCoachLeadership={ownSeniorTeamTrainerLeadership}
             assignments={assignments}
             behaviors={behaviors}
             captainId={effectiveSeniorCaptainId}
@@ -23434,6 +23908,7 @@ const refreshDetailsForPlayers = async (
                 );
               }
               setLoadedMatchId(matchId);
+              setSeniorRatingsMatchContext(buildSeniorRatingsMatchContext(matchId));
               setOtherOrdersModalMatchId(matchId);
               setOtherOrdersEditorOpen(true);
             }}

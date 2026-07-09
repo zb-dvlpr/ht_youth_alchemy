@@ -28,6 +28,7 @@ export const SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY =
 export const SENIOR_DEBUG_MANAGER_USER_ID_EVENT =
   "ya:senior-debug-manager-user-id";
 export const DEFAULT_SENIOR_STALENESS_DAYS = 1;
+export const DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED = false;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
 export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
@@ -44,6 +45,11 @@ export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
 export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
 
 export type SeniorLineupAlgorithm = "skills" | "ratings";
+
+type SeniorSettingsRecord = {
+  stalenessDays: number;
+  seniorPredictedRatingsEnabled: boolean;
+};
 
 export type StoredDisplayCurrencySetting =
   | { mode: "default" }
@@ -483,6 +489,14 @@ export function readSeniorStalenessDays(): number {
     if (stored === null) {
       return DEFAULT_SENIOR_STALENESS_DAYS;
     }
+    if (stored.trim().startsWith("{")) {
+      const parsed = JSON.parse(stored) as Partial<SeniorSettingsRecord> | null;
+      const value = Number(parsed?.stalenessDays);
+      if (!Number.isFinite(value)) {
+        return DEFAULT_SENIOR_STALENESS_DAYS;
+      }
+      return Math.min(7, Math.max(1, Math.round(value)));
+    }
     const value = Number(stored);
     if (!Number.isFinite(value)) {
       return DEFAULT_SENIOR_STALENESS_DAYS;
@@ -493,14 +507,80 @@ export function readSeniorStalenessDays(): number {
   }
 }
 
-export function writeSeniorStalenessDays(value: number) {
+export function readSeniorPredictedRatingsEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED;
+  }
+  try {
+    const stored = window.localStorage.getItem(SENIOR_SETTINGS_STORAGE_KEY);
+    if (stored === null || !stored.trim().startsWith("{")) {
+      return DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED;
+    }
+    const parsed = JSON.parse(stored) as Partial<SeniorSettingsRecord> | null;
+    return parsed?.seniorPredictedRatingsEnabled === true;
+  } catch {
+    return DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED;
+  }
+}
+
+function writeSeniorSettingsRecord(update: Partial<SeniorSettingsRecord>) {
   if (typeof window === "undefined") return;
   try {
-    const clamped = Math.min(7, Math.max(1, Math.round(value)));
-    window.localStorage.setItem(SENIOR_SETTINGS_STORAGE_KEY, String(clamped));
+    const existing = window.localStorage.getItem(SENIOR_SETTINGS_STORAGE_KEY);
+    let current: SeniorSettingsRecord = {
+      stalenessDays: DEFAULT_SENIOR_STALENESS_DAYS,
+      seniorPredictedRatingsEnabled:
+        DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED,
+    };
+    if (existing !== null) {
+      if (existing.trim().startsWith("{")) {
+        const parsed = JSON.parse(existing) as Partial<SeniorSettingsRecord> | null;
+        const stalenessDays = Number(parsed?.stalenessDays);
+        current = {
+          stalenessDays: Number.isFinite(stalenessDays)
+            ? Math.min(7, Math.max(1, Math.round(stalenessDays)))
+            : DEFAULT_SENIOR_STALENESS_DAYS,
+          seniorPredictedRatingsEnabled:
+            parsed?.seniorPredictedRatingsEnabled === true,
+        };
+      } else {
+        const legacyStalenessDays = Number(existing);
+        current = {
+          stalenessDays: Number.isFinite(legacyStalenessDays)
+            ? Math.min(7, Math.max(1, Math.round(legacyStalenessDays)))
+            : DEFAULT_SENIOR_STALENESS_DAYS,
+          seniorPredictedRatingsEnabled:
+            DEFAULT_SENIOR_PREDICTED_RATINGS_ENABLED,
+        };
+      }
+    }
+    const next: SeniorSettingsRecord = {
+      stalenessDays:
+        update.stalenessDays === undefined
+          ? current.stalenessDays
+          : Math.min(7, Math.max(1, Math.round(update.stalenessDays))),
+      seniorPredictedRatingsEnabled:
+        update.seniorPredictedRatingsEnabled === undefined
+          ? current.seniorPredictedRatingsEnabled
+          : update.seniorPredictedRatingsEnabled === true,
+    };
+    window.localStorage.setItem(
+      SENIOR_SETTINGS_STORAGE_KEY,
+      JSON.stringify(next)
+    );
   } catch {
     // ignore storage errors
   }
+}
+
+export function writeSeniorStalenessDays(value: number) {
+  if (typeof window === "undefined") return;
+  writeSeniorSettingsRecord({ stalenessDays: value });
+}
+
+export function writeSeniorPredictedRatingsEnabled(value: boolean) {
+  if (typeof window === "undefined") return;
+  writeSeniorSettingsRecord({ seniorPredictedRatingsEnabled: value === true });
 }
 
 export function readSeniorLineupAlgorithm(): SeniorLineupAlgorithm {

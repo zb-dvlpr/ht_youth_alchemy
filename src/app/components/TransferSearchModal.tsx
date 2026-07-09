@@ -406,6 +406,7 @@ const buildTransferSearchMetricInput = (
   tsi: result.tsi,
   salarySek: result.salarySek,
   isAbroad: result.isAbroad ?? undefined,
+  specialty: result.specialty,
   form: result.form,
   stamina: result.staminaSkill,
   keeper: result.keeperSkill,

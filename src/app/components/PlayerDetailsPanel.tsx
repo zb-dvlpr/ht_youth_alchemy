@@ -542,6 +542,7 @@ const buildSeniorMetricInputFromDetails = (details: YouthPlayerDetails) => ({
   tsi: typeof details.TSI === "number" ? details.TSI : null,
   salarySek: typeof details.Salary === "number" ? details.Salary : null,
   isAbroad: resolveSeniorIsAbroad(details),
+  specialty: typeof details.Specialty === "number" ? details.Specialty : null,
   form: typeof details.Form === "number" ? details.Form : null,
   stamina: typeof details.StaminaSkill === "number" ? details.StaminaSkill : null,
   keeper: getSkillLevel(details.PlayerSkills?.KeeperSkill),

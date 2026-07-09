@@ -84,6 +84,18 @@ export function clampTeamSpirit(value: number): number {
   return Math.max(0.01, Math.min(10.99, value));
 }
 
+export function normalizeTeamSpiritPsychologistLevel(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(5, Math.floor(value)));
+}
+
+export function calculateNaturalTeamSpirit(
+  sportsPsychologistLevel: number
+): number {
+  const level = normalizeTeamSpiritPsychologistLevel(sportsPsychologistLevel);
+  return Math.round((4.5 + level * 0.1) * 10) / 10;
+}
+
 export function getTeamSpiritLabel(value: number): string {
   const clamped = clampTeamSpirit(value);
   let closest = TEAM_SPIRIT_LABELS[0];
@@ -114,18 +126,21 @@ export function driftTeamSpiritOneDay(
   coachLeadership: CoachLeadership,
   sportsPsychologistLevel: number
 ): number {
-  const base = 4.5;
+  const normalizedPsychologistLevel = normalizeTeamSpiritPsychologistLevel(
+    sportsPsychologistLevel
+  );
+  const target = calculateNaturalTeamSpirit(normalizedPsychologistLevel);
   const ts = clampTeamSpirit(currentTeamSpirit);
-  const psychoEffect = Math.max(0, sportsPsychologistLevel) * 0.0075;
-  if (ts > base) {
+  const psychoEffect = normalizedPsychologistLevel * 0.0075;
+  if (ts > target) {
     const leadershipRate = LEADERSHIP_DAILY[coachLeadership];
     const rate = Math.max(0.01, leadershipRate - psychoEffect);
-    return clampTeamSpirit(ts + (base - ts) * rate);
+    return clampTeamSpirit(ts + (target - ts) * rate);
   }
-  if (ts < base) {
+  if (ts < target) {
     const leadershipRate = LEADERSHIP_RECOVERY_DAILY[coachLeadership];
     const rate = leadershipRate + psychoEffect;
-    return clampTeamSpirit(ts + (base - ts) * rate);
+    return clampTeamSpirit(ts + (target - ts) * rate);
   }
   return ts;
 }

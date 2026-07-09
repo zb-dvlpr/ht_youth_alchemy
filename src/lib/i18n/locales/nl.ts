@@ -928,8 +928,8 @@ export const messagesNl: Messages = {
   teamSpiritBeforeMatchTooltip:
     "Overschrijf deze waarde handmatig als je teamgeest is beinvloed door een spelersverkoop. Deze informatie is niet beschikbaar via CHPP.",
   teamSpiritBeforeMatchInfoAria: "Informatie over TS voor wedstrijd",
-  teamSpiritSeasonStartsAtComposed:
-    "Het seizoen begint altijd met een teamgeestwaarde van 4.5 (content).",
+  teamSpiritCalculatedSeasonStart:
+    "De berekende startteamgeest voor het seizoen is {{value}} ({{level}}), gebaseerd op sportpsycholoogniveau {{psychologistLevel}}.",
   teamSpiritMidfield: "Middenveld",
   teamSpiritMidfieldIfYou: "als je ...",
   teamSpiritMidfieldPerformance: "middenveldprestatie",

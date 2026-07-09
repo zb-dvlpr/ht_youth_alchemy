@@ -922,8 +922,8 @@ export const messagesPl: Messages = {
   teamSpiritBeforeMatchTooltip:
     "Nadpisz te wartosc recznie, jesli team spirit zostal zmieniony przez sprzedaz zawodnika. Ta informacja nie jest dostepna przez CHPP.",
   teamSpiritBeforeMatchInfoAria: "Informacja o TS przed meczem",
-  teamSpiritSeasonStartsAtComposed:
-    "Sezon zawsze zaczyna sie z wartoscia team spirit 4.5 (content).",
+  teamSpiritCalculatedSeasonStart:
+    "Obliczony poczatkowy team spirit na ten sezon to {{value}} ({{level}}), na podstawie poziomu psychologa sportowego {{psychologistLevel}}.",
   teamSpiritMidfield: "Pomoc",
   teamSpiritMidfieldIfYou: "jesli zagrasz ...",
   teamSpiritMidfieldPerformance: "wydajnosc pomocy",

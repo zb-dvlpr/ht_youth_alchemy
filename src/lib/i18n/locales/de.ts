@@ -1255,8 +1255,8 @@ export const messagesDe: Messages = {
     teamSpiritBeforeMatchTooltip:
       "Ueberschreibe diesen Wert manuell, wenn deine Teamstimmung durch einen Spielerverkauf beeinflusst wurde. Diese Information ist nicht ueber CHPP verfuegbar.",
     teamSpiritBeforeMatchInfoAria: "Information zu TS vor dem Spiel",
-    teamSpiritSeasonStartsAtComposed:
-      "Die Saison beginnt immer mit einer Teamstimmung von 4.5 (content).",
+    teamSpiritCalculatedSeasonStart:
+      "Die berechnete Start-Teamstimmung der Saison ist {{value}} ({{level}}), basierend auf Sportpsychologe-Stufe {{psychologistLevel}}.",
     teamSpiritMidfield: "Mittelfeld",
     teamSpiritMidfieldIfYou: "wenn du ...",
     teamSpiritMidfieldPerformance: "Mittelfeldleistung",

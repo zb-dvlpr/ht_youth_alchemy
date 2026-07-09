@@ -1267,8 +1267,8 @@ export const messagesFr: Messages = {
     teamSpiritBeforeMatchTooltip:
       "Remplacez cette valeur manuellement si votre esprit d equipe a ete affecte par une vente de joueur. Cette information n est pas disponible via CHPP.",
     teamSpiritBeforeMatchInfoAria: "Information sur le TS avant match",
-    teamSpiritSeasonStartsAtComposed:
-      "La saison commence toujours avec une valeur d esprit d equipe de 4.5 (content).",
+    teamSpiritCalculatedSeasonStart:
+      "L esprit d equipe de depart calcule pour la saison est {{value}} ({{level}}), d apres le niveau de psychologue sportif {{psychologistLevel}}.",
     teamSpiritMidfield: "Milieu",
     teamSpiritMidfieldIfYou: "si vous ...",
     teamSpiritMidfieldPerformance: "performance du milieu",

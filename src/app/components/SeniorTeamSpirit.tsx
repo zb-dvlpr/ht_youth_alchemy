@@ -13,8 +13,10 @@ import {
   TEAM_SPIRIT_LABELS,
   applyTeamSpiritAttitude,
   calculateMidfieldPercent,
+  calculateNaturalTeamSpirit,
   driftTeamSpiritDays,
   formatTeamSpirit,
+  normalizeTeamSpiritPsychologistLevel,
   parseApiTeamAttitude,
   type CoachLeadership,
   type TeamSpiritAttitude,
@@ -68,13 +70,10 @@ type TimelineRow = {
   isFirstTeamSpiritMatch: boolean;
 };
 
-const SEASON_START_TEAM_SPIRIT = 4.5;
 const MAX_SPORTS_PSYCHOLOGIST_LEVEL = 5;
 
 function clampSportsPsychologistLevel(value: unknown): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 0;
-  return Math.max(0, Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, Math.floor(parsed)));
+  return normalizeTeamSpiritPsychologistLevel(Number(value));
 }
 
 function normalizeSportsPsychologistOnLevel(value: unknown): number {
@@ -226,6 +225,28 @@ function teamSpiritLevelLabel(messages: Messages, value: number) {
   }
 }
 
+function closestTeamSpiritLabelValue(value: number): number {
+  let closest = TEAM_SPIRIT_LABELS[0];
+  for (const candidate of TEAM_SPIRIT_LABELS) {
+    if (Math.abs(candidate.value - value) < Math.abs(closest.value - value)) {
+      closest = candidate;
+    }
+  }
+  return closest.value;
+}
+
+function formatCalculatedSeasonStartMessage(
+  messages: Messages,
+  value: number,
+  psychologistLevel: number
+) {
+  const level = teamSpiritLevelLabel(messages, closestTeamSpiritLabelValue(value));
+  return messages.teamSpiritCalculatedSeasonStart
+    .replace("{{value}}", value.toFixed(1))
+    .replace("{{level}}", level)
+    .replace("{{psychologistLevel}}", String(psychologistLevel));
+}
+
 function matchTypeLabel(messages: Messages, match: TeamSpiritMatch) {
   const matchType = toNumber(match.MatchType);
   if (matchType === 1) return messages.teamSpiritLeagueMatch;
@@ -281,12 +302,12 @@ function calculateRows(input: {
     const inProgress = isInProgressMatch(match);
     const finished = isFinishedMatch(match);
     const attitude = inProgress ? null : input.attitudes(match);
-    const calculatedBefore = isFirstTeamSpiritMatch ? SEASON_START_TEAM_SPIRIT : current;
+    const calculatedBefore = isFirstTeamSpiritMatch ? input.initialTeamSpirit : current;
     const beforeOverride = isFirstTeamSpiritMatch
       ? null
       : input.beforeMatchOverrides[key] ?? null;
     const before = isFirstTeamSpiritMatch
-      ? SEASON_START_TEAM_SPIRIT
+      ? input.initialTeamSpirit
       : beforeOverride ?? calculatedBefore;
     const midfieldPercent =
       before !== null && attitude ? calculateMidfieldPercent(before, attitude) : null;
@@ -737,11 +758,19 @@ export default function SeniorTeamSpirit({
   const effectiveSportsPsychologistLevel = effectiveSportsPsychologistEnabled
     ? selectedSportsPsychologistLevel
     : 0;
+  const seasonStartTeamSpirit = calculateNaturalTeamSpirit(
+    effectiveSportsPsychologistLevel
+  );
+  const seasonStartTeamSpiritMessage = formatCalculatedSeasonStartMessage(
+    messages,
+    seasonStartTeamSpirit,
+    effectiveSportsPsychologistLevel
+  );
 
   const rows = useMemo(() => {
     return calculateRows({
       matches: timelineMatches,
-      initialTeamSpirit: SEASON_START_TEAM_SPIRIT,
+      initialTeamSpirit: seasonStartTeamSpirit,
       attitudes: (match) =>
         isUpcomingMatch(match)
           ? settings?.upcomingAttitudes[matchKey(match)] ?? "PIN"
@@ -754,6 +783,7 @@ export default function SeniorTeamSpirit({
     effectiveCoachLeadership,
     effectiveSportsPsychologistLevel,
     matchDetails,
+    seasonStartTeamSpirit,
     settings?.teamSpiritBeforeMatchOverrides,
     settings?.upcomingAttitudes,
     timelineMatches,
@@ -797,7 +827,7 @@ export default function SeniorTeamSpirit({
     if (row.isFirstTeamSpiritMatch) {
       return (
         <span className={styles.teamSpiritSeasonStartNote}>
-          {messages.teamSpiritSeasonStartsAtComposed}
+          {seasonStartTeamSpiritMessage}
         </span>
       );
     }

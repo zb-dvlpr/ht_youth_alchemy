@@ -1013,7 +1013,7 @@ export type Messages = {
   teamSpiritBeforeMatch: string;
   teamSpiritBeforeMatchTooltip: string;
   teamSpiritBeforeMatchInfoAria: string;
-  teamSpiritSeasonStartsAtComposed: string;
+  teamSpiritCalculatedSeasonStart: string;
   teamSpiritMidfield: string;
   teamSpiritMidfieldIfYou: string;
   teamSpiritMidfieldPerformance: string;

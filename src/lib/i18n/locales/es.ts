@@ -1269,8 +1269,8 @@ export const messagesEs: Messages = {
     teamSpiritBeforeMatchTooltip:
       "Sobrescribe este valor manualmente si tu espíritu de equipo se ha visto afectado por una venta de jugador. Esta información no esta disponible via CHPP.",
     teamSpiritBeforeMatchInfoAria: "Información de TS antes del partido",
-    teamSpiritSeasonStartsAtComposed:
-      "La temporada siempre empieza con un valor de espíritu de equipo de 4.5 (content).",
+    teamSpiritCalculatedSeasonStart:
+      "El espíritu de equipo inicial calculado para la temporada es {{value}} ({{level}}), basado en el nivel de psicólogo deportivo {{psychologistLevel}}.",
     teamSpiritMidfield: "Mediocampo",
     teamSpiritMidfieldIfYou: "si juegas ...",
     teamSpiritMidfieldPerformance: "rendimiento de mediocampo",

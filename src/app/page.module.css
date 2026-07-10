@@ -10741,6 +10741,9 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   min-height: 16px;
   cursor: ew-resize;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
   overflow: visible;
   box-shadow: inset 0 0 0 1px rgba(36, 77, 43, 0.18);
 }
@@ -10765,6 +10768,14 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
     0 0 0 3px rgba(255, 250, 243, 0.78);
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.simulationEditableSkillBar .skillFillCurrent,
+.simulationEditableSkillBar .simulationSkillHandle {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .simulationEditableSkillBar:hover .simulationSkillHandle,

@@ -1,26 +1,49 @@
 export type ChppEnv = {
   consumerKey: string;
   consumerSecret: string;
-  callbackUrl: string;
 };
 
-const DEV_FALLBACK_CALLBACK_PATH = "/api/chpp/oauth/callback";
-type CallbackResolutionInput = {
-  requestUrl?: string;
-  host?: string | null;
-  forwardedProto?: string | null;
-};
+const CHPP_OAUTH_CALLBACK_PATH = "/api/chpp/oauth/callback";
+const ALLOWED_CHPP_OAUTH_HOSTNAMES = new Set([
+  "ht-alchemy.app",
+  "www.ht-alchemy.app",
+  "localhost",
+  "127.0.0.1",
+]);
+
+export class InvalidChppOAuthHostError extends Error {
+  constructor(hostname: string) {
+    super(`Untrusted OAuth request host: ${hostname}`);
+    this.name = "InvalidChppOAuthHostError";
+  }
+}
+
+export function isAllowedChppOAuthHostname(hostname: string): boolean {
+  return (
+    ALLOWED_CHPP_OAUTH_HOSTNAMES.has(hostname) ||
+    hostname.endsWith(".vercel.app")
+  );
+}
+
+export function getChppOAuthCallbackUrl(request: Request): string {
+  const requestUrl = new URL(request.url);
+  const { hostname } = requestUrl;
+
+  if (!isAllowedChppOAuthHostname(hostname)) {
+    throw new InvalidChppOAuthHostError(hostname);
+  }
+
+  return new URL(CHPP_OAUTH_CALLBACK_PATH, requestUrl.origin).toString();
+}
 
 export function getChppEnv(): ChppEnv {
   const consumerKey = process.env.CHPP_CONSUMER_KEY;
   const consumerSecret = process.env.CHPP_CONSUMER_SECRET;
-  const callbackUrl = process.env.CHPP_CALLBACK_URL;
 
-  if (!consumerKey || !consumerSecret || !callbackUrl) {
+  if (!consumerKey || !consumerSecret) {
     const missing = [
       !consumerKey ? "CHPP_CONSUMER_KEY" : null,
       !consumerSecret ? "CHPP_CONSUMER_SECRET" : null,
-      !callbackUrl ? "CHPP_CALLBACK_URL" : null,
     ].filter(Boolean);
 
     throw new Error(
@@ -28,38 +51,5 @@ export function getChppEnv(): ChppEnv {
     );
   }
 
-  return { consumerKey, consumerSecret, callbackUrl };
-}
-
-export function resolveChppCallbackUrl(input?: string | CallbackResolutionInput): string {
-  const { callbackUrl } = getChppEnv();
-  if (process.env.NODE_ENV === "production" || !input) {
-    return callbackUrl;
-  }
-
-  try {
-    const configured = new URL(callbackUrl);
-    const pathname = configured.pathname || DEV_FALLBACK_CALLBACK_PATH;
-    const requestUrl = typeof input === "string" ? input : input.requestUrl;
-    const requestHost = typeof input === "string" ? null : input.host;
-    const requestProto = typeof input === "string" ? null : input.forwardedProto;
-
-    if (requestHost) {
-      const protocol =
-        requestProto ??
-        (requestHost.startsWith("localhost") || requestHost.startsWith("127.0.0.1")
-          ? "http"
-          : configured.protocol.replace(":", "") || "https");
-      return `${protocol}://${requestHost}${pathname}`;
-    }
-
-    if (requestUrl) {
-      const request = new URL(requestUrl);
-      return `${request.origin}${pathname}`;
-    }
-
-    return callbackUrl;
-  } catch {
-    return callbackUrl;
-  }
+  return { consumerKey, consumerSecret };
 }

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
+import {
+  getChppEnv,
+  getChppOAuthCallbackUrl,
+  InvalidChppOAuthHostError,
+} from "@/lib/chpp/env";
 import { createNodeOAuthClient, getAccessToken } from "@/lib/chpp/node-oauth";
 import {
   CHPP_PERMISSION_FLOW_COOKIE,
@@ -87,6 +91,7 @@ function logOauthCallbackFailure(
 
 export async function GET(request: Request) {
   try {
+    const callbackUrl = getChppOAuthCallbackUrl(request);
     const cookieStore = await cookies();
     const permissionFlowVersion = cookieStore.get(
       CHPP_PERMISSION_FLOW_COOKIE
@@ -101,11 +106,6 @@ export async function GET(request: Request) {
     }
 
     const { consumerKey, consumerSecret } = getChppEnv();
-    const callbackUrl = resolveChppCallbackUrl({
-      requestUrl: request.url,
-      host: request.headers.get("host"),
-      forwardedProto: request.headers.get("x-forwarded-proto"),
-    });
     const client = createNodeOAuthClient(
       consumerKey,
       consumerSecret,
@@ -176,6 +176,15 @@ export async function GET(request: Request) {
     clearAllOauthCookies(response);
     return response;
   } catch (error) {
+    if (error instanceof InvalidChppOAuthHostError) {
+      const response = NextResponse.json(
+        { error: "Invalid OAuth request host." },
+        { status: 400 }
+      );
+      clearTemporaryOauthCookies(response);
+      return response;
+    }
+
     const payload = buildChppErrorPayload("OAuth callback failed", error);
     logOauthCallbackFailure(request, payload, error);
 

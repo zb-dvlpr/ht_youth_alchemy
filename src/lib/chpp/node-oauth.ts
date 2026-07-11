@@ -6,13 +6,13 @@ import {
 
 export type NodeOAuthClient = {
   signer: ReturnType<typeof createOAuthClient>;
-  callbackUrl: string;
+  callbackUrl?: string;
 };
 
 export function createNodeOAuthClient(
   consumerKey: string,
   consumerSecret: string,
-  callbackUrl: string
+  callbackUrl?: string
 ): NodeOAuthClient {
   return {
     signer: createOAuthClient(consumerKey, consumerSecret),
@@ -220,6 +220,10 @@ function buildOAuthRequestData(
 export async function getRequestToken(
   client: NodeOAuthClient
 ): Promise<RequestTokenResult> {
+  if (!client.callbackUrl) {
+    throw new Error("Missing CHPP OAuth callback URL");
+  }
+
   const requestUrl = new URL(CHPP_ENDPOINTS.requestToken);
   const oauthParameters = {
     oauth_callback: client.callbackUrl,

@@ -40,11 +40,10 @@ export async function POST(request: Request) {
 
   if (session) {
     try {
-      const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
+      const { consumerKey, consumerSecret } = getChppEnv();
       const client = createNodeOAuthClient(
         consumerKey,
-        consumerSecret,
-        callbackUrl
+        consumerSecret
       );
       raw = await getProtectedResource(
         client,

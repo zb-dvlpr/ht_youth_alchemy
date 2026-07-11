@@ -42,7 +42,6 @@ npm install
 ```bash
 CHPP_CONSUMER_KEY=your_key_here
 CHPP_CONSUMER_SECRET=your_secret_here
-CHPP_CALLBACK_URL=http://localhost:3000/api/chpp/oauth/callback
 CHPP_COOKIE_SECRET=base64_32_byte_secret_here
 ```
 

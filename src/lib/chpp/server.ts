@@ -93,8 +93,8 @@ export async function getChppAuth(): Promise<ChppAuth> {
     }
   }
 
-  const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
-  const client = createNodeOAuthClient(consumerKey, consumerSecret, callbackUrl);
+  const { consumerKey, consumerSecret } = getChppEnv();
+  const client = createNodeOAuthClient(consumerKey, consumerSecret);
 
   const cookieStore = await cookies();
   const session = openChppSession(

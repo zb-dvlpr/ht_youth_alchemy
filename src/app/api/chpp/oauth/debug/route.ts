@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
+import { getChppEnv, getChppOAuthCallbackUrl } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
 
 export async function GET(request: Request) {
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { callbackUrl } = getChppEnv();
+    getChppEnv();
     const host = request.headers.get("host");
     const forwardedProto = request.headers.get("x-forwarded-proto");
 
@@ -16,12 +16,7 @@ export async function GET(request: Request) {
       env: {
         hasConsumerKey: Boolean(process.env.CHPP_CONSUMER_KEY),
         hasConsumerSecret: Boolean(process.env.CHPP_CONSUMER_SECRET),
-        callbackUrl,
-        resolvedCallbackUrl: resolveChppCallbackUrl({
-          requestUrl: request.url,
-          host,
-          forwardedProto,
-        }),
+        resolvedCallbackUrl: getChppOAuthCallbackUrl(request),
       },
       endpoints: CHPP_ENDPOINTS,
       request: {

@@ -76,6 +76,7 @@ import {
 import {
   SENIOR_OPEN_FIND_SIMILAR_PLAYERS_EVENT,
   SENIOR_REMINDER_CONTEXT_EVENT,
+  formatSeniorReminderPlayerName,
   type SeniorFindSimilarPlayersEventDetail,
   type SeniorReminderContext,
   type SeniorReminderContextEventDetail,
@@ -522,11 +523,7 @@ export default function AppShell({
               const detailsSalary = detailsCache[player.PlayerID]?.data?.Salary;
               return {
                 playerId: player.PlayerID,
-                playerName:
-                  [player.FirstName, player.NickName, player.LastName]
-                    .filter((part): part is string => Boolean(part && part.trim()))
-                    .join(" ")
-                    .trim() || String(player.PlayerID),
+                playerName: formatSeniorReminderPlayerName(player),
                 salarySek:
                   typeof detailsSalary === "number"
                     ? detailsSalary

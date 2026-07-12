@@ -71,6 +71,7 @@ type LineupFieldProps = {
     label: string;
     meta?: string | null;
   }>;
+  formatPlayerDisplayName?: (player: YouthPlayer) => string;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -360,8 +361,11 @@ const playerNumberValue = (player: YouthPlayer): number | null => {
   return normalizeSeniorShirtNumber(player.PlayerNumber);
 };
 
-const formatDisplayName = (player: YouthPlayer) => {
-  const name = formatName(player);
+const formatDisplayName = (
+  player: YouthPlayer,
+  formatPlayerDisplayName?: (player: YouthPlayer) => string
+) => {
+  const name = formatPlayerDisplayName?.(player) ?? formatName(player);
   const playerNumber = playerNumberValue(player);
   return playerNumber !== null ? `${playerNumber}. ${name}` : name;
 };
@@ -479,6 +483,7 @@ export default function LineupField({
   onSelectPlayer,
   onEmptySlotSelect,
   emptySlotPickerOptions,
+  formatPlayerDisplayName,
   messages,
   allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
@@ -1287,7 +1292,7 @@ export default function LineupField({
                             event,
                             position.id,
                             assignedPlayer.YouthPlayerID,
-                            formatDisplayName(assignedPlayer)
+                            formatDisplayName(assignedPlayer, formatPlayerDisplayName)
                           )
                         }
                         onMouseEnter={() => {
@@ -1313,7 +1318,7 @@ export default function LineupField({
                           }
                           isDragActive.current = true;
                           setDragGhost(event, {
-                            label: formatDisplayName(assignedPlayer),
+                            label: formatDisplayName(assignedPlayer, formatPlayerDisplayName),
                             className: styles.dragGhost,
                             slotSelector: `.${styles.fieldSlot}`,
                           });
@@ -1328,7 +1333,7 @@ export default function LineupField({
                         }}
                       >
                         <span className={styles.slotName}>
-                          {formatDisplayName(assignedPlayer)}
+                          {formatDisplayName(assignedPlayer, formatPlayerDisplayName)}
                         </span>
                         {assignedInjuryStatus ? (
                           <span
@@ -1525,7 +1530,7 @@ export default function LineupField({
                           event,
                           slot.id,
                           assignedPlayer.YouthPlayerID,
-                          formatDisplayName(assignedPlayer)
+                          formatDisplayName(assignedPlayer, formatPlayerDisplayName)
                         )
                       }
                       onMouseEnter={() => {
@@ -1551,7 +1556,7 @@ export default function LineupField({
                         }
                         isDragActive.current = true;
                         setDragGhost(event, {
-                          label: formatDisplayName(assignedPlayer),
+                          label: formatDisplayName(assignedPlayer, formatPlayerDisplayName),
                           className: styles.dragGhost,
                           slotSelector: `.${styles.fieldSlot}`,
                         });
@@ -1566,7 +1571,7 @@ export default function LineupField({
                       }}
                     >
                       <span className={styles.slotName}>
-                        {formatDisplayName(assignedPlayer)}
+                        {formatDisplayName(assignedPlayer, formatPlayerDisplayName)}
                       </span>
                       {assignedInjuryStatus ? (
                         <span

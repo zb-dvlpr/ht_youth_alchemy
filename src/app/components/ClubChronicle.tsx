@@ -29,6 +29,7 @@ import {
 } from "recharts";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { formatSekCurrency } from "@/lib/currency";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import {
   CLUB_CHRONICLE_DEBUG_EVENT,
@@ -10904,10 +10905,11 @@ type Form7LineupSnapshot = {
       const playerId = parseNumber(player?.PlayerID) ?? 0;
       if (playerId <= 0) return;
       const playerSkills = (player?.PlayerSkills ?? {}) as RawNode;
-      const playerName = [player?.FirstName, player?.NickName, player?.LastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+      const playerName = formatSeniorPlayerName({
+        FirstName: parseStringNode(player?.FirstName),
+        NickName: parseStringNode(player?.NickName),
+        LastName: parseStringNode(player?.LastName),
+      });
       const nativeLeagueId = nativeLeagueIdByPlayerId.get(playerId) ?? null;
       const originInfo =
         nativeLeagueId ? leagueOriginFlags.get(nativeLeagueId) ?? null : null;
@@ -11583,14 +11585,11 @@ type Form7LineupSnapshot = {
       if (!response.ok) return null;
       const playerNode = payload?.data?.HattrickData?.Player as RawNode | undefined;
       const transferDetails = (playerNode?.TransferDetails ?? {}) as RawNode;
-      const playerName = [
-        parseStringNode(playerNode?.FirstName),
-        parseStringNode(playerNode?.NickName),
-        parseStringNode(playerNode?.LastName),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+      const playerName = formatSeniorPlayerName({
+        FirstName: parseStringNode(playerNode?.FirstName),
+        NickName: parseStringNode(playerNode?.NickName),
+        LastName: parseStringNode(playerNode?.LastName),
+      });
       return {
         playerName: playerName || null,
         age: parseNumberNode(playerNode?.Age),
@@ -15990,10 +15989,11 @@ type Form7LineupSnapshot = {
               cache: "no-store",
             });
             const player = payload?.data?.HattrickData?.Player;
-            const name = [player?.FirstName, player?.NickName, player?.LastName]
-              .filter(Boolean)
-              .join(" ")
-              .trim();
+            const name = formatSeniorPlayerName({
+              FirstName: player?.FirstName,
+              NickName: player?.NickName,
+              LastName: player?.LastName,
+            });
             if (!name) return;
             setResolvedPlayers((prev) => ({ ...prev, [id]: name }));
           } catch (error) {

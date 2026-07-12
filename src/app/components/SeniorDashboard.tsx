@@ -163,6 +163,7 @@ import {
 } from "@/lib/matches/visibility";
 import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -2124,10 +2125,11 @@ const normalizeTransferSearchBidDrafts = (value: unknown): Record<number, Transf
 };
 
 const formatTransferSearchPlayerName = (player: TransferSearchResult) =>
-  [player.firstName, player.nickName, player.lastName]
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .join(" ");
+  formatSeniorPlayerName({
+    firstName: player.firstName,
+    nickName: player.nickName,
+    lastName: player.lastName,
+  });
 
 const displayToSek = (value: string, displayCurrency: DisplayCurrency) =>
   displayAmountToSek(value.replace(",", ".").trim(), displayCurrency);
@@ -2195,10 +2197,10 @@ const buildSeniorCardStatus = (cards: number | null, messages: Messages) => {
 };
 
 const formatPlayerName = (player: {
-  FirstName?: string;
-  NickName?: string;
-  LastName?: string;
-}) => [player.FirstName, player.NickName ?? null, player.LastName].filter(Boolean).join(" ");
+  FirstName?: string | null;
+  NickName?: string | null;
+  LastName?: string | null;
+}) => formatSeniorPlayerName(player);
 
 const playerNumberValue = (
   player: { PlayerNumber?: number | null } | null | undefined
@@ -2296,6 +2298,14 @@ const buildEffectiveSeniorRatingsResponse = (
     }
   >();
   const displayOrder: number[] = [];
+  const playerById = new Map(players.map((player) => [player.PlayerID, player]));
+  const playerNameForId = (playerId: number, fallbackName?: string) => {
+    const currentPlayer = playerById.get(playerId);
+    if (currentPlayer) {
+      return formatPlayerName(currentPlayer) || String(playerId);
+    }
+    return fallbackName || String(playerId);
+  };
   const pushOrder = (playerId: number) => {
     if (!displayOrder.includes(playerId)) {
       displayOrder.push(playerId);
@@ -2305,7 +2315,7 @@ const buildEffectiveSeniorRatingsResponse = (
   (fetchedRatings?.players ?? []).forEach((row) => {
     rowsById.set(row.id, {
       id: row.id,
-      name: row.name,
+      name: playerNameForId(row.id, row.name),
       ratings: { ...row.ratings },
       ratingMatchIds: { ...(row.ratingMatchIds ?? {}) },
       ratingMatchSourceSystems: { ...(row.ratingMatchSourceSystems ?? {}) },
@@ -2315,7 +2325,7 @@ const buildEffectiveSeniorRatingsResponse = (
 
   players.forEach((player) => {
     const playerId = player.PlayerID;
-    const playerName = formatPlayerName(player) || String(playerId);
+    const playerName = playerNameForId(playerId);
     if (!rowsById.has(playerId)) {
       rowsById.set(playerId, {
         id: playerId,
@@ -2324,7 +2334,7 @@ const buildEffectiveSeniorRatingsResponse = (
         ratingMatchIds: {},
         ratingMatchSourceSystems: {},
       });
-    } else if (!rowsById.get(playerId)?.name) {
+    } else {
       rowsById.get(playerId)!.name = playerName;
     }
     pushOrder(playerId);
@@ -2337,9 +2347,7 @@ const buildEffectiveSeniorRatingsResponse = (
       rowsById.get(playerId) ??
       ({
         id: playerId,
-        name:
-          formatPlayerName(players.find((player) => player.PlayerID === playerId) ?? {}) ||
-          String(playerId),
+        name: playerNameForId(playerId),
         ratings: {},
         ratingMatchIds: {},
         ratingMatchSourceSystems: {},
@@ -19562,6 +19570,7 @@ const refreshDetailsForPlayers = async (
           assignments={assignments}
           behaviors={behaviors}
           playersById={playersByIdForLineup}
+          formatPlayerDisplayName={formatPlayerName}
           excludedPlayers={excludedPlayers}
           playerDetailsById={new Map(
             Array.from(detailsById.entries()).map(([id, detail]) => [
@@ -23785,6 +23794,7 @@ const refreshDetailsForPlayers = async (
               assignments={assignments}
               behaviors={behaviors}
               playersById={playersByIdForLineup}
+              formatPlayerDisplayName={formatPlayerName}
               excludedPlayers={excludedPlayers}
               playerDetailsById={new Map(
                 Array.from(detailsById.entries()).map(([id, detail]) => [

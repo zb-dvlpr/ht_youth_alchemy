@@ -27,6 +27,7 @@ import {
   type DisplayCurrency,
 } from "@/lib/currency";
 import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -986,9 +987,16 @@ export default function PlayerDetailsPanel({
         ? hattrickPlayerUrl(playerId)
         : hattrickYouthPlayerUrl(playerId)
       : null;
-  const basePlayerDisplayName = detailsData
-    ? `${detailsData.FirstName} ${detailsData.LastName}`
-    : "";
+  const basePlayerDisplayName =
+    playerKind === "senior"
+      ? formatSeniorPlayerName({
+          FirstName: detailsData?.FirstName ?? selectedPlayer?.FirstName,
+          NickName: detailsData ? detailsData.NickName : selectedPlayer?.NickName,
+          LastName: detailsData?.LastName ?? selectedPlayer?.LastName,
+        })
+      : detailsData
+      ? `${detailsData.FirstName} ${detailsData.LastName}`
+      : "";
   const playerDisplayNumber =
     playerKind === "senior"
       ? playerNumberValue({

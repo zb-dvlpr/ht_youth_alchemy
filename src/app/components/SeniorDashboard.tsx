@@ -142,6 +142,7 @@ import {
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
 import { calculateEffectiveSkill } from "@/lib/seniorEffectiveSkill";
+import { estimateChronicleMainSkillFromWage } from "@/lib/clubChronicle/mainSkillEstimation";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -164,6 +165,14 @@ import {
 import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
+import {
+  getSeniorManMarkerSpecialtyMultiplier,
+  selectBestSeniorManMarkingPair,
+  type SeniorManMarkingMarkerCandidate,
+  type SeniorManMarkingMarkerRole,
+  type SeniorManMarkingTargetCandidate,
+  type SeniorManMarkingTargetRole,
+} from "@/lib/seniorManMarking";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -917,9 +926,17 @@ type OpponentTargetPlayer = {
   playerId: number;
   role: OpponentTrackedRole;
   name: string;
-  tsi: number;
-  stamina: number;
-  ageDays: number;
+  tsi: number | null;
+  stamina: number | null;
+  ageDays: number | null;
+  salary: number | null;
+  age: number | null;
+  specialty: number | null;
+  form: number | null;
+  loyalty: number | null;
+  motherClubBonus: boolean | null;
+  wageIncludesForeignBonus: boolean | null;
+  estimatedEffectiveMainSkill: number | null;
 };
 
 type OpponentPotentialTargetPlayer = {
@@ -930,15 +947,26 @@ type OpponentPotentialTargetPlayer = {
   tsi: number | null;
   stamina: number | null;
   ageDays: number | null;
+  salary: number | null;
+  age: number | null;
+  specialty: number | null;
+  form: number | null;
+  loyalty: number | null;
+  motherClubBonus: boolean | null;
+  wageIncludesForeignBonus: boolean | null;
+  estimatedEffectiveMainSkill: number | null;
 };
 
-type SeniorAiManMarkingRole = "WB" | "IM" | "CD";
+type SeniorAiManMarkingRole = SeniorManMarkingMarkerRole;
 
 type SeniorAiManMarkingMarker = {
   playerId: number;
   role: SeniorAiManMarkingRole;
   name: string;
-  tsi: number;
+  slot: string;
+  baseEffectiveDefending: number;
+  adjustedMarkingStrength: number;
+  normalRoleValue: number;
 };
 
 type OpponentFormationContext = {
@@ -950,6 +978,7 @@ type OpponentFormationContext = {
   rows: OpponentFormationRow[];
   manMarkingFuzziness: number;
   potentialManMarkingTargets: OpponentPotentialTargetPlayer[];
+  manMarkingTargets: OpponentTargetPlayer[];
   manMarkingTarget: OpponentTargetPlayer | null;
 };
 
@@ -4266,6 +4295,13 @@ export default function SeniorDashboard({
         tsi: number | null;
         stamina: number | null;
         ageDays: number | null;
+        salary: number | null;
+        age: number | null;
+        specialty: number | null;
+        form: number | null;
+        loyalty: number | null;
+        motherClubBonus: boolean | null;
+        wageIncludesForeignBonus: boolean | null;
       } | null
     >
   >(
@@ -6085,19 +6121,41 @@ export default function SeniorDashboard({
         if (!role) return;
         const player = playersById.get(playerId);
         if (!player) return;
-        if (specialtyValueForPlayer(player) !== 3) return;
-        const tsi = tsiValueForPlayer(player);
+        const baseEffectiveDefending = effectiveSkillValueForPlayer(player, "DefenderSkill");
+        if (
+          typeof baseEffectiveDefending !== "number" ||
+          !Number.isFinite(baseEffectiveDefending) ||
+          baseEffectiveDefending <= 0
+        ) {
+          return;
+        }
+        const normalRoleValue =
+          effectiveSkillSuitabilityForAssignmentSlot(player, slot) /
+          manMarkingMarkerRoleWeightTotal(role);
+        if (
+          typeof normalRoleValue !== "number" ||
+          !Number.isFinite(normalRoleValue) ||
+          normalRoleValue <= 0
+        ) {
+          return;
+        }
+        const specialty = specialtyValueForPlayer(player);
         const candidate = {
           playerId,
           role,
+          slot,
           name: formatPlayerName(player) || String(playerId),
-          tsi,
+          baseEffectiveDefending,
+          adjustedMarkingStrength:
+            baseEffectiveDefending * getSeniorManMarkerSpecialtyMultiplier(specialty),
+          normalRoleValue,
         } satisfies SeniorAiManMarkingMarker;
         const current = bestByRole[role];
         if (
           !current ||
-          candidate.tsi > current.tsi ||
-          (candidate.tsi === current.tsi && candidate.playerId < current.playerId)
+          candidate.adjustedMarkingStrength > current.adjustedMarkingStrength ||
+          (candidate.adjustedMarkingStrength === current.adjustedMarkingStrength &&
+            candidate.playerId < current.playerId)
         ) {
           bestByRole[role] = candidate;
         }
@@ -6118,23 +6176,33 @@ export default function SeniorDashboard({
     ) {
       return null;
     }
-    const requiredRole: SeniorAiManMarkingRole =
-      seniorAiManMarkingTarget.role === "F"
-        ? "CD"
-        : seniorAiManMarkingTarget.role === "IM"
-          ? "IM"
-          : "WB";
-    const marker = seniorAiManMarkingCandidates[requiredRole];
-    if (!marker || marker.tsi <= seniorAiManMarkingTarget.tsi) {
-      return null;
-    }
+    if (!isSeniorManMarkingTargetRole(seniorAiManMarkingTarget.role)) return null;
+    const bestPair = selectBestSeniorManMarkingPair(
+      buildSeniorManMarkingMarkerCandidates(assignments),
+      buildSeniorManMarkingTargetCandidates([seniorAiManMarkingTarget])
+    );
+    if (!bestPair) return null;
+    const markerPlayer = playersById.get(bestPair.markerPlayerId);
+    if (!markerPlayer) return null;
+    const marker = {
+      playerId: bestPair.markerPlayerId,
+      role: bestPair.markerRole,
+      slot: bestPair.markerSlot,
+      name: formatPlayerName(markerPlayer) || String(bestPair.markerPlayerId),
+      baseEffectiveDefending: bestPair.baseEffectiveDefending,
+      adjustedMarkingStrength: bestPair.adjustedMarkerStrength,
+      normalRoleValue: bestPair.normalRoleValue,
+    } satisfies SeniorAiManMarkingMarker;
     return {
       marker,
       target: seniorAiManMarkingTarget,
     } satisfies SeniorAiManMarkingSelection;
   }, [
+    assignments,
+    detailsById,
     seniorAiManMarkingCandidates,
     effectiveSeniorAiManMarkingEnabled,
+    playersById,
     seniorAiManMarkingSupported,
     seniorAiManMarkingTarget,
   ]);
@@ -6782,10 +6850,10 @@ export default function SeniorDashboard({
   const totalSkillLevelForPlayer = (player: SeniorPlayer) =>
     SKILL_KEYS.reduce((sum, key) => sum + (skillValueForPlayer(player, key) ?? 0), 0);
 
-  const effectiveSkillValueForPlayer = (
+  function effectiveSkillValueForPlayer(
     player: SeniorPlayer,
     key: (typeof SKILL_KEYS)[number]
-  ) => {
+  ) {
     const details = detailsById.get(player.PlayerID);
     return calculateEffectiveSkill({
       rawSkill: skillValueForPlayer(player, key),
@@ -6794,7 +6862,7 @@ export default function SeniorDashboard({
       form: details?.Form ?? player.Form,
       stamina: details?.StaminaSkill ?? player.StaminaSkill,
     });
-  };
+  }
 
   const totalEffectiveSkillLevelForPlayer = (player: SeniorPlayer) =>
     SKILL_KEYS.reduce(
@@ -6834,15 +6902,6 @@ export default function SeniorDashboard({
         : null;
   }
 
-  function tsiValueForPlayer(player: SeniorPlayer) {
-    const details = detailsById.get(player.PlayerID);
-    return typeof details?.TSI === "number"
-      ? details.TSI
-      : typeof player.TSI === "number"
-        ? player.TSI
-        : -1;
-  }
-
 function manMarkingRoleForSlot(
   slot: keyof LineupAssignments
 ): SeniorAiManMarkingRole | null {
@@ -6850,6 +6909,36 @@ function manMarkingRoleForSlot(
     if (slot === "IM_L" || slot === "IM_C" || slot === "IM_R") return "IM";
     if (slot === "CD_L" || slot === "CD_C" || slot === "CD_R") return "CD";
   return null;
+}
+
+function isSeniorManMarkingTargetRole(
+  role: OpponentTrackedRole
+): role is SeniorManMarkingTargetRole {
+  return role === "F" || role === "W" || role === "IM";
+}
+
+function manMarkingTargetRoleId(role: SeniorManMarkingTargetRole): number {
+  switch (role) {
+    case "F":
+      return 111;
+    case "W":
+      return 106;
+    case "IM":
+      return 107;
+  }
+}
+
+function manMarkingMarkerRoleWeightTotal(
+  role: SeniorManMarkingMarkerRole
+): number {
+  switch (role) {
+    case "CD":
+      return 3;
+    case "WB":
+      return 6;
+    case "IM":
+      return 10;
+  }
 }
 
 function buildSeniorAiManMarkingReadySignature(params: {
@@ -6940,9 +7029,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     };
   };
 
-  const representativeSlotForAssignment = (
+  function representativeSlotForAssignment(
     slot: keyof LineupAssignments
-  ): keyof LineupAssignments | null => {
+  ): keyof LineupAssignments | null {
     switch (slot) {
       case "B_GK":
         return "KP";
@@ -6961,7 +7050,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       default:
         return slot;
     }
-  };
+  }
 
   const assignmentRowForSlot = (slot: keyof LineupAssignments) => {
     const representative = representativeSlotForAssignment(slot);
@@ -7180,10 +7269,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
-  const effectiveSkillSuitabilityForAssignmentSlot = (
+  function effectiveSkillSuitabilityForAssignmentSlot(
     player: SeniorPlayer,
     slot: keyof LineupAssignments
-  ) => {
+  ) {
     const effective = (key: (typeof SKILL_KEYS)[number]) =>
       effectiveSkillValueForPlayer(player, key) ?? 0;
     const representative = representativeSlotForAssignment(slot);
@@ -7230,7 +7319,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       default:
         return totalEffectiveSkillLevelForPlayer(player);
     }
-  };
+  }
 
   const comparePlayersForSkillsAssignment = (
     left: SeniorPlayer,
@@ -14633,15 +14722,16 @@ const refreshDetailsForPlayers = async (
     tsi: number | null;
     stamina: number | null;
     ageDays: number | null;
+    salary: number | null;
+    age: number | null;
+    specialty: number | null;
+    form: number | null;
+    loyalty: number | null;
+    motherClubBonus: boolean | null;
+    wageIncludesForeignBonus: boolean | null;
   } | null> => {
     const cached = opponentTargetPlayerCacheRef.current.get(playerId);
-    if (
-      cached !== undefined &&
-      cached !== null &&
-      typeof cached.tsi === "number" &&
-      typeof cached.stamina === "number" &&
-      typeof cached.ageDays === "number"
-    ) {
+    if (cached !== undefined) {
       return cached;
     }
     try {
@@ -14670,8 +14760,25 @@ const refreshDetailsForPlayers = async (
         playerNode.PlayerSkills && typeof playerNode.PlayerSkills === "object"
           ? (playerNode.PlayerSkills as Record<string, unknown>)
           : null;
+      const trainerData =
+        playerNode.TrainerData && typeof playerNode.TrainerData === "object"
+          ? (playerNode.TrainerData as Record<string, unknown>)
+          : null;
+      const owningTeam =
+        playerNode.OwningTeam && typeof playerNode.OwningTeam === "object"
+          ? (playerNode.OwningTeam as Record<string, unknown>)
+          : null;
       const age = parseNumber(playerNode.Age);
       const ageDays = parseNumber(playerNode.AgeDays);
+      const explicitIsAbroad = parseBoolean(playerNode.IsAbroad);
+      const nativeLeagueId = parseNumber(playerNode.NativeLeagueID);
+      const owningLeagueId = parseNumber(owningTeam?.LeagueID);
+      const wageIncludesForeignBonus =
+        explicitIsAbroad !== null
+          ? explicitIsAbroad
+          : typeof nativeLeagueId === "number" && typeof owningLeagueId === "number"
+            ? nativeLeagueId !== owningLeagueId
+            : null;
       const snapshot = {
         playerId,
         name:
@@ -14688,7 +14795,16 @@ const refreshDetailsForPlayers = async (
               typeof playerNode.LastName === "string" ? playerNode.LastName : "",
           }) || fallbackName,
         tsi: parseNumber(playerNode.TSI),
+        salary: parseNumber(playerNode.Salary),
+        age,
+        specialty: parseNumber(playerNode.Specialty),
+        form: playerSkills ? parseNumber(playerSkills.Form) : null,
         stamina: playerSkills ? parseNumber(playerSkills.StaminaSkill) : null,
+        loyalty: parseNumber(playerNode.Loyalty),
+        motherClubBonus: parseBoolean(
+          trainerData?.MotherClubBonus ?? playerNode.MotherClubBonus
+        ),
+        wageIncludesForeignBonus,
         ageDays:
           typeof age === "number" && typeof ageDays === "number"
             ? age * HATTRICK_AGE_DAYS_PER_YEAR + ageDays
@@ -14701,6 +14817,115 @@ const refreshDetailsForPlayers = async (
       return null;
     }
   };
+
+  function estimateOpponentTargetEffectiveMainSkill(
+    target: {
+      role: OpponentTrackedRole;
+      count: number;
+      salary: number | null;
+      age: number | null;
+      specialty: number | null;
+      wageIncludesForeignBonus: boolean | null;
+      loyalty: number | null;
+      motherClubBonus: boolean | null;
+      form: number | null;
+      stamina: number | null;
+    }
+  ): number | null {
+    if (!isSeniorManMarkingTargetRole(target.role)) return null;
+    const estimation = estimateChronicleMainSkillFromWage({
+      salarySek: target.salary,
+      ageYears: target.age,
+      specialty: target.specialty,
+      wageIncludesForeignBonus: target.wageIncludesForeignBonus,
+      playingPositions: [
+        {
+          roleId: manMarkingTargetRoleId(target.role),
+          minutes: Math.max(1, target.count),
+        },
+      ],
+    });
+    if (estimation.kind !== "estimated") return null;
+    return calculateEffectiveSkill({
+      rawSkill: estimation.level,
+      loyalty: target.loyalty,
+      motherClubBonus: target.motherClubBonus,
+      form: target.form,
+      stamina: target.stamina,
+    });
+  }
+
+  function buildSeniorManMarkingMarkerCandidates(
+    chosenAssignments: LineupAssignments
+  ): SeniorManMarkingMarkerCandidate[] {
+    const candidates: SeniorManMarkingMarkerCandidate[] = [];
+    (Object.entries(chosenAssignments) as Array<
+      [keyof LineupAssignments, number | null | undefined]
+    >).forEach(([slot, playerId]) => {
+      if (typeof playerId !== "number" || playerId <= 0) return;
+      const role = manMarkingRoleForSlot(slot);
+      if (!role) return;
+      const player = playersById.get(playerId);
+      if (!player) return;
+      const baseEffectiveDefending = effectiveSkillValueForPlayer(
+        player,
+        "DefenderSkill"
+      );
+      if (
+        typeof baseEffectiveDefending !== "number" ||
+        !Number.isFinite(baseEffectiveDefending) ||
+        baseEffectiveDefending <= 0
+      ) {
+        return;
+      }
+      const normalRoleValue =
+        effectiveSkillSuitabilityForAssignmentSlot(player, slot) /
+        manMarkingMarkerRoleWeightTotal(role);
+      if (
+        typeof normalRoleValue !== "number" ||
+        !Number.isFinite(normalRoleValue) ||
+        normalRoleValue <= 0
+      ) {
+        return;
+      }
+      const specialty = specialtyValueForPlayer(player);
+      candidates.push({
+        playerId,
+        slot,
+        role,
+        specialty,
+        baseEffectiveDefending,
+        adjustedMarkingStrength:
+          baseEffectiveDefending * getSeniorManMarkerSpecialtyMultiplier(specialty),
+        normalRoleValue,
+      });
+    });
+    return candidates;
+  }
+
+  function buildSeniorManMarkingTargetCandidates(
+    targets: OpponentTargetPlayer[]
+  ): SeniorManMarkingTargetCandidate[] {
+    return targets
+      .filter(
+        (
+          target
+        ): target is OpponentTargetPlayer & {
+          role: SeniorManMarkingTargetRole;
+          estimatedEffectiveMainSkill: number;
+        } =>
+          isSeniorManMarkingTargetRole(target.role) &&
+          typeof target.estimatedEffectiveMainSkill === "number" &&
+          Number.isFinite(target.estimatedEffectiveMainSkill) &&
+          target.estimatedEffectiveMainSkill > 0
+      )
+      .map((target) => ({
+        playerId: target.playerId,
+        role: target.role,
+        specialty: target.specialty,
+        estimatedEffectiveMainSkill: target.estimatedEffectiveMainSkill,
+      }));
+  }
 
   useEffect(() => {
     if (typeof otherOrdersModalMatchId !== "number") return;
@@ -14793,7 +15018,7 @@ const refreshDetailsForPlayers = async (
         OPPONENT_DETAILS_CONCURRENCY,
         async (entry) => {
           const snapshot = await fetchOpponentTargetPlayer(entry.playerId, entry.name);
-          return {
+          const baseTarget = {
             playerId: entry.playerId,
             role: entry.role,
             name: snapshot?.name || entry.name,
@@ -14801,6 +15026,18 @@ const refreshDetailsForPlayers = async (
             tsi: snapshot?.tsi ?? null,
             stamina: snapshot?.stamina ?? null,
             ageDays: snapshot?.ageDays ?? null,
+            salary: snapshot?.salary ?? null,
+            age: snapshot?.age ?? null,
+            specialty: snapshot?.specialty ?? null,
+            form: snapshot?.form ?? null,
+            loyalty: snapshot?.loyalty ?? null,
+            motherClubBonus: snapshot?.motherClubBonus ?? null,
+            wageIncludesForeignBonus: snapshot?.wageIncludesForeignBonus ?? null,
+          };
+          return {
+            ...baseTarget,
+            estimatedEffectiveMainSkill:
+              estimateOpponentTargetEffectiveMainSkill(baseTarget),
           } satisfies OpponentPotentialTargetPlayer;
         }
       )
@@ -14810,13 +15047,10 @@ const refreshDetailsForPlayers = async (
         (
           entry
         ): entry is OpponentPotentialTargetPlayer & {
-          tsi: number;
-          stamina: number;
-          ageDays: number;
+          estimatedEffectiveMainSkill: number;
         } =>
-          typeof entry.tsi === "number" &&
-          typeof entry.stamina === "number" &&
-          typeof entry.ageDays === "number"
+          typeof entry.estimatedEffectiveMainSkill === "number" &&
+          Number.isFinite(entry.estimatedEffectiveMainSkill)
       )
       .map(
         (entry) =>
@@ -14827,15 +15061,25 @@ const refreshDetailsForPlayers = async (
             tsi: entry.tsi,
             stamina: entry.stamina,
             ageDays: entry.ageDays,
+            salary: entry.salary,
+            age: entry.age,
+            specialty: entry.specialty,
+            form: entry.form,
+            loyalty: entry.loyalty,
+            motherClubBonus: entry.motherClubBonus,
+            wageIncludesForeignBonus: entry.wageIncludesForeignBonus,
+            estimatedEffectiveMainSkill: entry.estimatedEffectiveMainSkill,
           }) satisfies OpponentTargetPlayer
       );
     return {
       potentialTargets: enrichedCandidates,
       resolvedTargets: [...resolvedCandidates].sort((left, right) => {
-      if (left.tsi !== right.tsi) return left.tsi - right.tsi;
-      if (left.stamina !== right.stamina) return left.stamina - right.stamina;
-      if (left.ageDays !== right.ageDays) return right.ageDays - left.ageDays;
-      return 0;
+        const skillResult =
+          (right.estimatedEffectiveMainSkill ?? -1) -
+          (left.estimatedEffectiveMainSkill ?? -1);
+        if (skillResult !== 0) return skillResult;
+        if (left.playerId !== right.playerId) return left.playerId - right.playerId;
+        return left.role.localeCompare(right.role);
       }),
     };
   };
@@ -14845,6 +15089,7 @@ const refreshDetailsForPlayers = async (
     consistencyThresholdPct: number
   ): Promise<{
     potentialTargets: OpponentPotentialTargetPlayer[];
+    targets: OpponentTargetPlayer[];
     target: OpponentTargetPlayer | null;
   }> => {
     const { potentialTargets, resolvedTargets } = await determineOpponentManMarkingCandidates(
@@ -14852,21 +15097,12 @@ const refreshDetailsForPlayers = async (
       consistencyThresholdPct
     );
     if (!resolvedTargets.length) {
-      return { potentialTargets, target: null };
+      return { potentialTargets, targets: [], target: null };
     }
-    const best = resolvedTargets[0] ?? null;
-    if (!best) {
-      return { potentialTargets, target: null };
-    }
-    const tied = resolvedTargets.filter(
-      (entry) =>
-        entry.tsi === best.tsi &&
-        entry.stamina === best.stamina &&
-        entry.ageDays === best.ageDays
-    );
     return {
       potentialTargets,
-      target: chooseRandomPlayer(tied) ?? best,
+      targets: resolvedTargets,
+      target: resolvedTargets[0] ?? null,
     };
   };
 
@@ -14875,12 +15111,9 @@ const refreshDetailsForPlayers = async (
     if (cachedContext) {
       const cachedContextHasStaleTargets =
         cachedContext.potentialManMarkingTargets.some(
-          (target) =>
-            typeof target.tsi !== "number" ||
-            typeof target.stamina !== "number" ||
-            typeof target.ageDays !== "number"
+          (target) => !("estimatedEffectiveMainSkill" in target)
         ) ||
-        (cachedContext.potentialManMarkingTargets.length > 0 &&
+        (cachedContext.manMarkingTargets.length > 0 &&
           cachedContext.manMarkingTarget === null);
       if (
         cachedContext.manMarkingFuzziness === seniorAiManMarkingFuzziness &&
@@ -14896,6 +15129,7 @@ const refreshDetailsForPlayers = async (
         ...cachedContext,
         manMarkingFuzziness: seniorAiManMarkingFuzziness,
         potentialManMarkingTargets: updatedManMarking.potentialTargets,
+        manMarkingTargets: updatedManMarking.targets,
         manMarkingTarget: updatedManMarking.target,
       } satisfies OpponentFormationContext;
       opponentFormationContextCacheRef.current.set(matchId, updatedContext);
@@ -15147,6 +15381,7 @@ const refreshDetailsForPlayers = async (
       rows,
       manMarkingFuzziness: seniorAiManMarkingFuzziness,
       potentialManMarkingTargets: manMarking.potentialTargets,
+      manMarkingTargets: manMarking.targets,
       manMarkingTarget: manMarking.target,
     } satisfies OpponentFormationContext;
     opponentFormationContextCacheRef.current.set(matchId, context);
@@ -15790,45 +16025,44 @@ const refreshDetailsForPlayers = async (
         | null = null;
       let fixedFormationTacticRows: FixedFormationTacticRow[] = [];
       let selectedManMarkingMarker: SeniorAiManMarkingMarker | null = null;
-      const selectManMarkingMarkerForAssignments = (
+      let selectedManMarkingTarget: OpponentTargetPlayer | null =
+        opponentContext.manMarkingTarget;
+      const selectManMarkingForAssignments = (
         chosenAssignments: LineupAssignments,
-        target: OpponentTargetPlayer | null
-      ) => {
+        targets: OpponentTargetPlayer[]
+      ): SeniorAiManMarkingSelection | null => {
         if (
           !seniorAiManMarkingSupported ||
           !effectiveSeniorAiManMarkingEnabled ||
-          !target
+          targets.length === 0
         ) {
           return null;
         }
-        const requiredRole: SeniorAiManMarkingRole =
-          target.role === "F" ? "CD" : target.role === "IM" ? "IM" : "WB";
-        let bestMarker: SeniorAiManMarkingMarker | null = null;
-        const assignmentEntries = Object.entries(chosenAssignments) as Array<
-          [keyof LineupAssignments, number | null | undefined]
-        >;
-        for (const [slot, playerId] of assignmentEntries) {
-          if (typeof playerId !== "number" || playerId <= 0) continue;
-          const role = manMarkingRoleForSlot(slot);
-          if (role !== requiredRole) continue;
-          const player = playersById.get(playerId);
-          if (!player || specialtyValueForPlayer(player) !== 3) continue;
-          const tsi = tsiValueForPlayer(player);
-          const marker = {
-            playerId,
-            role,
-            name: formatPlayerName(player) || String(playerId),
-            tsi,
-          } satisfies SeniorAiManMarkingMarker;
-          if (
-            !bestMarker ||
-            marker.tsi > bestMarker.tsi ||
-            (marker.tsi === bestMarker.tsi && marker.playerId < bestMarker.playerId)
-          ) {
-            bestMarker = marker;
-          }
-        }
-        return bestMarker && bestMarker.tsi > target.tsi ? bestMarker : null;
+        const bestPair = selectBestSeniorManMarkingPair(
+          buildSeniorManMarkingMarkerCandidates(chosenAssignments),
+          buildSeniorManMarkingTargetCandidates(targets)
+        );
+        if (!bestPair) return null;
+        const markerPlayer = playersById.get(bestPair.markerPlayerId);
+        const target =
+          targets.find(
+            (candidate) =>
+              candidate.playerId === bestPair.targetPlayerId &&
+              candidate.role === bestPair.targetRole
+          ) ?? null;
+        if (!markerPlayer || !target) return null;
+        return {
+          marker: {
+            playerId: bestPair.markerPlayerId,
+            role: bestPair.markerRole,
+            slot: bestPair.markerSlot,
+            name: formatPlayerName(markerPlayer) || String(bestPair.markerPlayerId),
+            baseEffectiveDefending: bestPair.baseEffectiveDefending,
+            adjustedMarkingStrength: bestPair.adjustedMarkerStrength,
+            normalRoleValue: bestPair.normalRoleValue,
+          },
+          target,
+        };
       };
 
       const applyChosenAssignments = (
@@ -15991,17 +16225,26 @@ const refreshDetailsForPlayers = async (
           });
         }
 
+        const selectedManMarking = selectManMarkingForAssignments(
+          chosenAssignments,
+          opponentContext.manMarkingTargets
+        );
+        selectedManMarkingMarker = selectedManMarking?.marker ?? null;
+        selectedManMarkingTarget = selectedManMarking?.target ?? null;
+        const chosenBehaviors =
+          selectedManMarkingMarker !== null
+            ? {
+                [selectedManMarkingMarker.slot]: 0,
+              }
+            : {};
+
         setAssignments(chosenAssignments);
         markSeniorLineupMutated();
-        selectedManMarkingMarker = selectManMarkingMarkerForAssignments(
-          chosenAssignments,
-          opponentContext.manMarkingTarget
-        );
-        setBehaviors({});
+        setBehaviors(chosenBehaviors);
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
         setSeniorRatingsMatchContext(buildSeniorRatingsMatchContext(matchId));
-        setSeniorAiManMarkingTarget(opponentContext.manMarkingTarget);
+        setSeniorAiManMarkingTarget(selectedManMarkingTarget);
         setSeniorAiManMarkingReadyContext({
           signature:
             buildSeniorAiManMarkingReadySignature({
@@ -16012,7 +16255,7 @@ const refreshDetailsForPlayers = async (
                   : null,
               tacticType: chosenTactic,
               assignments: chosenAssignments,
-              behaviors: {},
+              behaviors: chosenBehaviors,
             }) ?? "",
         });
         setExtraTimePreparedSubmission(null);
@@ -16192,7 +16435,7 @@ const refreshDetailsForPlayers = async (
                 mode,
                 opponentRows,
                 potentialManMarkingTargets: opponentContext.potentialManMarkingTargets,
-                manMarkingTarget: opponentContext.manMarkingTarget,
+                manMarkingTarget: selectedManMarkingTarget,
                 manMarkingMarker: selectedManMarkingMarker,
                 chosenFormation,
                 chosenFormationAverages,
@@ -16924,9 +17167,8 @@ const refreshDetailsForPlayers = async (
             if (
               typeof target.playerId === "number" &&
               typeof target.name === "string" &&
-              typeof target.tsi === "number" &&
-              typeof target.stamina === "number" &&
-              typeof target.ageDays === "number" &&
+              typeof target.estimatedEffectiveMainSkill === "number" &&
+              Number.isFinite(target.estimatedEffectiveMainSkill) &&
               (target.role === "W" || target.role === "IM" || target.role === "F")
             ) {
               setSeniorAiManMarkingTarget(target);

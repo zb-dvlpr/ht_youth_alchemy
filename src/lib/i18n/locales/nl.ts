@@ -526,6 +526,7 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_8_2_0: "Het algoritme voor mandekking in de seniorenopstelling is verbeterd en houdt nu rekening met effectieve vaardigheden, spelersspecialiteiten, positiegebonden straffen en geschatte hoofdvaardigheden van de tegenstander.",
     changelog_8_1_0: "Voorspelde ratings voor seniorenwedstrijdopstellingen zijn geimplementeerd.",
     changelog_8_0_0: "Teamgeestcalculator geimplementeerd.",
     changelog_7_2_0: "Verbeterde analyse van de tegenstanderselectie geimplementeerd.",

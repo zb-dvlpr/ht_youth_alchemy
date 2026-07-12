@@ -248,6 +248,7 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_8_2_0: "Migliorato l’algoritmo di marcatura a uomo della formazione senior, che ora tiene conto delle abilità effettive, delle specialità dei giocatori, delle penalità di posizione e delle abilità principali stimate dell’avversario.",
     changelog_8_1_0: "Sono state implementate le valutazioni previste per le formazioni senior di partita.",
     changelog_8_0_0: "Calcolatore spirito di squadra implementato.",
     changelog_7_2_0: "Analisi avanzata della rosa avversaria implementata.",

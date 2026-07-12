@@ -1222,6 +1222,26 @@ export const messagesPl: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Żaden napastnik, skrzydłowy ani środkowy pomocnik nie osiągnął ustawionego progu powtarzalności.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Istnieli kandydaci historyczni, ale nie udało się wczytać szczegółów celu.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Szczegóły celu były dostępne, ale nie udało się uzyskać użytecznej szacowanej efektywnej głównej umiejętności.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} powtarzalnych kandydatów na cel nie dało użytecznej efektywnej estymacji głównej umiejętności:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} wystąpił jako {{role}} w {{count}} z {{total}} analizowanych meczów ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Nie udało się wczytać szczegółów zawodnika.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Brakowało użytecznej pensji dla estymacji {{skill}} opartej na pensji.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "Wiek zawodnika był niedostępny, więc estymacja {{skill}} oparta na pensji nie mogła zostać obliczona.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Model estymacji płac nie obsługuje zawodników w tym wieku.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "Dostępne dane o pensji nie dały użytecznej estymacji {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "Uzyskano surową estymację {{skill}} równą {{rawSkill}}, ale brakowało formy.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "Uzyskano surową estymację {{skill}} równą {{rawSkill}}, ale brakowało kondycji.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "Uzyskano surową estymację {{skill}} równą {{rawSkill}}, ale obliczenie efektywne nie dało użytecznego wyniku.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Szczegóły celu były dostępne, ale brakowało danych o pensji.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1267,6 +1287,7 @@ export const messagesPl: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Szacowana usunięta wartość celu",
     seniorOtherOrdersManMarkingMarkerValueLost: "Szacowana utracona wartość kryjącego",
     seniorOtherOrdersManMarkingNetBenefit: "Szacowana korzyść netto",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Ładowanie nazwy celu...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "Kara 50% obowiązuje, bo kryjący i cel tworzą odpowiadającą bliską parę ról.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "Kara 65% obowiązuje, bo te role nie tworzą bliskiej pary.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Następna najlepsza korzyść netto: {{net}}. Różnica względem obecnej pary: {{difference}}.",

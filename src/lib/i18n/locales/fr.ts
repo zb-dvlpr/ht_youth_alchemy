@@ -1769,6 +1769,26 @@ export const messagesFr: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Aucun attaquant, ailier ou milieu intérieur n’a atteint le seuil de régularité configuré.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Des candidats historiques existaient, mais les détails du joueur cible n’ont pas pu être chargés.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Les détails de la cible étaient disponibles, mais aucune compétence principale effective estimée utilisable n’a pu être produite.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} candidats cibles réguliers n’ont pas produit d’estimation effective utilisable de compétence principale :",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} est apparu comme {{role}} dans {{count}} des {{total}} matches analysés ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Les détails du joueur n’ont pas pu être chargés.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Aucun salaire utilisable n’était disponible pour l’estimation de {{skill}} basée sur le salaire.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "L’âge du joueur était indisponible, donc l’estimation de {{skill}} basée sur le salaire n’a pas pu être calculée.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Le modèle d’estimation salariale ne prend pas en charge les joueurs de cet âge.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "Les données salariales disponibles n’ont pas produit d’estimation utilisable de {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "Une estimation brute de {{skill}} de {{rawSkill}} a été produite, mais la forme était indisponible.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "Une estimation brute de {{skill}} de {{rawSkill}} a été produite, mais l’endurance était indisponible.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "Une estimation brute de {{skill}} de {{rawSkill}} a été produite, mais le calcul effectif n’a pas donné de résultat utilisable.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Les détails de la cible étaient disponibles, mais les données de salaire étaient absentes.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1814,6 +1834,7 @@ export const messagesFr: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Valeur estimée retirée à la cible",
     seniorOtherOrdersManMarkingMarkerValueLost: "Valeur estimée perdue par le marqueur",
     seniorOtherOrdersManMarkingNetBenefit: "Bénéfice net estimé",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Chargement du nom de la cible...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "La pénalité de 50 % s’applique car le marqueur et la cible forment une paire de rôles proche.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "La pénalité de 65 % s’applique car ces rôles ne forment pas une paire proche.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Bénéfice net suivant : {{net}}. Écart avec la paire actuelle : {{difference}}.",

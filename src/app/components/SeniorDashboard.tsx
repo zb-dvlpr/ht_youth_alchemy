@@ -181,6 +181,7 @@ import SeniorManMarkingExplanation, {
   type SeniorManMarkingExplanationData,
   type SeniorManMarkingExplanationMarker,
   type SeniorManMarkingExplanationPair,
+  type SeniorManMarkingExplanationTargetDiagnostic,
   type SeniorManMarkingExplanationTarget,
 } from "./SeniorManMarkingExplanation";
 
@@ -1055,6 +1056,7 @@ type SeniorManMarkingGeneratedReport = {
   markers: SeniorManMarkingExplanationMarker[];
   excludedMarkers: string[];
   targets: SeniorManMarkingExplanationTarget[];
+  failedTargets: SeniorManMarkingExplanationTargetDiagnostic[];
   potentialTargetCount: number;
   analysedMatchCount: number;
   consistencyThreshold: number;
@@ -12249,11 +12251,63 @@ function buildSeniorAiManMarkingReadySignature(params: {
       "{{playerId}}",
       String(playerId)
     );
+  const isResolvedOpponentPlayerName = (
+    playerId: number,
+    name: string | null | undefined
+  ) => {
+    const trimmed = typeof name === "string" ? name.trim() : "";
+    return (
+      trimmed.length > 0 &&
+      trimmed !== String(playerId) &&
+      trimmed !== seniorOtherOrdersUnknownOpponentPlayerLabel(playerId) &&
+      trimmed !== messages.seniorOtherOrdersManMarkingTargetNameLoading
+    );
+  };
+  const resolveKnownOpponentTargetName = (playerId: number | null) => {
+    if (typeof playerId !== "number" || playerId <= 0) return null;
+    const generatedReport = effectiveSeniorAiManMarkingGeneratedReport;
+    const generatedTargetId = generatedReport?.decision.selectedPair?.targetPlayerId;
+    const generatedTargetRole = generatedReport?.decision.selectedPair?.targetRole;
+    const generatedRecommendedTarget =
+      generatedTargetId === playerId
+        ? generatedReport?.targets.find(
+            (target) =>
+              target.id === playerId &&
+              (generatedTargetRole ? target.role === generatedTargetRole : true)
+          ) ?? null
+        : null;
+    const candidates: Array<string | null | undefined> = [
+      otherOrdersManMarkingTargetState.target?.playerId === playerId
+        ? otherOrdersManMarkingTargetState.target.name
+        : null,
+      generatedRecommendedTarget?.name,
+      generatedReport?.targets.find((target) => target.id === playerId)?.name,
+      generatedReport?.failedTargets.find((target) => target.id === playerId)?.name,
+      otherOrdersManMarkingContextState.context?.manMarkingTargets.find(
+        (target) => target.playerId === playerId
+      )?.name,
+      otherOrdersManMarkingContextState.context?.potentialManMarkingTargets.find(
+        (target) => target.playerId === playerId
+      )?.name,
+      opponentTargetPlayerCacheRef.current.get(playerId)?.name,
+      otherOrdersOpponentTargetNamesById[playerId],
+      opponentPlayersForSession?.find((player) => player.playerId === playerId)?.name,
+    ];
+    return (
+      candidates.find((name) => isResolvedOpponentPlayerName(playerId, name)) ?? null
+    );
+  };
   const seniorOtherOrdersOpponentPlayerName = (playerId: number | null) => {
     if (typeof playerId !== "number" || playerId <= 0) return messages.unknownShort;
+    const knownName = resolveKnownOpponentTargetName(playerId);
+    if (knownName) return knownName;
+    if (
+      otherOrdersManMarkingTargetState.status === "loading" &&
+      otherOrdersDraft?.manMarkingOrder?.objectPlayerId === playerId
+    ) {
+      return messages.seniorOtherOrdersManMarkingTargetNameLoading;
+    }
     return (
-      opponentPlayersForSession?.find((player) => player.playerId === playerId)?.name ??
-      otherOrdersOpponentTargetNamesById[playerId] ??
       seniorOtherOrdersUnknownOpponentPlayerLabel(playerId)
     );
   };
@@ -12340,13 +12394,85 @@ function buildSeniorAiManMarkingReadySignature(params: {
     ) {
       options.unshift({
         playerId: selectedPlayerId,
-        name:
-          otherOrdersOpponentTargetNamesById[selectedPlayerId] ??
-          seniorOtherOrdersUnknownOpponentPlayerLabel(selectedPlayerId),
+        name: seniorOtherOrdersOpponentPlayerName(selectedPlayerId),
       });
     }
     return options;
   };
+
+  useEffect(() => {
+    if (!otherOrdersEditorOpen) return;
+    const candidates: Array<{ playerId: number; name: string | null | undefined }> = [];
+    effectiveSeniorAiManMarkingGeneratedReport?.targets.forEach((target) => {
+      candidates.push({ playerId: target.id, name: target.name });
+    });
+    effectiveSeniorAiManMarkingGeneratedReport?.failedTargets.forEach((target) => {
+      candidates.push({ playerId: target.id, name: target.name });
+    });
+    otherOrdersManMarkingContextState.context?.manMarkingTargets.forEach((target) => {
+      candidates.push({ playerId: target.playerId, name: target.name });
+    });
+    otherOrdersManMarkingContextState.context?.potentialManMarkingTargets.forEach(
+      (target) => {
+        candidates.push({ playerId: target.playerId, name: target.name });
+      }
+    );
+    if (otherOrdersManMarkingTargetState.target) {
+      candidates.push({
+        playerId: otherOrdersManMarkingTargetState.target.playerId,
+        name: otherOrdersManMarkingTargetState.target.name,
+      });
+    }
+    if (!candidates.length) return;
+    setOtherOrdersOpponentTargetNamesById((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      candidates.forEach((candidate) => {
+        if (!isResolvedOpponentPlayerName(candidate.playerId, candidate.name)) return;
+        const trimmed = candidate.name?.trim() ?? "";
+        if (next[candidate.playerId] === trimmed) return;
+        next[candidate.playerId] = trimmed;
+        changed = true;
+      });
+      return changed ? next : previous;
+    });
+  }, [
+    effectiveSeniorAiManMarkingGeneratedReport,
+    otherOrdersEditorOpen,
+    otherOrdersManMarkingContextState.context,
+    otherOrdersManMarkingTargetState.target,
+  ]);
+
+  useEffect(() => {
+    if (!otherOrdersEditorOpen) return;
+    const targetId = otherOrdersDraft?.manMarkingOrder?.objectPlayerId ?? null;
+    if (typeof targetId !== "number" || targetId <= 0) return;
+    if (resolveKnownOpponentTargetName(targetId)) return;
+    if (opponentTargetPlayerCacheRef.current.get(targetId) === null) return;
+    let cancelled = false;
+    void fetchOpponentTargetPlayer(targetId, String(targetId)).then((snapshot) => {
+      if (
+        cancelled ||
+        !snapshot ||
+        !isResolvedOpponentPlayerName(targetId, snapshot.name)
+      ) {
+        return;
+      }
+      const name = snapshot.name.trim();
+      setOtherOrdersOpponentTargetNamesById((previous) =>
+        previous[targetId] === name ? previous : { ...previous, [targetId]: name }
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    otherOrdersDraft?.manMarkingOrder?.objectPlayerId,
+    otherOrdersEditorOpen,
+    otherOrdersOpponentTargetNamesById,
+    otherOrdersManMarkingTargetState.status,
+  ]);
+
   const updateSeniorOtherOrdersManMarkingTarget = (nextTargetId: number | null) => {
     if (!otherOrdersDraft?.manMarkingOrder) {
       setOtherOrdersManMarkingOrigin("manual");
@@ -15444,6 +15570,29 @@ const refreshDetailsForPlayers = async (
     };
   }
 
+  function buildSeniorManMarkingFailedTargetDiagnostic(
+    target: OpponentPotentialTargetPlayer
+  ): SeniorManMarkingExplanationTargetDiagnostic | null {
+    if (
+      !isSeniorManMarkingTargetRole(target.role) ||
+      target.estimateFailureReason === null
+    ) {
+      return null;
+    }
+    return {
+      id: target.playerId,
+      name: target.name,
+      role: target.role,
+      observedRoleCount: target.count,
+      analysedMatchCount: target.analysedMatchCount,
+      roleConsistencyPercent: target.roleConsistencyPercent,
+      detailsLoaded: target.detailsLoaded,
+      estimatedRawMainSkill: target.estimatedRawMainSkill,
+      estimatedEffectiveMainSkill: target.estimatedEffectiveMainSkill,
+      failureReason: target.estimateFailureReason,
+    };
+  }
+
   function buildSeniorManMarkingPairExplanation(
     evaluation: SeniorManMarkingPairEvaluation | null,
     markers: SeniorManMarkingExplanationMarker[],
@@ -15600,9 +15749,17 @@ const refreshDetailsForPlayers = async (
       .filter(
         (target): target is SeniorManMarkingExplanationTarget => Boolean(target)
       );
-    const hasDetailsFailure = opponentContext.potentialManMarkingTargets.some(
-      (target) => target.mainSkillEstimateKind === "detailsUnavailable"
-    );
+    const failedTargets = opponentContext.potentialManMarkingTargets
+      .map(buildSeniorManMarkingFailedTargetDiagnostic)
+      .filter(
+        (target): target is SeniorManMarkingExplanationTargetDiagnostic =>
+          Boolean(target)
+      );
+    const allTargetsFailedDetails =
+      opponentContext.potentialManMarkingTargets.length > 0 &&
+      opponentContext.potentialManMarkingTargets.every(
+        (target) => target.mainSkillEstimateKind === "detailsUnavailable"
+      );
     const hasEstimateFailure = opponentContext.potentialManMarkingTargets.some(
       (target) =>
         target.mainSkillEstimateKind === "tooOld" ||
@@ -15621,6 +15778,7 @@ const refreshDetailsForPlayers = async (
       markers: markerDiagnostics.validMarkers,
       excludedMarkers: markerDiagnostics.excludedMarkerMessages,
       targets,
+      failedTargets,
       potentialTargetCount: opponentContext.potentialManMarkingTargets.length,
       analysedMatchCount: opponentContext.rows.length,
       consistencyThreshold: opponentContext.manMarkingFuzziness,
@@ -15631,7 +15789,7 @@ const refreshDetailsForPlayers = async (
             ? "noConsistentTarget"
             : targets.length > 0
               ? "validTargets"
-              : hasDetailsFailure
+              : allTargetsFailedDetails
                 ? "detailsUnavailable"
                 : hasEstimateFailure
                   ? "estimateUnavailable"
@@ -15770,6 +15928,7 @@ const refreshDetailsForPlayers = async (
       targetStatus,
       validMarkers: markerDiagnostics.validMarkers,
       validTargets: generatedReport?.targets ?? (currentTarget ? [currentTarget] : []),
+      failedTargets: generatedReport?.failedTargets ?? [],
       excludedMarkerMessages: markerDiagnostics.excludedMarkerMessages,
       potentialTargetCount: generatedReport?.potentialTargetCount ?? 0,
       analysedMatchCount: generatedReport?.analysedMatchCount ?? 0,

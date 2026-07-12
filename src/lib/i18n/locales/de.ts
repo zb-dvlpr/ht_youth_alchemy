@@ -1754,6 +1754,26 @@ export const messagesDe: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Kein Stürmer, Flügelspieler oder innerer Mittelfeldspieler erreichte die eingestellte Konstanzschwelle.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Historische Kandidaten wurden gefunden, aber die Spielerdetails des Ziels konnten nicht geladen werden.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Zieldetails waren verfügbar, aber es konnte keine nutzbare geschätzte effektive Hauptfähigkeit berechnet werden.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} konstante Zielkandidaten ergaben keine nutzbare effektive Hauptfähigkeits-Schätzung:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} erschien als {{role}} in {{count}} von {{total}} analysierten Spielen ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Die Spielerdetails konnten nicht geladen werden.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Für die gehaltsbasierte {{skill}}-Schätzung war kein nutzbares Gehalt verfügbar.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "Das Alter des Spielers fehlte, daher konnte die gehaltsbasierte {{skill}}-Schätzung nicht berechnet werden.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Das Gehaltsschätzmodell unterstützt Spieler dieses Alters nicht.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "Die verfügbaren Gehaltsdaten ergaben keine nutzbare {{skill}}-Schätzung.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "Eine rohe {{skill}}-Schätzung von {{rawSkill}} wurde erstellt, aber Formdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "Eine rohe {{skill}}-Schätzung von {{rawSkill}} wurde erstellt, aber Konditionsdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "Eine rohe {{skill}}-Schätzung von {{rawSkill}} wurde erstellt, aber die Effektivberechnung ergab kein nutzbares Ergebnis.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Zieldetails waren verfügbar, aber Gehaltsdaten fehlten.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1799,6 +1819,7 @@ export const messagesDe: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Geschätzter entfernter Zielwert",
     seniorOtherOrdersManMarkingMarkerValueLost: "Geschätzter verlorener Manndeckerwert",
     seniorOtherOrdersManMarkingNetBenefit: "Geschätzter Nettovorteil",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Zielname wird geladen...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "Der 50%-Abzug gilt, weil Manndecker und Ziel die passende enge Rollenpaarung bilden.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "Der 65%-Abzug gilt, weil diese Rollen keine enge Rollenpaarung bilden.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Nächstbester Nettovorteil: {{net}}. Abstand zum aktuellen Paar: {{difference}}.",

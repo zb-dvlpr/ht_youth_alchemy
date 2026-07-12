@@ -1228,6 +1228,26 @@ export const messagesNl: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Geen aanvaller, vleugelspeler of inner midfielder haalde de ingestelde consistentiedrempel.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Er waren historische kandidaten, maar de spelersdetails van het doelwit konden niet worden geladen.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Doelwitdetails waren beschikbaar, maar er kon geen bruikbare geschatte effectieve hoofdvaardigheid worden bepaald.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} consistente doelwitkandidaten leverden geen bruikbare effectieve hoofdvaardigheidsschatting op:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} verscheen als {{role}} in {{count}} van {{total}} geanalyseerde wedstrijden ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "De spelersdetails konden niet worden geladen.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Er was geen bruikbaar salaris beschikbaar voor de op salaris gebaseerde {{skill}}-schatting.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "De leeftijd van de speler was niet beschikbaar, waardoor de op salaris gebaseerde {{skill}}-schatting niet kon worden berekend.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Het loonschattingsmodel ondersteunt spelers van deze leeftijd niet.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "De beschikbare salarisgegevens leverden geen bruikbare {{skill}}-schatting op.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "Er is een ruwe {{skill}}-schatting van {{rawSkill}} gemaakt, maar vorm ontbrak.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "Er is een ruwe {{skill}}-schatting van {{rawSkill}} gemaakt, maar conditie ontbrak.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "Er is een ruwe {{skill}}-schatting van {{rawSkill}} gemaakt, maar de effectieve berekening leverde geen bruikbaar resultaat op.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Doelwitdetails waren beschikbaar, maar salarisgegevens ontbraken.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1273,6 +1293,7 @@ export const messagesNl: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Geschatte verwijderde doelwitwaarde",
     seniorOtherOrdersManMarkingMarkerValueLost: "Geschatte verloren mandekkerwaarde",
     seniorOtherOrdersManMarkingNetBenefit: "Geschatte nettowinst",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Doelwitnaam laden...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "De straf van 50% geldt omdat mandekker en doelwit een overeenkomstig dicht rollenpaar vormen.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "De straf van 65% geldt omdat deze rollen geen dicht rollenpaar vormen.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Volgende beste nettowinst: {{net}}. Verschil met het huidige paar: {{difference}}.",

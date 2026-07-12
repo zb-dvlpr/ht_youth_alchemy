@@ -1728,6 +1728,26 @@ export const messagesEn: Messages = {
       "Historical candidates existed, but the target player details could not be loaded.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable:
       "Target details were available, but no usable estimated effective main skill could be produced.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} consistent target candidates could not produce a usable effective main-skill estimate:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} appeared as {{role}} in {{count}} of {{total}} analysed matches ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "The player's details could not be loaded.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "No usable salary was available for the wage-based {{skill}} estimate.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "The player's age was unavailable, so the wage-based {{skill}} estimate could not be calculated.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "The wage-estimation model does not support players of this age.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "The available salary data did not produce a usable {{skill}} estimate.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "A raw {{skill}} estimate of {{rawSkill}} was produced, but form was unavailable.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "A raw {{skill}} estimate of {{rawSkill}} was produced, but stamina was unavailable.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "A raw {{skill}} estimate of {{rawSkill}} was produced, but the effective-skill calculation did not produce a usable result.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Target details were available, but salary data was unavailable.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1790,6 +1810,7 @@ export const messagesEn: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Estimated target value removed",
     seniorOtherOrdersManMarkingMarkerValueLost: "Estimated marker value lost",
     seniorOtherOrdersManMarkingNetBenefit: "Estimated net benefit",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Loading target name...",
     seniorOtherOrdersManMarkingClosePenaltyReason:
       "The 50% marker penalty applies because the marker and target are in the corresponding close role pairing.",
     seniorOtherOrdersManMarkingDistantPenaltyReason:

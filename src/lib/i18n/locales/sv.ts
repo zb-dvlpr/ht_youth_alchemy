@@ -1760,6 +1760,26 @@ export const messagesSv: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Ingen forward, ytter eller innermittfältare nådde den inställda konsekvenströskeln.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Historiska kandidater fanns, men målets spelardetaljer kunde inte laddas.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Måldetaljer fanns, men ingen användbar uppskattad effektiv huvudfärdighet kunde tas fram.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} konsekventa målkandidater gav ingen användbar effektiv uppskattning av huvudfärdighet:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} spelade som {{role}} i {{count}} av {{total}} analyserade matcher ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Spelardetaljerna kunde inte laddas.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Ingen användbar lön fanns för den lönebaserade uppskattningen av {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "Spelarens ålder saknades, så den lönebaserade uppskattningen av {{skill}} kunde inte beräknas.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Lönemodellen stöder inte spelare i denna ålder.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "Tillgängliga löneuppgifter gav ingen användbar uppskattning av {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "En rå uppskattning av {{skill}} på {{rawSkill}} togs fram, men form saknades.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "En rå uppskattning av {{skill}} på {{rawSkill}} togs fram, men uthållighet saknades.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "En rå uppskattning av {{skill}} på {{rawSkill}} togs fram, men den effektiva beräkningen gav inget användbart resultat.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Måldetaljer fanns, men löneuppgifter saknades.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1805,6 +1825,7 @@ export const messagesSv: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Uppskattat målvärde borttaget",
     seniorOtherOrdersManMarkingMarkerValueLost: "Uppskattat markeringsvärde förlorat",
     seniorOtherOrdersManMarkingNetBenefit: "Uppskattad nettofördel",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Laddar målnamn...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "Straffet 50% gäller eftersom markerare och mål är i motsvarande nära rollpar.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "Straffet 65% gäller eftersom dessa roller inte är ett nära rollpar.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Näst bästa nettofördel: {{net}}. Skillnad mot aktuellt par: {{difference}}.",

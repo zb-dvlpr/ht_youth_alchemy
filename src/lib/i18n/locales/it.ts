@@ -1775,6 +1775,26 @@ export const messagesIt: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Nessun attaccante, ala o centrocampista centrale ha raggiunto la soglia di continuità configurata.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Esistevano candidati storici, ma non è stato possibile caricare i dettagli del bersaglio.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "I dettagli del bersaglio erano disponibili, ma non è stato possibile produrre una stima efficace utilizzabile della skill principale.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} candidati bersaglio costanti non hanno prodotto una stima effettiva utilizzabile della skill principale:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} è apparso come {{role}} in {{count}} delle {{total}} partite analizzate ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Non è stato possibile caricare i dettagli del giocatore.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Non era disponibile uno stipendio utilizzabile per la stima di {{skill}} basata sullo stipendio.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "L’età del giocatore non era disponibile, quindi non è stato possibile calcolare la stima di {{skill}} basata sullo stipendio.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "Il modello di stima salariale non supporta giocatori di questa età.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "I dati salariali disponibili non hanno prodotto una stima utilizzabile di {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "È stata prodotta una stima grezza di {{skill}} pari a {{rawSkill}}, ma mancava la forma.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "È stata prodotta una stima grezza di {{skill}} pari a {{rawSkill}}, ma mancava la resistenza.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "È stata prodotta una stima grezza di {{skill}} pari a {{rawSkill}}, ma il calcolo effettivo non ha prodotto un risultato utilizzabile.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "I dettagli del bersaglio erano disponibili, ma mancavano i dati dello stipendio.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1820,6 +1840,7 @@ export const messagesIt: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Valore stimato rimosso dal bersaglio",
     seniorOtherOrdersManMarkingMarkerValueLost: "Valore stimato perso dal marcatore",
     seniorOtherOrdersManMarkingNetBenefit: "Beneficio netto stimato",
+    seniorOtherOrdersManMarkingTargetNameLoading: "Caricamento nome del bersaglio...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "La penalità del 50% si applica perché marcatore e bersaglio formano una coppia di ruoli vicina.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "La penalità del 65% si applica perché questi ruoli non formano una coppia vicina.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Beneficio netto successivo: {{net}}. Differenza dalla coppia attuale: {{difference}}.",

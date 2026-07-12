@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { Messages } from "@/lib/i18n";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import {
@@ -51,6 +51,18 @@ export type SeniorManMarkingExplanationTarget = SeniorManMarkingExplanationPlaye
     | null;
 };
 
+export type SeniorManMarkingExplanationTargetDiagnostic =
+  SeniorManMarkingExplanationPlayer & {
+    role: SeniorManMarkingTargetRole;
+    observedRoleCount: number;
+    analysedMatchCount: number;
+    roleConsistencyPercent: number;
+    detailsLoaded: boolean;
+    estimatedRawMainSkill: number | null;
+    estimatedEffectiveMainSkill: number | null;
+    failureReason: SeniorManMarkingExplanationTarget["estimateFailureReason"];
+  };
+
 export type SeniorManMarkingExplanationPair = {
   evaluation: SeniorManMarkingPairEvaluation;
   marker: SeniorManMarkingExplanationMarker;
@@ -87,6 +99,7 @@ export type SeniorManMarkingExplanationData = {
     | "roleUnknown";
   validMarkers: SeniorManMarkingExplanationMarker[];
   validTargets: SeniorManMarkingExplanationTarget[];
+  failedTargets: SeniorManMarkingExplanationTargetDiagnostic[];
   excludedMarkerMessages: string[];
   potentialTargetCount: number;
   analysedMatchCount: number;
@@ -124,6 +137,37 @@ const playerLink = (player: SeniorManMarkingExplanationPlayer) => (
   </a>
 );
 
+const renderTemplateWithPlayer = (
+  template: string,
+  player: SeniorManMarkingExplanationPlayer,
+  replacements: Record<string, string>
+) => {
+  const parts: ReactNode[] = [];
+  const pattern = /{{(player|[a-zA-Z0-9_]+)}}/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(template)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(template.slice(lastIndex, match.index));
+    }
+    const token = match[1];
+    if (token === "player") {
+      parts.push(playerLink(player));
+    } else {
+      parts.push(replacements[token] ?? "");
+    }
+    lastIndex = pattern.lastIndex;
+  }
+  if (lastIndex < template.length) {
+    parts.push(template.slice(lastIndex));
+  }
+  return parts.map((part, index) => (
+    <Fragment key={`${typeof part === "string" ? part : "node"}-${index}`}>
+      {part}
+    </Fragment>
+  ));
+};
+
 const sourceLabel = (
   messages: Messages,
   source: SeniorManMarkingExplanationSource
@@ -160,6 +204,20 @@ const roleLabel = (
       return messages.seniorOtherOrdersManMarkingRoleForward;
     case "W":
       return messages.seniorOtherOrdersManMarkingRoleWinger;
+  }
+};
+
+const targetSkillLabel = (
+  messages: Messages,
+  role: SeniorManMarkingTargetRole
+) => {
+  switch (role) {
+    case "F":
+      return messages.skillScoring;
+    case "W":
+      return messages.skillWinger;
+    case "IM":
+      return messages.skillPlaymaking;
   }
 };
 
@@ -248,6 +306,78 @@ function renderTargetSummary(
       {target.estimatedEffectiveMainSkill === null
         ? messages.unknownShort
         : formatNumber(locale, target.estimatedEffectiveMainSkill)}
+    </li>
+  );
+}
+
+function targetFailureReasonMessage(
+  messages: Messages,
+  target: SeniorManMarkingExplanationTargetDiagnostic,
+  locale: string
+) {
+  const rawSkill =
+    target.estimatedRawMainSkill === null
+      ? messages.unknownShort
+      : formatNumber(locale, target.estimatedRawMainSkill);
+  const replacements = {
+    skill: targetSkillLabel(messages, target.role),
+    rawSkill,
+  };
+  switch (target.failureReason) {
+    case "detailsUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureDetails;
+    case "salaryUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureSalary.replace(
+        "{{skill}}",
+        replacements.skill
+      );
+    case "ageUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureAge.replace(
+        "{{skill}}",
+        replacements.skill
+      );
+    case "tooOld":
+      return messages.seniorOtherOrdersManMarkingTargetFailureTooOld;
+    case "rawEstimateUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureRawEstimate.replace(
+        "{{skill}}",
+        replacements.skill
+      );
+    case "formUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureForm
+        .replace("{{skill}}", replacements.skill)
+        .replace("{{rawSkill}}", replacements.rawSkill);
+    case "staminaUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureStamina
+        .replace("{{skill}}", replacements.skill)
+        .replace("{{rawSkill}}", replacements.rawSkill);
+    case "effectiveCalculationUnavailable":
+      return messages.seniorOtherOrdersManMarkingTargetFailureEffective
+        .replace("{{skill}}", replacements.skill)
+        .replace("{{rawSkill}}", replacements.rawSkill);
+    case null:
+      return messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable;
+  }
+}
+
+function renderFailedTargetDiagnostic(
+  messages: Messages,
+  locale: string,
+  target: SeniorManMarkingExplanationTargetDiagnostic
+) {
+  const consistency = renderTemplateWithPlayer(
+    messages.seniorOtherOrdersManMarkingTargetFailureConsistency,
+    target,
+    {
+      role: roleLabel(messages, target.role),
+      count: String(target.observedRoleCount),
+      total: String(target.analysedMatchCount),
+      percent: formatConsistencyPercent(locale, target.roleConsistencyPercent),
+    }
+  );
+  return (
+    <li key={`${target.id}:${target.role}`}>
+      {consistency} {targetFailureReasonMessage(messages, target, locale)}
     </li>
   );
 }
@@ -441,6 +571,21 @@ export default function SeniorManMarkingExplanation({
                   renderTargetSummary(messages, locale, target)
                 )}
               </ul>
+            ) : null}
+            {!data.validTargets.length && data.failedTargets.length ? (
+              <>
+                <p>
+                  {messages.seniorOtherOrdersManMarkingTargetFailuresIntro.replace(
+                    "{{count}}",
+                    String(data.failedTargets.length)
+                  )}
+                </p>
+                <ul className={styles.seniorManMarkingCompactList}>
+                  {data.failedTargets.slice(0, 6).map((target) =>
+                    renderFailedTargetDiagnostic(messages, locale, target)
+                  )}
+                </ul>
+              </>
             ) : null}
           </section>
 

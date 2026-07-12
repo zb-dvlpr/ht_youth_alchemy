@@ -1774,6 +1774,26 @@ export const messagesPt: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Nenhum avançado, extremo ou médio interior atingiu o limite de consistência configurado.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Existiam candidatos históricos, mas não foi possível carregar os detalhes do alvo.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Os detalhes do alvo estavam disponíveis, mas não foi possível produzir uma habilidade principal efetiva estimada utilizável.",
+    seniorOtherOrdersManMarkingTargetFailuresIntro:
+      "{{count}} candidatos a alvo consistentes não produziram uma estimativa efetiva utilizável da habilidade principal:",
+    seniorOtherOrdersManMarkingTargetFailureConsistency:
+      "{{player}} apareceu como {{role}} em {{count}} de {{total}} jogos analisados ({{percent}}).",
+    seniorOtherOrdersManMarkingTargetFailureDetails:
+      "Não foi possível carregar os detalhes do jogador.",
+    seniorOtherOrdersManMarkingTargetFailureSalary:
+      "Não havia salário utilizável para a estimativa de {{skill}} baseada no salário.",
+    seniorOtherOrdersManMarkingTargetFailureAge:
+      "A idade do jogador estava indisponível, por isso a estimativa de {{skill}} baseada no salário não pôde ser calculada.",
+    seniorOtherOrdersManMarkingTargetFailureTooOld:
+      "O modelo de estimativa salarial não suporta jogadores desta idade.",
+    seniorOtherOrdersManMarkingTargetFailureRawEstimate:
+      "Os dados salariais disponíveis não produziram uma estimativa utilizável de {{skill}}.",
+    seniorOtherOrdersManMarkingTargetFailureForm:
+      "Foi produzida uma estimativa bruta de {{skill}} de {{rawSkill}}, mas a forma estava indisponível.",
+    seniorOtherOrdersManMarkingTargetFailureStamina:
+      "Foi produzida uma estimativa bruta de {{skill}} de {{rawSkill}}, mas a resistência estava indisponível.",
+    seniorOtherOrdersManMarkingTargetFailureEffective:
+      "Foi produzida uma estimativa bruta de {{skill}} de {{rawSkill}}, mas o cálculo efetivo não produziu um resultado utilizável.",
     seniorOtherOrdersManMarkingTargetSalaryUnavailable:
       "Os detalhes do alvo estavam disponíveis, mas faltavam dados de salário.",
     seniorOtherOrdersManMarkingTargetAgeUnavailable:
@@ -1819,6 +1839,7 @@ export const messagesPt: Messages = {
     seniorOtherOrdersManMarkingTargetValueRemoved: "Valor estimado removido do alvo",
     seniorOtherOrdersManMarkingMarkerValueLost: "Valor estimado perdido pelo marcador",
     seniorOtherOrdersManMarkingNetBenefit: "Benefício líquido estimado",
+    seniorOtherOrdersManMarkingTargetNameLoading: "A carregar nome do alvo...",
     seniorOtherOrdersManMarkingClosePenaltyReason: "A penalização de 50% aplica-se porque marcador e alvo formam um par de papéis próximo.",
     seniorOtherOrdersManMarkingDistantPenaltyReason: "A penalização de 65% aplica-se porque estes papéis não formam um par próximo.",
     seniorOtherOrdersManMarkingAlternativeSummary: "Benefício líquido seguinte: {{net}}. Diferença para o par atual: {{difference}}.",

@@ -1405,6 +1405,16 @@ export type Messages = {
   seniorOtherOrdersManMarkingNoConsistentTarget: string;
   seniorOtherOrdersManMarkingTargetDetailsUnavailable: string;
   seniorOtherOrdersManMarkingTargetEstimateUnavailable: string;
+  seniorOtherOrdersManMarkingTargetFailuresIntro: string;
+  seniorOtherOrdersManMarkingTargetFailureConsistency: string;
+  seniorOtherOrdersManMarkingTargetFailureDetails: string;
+  seniorOtherOrdersManMarkingTargetFailureSalary: string;
+  seniorOtherOrdersManMarkingTargetFailureAge: string;
+  seniorOtherOrdersManMarkingTargetFailureTooOld: string;
+  seniorOtherOrdersManMarkingTargetFailureRawEstimate: string;
+  seniorOtherOrdersManMarkingTargetFailureForm: string;
+  seniorOtherOrdersManMarkingTargetFailureStamina: string;
+  seniorOtherOrdersManMarkingTargetFailureEffective: string;
   seniorOtherOrdersManMarkingTargetSalaryUnavailable: string;
   seniorOtherOrdersManMarkingTargetAgeUnavailable: string;
   seniorOtherOrdersManMarkingTargetTooOld: string;
@@ -1443,6 +1453,7 @@ export type Messages = {
   seniorOtherOrdersManMarkingTargetValueRemoved: string;
   seniorOtherOrdersManMarkingMarkerValueLost: string;
   seniorOtherOrdersManMarkingNetBenefit: string;
+  seniorOtherOrdersManMarkingTargetNameLoading: string;
   seniorOtherOrdersManMarkingClosePenaltyReason: string;
   seniorOtherOrdersManMarkingDistantPenaltyReason: string;
   seniorOtherOrdersManMarkingAlternativeSummary: string;

@@ -15,6 +15,7 @@ export type LineupBehaviors = Record<string, number>;
 
 type YouthPlayer = {
   YouthPlayerID: number;
+  PlayerNumber?: number;
   FirstName: string;
   NickName?: string;
   LastName: string;
@@ -353,6 +354,19 @@ function formatName(player: YouthPlayer) {
     .filter(Boolean)
     .join(" ");
 }
+
+const playerNumberValue = (player: YouthPlayer): number | null => {
+  const value = player.PlayerNumber;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
+};
+
+const formatDisplayName = (player: YouthPlayer) => {
+  const name = formatName(player);
+  const playerNumber = playerNumberValue(player);
+  return playerNumber !== null ? `${playerNumber}. ${name}` : name;
+};
 
 function parseSkillValue(skill: SkillInput): number | null {
   if (skill === null || skill === undefined) return null;
@@ -1275,7 +1289,7 @@ export default function LineupField({
                             event,
                             position.id,
                             assignedPlayer.YouthPlayerID,
-                            formatName(assignedPlayer)
+                            formatDisplayName(assignedPlayer)
                           )
                         }
                         onMouseEnter={() => {
@@ -1301,7 +1315,7 @@ export default function LineupField({
                           }
                           isDragActive.current = true;
                           setDragGhost(event, {
-                            label: formatName(assignedPlayer),
+                            label: formatDisplayName(assignedPlayer),
                             className: styles.dragGhost,
                             slotSelector: `.${styles.fieldSlot}`,
                           });
@@ -1316,7 +1330,7 @@ export default function LineupField({
                         }}
                       >
                         <span className={styles.slotName}>
-                          {formatName(assignedPlayer)}
+                          {formatDisplayName(assignedPlayer)}
                         </span>
                         {assignedInjuryStatus ? (
                           <span
@@ -1513,7 +1527,7 @@ export default function LineupField({
                           event,
                           slot.id,
                           assignedPlayer.YouthPlayerID,
-                          formatName(assignedPlayer)
+                          formatDisplayName(assignedPlayer)
                         )
                       }
                       onMouseEnter={() => {
@@ -1539,7 +1553,7 @@ export default function LineupField({
                         }
                         isDragActive.current = true;
                         setDragGhost(event, {
-                          label: formatName(assignedPlayer),
+                          label: formatDisplayName(assignedPlayer),
                           className: styles.dragGhost,
                           slotSelector: `.${styles.fieldSlot}`,
                         });
@@ -1554,7 +1568,7 @@ export default function LineupField({
                       }}
                     >
                       <span className={styles.slotName}>
-                        {formatName(assignedPlayer)}
+                        {formatDisplayName(assignedPlayer)}
                       </span>
                       {assignedInjuryStatus ? (
                         <span

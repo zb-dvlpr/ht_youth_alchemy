@@ -704,6 +704,7 @@ export const messagesPl: Messages = {
   seniorMatchesCurrentTeamLabel: "Mecze dla obecnej drużyny",
   sortInjuries: "Kontuzje",
   sortCards: "Kartki",
+  sortShirtNumber: "Numer koszulki",
   sortCustom: "--",
   sortToggleAria: "Odwróć kierunek sortowania",
   sortAscLabel: "Rosnąco",

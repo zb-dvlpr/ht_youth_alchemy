@@ -710,6 +710,7 @@ export const messagesNl: Messages = {
   seniorMatchesCurrentTeamLabel: "Wedstrijden voor huidige team",
   sortInjuries: "Blessures",
   sortCards: "Kaarten",
+  sortShirtNumber: "Shirtnummer",
   sortCustom: "--",
   sortToggleAria: "Sorteervolgorde omkeren",
   sortAscLabel: "Oplopend",

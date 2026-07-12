@@ -2096,6 +2096,7 @@ export const messagesDe: Messages = {
     seniorMatrixStaminaShortLabel: "Ko",
     sortInjuries: "Verletzungen",
     sortCards: "Karten",
+    sortShirtNumber: "Rueckennummer",
     sortCustom: "--",
     seniorListInjuryBruised: "Geprellt",
     seniorListInjuryWeeks: "Verletzt ({weeks}W)",

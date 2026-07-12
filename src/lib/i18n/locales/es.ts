@@ -2113,6 +2113,7 @@ export const messagesEs: Messages = {
     seniorMatrixStaminaShortLabel: "Res",
     sortInjuries: "Lesiones",
     sortCards: "Tarjetas",
+    sortShirtNumber: "Número de camiseta",
     sortCustom: "--",
     seniorListInjuryBruised: "Magullado",
     seniorListInjuryWeeks: "Lesionado ({weeks} sem.)",

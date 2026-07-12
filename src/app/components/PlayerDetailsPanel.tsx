@@ -29,6 +29,7 @@ import {
 
 type YouthPlayer = {
   YouthPlayerID: number;
+  PlayerNumber?: number;
   FirstName: string;
   NickName: string;
   LastName: string;
@@ -51,6 +52,7 @@ type SkillValue = {
 
 export type YouthPlayerDetails = {
   YouthPlayerID: number;
+  PlayerNumber?: number;
   FirstName: string;
   NickName?: string;
   LastName: string;
@@ -143,7 +145,7 @@ type PlayerDetailsPanelProps = {
   onRefresh: () => void;
   players: YouthPlayer[];
   playerDetailsById: Map<number, YouthPlayerDetails>;
-  skillsMatrixRows: { id: number | null; name: string }[];
+  skillsMatrixRows: { id: number | null; name: string; playerNumber?: number | null }[];
   ratingsMatrixResponse: RatingsMatrixResponse | null;
   ratingsMatrixMatchHrefBuilder?: (matchId: number) => string;
   ratingsMatrixSelectedName: string | null;
@@ -156,6 +158,7 @@ type PlayerDetailsPanelProps = {
     { display: string; label: string }
   >;
   ratingsMatrixTransferListingByName?: Record<string, SeniorTransferListing | null>;
+  playerNumberByPlayerId?: Record<number, number | undefined>;
   cardStatusByPlayerId?: Record<number, { display: string; label: string }>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
@@ -213,9 +216,21 @@ type PlayerDetailsPanelProps = {
   skillsMatrixHeaderAux?: ReactNode;
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
-  renderSkillsMatrixLeadingCell?: (row: { id: number | null; name: string }) => ReactNode;
-  skillsMatrixRowClassName?: (row: { id: number | null; name: string }) => string | null;
-  skillsMatrixRowTooltip?: (row: { id: number | null; name: string }) => ReactNode;
+  renderSkillsMatrixLeadingCell?: (row: {
+    id: number | null;
+    name: string;
+    playerNumber?: number | null;
+  }) => ReactNode;
+  skillsMatrixRowClassName?: (row: {
+    id: number | null;
+    name: string;
+    playerNumber?: number | null;
+  }) => string | null;
+  skillsMatrixRowTooltip?: (row: {
+    id: number | null;
+    name: string;
+    playerNumber?: number | null;
+  }) => ReactNode;
   messages: Messages;
 };
 
@@ -263,6 +278,31 @@ const SKILL_ROWS = [
     shortLabelKey: "skillSetPiecesShort",
   },
 ];
+
+const playerNumberValue = (
+  player:
+    | { PlayerNumber?: number | null; playerNumber?: number | null }
+    | null
+    | undefined
+): number | null => {
+  const value = player?.PlayerNumber ?? player?.playerNumber;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
+};
+
+const compareOptionalPlayerNumbers = (
+  leftNumber: number | null,
+  rightNumber: number | null,
+  direction: "asc" | "desc"
+) => {
+  if (leftNumber === null && rightNumber === null) return 0;
+  if (leftNumber === null) return 1;
+  if (rightNumber === null) return -1;
+  return direction === "asc"
+    ? leftNumber - rightNumber
+    : rightNumber - leftNumber;
+};
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
@@ -626,6 +666,7 @@ export default function PlayerDetailsPanel({
   renderSkillsMatrixLeadingCell,
   skillsMatrixRowClassName,
   skillsMatrixRowTooltip,
+  playerNumberByPlayerId = {},
   messages,
 }: PlayerDetailsPanelProps) {
   const { addNotification } = useNotifications();
@@ -636,7 +677,13 @@ export default function PlayerDetailsPanel({
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
-    (typeof SKILL_ROWS)[number]["key"] | "name" | "age" | "form" | "stamina" | null
+    | (typeof SKILL_ROWS)[number]["key"]
+    | "playerNumber"
+    | "name"
+    | "age"
+    | "form"
+    | "stamina"
+    | null
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
@@ -743,6 +790,17 @@ export default function PlayerDetailsPanel({
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;
     const direction = skillsSortDir === "asc" ? 1 : -1;
+    if (skillsSortKey === "playerNumber") {
+      return [...skillsMatrixRows].sort((a, b) => {
+        const result = compareOptionalPlayerNumbers(
+          playerNumberValue(a),
+          playerNumberValue(b),
+          skillsSortDir
+        );
+        if (result !== 0) return result;
+        return a.name.localeCompare(b.name);
+      });
+    }
     if (skillsSortKey === "name") {
       return [...skillsMatrixRows].sort(
         (a, b) => a.name.localeCompare(b.name) * direction
@@ -869,7 +927,13 @@ export default function PlayerDetailsPanel({
   ]);
 
   const handleSkillsSort = (
-    key: (typeof SKILL_ROWS)[number]["key"] | "name" | "age" | "form" | "stamina"
+    key:
+      | (typeof SKILL_ROWS)[number]["key"]
+      | "playerNumber"
+      | "name"
+      | "age"
+      | "form"
+      | "stamina"
   ) => {
     pendingSkillsSortRef.current = true;
     onSkillsSortStart?.();
@@ -877,7 +941,7 @@ export default function PlayerDetailsPanel({
       setSkillsSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSkillsSortKey(key);
-      setSkillsSortDir(key === "age" ? "asc" : "desc");
+      setSkillsSortDir(key === "age" || key === "playerNumber" ? "asc" : "desc");
     }
   };
 
@@ -926,9 +990,19 @@ export default function PlayerDetailsPanel({
         ? hattrickPlayerUrl(playerId)
         : hattrickYouthPlayerUrl(playerId)
       : null;
-  const playerDisplayName = detailsData
+  const basePlayerDisplayName = detailsData
     ? `${detailsData.FirstName} ${detailsData.LastName}`
     : "";
+  const playerDisplayNumber =
+    playerKind === "senior"
+      ? playerNumberValue({
+          PlayerNumber: detailsData?.PlayerNumber ?? selectedPlayer?.PlayerNumber,
+        })
+      : null;
+  const playerDisplayName =
+    playerDisplayNumber !== null
+      ? `${playerDisplayNumber}. ${basePlayerDisplayName}`
+      : basePlayerDisplayName;
   const handleCopyPlayerId = useCallback(async () => {
     if (playerId === null) return;
     let copied = false;
@@ -1808,7 +1882,25 @@ export default function PlayerDetailsPanel({
           <thead>
             <tr>
               <th className={styles.matrixIndexHeader}>
-                {messages.ratingsIndexLabel}
+                {playerKind === "senior" ? (
+                  <button
+                    type="button"
+                    className={styles.matrixSortButton}
+                    onClick={() => handleSkillsSort("playerNumber")}
+                    aria-label={`${messages.ratingsSortBy} ${messages.sortShirtNumber}`}
+                  >
+                    {messages.ratingsIndexLabel}
+                    <span className={styles.matrixSortIcon}>
+                      {skillsSortKey === "playerNumber"
+                        ? skillsSortDir === "asc"
+                          ? "▲"
+                          : "▼"
+                        : "⇅"}
+                    </span>
+                  </button>
+                ) : (
+                  messages.ratingsIndexLabel
+                )}
               </th>
               {skillsMatrixLeadingHeader !== undefined ? (
                 <th className={styles.matrixSeniorSelectionHeader}>{skillsMatrixLeadingHeader}</th>
@@ -2122,7 +2214,9 @@ export default function PlayerDetailsPanel({
                     isSelected ? styles.matrixRowSelected : ""
                   } ${rowClassName}`.trim()}
                 >
-                  <td className={styles.matrixIndex}>{index + 1}</td>
+                  <td className={styles.matrixIndex}>
+                    {playerKind === "senior" ? playerNumberValue(row) ?? "" : index + 1}
+                  </td>
                   {renderSkillsMatrixLeadingCell ? (
                     <td className={styles.matrixSeniorSelectionCell}>
                       {renderSkillsMatrixLeadingCell(row)}
@@ -2523,6 +2617,7 @@ export default function PlayerDetailsPanel({
           transferListingByName={ratingsMatrixTransferListingByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
+          playerNumberByPlayerId={playerNumberByPlayerId}
           overallSkillLevelByPlayerId={
             playerKind === "youth" ? scoutOverallSkillLevelByPlayerId : undefined
           }

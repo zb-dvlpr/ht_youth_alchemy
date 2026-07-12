@@ -1674,6 +1674,7 @@ export type Messages = {
   transferSearchMarketDistributionLabel: string;
   sortLabel: string;
   sortName: string;
+  sortShirtNumber: string;
   sortAge: string;
   sortPromotionAge: string;
   sortArrival: string;

@@ -2102,6 +2102,7 @@ export const messagesSv: Messages = {
     seniorMatrixStaminaShortLabel: "Kon",
     sortInjuries: "Skador",
     sortCards: "Kort",
+    sortShirtNumber: "Tröjnummer",
     sortCustom: "--",
     seniorListInjuryBruised: "Öm",
     seniorListInjuryWeeks: "Skadad ({weeks} v)",

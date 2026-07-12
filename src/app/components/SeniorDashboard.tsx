@@ -165,6 +165,7 @@ import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 
 type SeniorPlayer = {
   PlayerID: number;
+  PlayerNumber?: number;
   FirstName: string;
   NickName?: string;
   LastName: string;
@@ -184,6 +185,7 @@ type SeniorPlayer = {
 
 type SeniorPlayerDetails = {
   PlayerID?: number;
+  PlayerNumber?: number;
   FirstName?: string;
   NickName?: string;
   LastName?: string;
@@ -510,6 +512,7 @@ type SeniorTeamGeneralInfo = {
 
 type SortKey =
   | "name"
+  | "playerNumber"
   | "age"
   | "arrival"
   | "tsi"
@@ -2196,6 +2199,34 @@ const formatPlayerName = (player: {
   LastName?: string;
 }) => [player.FirstName, player.NickName ?? null, player.LastName].filter(Boolean).join(" ");
 
+const playerNumberValue = (
+  player: { PlayerNumber?: number | null } | null | undefined
+): number | null => {
+  const value = player?.PlayerNumber;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
+};
+
+const formatPlayerNameWithNumber = (player: SeniorPlayer) => {
+  const name = formatPlayerName(player);
+  const number = playerNumberValue(player);
+  return number !== null ? `${number}. ${name}` : name;
+};
+
+const compareOptionalPlayerNumbers = (
+  leftNumber: number | null,
+  rightNumber: number | null,
+  direction: SortDirection
+) => {
+  if (leftNumber === null && rightNumber === null) return 0;
+  if (leftNumber === null) return 1;
+  if (rightNumber === null) return -1;
+  return direction === "asc"
+    ? leftNumber - rightNumber
+    : rightNumber - leftNumber;
+};
+
 const normalizeSeniorManualRatingsEdits = (input: unknown): SeniorManualRatingsEdits => {
   if (!input || typeof input !== "object") return {};
   const payload: SeniorManualRatingsEdits = {};
@@ -2387,6 +2418,7 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
           : null;
       return {
         PlayerID: playerId,
+        PlayerNumber: parseNumber(node.PlayerNumber) ?? undefined,
         FirstName: String(node.FirstName ?? ""),
         NickName: node.NickName ? String(node.NickName) : undefined,
         LastName: String(node.LastName ?? ""),
@@ -2450,6 +2482,7 @@ const normalizeSeniorPlayerDetails = (
       : null;
   return {
     PlayerID: playerId,
+    PlayerNumber: parseNumber(node.PlayerNumber) ?? undefined,
     FirstName: node.FirstName ? String(node.FirstName) : undefined,
     NickName: node.NickName ? String(node.NickName) : undefined,
     LastName: node.LastName ? String(node.LastName) : undefined,
@@ -2905,6 +2938,8 @@ const sortLabel = (messages: Messages, key: SortKey) => {
   switch (key) {
     case "name":
       return messages.sortName;
+    case "playerNumber":
+      return messages.sortShirtNumber;
     case "age":
       return messages.sortAge;
     case "arrival":
@@ -2947,6 +2982,7 @@ const sortLabel = (messages: Messages, key: SortKey) => {
 const defaultSortDirectionForKey = (key: SortKey): SortDirection => {
   switch (key) {
     case "age":
+    case "playerNumber":
     case "name":
       return "asc";
     case "arrival":
@@ -4970,6 +5006,15 @@ export default function SeniorDashboard({
     return [...players]
       .map((player, index) => ({ player, index }))
       .sort((left, right) => {
+        if (sortKey === "playerNumber") {
+          const result = compareOptionalPlayerNumbers(
+            playerNumberValue(left.player),
+            playerNumberValue(right.player),
+            sortDirection
+          );
+          if (result !== 0) return result;
+          return formatPlayerName(left.player).localeCompare(formatPlayerName(right.player));
+        }
         const getMetric = (player: SeniorPlayer): number | string | null => {
           const details = detailsById.get(player.PlayerID);
           switch (sortKey) {
@@ -5022,6 +5067,12 @@ export default function SeniorDashboard({
         const rightMetric = getMetric(right.player);
         const result = compareNullable(leftMetric, rightMetric);
         if (result !== 0) return result * direction;
+        if (sortKey !== "name") {
+          const nameResult = formatPlayerName(left.player).localeCompare(
+            formatPlayerName(right.player)
+          );
+          if (nameResult !== 0) return nameResult;
+        }
         return left.index - right.index;
       })
       .map((entry) => entry.player);
@@ -5089,6 +5140,7 @@ export default function SeniorDashboard({
     () =>
       players.map((player) => ({
         YouthPlayerID: player.PlayerID,
+        PlayerNumber: player.PlayerNumber,
         FirstName: player.FirstName,
         NickName: player.NickName ?? "",
         LastName: player.LastName,
@@ -5111,6 +5163,7 @@ export default function SeniorDashboard({
       number,
       {
         YouthPlayerID: number;
+        PlayerNumber?: number;
         FirstName: string;
         NickName?: string;
         LastName: string;
@@ -5176,6 +5229,7 @@ export default function SeniorDashboard({
           : undefined;
       map.set(playerId, {
         YouthPlayerID: playerId,
+        PlayerNumber: detail.PlayerNumber ?? fallback?.PlayerNumber,
         FirstName: detail.FirstName ?? fallback?.FirstName ?? "",
         NickName: detail.NickName ?? fallback?.NickName,
         LastName: detail.LastName ?? fallback?.LastName ?? "",
@@ -5226,6 +5280,7 @@ export default function SeniorDashboard({
     if (!selectedPlayer) return null;
     return {
       YouthPlayerID: selectedPlayer.PlayerID,
+      PlayerNumber: selectedDetails?.PlayerNumber ?? selectedPlayer.PlayerNumber,
       FirstName: selectedPlayer.FirstName,
       NickName: selectedPlayer.NickName ?? "",
       LastName: selectedPlayer.LastName,
@@ -5246,6 +5301,7 @@ export default function SeniorDashboard({
     selectedDetails?.Form,
     selectedDetails?.InjuryLevel,
     selectedDetails?.PlayerSkills,
+    selectedDetails?.PlayerNumber,
     selectedDetails?.StaminaSkill,
     selectedDetails?.TSI,
     selectedDetails?.TransferDetails,
@@ -5273,6 +5329,7 @@ export default function SeniorDashboard({
           : undefined;
       return {
         YouthPlayerID: selectedPlayer.PlayerID,
+        PlayerNumber: selectedDetails.PlayerNumber ?? selectedPlayer.PlayerNumber,
         FirstName: selectedDetails.FirstName ?? selectedPlayer.FirstName,
         NickName: selectedDetails.NickName ?? selectedPlayer.NickName,
         LastName: selectedDetails.LastName ?? selectedPlayer.LastName,
@@ -5319,6 +5376,7 @@ export default function SeniorDashboard({
     return (
       panelDetailsById.get(selectedPlayer.PlayerID) ?? {
         YouthPlayerID: selectedPlayer.PlayerID,
+        PlayerNumber: selectedPlayer.PlayerNumber,
         FirstName: selectedPlayer.FirstName,
         NickName: selectedPlayer.NickName,
         LastName: selectedPlayer.LastName,
@@ -5406,6 +5464,7 @@ export default function SeniorDashboard({
       players.map((player) => ({
         id: player.PlayerID,
         name: formatPlayerName(player),
+        playerNumber: playerNumberValue(player),
       })),
     [players]
   );
@@ -5413,6 +5472,16 @@ export default function SeniorDashboard({
     () => new Map(players.map((player) => [player.PlayerID, player])),
     [players]
   );
+  const playerNumberByPlayerId = useMemo(() => {
+    const result: Record<number, number | undefined> = {};
+    players.forEach((player) => {
+      const value = playerNumberValue(player);
+      if (value !== null) {
+        result[player.PlayerID] = value;
+      }
+    });
+    return result;
+  }, [players]);
 
   useEffect(() => {
     if (!resolvedSeniorTeamId) {
@@ -10416,6 +10485,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       number,
       {
         YouthPlayerID: number;
+        PlayerNumber?: number;
         FirstName: string;
         NickName?: string;
         LastName: string;
@@ -10433,6 +10503,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
       if (isPlayerExcluded(excludedPlayers, player.PlayerID)) return;
       map.set(player.PlayerID, {
         YouthPlayerID: player.PlayerID,
+        PlayerNumber:
+          playerNumberValue(player) ??
+          playerNumberValue(detailsById.get(player.PlayerID)) ??
+          undefined,
         FirstName: player.FirstName,
         NickName: player.NickName,
         LastName: player.LastName,
@@ -13525,7 +13599,7 @@ const refreshDetailsForPlayers = async (
         ratingsByPlayerId
       ).map((player) => ({
           playerId: player.PlayerID,
-          label: formatPlayerName(player) || String(player.PlayerID),
+          label: formatPlayerNameWithNumber(player) || String(player.PlayerID),
           meta:
             typeof player.Age === "number"
               ? `${player.Age}${messages.ageYearsShort}`
@@ -16600,12 +16674,34 @@ const refreshDetailsForPlayers = async (
             sortKey?: SortKey;
             sortDirection?: SortDirection;
           };
-          if (parsed.sortKey) {
-            setSortKey(parsed.sortKey);
+          const parsedSortKey =
+            parsed.sortKey === "name" ||
+            parsed.sortKey === "playerNumber" ||
+            parsed.sortKey === "age" ||
+            parsed.sortKey === "arrival" ||
+            parsed.sortKey === "tsi" ||
+            parsed.sortKey === "wage" ||
+            parsed.sortKey === "form" ||
+            parsed.sortKey === "stamina" ||
+            parsed.sortKey === "experience" ||
+            parsed.sortKey === "loyalty" ||
+            parsed.sortKey === "injuries" ||
+            parsed.sortKey === "cards" ||
+            parsed.sortKey === "keeper" ||
+            parsed.sortKey === "defender" ||
+            parsed.sortKey === "playmaker" ||
+            parsed.sortKey === "winger" ||
+            parsed.sortKey === "passing" ||
+            parsed.sortKey === "scorer" ||
+            parsed.sortKey === "setpieces"
+              ? parsed.sortKey
+              : null;
+          if (parsedSortKey) {
+            setSortKey(parsedSortKey);
             if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
               setSortDirection(parsed.sortDirection);
             } else {
-              setSortDirection(defaultSortDirectionForKey(parsed.sortKey));
+              setSortDirection(defaultSortDirectionForKey(parsedSortKey));
             }
           }
         } catch {
@@ -18377,6 +18473,7 @@ const refreshDetailsForPlayers = async (
     fallbackPlayerId: number
   ): SeniorPlayer => ({
     PlayerID: details.PlayerID ?? fallbackPlayerId,
+    PlayerNumber: details.PlayerNumber,
     FirstName: details.FirstName ?? "",
     NickName: details.NickName,
     LastName: details.LastName ?? "",
@@ -18680,6 +18777,7 @@ const refreshDetailsForPlayers = async (
       ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
       ratingsMatrixCardStatusByName={seniorCardStatusByName}
       ratingsMatrixTransferListingByName={transferListingByName}
+      playerNumberByPlayerId={playerNumberByPlayerId}
       cardStatusByPlayerId={seniorCardStatusByPlayerId}
       matrixNewPlayerIds={matrixNewMarkers.playerIds}
       matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -18785,6 +18883,7 @@ const refreshDetailsForPlayers = async (
                 </option>
               ) : null}
               <option value="name">{messages.sortName}</option>
+              <option value="playerNumber">{messages.sortShirtNumber}</option>
               <option value="age">{messages.sortAge}</option>
               <option value="arrival">{messages.sortArrival}</option>
               <option value="tsi">{messages.sortTsi}</option>
@@ -18837,6 +18936,7 @@ const refreshDetailsForPlayers = async (
             const originFlagDisplay =
               panelDetailsById.get(player.PlayerID)?.OriginFlagDisplay ?? null;
             const playerName = formatPlayerName(player);
+            const playerDisplayName = formatPlayerNameWithNumber(player);
             const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
             const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
             const transferListing = seniorTransferListingForDetails(playerDetails);
@@ -19168,9 +19268,9 @@ const refreshDetailsForPlayers = async (
                       >
                         <span
                           className={`${styles.playerName} ${styles.seniorPlayerName}`}
-                          title={playerName}
+                          title={playerDisplayName}
                         >
-                          {playerName}
+                          {playerDisplayName}
                         </span>
                         {originFlagDisplay ? (
                           <OriginFlag
@@ -19344,6 +19444,7 @@ const refreshDetailsForPlayers = async (
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
           ratingsMatrixTransferListingByName={transferListingByName}
+          playerNumberByPlayerId={playerNumberByPlayerId}
           cardStatusByPlayerId={seniorCardStatusByPlayerId}
           matrixNewPlayerIds={matrixNewMarkers.playerIds}
           matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -19423,6 +19524,7 @@ const refreshDetailsForPlayers = async (
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
           ratingsMatrixTransferListingByName={transferListingByName}
+          playerNumberByPlayerId={playerNumberByPlayerId}
           cardStatusByPlayerId={seniorCardStatusByPlayerId}
           matrixNewPlayerIds={matrixNewMarkers.playerIds}
           matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -21338,6 +21440,7 @@ const refreshDetailsForPlayers = async (
               ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
               ratingsMatrixCardStatusByName={seniorCardStatusByName}
               ratingsMatrixTransferListingByName={transferListingByName}
+              playerNumberByPlayerId={playerNumberByPlayerId}
               cardStatusByPlayerId={seniorCardStatusByPlayerId}
               matrixNewPlayerIds={matrixNewMarkers.playerIds}
               matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -21669,6 +21772,7 @@ const refreshDetailsForPlayers = async (
               ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
               ratingsMatrixCardStatusByName={seniorCardStatusByName}
               ratingsMatrixTransferListingByName={transferListingByName}
+              playerNumberByPlayerId={playerNumberByPlayerId}
               cardStatusByPlayerId={seniorCardStatusByPlayerId}
               matrixNewPlayerIds={matrixNewMarkers.playerIds}
               matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -23042,6 +23146,7 @@ const refreshDetailsForPlayers = async (
                     </option>
                   ) : null}
                   <option value="name">{messages.sortName}</option>
+                  <option value="playerNumber">{messages.sortShirtNumber}</option>
                   <option value="age">{messages.sortAge}</option>
                   <option value="arrival">{messages.sortArrival}</option>
                   <option value="tsi">{messages.sortTsi}</option>
@@ -23094,6 +23199,7 @@ const refreshDetailsForPlayers = async (
                 const originFlagDisplay =
                   panelDetailsById.get(player.PlayerID)?.OriginFlagDisplay ?? null;
                 const playerName = formatPlayerName(player);
+                const playerDisplayName = formatPlayerNameWithNumber(player);
                 const isExcluded = isPlayerExcluded(excludedPlayers, player.PlayerID);
                 const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
                 const transferListing = seniorTransferListingForDetails(playerDetails);
@@ -23457,9 +23563,9 @@ const refreshDetailsForPlayers = async (
                         >
                           <span
                             className={`${styles.playerName} ${styles.seniorPlayerName}`}
-                            title={playerName}
+                            title={playerDisplayName}
                           >
-                            {playerName}
+                            {playerDisplayName}
                           </span>
                           {originFlagDisplay ? (
                             <OriginFlag
@@ -23610,6 +23716,7 @@ const refreshDetailsForPlayers = async (
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
             ratingsMatrixCardStatusByName={seniorCardStatusByName}
             ratingsMatrixTransferListingByName={transferListingByName}
+            playerNumberByPlayerId={playerNumberByPlayerId}
             cardStatusByPlayerId={seniorCardStatusByPlayerId}
             matrixNewPlayerIds={matrixNewMarkers.playerIds}
             matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}

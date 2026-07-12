@@ -2055,6 +2055,7 @@ export const messagesEn: Messages = {
     seniorMatrixStaminaShortLabel: "Sta",
     sortInjuries: "Injuries",
     sortCards: "Cards",
+    sortShirtNumber: "Shirt number",
     sortCustom: "--",
     seniorListInjuryBruised: "Bruised",
     seniorListInjuryWeeks: "Injured ({weeks}w)",

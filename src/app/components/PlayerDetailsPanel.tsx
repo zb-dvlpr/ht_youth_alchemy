@@ -26,6 +26,7 @@ import {
   SEK_DISPLAY_CURRENCY,
   type DisplayCurrency,
 } from "@/lib/currency";
+import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -284,12 +285,7 @@ const playerNumberValue = (
     | { PlayerNumber?: number | null; playerNumber?: number | null }
     | null
     | undefined
-): number | null => {
-  const value = player?.PlayerNumber ?? player?.playerNumber;
-  return typeof value === "number" && Number.isFinite(value) && value > 0
-    ? value
-    : null;
-};
+): number | null => seniorPlayerNumberValue(player);
 
 const compareOptionalPlayerNumbers = (
   leftNumber: number | null,

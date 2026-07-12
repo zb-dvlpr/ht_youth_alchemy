@@ -9,6 +9,7 @@ import { getSkillMaxReached } from "@/lib/skills";
 import Tooltip from "./Tooltip";
 import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
 import { useChppPermissions } from "./ChppPermissionsProvider";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 
 export type LineupAssignments = Record<string, number | null>;
 export type LineupBehaviors = Record<string, number>;
@@ -356,10 +357,7 @@ function formatName(player: YouthPlayer) {
 }
 
 const playerNumberValue = (player: YouthPlayer): number | null => {
-  const value = player.PlayerNumber;
-  return typeof value === "number" && Number.isFinite(value) && value > 0
-    ? value
-    : null;
+  return normalizeSeniorShirtNumber(player.PlayerNumber);
 };
 
 const formatDisplayName = (player: YouthPlayer) => {

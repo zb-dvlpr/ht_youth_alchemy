@@ -162,6 +162,7 @@ import {
   resolveOpponentTeam,
 } from "@/lib/matches/visibility";
 import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
+import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -2201,12 +2202,7 @@ const formatPlayerName = (player: {
 
 const playerNumberValue = (
   player: { PlayerNumber?: number | null } | null | undefined
-): number | null => {
-  const value = player?.PlayerNumber;
-  return typeof value === "number" && Number.isFinite(value) && value > 0
-    ? value
-    : null;
-};
+): number | null => seniorPlayerNumberValue(player);
 
 const formatPlayerNameWithNumber = (player: SeniorPlayer) => {
   const name = formatPlayerName(player);

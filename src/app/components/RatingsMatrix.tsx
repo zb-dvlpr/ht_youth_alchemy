@@ -16,6 +16,7 @@ import {
   SEK_DISPLAY_CURRENCY,
   type DisplayCurrency,
 } from "@/lib/currency";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 
 type RatingRow = {
   id: number;
@@ -87,7 +88,7 @@ function formatRating(value: number | null) {
 }
 
 const playerNumberValue = (value: number | null | undefined): number | null =>
-  typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  normalizeSeniorShirtNumber(value);
 
 const compareOptionalPlayerNumbers = (
   leftNumber: number | null,

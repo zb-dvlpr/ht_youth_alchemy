@@ -8052,6 +8052,37 @@ html[data-theme="dark"] .seniorOtherOrdersCard {
   background: rgba(20, 16, 12, 0.74);
 }
 
+html[data-theme="dark"] .seniorManMarkingExplanation,
+html[data-theme="dark"] .seniorManMarkingMetric {
+  border-color: rgba(232, 210, 174, 0.18);
+  background: rgba(20, 16, 12, 0.74);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorManMarkingExplanationHeader h4,
+html[data-theme="dark"] .seniorManMarkingExplanationSection h5,
+html[data-theme="dark"] .seniorManMarkingCaveat h5,
+html[data-theme="dark"] .seniorManMarkingMetric dd {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorManMarkingMetric dt,
+html[data-theme="dark"] .seniorManMarkingCompactList {
+  color: #cdbfaa;
+}
+
+html[data-theme="dark"] .seniorManMarkingSourceBadge {
+  border-color: rgba(232, 210, 174, 0.28);
+  background: rgba(232, 210, 174, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorManMarkingCaveat {
+  border-color: rgba(217, 182, 120, 0.42);
+  background: rgba(91, 72, 16, 0.32);
+  color: #f8e7b2;
+}
+
 html[data-theme="dark"] .spinner {
   border-color: rgba(207, 198, 187, 0.3);
   border-top-color: #cfc6bb;
@@ -12281,6 +12312,106 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorOtherOrdersCard dd {
   margin: 0;
   font-size: 13px;
+}
+
+.seniorManMarkingExplanation {
+  border: 1px solid #e3d6c5;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  color: #3f352c;
+}
+
+.seniorManMarkingExplanationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seniorManMarkingExplanationHeader h4,
+.seniorManMarkingExplanationSection h5,
+.seniorManMarkingCaveat h5 {
+  margin: 0;
+  color: #5d5245;
+}
+
+.seniorManMarkingExplanationHeader h4 {
+  font-size: 13px;
+}
+
+.seniorManMarkingExplanationSection,
+.seniorManMarkingCaveat {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.seniorManMarkingExplanationSection h5,
+.seniorManMarkingCaveat h5 {
+  font-size: 12px;
+}
+
+.seniorManMarkingExplanation p,
+.seniorManMarkingExplanation li,
+.seniorManMarkingExplanation dd {
+  overflow-wrap: anywhere;
+}
+
+.seniorManMarkingSourceBadge {
+  border: 1px solid #c8b8a3;
+  border-radius: 999px;
+  background: #f7efe4;
+  color: #5b4a37;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.seniorManMarkingMetrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 6px;
+}
+
+.seniorManMarkingMetric {
+  border: 1px solid #eee2d2;
+  border-radius: 6px;
+  background: #fffaf3;
+  padding: 7px;
+  display: grid;
+  gap: 2px;
+}
+
+.seniorManMarkingMetric dt {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a6a56;
+}
+
+.seniorManMarkingMetric dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.seniorManMarkingCompactList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.seniorManMarkingCaveat {
+  border: 1px solid #dcc38f;
+  border-radius: 8px;
+  background: #fff7d8;
+  padding: 9px;
 }
 
 .seniorExtraTimeModalBody {

@@ -1696,6 +1696,105 @@ export const messagesEn: Messages = {
     seniorOtherOrdersOpponentPlayersNone: "No opponent players found.",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Choose target",
     seniorOtherOrdersUnknownOpponentPlayer: "Player {{playerId}}",
+    seniorOtherOrdersManMarkingExplanationTitle: "Man marking explanation",
+    seniorOtherOrdersManMarkingRecommendationTitle: "Recommendation",
+    seniorOtherOrdersManMarkingSourceRecommended: "Recommended by lineup algorithm",
+    seniorOtherOrdersManMarkingSourceManual: "Manually selected",
+    seniorOtherOrdersManMarkingSourceLoaded: "Loaded from existing match orders",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Manually modified recommendation",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Manually modified loaded order",
+    seniorOtherOrdersManMarkingWhyTargetTitle: "Why this target",
+    seniorOtherOrdersManMarkingWhyMarkerTitle: "Why this marker",
+    seniorOtherOrdersManMarkingExpectedEffectTitle: "Expected match effect",
+    seniorOtherOrdersManMarkingAlternativesTitle: "Alternatives considered",
+    seniorOtherOrdersManMarkingTargetAssessmentTitle: "Target assessment",
+    seniorOtherOrdersManMarkingMarkerAssessmentTitle: "Marker assessment",
+    seniorOtherOrdersManMarkingPairAssessmentTitle: "Pair assessment",
+    seniorOtherOrdersManMarkingLimitationsTitle: "Important limitations",
+    seniorOtherOrdersManMarkingLoading: "Preparing man-marking assessment...",
+    seniorOtherOrdersManMarkingNoMarkerSelected: "No marker is currently selected.",
+    seniorOtherOrdersManMarkingNoTargetSelected: "No target is currently selected.",
+    seniorOtherOrdersManMarkingInvalidMarkerPosition:
+      "The selected player is not currently fielded in a valid man-marking position.",
+    seniorOtherOrdersManMarkingTargetRoleUnknown:
+      "The target's expected markable position could not be established from the analysed history.",
+    seniorOtherOrdersManMarkingNoHistory:
+      "No usable opponent match history was available for this match context.",
+    seniorOtherOrdersManMarkingNoConsistentTarget:
+      "No forward, winger or inner midfielder reached the configured consistency threshold.",
+    seniorOtherOrdersManMarkingTargetDetailsUnavailable:
+      "Historical candidates existed, but the target player details could not be loaded.",
+    seniorOtherOrdersManMarkingTargetEstimateUnavailable:
+      "Target details were available, but no usable estimated effective main skill could be produced.",
+    seniorOtherOrdersManMarkingNoEligibleMarker:
+      "No eligible central defender, wingback or inner midfielder is currently in the starting lineup.",
+    seniorOtherOrdersManMarkingMarkerDataUnavailable:
+      "Eligible marker positions exist, but the required effective Defending or normal role value could not be calculated.",
+    seniorOtherOrdersManMarkingNoPositivePair:
+      "Valid markers and targets were found, but every evaluated pairing had zero or negative estimated net benefit.",
+    seniorOtherOrdersManMarkingBestRejectedPair: "Least unfavourable evaluated pair:",
+    seniorOtherOrdersManMarkingPositiveResult:
+      "This pair is positive under the app's man-marking model.",
+    seniorOtherOrdersManMarkingNeutralResult:
+      "This pair is approximately neutral under the app's man-marking model.",
+    seniorOtherOrdersManMarkingNegativeResult:
+      "This pair is negative under the app's man-marking model.",
+    seniorOtherOrdersManMarkingRecommendationCaveat:
+      "This assessment assumes that the opponent fields the identified player in the expected position. It is based on previous lineups and estimated player data. The opponent may use a different player, formation, position, substitution or tactical plan, in which case the marking order may be less effective or may not activate as expected. Opponent skill values and displayed effects are estimates, not guaranteed match-engine outcomes. Hattrick Alchemy cannot predict unexpected opponent decisions and accepts no responsibility for the resulting match outcome. Review the final order before submitting it.",
+    seniorOtherOrdersManMarkingNoRecommendationCaveat:
+      "This conclusion is based only on available historical and estimated data. Failing to identify a target does not prove that no suitable target exists, and a non-positive estimate does not guarantee that man marking would fail against the opponent's actual future lineup. The opponent may behave differently from previous matches.",
+    seniorOtherOrdersManMarkingRoleCentralDefender: "central defender",
+    seniorOtherOrdersManMarkingRoleWingback: "wingback",
+    seniorOtherOrdersManMarkingRoleInnerMidfielder: "inner midfielder",
+    seniorOtherOrdersManMarkingRoleForward: "forward",
+    seniorOtherOrdersManMarkingRoleWinger: "winger",
+    seniorOtherOrdersManMarkingRecommendationSummary:
+      "This pair had the highest positive estimated net benefit among {{count}} valid evaluated pairs.",
+    seniorOtherOrdersManMarkingCurrentPairSummary:
+      "The calculation below applies to the currently selected pair.",
+    seniorOtherOrdersManMarkingTargetConsistency:
+      "Expected role: {{role}}. The player appeared there in {{count}} of {{total}} analysed matches ({{percent}}).",
+    seniorOtherOrdersManMarkingEstimatedRawMainSkill: "Estimated raw main skill",
+    seniorOtherOrdersManMarkingEstimatedEffectiveMainSkill:
+      "Estimated effective main skill",
+    seniorOtherOrdersManMarkingSpecialty: "Specialty",
+    seniorOtherOrdersManMarkingTargetSpecialtyMultiplier:
+      "Target comparison multiplier",
+    seniorOtherOrdersManMarkingAdjustedTargetStrength:
+      "Adjusted target comparison strength",
+    seniorOtherOrdersManMarkingTargetChosenAsPair:
+      "The target is selected as part of the best complete pair, not necessarily because he individually has the highest estimate.",
+    seniorOtherOrdersManMarkingMarkerSummary:
+      "The marker is playing as {{role}} with effective Defending {{defending}}, adjusted marking strength {{adjusted}}, and estimated normal positional value {{normal}}.",
+    seniorOtherOrdersManMarkingMarkerSpecialtyEffect:
+      "Specialty: {{specialty}}. Man-marking comparison multiplier: {{multiplier}}.",
+    seniorOtherOrdersManMarkingTargetLoss: "Affected contribution removed",
+    seniorOtherOrdersManMarkingTargetRetained: "Affected contribution retained",
+    seniorOtherOrdersManMarkingMarkerPenalty: "Marker self-penalty",
+    seniorOtherOrdersManMarkingTargetValueRemoved: "Estimated target value removed",
+    seniorOtherOrdersManMarkingMarkerValueLost: "Estimated marker value lost",
+    seniorOtherOrdersManMarkingNetBenefit: "Estimated net benefit",
+    seniorOtherOrdersManMarkingClosePenaltyReason:
+      "The 50% marker penalty applies because the marker and target are in the corresponding close role pairing.",
+    seniorOtherOrdersManMarkingDistantPenaltyReason:
+      "The 65% marker penalty applies because these roles are not one of the close role pairings.",
+    seniorOtherOrdersManMarkingAlternativeSummary:
+      "Next-best net benefit: {{net}}. Difference from the current pair: {{difference}}.",
+    seniorOtherOrdersManMarkingValidTargets: "Valid target estimates are available.",
+    seniorOtherOrdersManMarkingValidMarkers: "Valid marker candidates are available.",
+    seniorOtherOrdersManMarkingEffectiveDefending: "effective Defending",
+    seniorOtherOrdersManMarkingAdjustedStrength: "adjusted strength",
+    seniorOtherOrdersManMarkingNormalRoleValue: "normal role value",
+    seniorOtherOrdersManMarkingMarkerPlayerUnresolved:
+      "{{player}} could not be resolved as an own player.",
+    seniorOtherOrdersManMarkingMarkerDefendingUnavailable:
+      "{{player}} has no available effective Defending value.",
+    seniorOtherOrdersManMarkingMarkerDefendingInvalid:
+      "{{player}} has an invalid or non-positive effective Defending value.",
+    seniorOtherOrdersManMarkingMarkerNormalValueUnavailable:
+      "{{player}} has no available normal positional value.",
+    seniorOtherOrdersManMarkingMarkerNormalValueInvalid:
+      "{{player}} has an invalid or non-positive normal positional value.",
     seniorOtherOrdersNewPositionLabel: "New position",
     seniorOtherOrdersNoPositionChange: "No position change",
     seniorOtherOrdersNewBehaviourLabel: "New behaviour",

@@ -36,6 +36,16 @@ export type SeniorManMarkingPairEvaluation = {
   netBenefit: number;
 };
 
+export type SeniorManMarkingPairDecision = {
+  evaluations: SeniorManMarkingPairEvaluation[];
+  positiveEvaluations: SeniorManMarkingPairEvaluation[];
+  selectedPair: SeniorManMarkingPairEvaluation | null;
+  bestRejectedPair: SeniorManMarkingPairEvaluation | null;
+  totalEvaluationCount: number;
+  positiveEvaluationCount: number;
+  nonPositiveEvaluationCount: number;
+};
+
 const SPECIALTY_NONE = 0;
 const SPECIALTY_TECHNICAL = 1;
 const SPECIALTY_POWERFUL = 3;
@@ -154,59 +164,88 @@ export function evaluateSeniorManMarkingPair(
   };
 }
 
+export const SENIOR_MAN_MARKING_EPSILON = EPSILON;
+
 const compareFloating = (left: number, right: number): number => {
   const difference = left - right;
   return Math.abs(difference) <= EPSILON ? 0 : difference;
 };
 
-export function selectBestSeniorManMarkingPair(
+export function compareSeniorManMarkingPairEvaluations(
+  left: SeniorManMarkingPairEvaluation,
+  right: SeniorManMarkingPairEvaluation
+): number {
+  const netBenefit = compareFloating(right.netBenefit, left.netBenefit);
+  if (netBenefit !== 0) return netBenefit;
+  const targetRemoved = compareFloating(
+    right.estimatedTargetValueRemoved,
+    left.estimatedTargetValueRemoved
+  );
+  if (targetRemoved !== 0) return targetRemoved;
+  const targetLoss = compareFloating(right.targetLossFraction, left.targetLossFraction);
+  if (targetLoss !== 0) return targetLoss;
+  const selfPenalty = compareFloating(
+    left.markerSelfPenaltyFraction,
+    right.markerSelfPenaltyFraction
+  );
+  if (selfPenalty !== 0) return selfPenalty;
+  const targetSkill = compareFloating(
+    right.estimatedEffectiveTargetMainSkill,
+    left.estimatedEffectiveTargetMainSkill
+  );
+  if (targetSkill !== 0) return targetSkill;
+  const markerStrength = compareFloating(
+    right.adjustedMarkerStrength,
+    left.adjustedMarkerStrength
+  );
+  if (markerStrength !== 0) return markerStrength;
+  const normalRoleValue = compareFloating(right.normalRoleValue, left.normalRoleValue);
+  if (normalRoleValue !== 0) return normalRoleValue;
+  if (left.targetPlayerId !== right.targetPlayerId) {
+    return left.targetPlayerId - right.targetPlayerId;
+  }
+  if (left.markerPlayerId !== right.markerPlayerId) {
+    return left.markerPlayerId - right.markerPlayerId;
+  }
+  return left.markerSlot.localeCompare(right.markerSlot);
+}
+
+export function buildSeniorManMarkingPairDecision(
   markers: SeniorManMarkingMarkerCandidate[],
   targets: SeniorManMarkingTargetCandidate[]
-): SeniorManMarkingPairEvaluation | null {
+): SeniorManMarkingPairDecision {
   const evaluations = markers
     .flatMap((marker) =>
       targets.map((target) => evaluateSeniorManMarkingPair(marker, target))
     )
     .filter(
       (evaluation): evaluation is SeniorManMarkingPairEvaluation =>
-        evaluation !== null && evaluation.netBenefit > EPSILON
+        evaluation !== null
     );
+  const positiveEvaluations = evaluations
+    .filter(
+      (evaluation): evaluation is SeniorManMarkingPairEvaluation =>
+        evaluation.netBenefit > EPSILON
+    )
+    .sort(compareSeniorManMarkingPairEvaluations);
+  const rejectedEvaluations = evaluations
+    .filter((evaluation) => evaluation.netBenefit <= EPSILON)
+    .sort(compareSeniorManMarkingPairEvaluations);
 
-  return (
-    evaluations.sort((left, right) => {
-      const netBenefit = compareFloating(right.netBenefit, left.netBenefit);
-      if (netBenefit !== 0) return netBenefit;
-      const targetRemoved = compareFloating(
-        right.estimatedTargetValueRemoved,
-        left.estimatedTargetValueRemoved
-      );
-      if (targetRemoved !== 0) return targetRemoved;
-      const targetLoss = compareFloating(right.targetLossFraction, left.targetLossFraction);
-      if (targetLoss !== 0) return targetLoss;
-      const selfPenalty = compareFloating(
-        left.markerSelfPenaltyFraction,
-        right.markerSelfPenaltyFraction
-      );
-      if (selfPenalty !== 0) return selfPenalty;
-      const targetSkill = compareFloating(
-        right.estimatedEffectiveTargetMainSkill,
-        left.estimatedEffectiveTargetMainSkill
-      );
-      if (targetSkill !== 0) return targetSkill;
-      const markerStrength = compareFloating(
-        right.adjustedMarkerStrength,
-        left.adjustedMarkerStrength
-      );
-      if (markerStrength !== 0) return markerStrength;
-      const normalRoleValue = compareFloating(right.normalRoleValue, left.normalRoleValue);
-      if (normalRoleValue !== 0) return normalRoleValue;
-      if (left.targetPlayerId !== right.targetPlayerId) {
-        return left.targetPlayerId - right.targetPlayerId;
-      }
-      if (left.markerPlayerId !== right.markerPlayerId) {
-        return left.markerPlayerId - right.markerPlayerId;
-      }
-      return left.markerSlot.localeCompare(right.markerSlot);
-    })[0] ?? null
-  );
+  return {
+    evaluations: [...evaluations].sort(compareSeniorManMarkingPairEvaluations),
+    positiveEvaluations,
+    selectedPair: positiveEvaluations[0] ?? null,
+    bestRejectedPair: rejectedEvaluations[0] ?? null,
+    totalEvaluationCount: evaluations.length,
+    positiveEvaluationCount: positiveEvaluations.length,
+    nonPositiveEvaluationCount: rejectedEvaluations.length,
+  };
+}
+
+export function selectBestSeniorManMarkingPair(
+  markers: SeniorManMarkingMarkerCandidate[],
+  targets: SeniorManMarkingTargetCandidate[]
+): SeniorManMarkingPairEvaluation | null {
+  return buildSeniorManMarkingPairDecision(markers, targets).selectedPair;
 }

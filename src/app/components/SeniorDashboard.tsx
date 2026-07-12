@@ -166,13 +166,23 @@ import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
 import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 import {
+  buildSeniorManMarkingPairDecision,
+  evaluateSeniorManMarkingPair,
   getSeniorManMarkerSpecialtyMultiplier,
-  selectBestSeniorManMarkingPair,
+  getSeniorManMarkingTargetSpecialtyMultiplier,
   type SeniorManMarkingMarkerCandidate,
   type SeniorManMarkingMarkerRole,
+  type SeniorManMarkingPairDecision,
+  type SeniorManMarkingPairEvaluation,
   type SeniorManMarkingTargetCandidate,
   type SeniorManMarkingTargetRole,
 } from "@/lib/seniorManMarking";
+import SeniorManMarkingExplanation, {
+  type SeniorManMarkingExplanationData,
+  type SeniorManMarkingExplanationMarker,
+  type SeniorManMarkingExplanationPair,
+  type SeniorManMarkingExplanationTarget,
+} from "./SeniorManMarkingExplanation";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -926,6 +936,9 @@ type OpponentTargetPlayer = {
   playerId: number;
   role: OpponentTrackedRole;
   name: string;
+  observedRoleCount: number;
+  analysedMatchCount: number;
+  roleConsistencyPercent: number;
   tsi: number | null;
   stamina: number | null;
   ageDays: number | null;
@@ -936,6 +949,8 @@ type OpponentTargetPlayer = {
   loyalty: number | null;
   motherClubBonus: boolean | null;
   wageIncludesForeignBonus: boolean | null;
+  estimatedRawMainSkill: number | null;
+  mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable" | "detailsUnavailable";
   estimatedEffectiveMainSkill: number | null;
 };
 
@@ -944,6 +959,10 @@ type OpponentPotentialTargetPlayer = {
   role: OpponentTrackedRole;
   name: string;
   count: number;
+  analysedMatchCount: number;
+  roleConsistencyPercent: number;
+  thresholdMet: boolean;
+  detailsLoaded: boolean;
   tsi: number | null;
   stamina: number | null;
   ageDays: number | null;
@@ -954,6 +973,8 @@ type OpponentPotentialTargetPlayer = {
   loyalty: number | null;
   motherClubBonus: boolean | null;
   wageIncludesForeignBonus: boolean | null;
+  estimatedRawMainSkill: number | null;
+  mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable" | "detailsUnavailable";
   estimatedEffectiveMainSkill: number | null;
 };
 
@@ -985,6 +1006,30 @@ type OpponentFormationContext = {
 type SeniorAiManMarkingSelection = {
   marker: SeniorAiManMarkingMarker;
   target: OpponentTargetPlayer;
+  decision: SeniorManMarkingPairDecision;
+};
+
+type SeniorManMarkingOrderOrigin = "generated" | "loaded" | "manual";
+
+type SeniorManMarkingGeneratedReport = {
+  matchId: number;
+  signature: string;
+  fuzziness: number;
+  markers: SeniorManMarkingExplanationMarker[];
+  excludedMarkers: string[];
+  targets: SeniorManMarkingExplanationTarget[];
+  potentialTargetCount: number;
+  analysedMatchCount: number;
+  consistencyThreshold: number;
+  targetDiagnosticStatus:
+    | "noOpponent"
+    | "noHistory"
+    | "noConsistentTarget"
+    | "detailsUnavailable"
+    | "estimateUnavailable"
+    | "validTargets";
+  markerDiagnosticStatus: "noEligiblePosition" | "dataUnavailable" | "validMarkers";
+  decision: SeniorManMarkingPairDecision;
 };
 
 type SeniorSubmitDisclaimerManMarkingSummary = {
@@ -3804,6 +3849,8 @@ export default function SeniorDashboard({
 }: SeniorDashboardProps) {
   const isDevBuild = process.env.NODE_ENV !== "production";
   const showSetBestLineupDebugModal = isDevBuild;
+  const numberFormatLocale =
+    typeof navigator === "undefined" ? "en" : navigator.language || "en";
   const { addNotification } = useNotifications();
   const { countryOptions: transferSearchCountryOptions, resolveForCountry } =
     useDisplayCurrency();
@@ -3936,6 +3983,19 @@ export default function SeniorDashboard({
   );
   const [manMarkingTargetDropdownOpen, setManMarkingTargetDropdownOpen] =
     useState(false);
+  const [otherOrdersManMarkingContextState, setOtherOrdersManMarkingContextState] =
+    useState<{
+      matchId: number | null;
+      status: "idle" | "loading" | "ready" | "error";
+      context: OpponentFormationContext | null;
+    }>({ matchId: null, status: "idle", context: null });
+  const [otherOrdersManMarkingTargetState, setOtherOrdersManMarkingTargetState] =
+    useState<{
+      key: string;
+      status: "idle" | "loading" | "ready" | "error";
+      target: OpponentTargetPlayer | null;
+      reason: SeniorManMarkingExplanationData["targetStatus"] | null;
+    }>({ key: "", status: "idle", target: null, reason: null });
   const [devSimulateTacticalAssistant, setDevSimulateTacticalAssistant] =
     useState(false);
   const [devSimulatedTacticalAssistantLevel, setDevSimulatedTacticalAssistantLevel] =
@@ -3949,6 +4009,12 @@ export default function SeniorDashboard({
   >(null);
   const [seniorAiManMarkingReadyContext, setSeniorAiManMarkingReadyContext] =
     useState<SeniorAiManMarkingReadyContext | null>(null);
+  const [seniorAiManMarkingGeneratedReport, setSeniorAiManMarkingGeneratedReport] =
+    useState<SeniorManMarkingGeneratedReport | null>(null);
+  const [otherOrdersManMarkingOrigin, setOtherOrdersManMarkingOrigin] =
+    useState<SeniorManMarkingOrderOrigin>("manual");
+  const [otherOrdersInitialManMarkingPair, setOtherOrdersInitialManMarkingPair] =
+    useState<{ markerId: number | null; targetId: number | null } | null>(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
   const [setBestLineupFixedFormation, setSetBestLineupFixedFormation] = useState<
@@ -4127,6 +4193,7 @@ export default function SeniorDashboard({
     setSeniorAiSubmitEnabledMatchId(null);
     setSeniorAiPreparedSubmissionMode(null);
     setSeniorAiManMarkingReadyContext(null);
+    setSeniorAiManMarkingGeneratedReport(null);
     setTrainingAwarePreparedTraineeIds([]);
     setExtraTimePreparedSubmission(null);
     seededSeniorEditableOrdersContextRef.current = null;
@@ -6105,6 +6172,13 @@ export default function SeniorDashboard({
     loadedMatchId !== null &&
     seniorAiSubmitEnabledMatchId === loadedMatchId &&
     seniorAiManMarkingReadyContext?.signature === seniorAiManMarkingCurrentSignature;
+  const effectiveSeniorAiManMarkingGeneratedReport =
+    seniorAiManMarkingGeneratedReport &&
+    seniorAiManMarkingGeneratedReport.matchId === loadedMatchId &&
+    seniorAiManMarkingGeneratedReport.signature === seniorAiManMarkingCurrentSignature &&
+    seniorAiManMarkingGeneratedReport.fuzziness === seniorAiManMarkingFuzziness
+      ? seniorAiManMarkingGeneratedReport
+      : null;
   const seniorAiManMarkingCandidates = useMemo(() => {
     const bestByRole: Record<SeniorAiManMarkingRole, SeniorAiManMarkingMarker | null> = {
       WB: null,
@@ -6177,10 +6251,11 @@ export default function SeniorDashboard({
       return null;
     }
     if (!isSeniorManMarkingTargetRole(seniorAiManMarkingTarget.role)) return null;
-    const bestPair = selectBestSeniorManMarkingPair(
+    const decision = buildSeniorManMarkingPairDecision(
       buildSeniorManMarkingMarkerCandidates(assignments),
       buildSeniorManMarkingTargetCandidates([seniorAiManMarkingTarget])
     );
+    const bestPair = decision.selectedPair;
     if (!bestPair) return null;
     const markerPlayer = playersById.get(bestPair.markerPlayerId);
     if (!markerPlayer) return null;
@@ -6196,6 +6271,7 @@ export default function SeniorDashboard({
     return {
       marker,
       target: seniorAiManMarkingTarget,
+      decision,
     } satisfies SeniorAiManMarkingSelection;
   }, [
     assignments,
@@ -6413,6 +6489,7 @@ export default function SeniorDashboard({
       loadedMatchId === null
     ) {
       setSeniorAiManMarkingTarget(null);
+      setSeniorAiManMarkingGeneratedReport(null);
       setOpponentFormationsModal((prev) =>
         prev
           ? {
@@ -11807,6 +11884,14 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOpponentPlayersForSession(null);
     setOpponentPlayersLoading(false);
     setOpponentPlayersError(null);
+    setOtherOrdersManMarkingContextState({ matchId: null, status: "idle", context: null });
+    setOtherOrdersManMarkingTargetState({
+      key: "",
+      status: "idle",
+      target: null,
+      reason: null,
+    });
+    setOtherOrdersInitialManMarkingPair(null);
     setManMarkingTargetDropdownOpen(false);
   };
   const saveOtherOrdersEditor = () => {
@@ -11851,12 +11936,167 @@ function buildSeniorAiManMarkingReadySignature(params: {
   }, [manMarkingTargetDropdownOpen]);
 
   useEffect(() => {
+    if (
+      !otherOrdersEditorOpen ||
+      !effectiveSeniorAiManMarkingEnabled ||
+      typeof otherOrdersModalMatchId !== "number"
+    ) {
+      setOtherOrdersManMarkingContextState({
+        matchId: otherOrdersModalMatchId,
+        status: "idle",
+        context: null,
+      });
+      return;
+    }
+    let cancelled = false;
+    setOtherOrdersManMarkingContextState({
+      matchId: otherOrdersModalMatchId,
+      status: "loading",
+      context: null,
+    });
+    void fetchOpponentFormationRowsForMatch(otherOrdersModalMatchId)
+      .then((context) => {
+        if (cancelled) return;
+        setOtherOrdersManMarkingContextState({
+          matchId: otherOrdersModalMatchId,
+          status: context ? "ready" : "error",
+          context,
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setOtherOrdersManMarkingContextState({
+          matchId: otherOrdersModalMatchId,
+          status: "error",
+          context: null,
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectiveSeniorAiManMarkingEnabled,
+    otherOrdersEditorOpen,
+    otherOrdersModalMatchId,
+    seniorAiManMarkingFuzziness,
+  ]);
+
+  useEffect(() => {
+    const targetId = otherOrdersDraft?.manMarkingOrder?.objectPlayerId ?? null;
+    if (
+      !otherOrdersEditorOpen ||
+      !effectiveSeniorAiManMarkingEnabled ||
+      typeof targetId !== "number" ||
+      targetId <= 0
+    ) {
+      setOtherOrdersManMarkingTargetState({
+        key: "",
+        status: "idle",
+        target: null,
+        reason: null,
+      });
+      return;
+    }
+    const key = `${otherOrdersDraft?.matchId ?? "manual"}:${targetId}:${
+      otherOrdersManMarkingContextState.context?.manMarkingFuzziness ?? "none"
+    }`;
+    const contextTarget =
+      otherOrdersManMarkingContextState.context?.manMarkingTargets.find(
+        (target) => target.playerId === targetId
+      ) ?? null;
+    if (contextTarget) {
+      setOtherOrdersManMarkingTargetState({
+        key,
+        status: "ready",
+        target: contextTarget,
+        reason: null,
+      });
+      return;
+    }
+    if (otherOrdersManMarkingContextState.status === "loading") {
+      setOtherOrdersManMarkingTargetState({
+        key,
+        status: "loading",
+        target: null,
+        reason: null,
+      });
+      return;
+    }
+    const context = otherOrdersManMarkingContextState.context;
+    if (!context) {
+      setOtherOrdersManMarkingTargetState({
+        key,
+        status: "error",
+        target: null,
+        reason:
+          otherOrdersManMarkingContextState.status === "error"
+            ? "noHistory"
+            : "noOpponent",
+      });
+      return;
+    }
+    let cancelled = false;
+    setOtherOrdersManMarkingTargetState({
+      key,
+      status: "loading",
+      target: null,
+      reason: null,
+    });
+    const fallbackName = seniorOtherOrdersOpponentPlayerName(targetId);
+    void resolveOpponentTargetForExplanation(targetId, fallbackName, context)
+      .then((target) => {
+        if (cancelled) return;
+        setOtherOrdersManMarkingTargetState({
+          key,
+          status: target ? "ready" : "error",
+          target,
+          reason: target ? null : "roleUnknown",
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setOtherOrdersManMarkingTargetState({
+          key,
+          status: "error",
+          target: null,
+          reason: "detailsUnavailable",
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectiveSeniorAiManMarkingEnabled,
+    effectiveSeniorAiManMarkingGeneratedReport,
+    otherOrdersDraft?.manMarkingOrder?.objectPlayerId,
+    otherOrdersDraft?.matchId,
+    otherOrdersEditorOpen,
+    otherOrdersManMarkingContextState,
+    opponentPlayersForSession,
+    otherOrdersOpponentTargetNamesById,
+  ]);
+
+  useEffect(() => {
     if (!otherOrdersEditorOpen) {
       setOtherOrdersDraft(null);
       setOtherOrdersValidationError(null);
       return;
     }
-    setOtherOrdersDraft(buildSeniorEditableOrdersForContext(otherOrdersModalMatchId));
+    const nextDraft = buildSeniorEditableOrdersForContext(otherOrdersModalMatchId);
+    setOtherOrdersDraft(nextDraft);
+    setOtherOrdersManMarkingOrigin(
+      nextDraft?.source === "generated" || nextDraft?.source === "loaded"
+        ? nextDraft.source
+        : "manual"
+    );
+    setOtherOrdersInitialManMarkingPair(
+      nextDraft?.manMarkingOrder
+        ? {
+            markerId: nextDraft.manMarkingOrder.subjectPlayerId ?? null,
+            targetId: nextDraft.manMarkingOrder.objectPlayerId ?? null,
+          }
+        : null
+    );
     setOtherOrdersValidationError(null);
   }, [otherOrdersEditorOpen, otherOrdersModalMatchId]);
 
@@ -12086,6 +12326,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return options;
   };
   const updateSeniorOtherOrdersManMarkingTarget = (nextTargetId: number | null) => {
+    if (!otherOrdersDraft?.manMarkingOrder) {
+      setOtherOrdersManMarkingOrigin("manual");
+    }
     updateOtherOrdersDraft((draft) => ({
       ...draft,
       source: "mixed",
@@ -12114,6 +12357,44 @@ function buildSeniorAiManMarkingReadySignature(params: {
       void ensureOpponentPlayersForManMarking();
     }
   };
+  const seniorOtherOrdersManMarkingExplanationTarget = useMemo(() => {
+    if (!otherOrdersManMarkingTargetState.target) return null;
+    return buildSeniorManMarkingTargetExplanation(
+      otherOrdersManMarkingTargetState.target
+    );
+  }, [otherOrdersManMarkingTargetState.target]);
+  const seniorOtherOrdersManMarkingTargetStatus: SeniorManMarkingExplanationData["targetStatus"] =
+    !activeOtherOrdersOpponentTeam
+      ? "noOpponent"
+      : otherOrdersManMarkingTargetState.reason ??
+        (otherOrdersManMarkingContextState.status === "loading"
+          ? "noHistory"
+          : otherOrdersManMarkingContextState.status === "error"
+            ? "noHistory"
+            : seniorOtherOrdersManMarkingExplanationTarget
+              ? "validTargets"
+              : otherOrdersManMarkingTargetState.target?.mainSkillEstimateKind ===
+                  "detailsUnavailable"
+                ? "detailsUnavailable"
+                : otherOrdersManMarkingTargetState.target
+                  ? "estimateUnavailable"
+                  : effectiveSeniorAiManMarkingGeneratedReport?.targetDiagnosticStatus ??
+                    "noConsistentTarget");
+  const seniorOtherOrdersManMarkingExplanation = buildSeniorManMarkingExplanationData(
+    seniorOtherOrdersManMarkingExplanationTarget,
+    seniorOtherOrdersManMarkingTargetStatus,
+    otherOrdersManMarkingTargetState.reason === "roleUnknown"
+      ? messages.seniorOtherOrdersManMarkingTargetRoleUnknown
+      : otherOrdersManMarkingTargetState.target?.mainSkillEstimateKind ===
+            "detailsUnavailable"
+        ? messages.seniorOtherOrdersManMarkingTargetDetailsUnavailable
+        : otherOrdersManMarkingTargetState.target &&
+            !seniorOtherOrdersManMarkingExplanationTarget
+          ? messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable
+          : null,
+    otherOrdersManMarkingContextState.status === "loading" ||
+      otherOrdersManMarkingTargetState.status === "loading"
+  );
   const seniorOtherOrdersDraftOrderKind = (order: SeniorEditablePlayerOrder) => {
     if (order.orderType === 3) return "swap";
     return order.subjectPlayerId && order.subjectPlayerId === order.objectPlayerId
@@ -14818,7 +15099,30 @@ const refreshDetailsForPlayers = async (
     }
   };
 
-  function estimateOpponentTargetEffectiveMainSkill(
+  function seniorSpecialtyName(value?: number | null) {
+    switch (value) {
+      case 0:
+        return messages.specialtyNone;
+      case 1:
+        return messages.specialtyTechnical;
+      case 2:
+        return messages.specialtyQuick;
+      case 3:
+        return messages.specialtyPowerful;
+      case 4:
+        return messages.specialtyUnpredictable;
+      case 5:
+        return messages.specialtyHeadSpecialist;
+      case 6:
+        return messages.specialtyResilient;
+      case 8:
+        return messages.specialtySupport;
+      default:
+        return null;
+    }
+  }
+
+  function estimateOpponentTargetMainSkillReport(
     target: {
       role: OpponentTrackedRole;
       count: number;
@@ -14831,8 +15135,18 @@ const refreshDetailsForPlayers = async (
       form: number | null;
       stamina: number | null;
     }
-  ): number | null {
-    if (!isSeniorManMarkingTargetRole(target.role)) return null;
+  ): {
+    estimatedRawMainSkill: number | null;
+    estimatedEffectiveMainSkill: number | null;
+    mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable";
+  } {
+    if (!isSeniorManMarkingTargetRole(target.role)) {
+      return {
+        estimatedRawMainSkill: null,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "unavailable",
+      };
+    }
     const estimation = estimateChronicleMainSkillFromWage({
       salarySek: target.salary,
       ageYears: target.age,
@@ -14845,62 +15159,150 @@ const refreshDetailsForPlayers = async (
         },
       ],
     });
-    if (estimation.kind !== "estimated") return null;
-    return calculateEffectiveSkill({
+    if (estimation.kind !== "estimated") {
+      return {
+        estimatedRawMainSkill: null,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: estimation.kind,
+      };
+    }
+    return {
+      estimatedRawMainSkill: estimation.level,
+      estimatedEffectiveMainSkill: calculateEffectiveSkill({
       rawSkill: estimation.level,
       loyalty: target.loyalty,
       motherClubBonus: target.motherClubBonus,
       form: target.form,
       stamina: target.stamina,
-    });
+      }),
+      mainSkillEstimateKind: "estimated",
+    };
   }
 
   function buildSeniorManMarkingMarkerCandidates(
     chosenAssignments: LineupAssignments
   ): SeniorManMarkingMarkerCandidate[] {
-    const candidates: SeniorManMarkingMarkerCandidate[] = [];
-    (Object.entries(chosenAssignments) as Array<
-      [keyof LineupAssignments, number | null | undefined]
-    >).forEach(([slot, playerId]) => {
+    return buildSeniorManMarkingMarkerExplanation(chosenAssignments).validMarkers.map(
+      (marker) => ({
+        playerId: marker.id,
+        slot: marker.slot,
+        role: marker.role,
+        specialty: marker.specialty,
+        baseEffectiveDefending: marker.baseEffectiveDefending,
+        adjustedMarkingStrength: marker.adjustedMarkingStrength,
+        normalRoleValue: marker.normalRoleValue,
+      })
+    );
+  }
+
+  function buildSeniorManMarkingMarkerExplanation(
+    chosenAssignments: LineupAssignments
+  ): {
+    validMarkers: SeniorManMarkingExplanationMarker[];
+    excludedMarkerMessages: string[];
+    status: SeniorManMarkingGeneratedReport["markerDiagnosticStatus"];
+  } {
+    const validMarkers: SeniorManMarkingExplanationMarker[] = [];
+    const excludedMarkerMessages: string[] = [];
+    let occupiedEligibleSlots = 0;
+    const eligibleSlots: Array<keyof LineupAssignments> = [
+      "CD_L",
+      "CD_C",
+      "CD_R",
+      "WB_L",
+      "WB_R",
+      "IM_L",
+      "IM_C",
+      "IM_R",
+    ];
+    eligibleSlots.forEach((slot) => {
+      const playerId = chosenAssignments[slot];
       if (typeof playerId !== "number" || playerId <= 0) return;
+      occupiedEligibleSlots += 1;
       const role = manMarkingRoleForSlot(slot);
-      if (!role) return;
       const player = playersById.get(playerId);
-      if (!player) return;
+      const playerName = player ? formatPlayerName(player) : String(playerId);
+      if (!role) {
+        excludedMarkerMessages.push(messages.seniorOtherOrdersManMarkingInvalidMarkerPosition);
+        return;
+      }
+      if (!player) {
+        excludedMarkerMessages.push(
+          messages.seniorOtherOrdersManMarkingMarkerPlayerUnresolved.replace(
+            "{{player}}",
+            playerName
+          )
+        );
+        return;
+      }
       const baseEffectiveDefending = effectiveSkillValueForPlayer(
         player,
         "DefenderSkill"
       );
-      if (
-        typeof baseEffectiveDefending !== "number" ||
-        !Number.isFinite(baseEffectiveDefending) ||
-        baseEffectiveDefending <= 0
-      ) {
+      if (typeof baseEffectiveDefending !== "number") {
+        excludedMarkerMessages.push(
+          messages.seniorOtherOrdersManMarkingMarkerDefendingUnavailable.replace(
+            "{{player}}",
+            playerName
+          )
+        );
+        return;
+      }
+      if (!Number.isFinite(baseEffectiveDefending) || baseEffectiveDefending <= 0) {
+        excludedMarkerMessages.push(
+          messages.seniorOtherOrdersManMarkingMarkerDefendingInvalid.replace(
+            "{{player}}",
+            playerName
+          )
+        );
         return;
       }
       const normalRoleValue =
         effectiveSkillSuitabilityForAssignmentSlot(player, slot) /
         manMarkingMarkerRoleWeightTotal(role);
-      if (
-        typeof normalRoleValue !== "number" ||
-        !Number.isFinite(normalRoleValue) ||
-        normalRoleValue <= 0
-      ) {
+      if (typeof normalRoleValue !== "number") {
+        excludedMarkerMessages.push(
+          messages.seniorOtherOrdersManMarkingMarkerNormalValueUnavailable.replace(
+            "{{player}}",
+            playerName
+          )
+        );
+        return;
+      }
+      if (!Number.isFinite(normalRoleValue) || normalRoleValue <= 0) {
+        excludedMarkerMessages.push(
+          messages.seniorOtherOrdersManMarkingMarkerNormalValueInvalid.replace(
+            "{{player}}",
+            playerName
+          )
+        );
         return;
       }
       const specialty = specialtyValueForPlayer(player);
-      candidates.push({
-        playerId,
+      const specialtyMultiplier = getSeniorManMarkerSpecialtyMultiplier(specialty);
+      validMarkers.push({
+        id: playerId,
+        name: playerName,
         slot,
         role,
         specialty,
+        specialtyLabel: seniorSpecialtyName(specialty) ?? messages.specialtyNone,
+        specialtyMultiplier,
         baseEffectiveDefending,
-        adjustedMarkingStrength:
-          baseEffectiveDefending * getSeniorManMarkerSpecialtyMultiplier(specialty),
+        adjustedMarkingStrength: baseEffectiveDefending * specialtyMultiplier,
         normalRoleValue,
       });
     });
-    return candidates;
+    return {
+      validMarkers,
+      excludedMarkerMessages,
+      status:
+        validMarkers.length > 0
+          ? "validMarkers"
+          : occupiedEligibleSlots === 0
+            ? "noEligiblePosition"
+            : "dataUnavailable",
+    };
   }
 
   function buildSeniorManMarkingTargetCandidates(
@@ -14925,6 +15327,337 @@ const refreshDetailsForPlayers = async (
         specialty: target.specialty,
         estimatedEffectiveMainSkill: target.estimatedEffectiveMainSkill,
       }));
+  }
+
+  function buildSeniorManMarkingTargetExplanation(
+    target: OpponentTargetPlayer
+  ): SeniorManMarkingExplanationTarget | null {
+    if (
+      !isSeniorManMarkingTargetRole(target.role) ||
+      typeof target.estimatedEffectiveMainSkill !== "number" ||
+      !Number.isFinite(target.estimatedEffectiveMainSkill) ||
+      target.estimatedEffectiveMainSkill <= 0
+    ) {
+      return null;
+    }
+    const specialtyMultiplier = getSeniorManMarkingTargetSpecialtyMultiplier(
+      target.specialty
+    );
+    return {
+      id: target.playerId,
+      name: target.name,
+      role: target.role,
+      specialty: target.specialty,
+      specialtyLabel: seniorSpecialtyName(target.specialty) ?? messages.specialtyNone,
+      specialtyMultiplier,
+      observedRoleCount: target.observedRoleCount,
+      analysedMatchCount: target.analysedMatchCount,
+      roleConsistencyPercent: target.roleConsistencyPercent,
+      detailsLoaded: target.mainSkillEstimateKind !== "detailsUnavailable",
+      estimatedRawMainSkill: target.estimatedRawMainSkill,
+      estimatedEffectiveMainSkill: target.estimatedEffectiveMainSkill,
+      adjustedTargetComparisonStrength:
+        target.estimatedEffectiveMainSkill * specialtyMultiplier,
+      mainSkillEstimateKind: target.mainSkillEstimateKind,
+    };
+  }
+
+  function buildSeniorManMarkingPairExplanation(
+    evaluation: SeniorManMarkingPairEvaluation | null,
+    markers: SeniorManMarkingExplanationMarker[],
+    targets: SeniorManMarkingExplanationTarget[]
+  ): SeniorManMarkingExplanationPair | null {
+    if (!evaluation) return null;
+    const marker =
+      markers.find((candidate) => candidate.id === evaluation.markerPlayerId) ?? null;
+    const target =
+      targets.find(
+        (candidate) =>
+          candidate.id === evaluation.targetPlayerId &&
+          candidate.role === evaluation.targetRole
+      ) ?? null;
+    if (!marker || !target) return null;
+    return { evaluation, marker, target };
+  }
+
+  function inferOpponentManMarkingRoleFromRows(
+    rows: OpponentFormationRow[],
+    playerId: number
+  ): {
+    role: SeniorManMarkingTargetRole;
+    observedRoleCount: number;
+    analysedMatchCount: number;
+    roleConsistencyPercent: number;
+  } | null {
+    const fixedRoleOrder: SeniorManMarkingTargetRole[] = ["F", "W", "IM"];
+    const counts = new Map<
+      SeniorManMarkingTargetRole,
+      { count: number; latestIndex: number }
+    >();
+    rows.forEach((row, rowIndex) => {
+      const seenRoles = new Set<SeniorManMarkingTargetRole>();
+      row.trackedPlayers.forEach((player) => {
+        if (player.playerId !== playerId || !isSeniorManMarkingTargetRole(player.role)) {
+          return;
+        }
+        seenRoles.add(player.role);
+      });
+      seenRoles.forEach((role) => {
+        const current = counts.get(role);
+        counts.set(role, {
+          count: (current?.count ?? 0) + 1,
+          latestIndex:
+            current === undefined ? rowIndex : Math.min(current.latestIndex, rowIndex),
+        });
+      });
+    });
+    const best =
+      Array.from(counts.entries()).sort((left, right) => {
+        if (right[1].count !== left[1].count) return right[1].count - left[1].count;
+        if (left[1].latestIndex !== right[1].latestIndex) {
+          return left[1].latestIndex - right[1].latestIndex;
+        }
+        return fixedRoleOrder.indexOf(left[0]) - fixedRoleOrder.indexOf(right[0]);
+      })[0] ?? null;
+    if (!best || rows.length === 0) return null;
+    return {
+      role: best[0],
+      observedRoleCount: best[1].count,
+      analysedMatchCount: rows.length,
+      roleConsistencyPercent: (best[1].count / rows.length) * 100,
+    };
+  }
+
+  async function resolveOpponentTargetForExplanation(
+    playerId: number,
+    fallbackName: string,
+    context: OpponentFormationContext | null
+  ): Promise<OpponentTargetPlayer | null> {
+    if (!context) return null;
+    const inferred = inferOpponentManMarkingRoleFromRows(context.rows, playerId);
+    if (!inferred) return null;
+    const snapshot = await fetchOpponentTargetPlayer(playerId, fallbackName);
+    const baseTarget = {
+      playerId,
+      role: inferred.role,
+      name: snapshot?.name || fallbackName,
+      count: inferred.observedRoleCount,
+      salary: snapshot?.salary ?? null,
+      age: snapshot?.age ?? null,
+      specialty: snapshot?.specialty ?? null,
+      wageIncludesForeignBonus: snapshot?.wageIncludesForeignBonus ?? null,
+      loyalty: snapshot?.loyalty ?? null,
+      motherClubBonus: snapshot?.motherClubBonus ?? null,
+      form: snapshot?.form ?? null,
+      stamina: snapshot?.stamina ?? null,
+    };
+    const estimateReport = snapshot
+      ? estimateOpponentTargetMainSkillReport(baseTarget)
+      : {
+          estimatedRawMainSkill: null,
+          estimatedEffectiveMainSkill: null,
+          mainSkillEstimateKind: "detailsUnavailable" as const,
+        };
+    return {
+      playerId,
+      role: inferred.role,
+      name: snapshot?.name || fallbackName,
+      observedRoleCount: inferred.observedRoleCount,
+      analysedMatchCount: inferred.analysedMatchCount,
+      roleConsistencyPercent: inferred.roleConsistencyPercent,
+      tsi: snapshot?.tsi ?? null,
+      stamina: snapshot?.stamina ?? null,
+      ageDays: snapshot?.ageDays ?? null,
+      salary: snapshot?.salary ?? null,
+      age: snapshot?.age ?? null,
+      specialty: snapshot?.specialty ?? null,
+      form: snapshot?.form ?? null,
+      loyalty: snapshot?.loyalty ?? null,
+      motherClubBonus: snapshot?.motherClubBonus ?? null,
+      wageIncludesForeignBonus: snapshot?.wageIncludesForeignBonus ?? null,
+      ...estimateReport,
+    };
+  }
+
+  function buildSeniorManMarkingGeneratedReport(
+    matchId: number,
+    signature: string,
+    chosenAssignments: LineupAssignments,
+    opponentContext: OpponentFormationContext,
+    decision: SeniorManMarkingPairDecision
+  ): SeniorManMarkingGeneratedReport {
+    const markerDiagnostics = buildSeniorManMarkingMarkerExplanation(chosenAssignments);
+    const targets = opponentContext.manMarkingTargets
+      .map(buildSeniorManMarkingTargetExplanation)
+      .filter(
+        (target): target is SeniorManMarkingExplanationTarget => Boolean(target)
+      );
+    const hasDetailsFailure = opponentContext.potentialManMarkingTargets.some(
+      (target) => target.mainSkillEstimateKind === "detailsUnavailable"
+    );
+    const hasEstimateFailure = opponentContext.potentialManMarkingTargets.some(
+      (target) =>
+        target.mainSkillEstimateKind === "tooOld" ||
+        target.mainSkillEstimateKind === "unavailable" ||
+        (target.mainSkillEstimateKind === "estimated" &&
+          target.estimatedEffectiveMainSkill === null)
+    );
+    return {
+      matchId,
+      signature,
+      fuzziness: seniorAiManMarkingFuzziness,
+      markers: markerDiagnostics.validMarkers,
+      excludedMarkers: markerDiagnostics.excludedMarkerMessages,
+      targets,
+      potentialTargetCount: opponentContext.potentialManMarkingTargets.length,
+      analysedMatchCount: opponentContext.rows.length,
+      consistencyThreshold: opponentContext.manMarkingFuzziness,
+      targetDiagnosticStatus:
+        opponentContext.rows.length === 0
+          ? "noHistory"
+          : opponentContext.potentialManMarkingTargets.length === 0
+            ? "noConsistentTarget"
+            : targets.length > 0
+              ? "validTargets"
+              : hasDetailsFailure
+                ? "detailsUnavailable"
+                : hasEstimateFailure
+                  ? "estimateUnavailable"
+                  : "estimateUnavailable",
+      markerDiagnosticStatus: markerDiagnostics.status,
+      decision,
+    };
+  }
+
+  function buildSeniorManMarkingExplanationData(
+    currentTarget: SeniorManMarkingExplanationTarget | null,
+    targetStatus: SeniorManMarkingExplanationData["targetStatus"],
+    targetInvalidReason: string | null,
+    loading: boolean
+  ): SeniorManMarkingExplanationData | null {
+    if (!effectiveSeniorAiManMarkingEnabled || !otherOrdersDraft) return null;
+    const generatedReport = effectiveSeniorAiManMarkingGeneratedReport;
+    const markerDiagnostics = buildSeniorManMarkingMarkerExplanation(assignments);
+    const markerId = otherOrdersDraft.manMarkingOrder?.subjectPlayerId ?? null;
+    const targetId = otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null;
+    const currentMarker =
+      typeof markerId === "number" && markerId > 0
+        ? markerDiagnostics.validMarkers.find((marker) => marker.id === markerId) ?? null
+        : null;
+    const markerInvalidReason =
+      typeof markerId === "number" && markerId > 0 && !currentMarker
+        ? !FIELD_SLOT_ORDER.some((slot) => assignments[slot] === markerId)
+          ? messages.seniorOtherOrdersManMarkingInvalidMarkerPosition
+          : messages.seniorOtherOrdersManMarkingMarkerDataUnavailable
+        : null;
+    const currentPair =
+      currentMarker && currentTarget
+        ? buildSeniorManMarkingPairExplanation(
+            evaluateSeniorManMarkingPair(
+              {
+                playerId: currentMarker.id,
+                slot: currentMarker.slot,
+                role: currentMarker.role,
+                specialty: currentMarker.specialty,
+                baseEffectiveDefending: currentMarker.baseEffectiveDefending,
+                adjustedMarkingStrength: currentMarker.adjustedMarkingStrength,
+                normalRoleValue: currentMarker.normalRoleValue,
+              },
+              {
+                playerId: currentTarget.id,
+                role: currentTarget.role,
+                specialty: currentTarget.specialty,
+                estimatedEffectiveMainSkill:
+                  currentTarget.estimatedEffectiveMainSkill ?? 0,
+              }
+            ),
+            markerDiagnostics.validMarkers,
+            [currentTarget]
+          )
+        : null;
+    const generatedPairs = generatedReport
+      ? generatedReport.decision.evaluations
+          .map((evaluation) =>
+            buildSeniorManMarkingPairExplanation(
+              evaluation,
+              generatedReport.markers,
+              generatedReport.targets
+            )
+          )
+          .filter((pair): pair is SeniorManMarkingExplanationPair => Boolean(pair))
+      : [];
+    const originalRecommendedPair =
+      generatedReport?.decision.selectedPair
+        ? buildSeniorManMarkingPairExplanation(
+            generatedReport.decision.selectedPair,
+            generatedReport.markers,
+            generatedReport.targets
+          )
+        : null;
+    const nextBestPair =
+      currentPair !== null
+        ? generatedPairs.find(
+            (pair) =>
+              pair.evaluation.markerPlayerId !== currentPair.evaluation.markerPlayerId ||
+              pair.evaluation.targetPlayerId !== currentPair.evaluation.targetPlayerId ||
+              pair.evaluation.targetRole !== currentPair.evaluation.targetRole
+          ) ?? null
+        : generatedPairs[1] ?? null;
+    const bestRejectedPair =
+      generatedReport?.decision.bestRejectedPair
+        ? buildSeniorManMarkingPairExplanation(
+            generatedReport.decision.bestRejectedPair,
+            generatedReport.markers,
+            generatedReport.targets
+          )
+        : null;
+    const currentMatchesGenerated =
+      currentPair !== null &&
+      originalRecommendedPair !== null &&
+      currentPair.evaluation.markerPlayerId ===
+        originalRecommendedPair.evaluation.markerPlayerId &&
+      currentPair.evaluation.targetPlayerId ===
+        originalRecommendedPair.evaluation.targetPlayerId &&
+      currentPair.evaluation.targetRole === originalRecommendedPair.evaluation.targetRole;
+    const currentMatchesInitial =
+      otherOrdersInitialManMarkingPair !== null &&
+      (markerId ?? null) === otherOrdersInitialManMarkingPair.markerId &&
+      (targetId ?? null) === otherOrdersInitialManMarkingPair.targetId;
+    const source: SeniorManMarkingExplanationData["source"] =
+      otherOrdersManMarkingOrigin === "generated"
+        ? currentMatchesGenerated
+          ? "recommended"
+          : "modifiedRecommendation"
+        : otherOrdersManMarkingOrigin === "loaded"
+          ? currentMatchesInitial
+            ? "loaded"
+            : "modifiedLoaded"
+          : "manual";
+    return {
+      enabled: true,
+      loading,
+      source,
+      currentMarker,
+      currentTarget,
+      currentPair,
+      originalRecommendedPair,
+      nextBestPair,
+      bestRejectedPair,
+      decision: generatedReport?.decision ?? null,
+      markerStatus: markerDiagnostics.status,
+      targetStatus,
+      validMarkers: markerDiagnostics.validMarkers,
+      validTargets: generatedReport?.targets ?? (currentTarget ? [currentTarget] : []),
+      excludedMarkerMessages: markerDiagnostics.excludedMarkerMessages,
+      potentialTargetCount: generatedReport?.potentialTargetCount ?? 0,
+      analysedMatchCount: generatedReport?.analysedMatchCount ?? 0,
+      consistencyThreshold:
+        generatedReport?.consistencyThreshold ?? seniorAiManMarkingFuzziness,
+      markerSelected: typeof markerId === "number" && markerId > 0,
+      targetSelected: typeof targetId === "number" && targetId > 0,
+      markerInvalidReason,
+      targetInvalidReason,
+    };
   }
 
   useEffect(() => {
@@ -15012,17 +15745,22 @@ const refreshDetailsForPlayers = async (
         resolvedTargets: [],
       };
     }
-    const enrichedCandidates = (
+    const enrichedCandidates: OpponentPotentialTargetPlayer[] =
       await mapWithConcurrency(
         consistentPlayers,
         OPPONENT_DETAILS_CONCURRENCY,
-        async (entry) => {
+        async (entry): Promise<OpponentPotentialTargetPlayer> => {
           const snapshot = await fetchOpponentTargetPlayer(entry.playerId, entry.name);
           const baseTarget = {
             playerId: entry.playerId,
             role: entry.role,
             name: snapshot?.name || entry.name,
             count: entry.count,
+            analysedMatchCount: rows.length,
+            roleConsistencyPercent:
+              rows.length > 0 ? (entry.count / rows.length) * 100 : 0,
+            thresholdMet: true,
+            detailsLoaded: Boolean(snapshot),
             tsi: snapshot?.tsi ?? null,
             stamina: snapshot?.stamina ?? null,
             ageDays: snapshot?.ageDays ?? null,
@@ -15034,14 +15772,19 @@ const refreshDetailsForPlayers = async (
             motherClubBonus: snapshot?.motherClubBonus ?? null,
             wageIncludesForeignBonus: snapshot?.wageIncludesForeignBonus ?? null,
           };
+          const estimateReport = snapshot
+            ? estimateOpponentTargetMainSkillReport(baseTarget)
+            : {
+                estimatedRawMainSkill: null,
+                estimatedEffectiveMainSkill: null,
+                mainSkillEstimateKind: "detailsUnavailable" as const,
+              };
           return {
             ...baseTarget,
-            estimatedEffectiveMainSkill:
-              estimateOpponentTargetEffectiveMainSkill(baseTarget),
+            ...estimateReport,
           } satisfies OpponentPotentialTargetPlayer;
         }
-      )
-    ).filter((entry): entry is OpponentPotentialTargetPlayer => Boolean(entry));
+      );
     const resolvedCandidates = enrichedCandidates
       .filter(
         (
@@ -15058,6 +15801,9 @@ const refreshDetailsForPlayers = async (
             playerId: entry.playerId,
             role: entry.role,
             name: entry.name,
+            observedRoleCount: entry.count,
+            analysedMatchCount: entry.analysedMatchCount,
+            roleConsistencyPercent: entry.roleConsistencyPercent,
             tsi: entry.tsi,
             stamina: entry.stamina,
             ageDays: entry.ageDays,
@@ -15068,6 +15814,8 @@ const refreshDetailsForPlayers = async (
             loyalty: entry.loyalty,
             motherClubBonus: entry.motherClubBonus,
             wageIncludesForeignBonus: entry.wageIncludesForeignBonus,
+            estimatedRawMainSkill: entry.estimatedRawMainSkill,
+            mainSkillEstimateKind: entry.mainSkillEstimateKind,
             estimatedEffectiveMainSkill: entry.estimatedEffectiveMainSkill,
           }) satisfies OpponentTargetPlayer
       );
@@ -16038,10 +16786,11 @@ const refreshDetailsForPlayers = async (
         ) {
           return null;
         }
-        const bestPair = selectBestSeniorManMarkingPair(
+        const decision = buildSeniorManMarkingPairDecision(
           buildSeniorManMarkingMarkerCandidates(chosenAssignments),
           buildSeniorManMarkingTargetCandidates(targets)
         );
+        const bestPair = decision.selectedPair;
         if (!bestPair) return null;
         const markerPlayer = playersById.get(bestPair.markerPlayerId);
         const target =
@@ -16062,6 +16811,7 @@ const refreshDetailsForPlayers = async (
             normalRoleValue: bestPair.normalRoleValue,
           },
           target,
+          decision,
         };
       };
 
@@ -16258,6 +17008,29 @@ const refreshDetailsForPlayers = async (
               behaviors: chosenBehaviors,
             }) ?? "",
         });
+        setSeniorAiManMarkingGeneratedReport(
+          buildSeniorManMarkingGeneratedReport(
+            matchId,
+            buildSeniorAiManMarkingReadySignature({
+              matchId,
+              mode:
+                mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
+                  ? mode
+                  : null,
+              tacticType: chosenTactic,
+              assignments: chosenAssignments,
+              behaviors: chosenBehaviors,
+            }) ?? "",
+            chosenAssignments,
+            opponentContext,
+            selectedManMarking?.decision ??
+              buildSeniorManMarkingPairDecision(
+                buildSeniorManMarkingMarkerCandidates(chosenAssignments),
+                buildSeniorManMarkingTargetCandidates(opponentContext.manMarkingTargets)
+              )
+          )
+        );
+        setOtherOrdersManMarkingOrigin("generated");
         setExtraTimePreparedSubmission(null);
         lockSeniorAiSubmitToMatch(
           matchId,
@@ -16871,6 +17644,7 @@ const refreshDetailsForPlayers = async (
     setSeniorAiManMarkingFuzziness(SENIOR_AI_MAN_MARKING_FUZZINESS_DEFAULT);
     setSeniorAiManMarkingEnabled(false);
     setSeniorAiManMarkingTarget(null);
+    setSeniorAiManMarkingGeneratedReport(null);
     setExtraTimeBTeamRecentMatchState({
       status: "idle",
       recentMatch: null,
@@ -20960,6 +21734,9 @@ const refreshDetailsForPlayers = async (
                       value={otherOrdersDraft.manMarkingOrder?.subjectPlayerId ?? 0}
                       onChange={(event) => {
                         const nextMarkerId = Number(event.target.value) || null;
+                        if (!otherOrdersDraft.manMarkingOrder) {
+                          setOtherOrdersManMarkingOrigin("manual");
+                        }
                         updateOtherOrdersDraft((draft) => ({
                           ...draft,
                           source: "mixed",
@@ -21108,6 +21885,11 @@ const refreshDetailsForPlayers = async (
                     ) : null}
                   </label>
                 </div>
+                <SeniorManMarkingExplanation
+                  data={seniorOtherOrdersManMarkingExplanation}
+                  messages={messages}
+                  locale={numberFormatLocale}
+                />
               </section>
               <section className={styles.seniorOtherOrdersSection}>
                 <h3>{messages.seniorOtherOrdersPenaltyTakersTitle}</h3>

@@ -1698,11 +1698,13 @@ export const messagesEn: Messages = {
     seniorOtherOrdersUnknownOpponentPlayer: "Player {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Man marking explanation",
     seniorOtherOrdersManMarkingRecommendationTitle: "Recommendation",
-    seniorOtherOrdersManMarkingSourceRecommended: "Recommended by lineup algorithm",
-    seniorOtherOrdersManMarkingSourceManual: "Manually selected",
-    seniorOtherOrdersManMarkingSourceLoaded: "Loaded from existing match orders",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Manually modified recommendation",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Manually modified loaded order",
+    seniorOtherOrdersManMarkingSourceRecommended: "Algorithm recommendation",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "No recommendation",
+    seniorOtherOrdersManMarkingSourceManual: "Manual selection",
+    seniorOtherOrdersManMarkingSourceLoaded: "Loaded order",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Changed from algorithm recommendation",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Changed loaded order",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Why this target",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Why this marker",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Expected match effect",
@@ -1726,6 +1728,20 @@ export const messagesEn: Messages = {
       "Historical candidates existed, but the target player details could not be loaded.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable:
       "Target details were available, but no usable estimated effective main skill could be produced.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Target details were available, but salary data was unavailable.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Target details were available, but age data was unavailable.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Target details were available, but the player is outside the supported age range for the wage model.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Target details were available, but no wage-based raw main-skill estimate could be produced.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Target details were available, but form data was unavailable.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Target details were available, but stamina data was unavailable.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "A raw main-skill estimate was produced, but it could not be converted into an estimated effective main skill.",
     seniorOtherOrdersManMarkingNoEligibleMarker:
       "No eligible central defender, wingback or inner midfielder is currently in the starting lineup.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable:

@@ -1730,11 +1730,13 @@ export const messagesDe: Messages = {
     seniorOtherOrdersUnknownOpponentPlayer: "Spieler {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Manndeckungserklärung",
     seniorOtherOrdersManMarkingRecommendationTitle: "Empfehlung",
-    seniorOtherOrdersManMarkingSourceRecommended: "Vom Aufstellungsalgorithmus empfohlen",
-    seniorOtherOrdersManMarkingSourceManual: "Manuell ausgewählt",
-    seniorOtherOrdersManMarkingSourceLoaded: "Aus bestehenden Spielanweisungen geladen",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Manuell geänderte Empfehlung",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Manuell geänderte geladene Anweisung",
+    seniorOtherOrdersManMarkingSourceRecommended: "Algorithmusempfehlung",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Keine Empfehlung",
+    seniorOtherOrdersManMarkingSourceManual: "Manuelle Auswahl",
+    seniorOtherOrdersManMarkingSourceLoaded: "Geladene Anweisung",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Von der Algorithmusempfehlung geändert",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Geladene Anweisung geändert",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Warum dieses Ziel",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Warum dieser Manndecker",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Erwartete Wirkung im Spiel",
@@ -1752,6 +1754,20 @@ export const messagesDe: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Kein Stürmer, Flügelspieler oder innerer Mittelfeldspieler erreichte die eingestellte Konstanzschwelle.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Historische Kandidaten wurden gefunden, aber die Spielerdetails des Ziels konnten nicht geladen werden.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Zieldetails waren verfügbar, aber es konnte keine nutzbare geschätzte effektive Hauptfähigkeit berechnet werden.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Zieldetails waren verfügbar, aber Gehaltsdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Zieldetails waren verfügbar, aber Altersdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Zieldetails waren verfügbar, aber der Spieler liegt außerhalb des unterstützten Altersbereichs des Gehaltsmodells.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Zieldetails waren verfügbar, aber es konnte keine gehaltsbasierte rohe Hauptfähigkeits-Schätzung erstellt werden.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Zieldetails waren verfügbar, aber Formdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Zieldetails waren verfügbar, aber Konditionsdaten fehlten.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "Eine rohe Hauptfähigkeits-Schätzung wurde erstellt, konnte aber nicht in eine geschätzte effektive Hauptfähigkeit umgerechnet werden.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "Aktuell steht kein geeigneter Innenverteidiger, Außenverteidiger oder innerer Mittelfeldspieler in der Startelf.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Geeignete Positionen existieren, aber effektive Verteidigung oder normaler Positionswert konnten nicht berechnet werden.",
     seniorOtherOrdersManMarkingNoPositivePair: "Gültige Manndecker und Ziele wurden gefunden, aber jedes geprüfte Paar hatte einen geschätzten Nettovorteil von null oder darunter.",

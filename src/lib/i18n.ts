@@ -1383,6 +1383,7 @@ export type Messages = {
   seniorOtherOrdersManMarkingExplanationTitle: string;
   seniorOtherOrdersManMarkingRecommendationTitle: string;
   seniorOtherOrdersManMarkingSourceRecommended: string;
+  seniorOtherOrdersManMarkingSourceNoRecommendation: string;
   seniorOtherOrdersManMarkingSourceManual: string;
   seniorOtherOrdersManMarkingSourceLoaded: string;
   seniorOtherOrdersManMarkingSourceModifiedRecommendation: string;
@@ -1404,6 +1405,13 @@ export type Messages = {
   seniorOtherOrdersManMarkingNoConsistentTarget: string;
   seniorOtherOrdersManMarkingTargetDetailsUnavailable: string;
   seniorOtherOrdersManMarkingTargetEstimateUnavailable: string;
+  seniorOtherOrdersManMarkingTargetSalaryUnavailable: string;
+  seniorOtherOrdersManMarkingTargetAgeUnavailable: string;
+  seniorOtherOrdersManMarkingTargetTooOld: string;
+  seniorOtherOrdersManMarkingTargetRawEstimateUnavailable: string;
+  seniorOtherOrdersManMarkingTargetFormUnavailable: string;
+  seniorOtherOrdersManMarkingTargetStaminaUnavailable: string;
+  seniorOtherOrdersManMarkingTargetEffectiveUnavailable: string;
   seniorOtherOrdersManMarkingNoEligibleMarker: string;
   seniorOtherOrdersManMarkingMarkerDataUnavailable: string;
   seniorOtherOrdersManMarkingNoPositivePair: string;

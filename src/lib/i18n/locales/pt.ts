@@ -1750,11 +1750,13 @@ export const messagesPt: Messages = {
     seniorOtherOrdersUnknownOpponentPlayer: "Jogador {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Explicação da marcação individual",
     seniorOtherOrdersManMarkingRecommendationTitle: "Recomendação",
-    seniorOtherOrdersManMarkingSourceRecommended: "Recomendado pelo algoritmo de alinhamento",
-    seniorOtherOrdersManMarkingSourceManual: "Selecionado manualmente",
-    seniorOtherOrdersManMarkingSourceLoaded: "Carregado das ordens existentes",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Recomendação modificada manualmente",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ordem carregada modificada manualmente",
+    seniorOtherOrdersManMarkingSourceRecommended: "Recomendação do algoritmo",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Sem recomendação",
+    seniorOtherOrdersManMarkingSourceManual: "Seleção manual",
+    seniorOtherOrdersManMarkingSourceLoaded: "Ordem carregada",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Alterado face à recomendação do algoritmo",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ordem carregada alterada",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Porquê este alvo",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Porquê este marcador",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Efeito esperado no jogo",
@@ -1772,6 +1774,20 @@ export const messagesPt: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Nenhum avançado, extremo ou médio interior atingiu o limite de consistência configurado.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Existiam candidatos históricos, mas não foi possível carregar os detalhes do alvo.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Os detalhes do alvo estavam disponíveis, mas não foi possível produzir uma habilidade principal efetiva estimada utilizável.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Os detalhes do alvo estavam disponíveis, mas faltavam dados de salário.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Os detalhes do alvo estavam disponíveis, mas faltavam dados de idade.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Os detalhes do alvo estavam disponíveis, mas o jogador está fora do intervalo de idade suportado pelo modelo salarial.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Os detalhes do alvo estavam disponíveis, mas não foi possível produzir uma estimativa bruta da habilidade principal com base no salário.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Os detalhes do alvo estavam disponíveis, mas faltavam dados de forma.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Os detalhes do alvo estavam disponíveis, mas faltavam dados de resistência.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "Foi produzida uma estimativa bruta da habilidade principal, mas não foi possível convertê-la numa habilidade principal efetiva estimada.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "Nenhum defesa central, defesa lateral ou médio interior elegível está atualmente no onze inicial.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Existem posições elegíveis, mas não foi possível calcular a Defesa efetiva ou o valor normal da posição.",
     seniorOtherOrdersManMarkingNoPositivePair: "Foram encontrados marcadores e alvos válidos, mas todos os pares avaliados tinham benefício líquido estimado zero ou negativo.",

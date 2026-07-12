@@ -1751,11 +1751,13 @@ export const messagesIt: Messages = {
     seniorOtherOrdersUnknownOpponentPlayer: "Giocatore {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Spiegazione della marcatura a uomo",
     seniorOtherOrdersManMarkingRecommendationTitle: "Raccomandazione",
-    seniorOtherOrdersManMarkingSourceRecommended: "Raccomandato dall’algoritmo di formazione",
-    seniorOtherOrdersManMarkingSourceManual: "Selezionato manualmente",
-    seniorOtherOrdersManMarkingSourceLoaded: "Caricato dagli ordini esistenti",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Raccomandazione modificata manualmente",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ordine caricato modificato manualmente",
+    seniorOtherOrdersManMarkingSourceRecommended: "Raccomandazione dell’algoritmo",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Nessuna raccomandazione",
+    seniorOtherOrdersManMarkingSourceManual: "Selezione manuale",
+    seniorOtherOrdersManMarkingSourceLoaded: "Ordine caricato",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Modificato rispetto alla raccomandazione dell’algoritmo",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ordine caricato modificato",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Perché questo bersaglio",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Perché questo marcatore",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Effetto atteso in partita",
@@ -1773,6 +1775,20 @@ export const messagesIt: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Nessun attaccante, ala o centrocampista centrale ha raggiunto la soglia di continuità configurata.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Esistevano candidati storici, ma non è stato possibile caricare i dettagli del bersaglio.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "I dettagli del bersaglio erano disponibili, ma non è stato possibile produrre una stima efficace utilizzabile della skill principale.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "I dettagli del bersaglio erano disponibili, ma mancavano i dati dello stipendio.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "I dettagli del bersaglio erano disponibili, ma mancavano i dati dell’età.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "I dettagli del bersaglio erano disponibili, ma il giocatore è fuori dall’intervallo di età supportato dal modello salariale.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "I dettagli del bersaglio erano disponibili, ma non è stato possibile produrre una stima grezza della skill principale basata sullo stipendio.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "I dettagli del bersaglio erano disponibili, ma mancavano i dati della forma.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "I dettagli del bersaglio erano disponibili, ma mancavano i dati della resistenza.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "È stata prodotta una stima grezza della skill principale, ma non è stato possibile convertirla in una skill principale effettiva stimata.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "Nessun difensore centrale, terzino o centrocampista centrale idoneo è attualmente nell’undici iniziale.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Esistono posizioni idonee, ma non è stato possibile calcolare Difesa effettiva o valore normale del ruolo.",
     seniorOtherOrdersManMarkingNoPositivePair: "Sono stati trovati marcatori e bersagli validi, ma ogni coppia valutata aveva beneficio netto stimato nullo o negativo.",

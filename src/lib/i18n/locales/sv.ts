@@ -1736,11 +1736,13 @@ export const messagesSv: Messages = {
     seniorOtherOrdersUnknownOpponentPlayer: "Spelare {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Förklaring av man-markering",
     seniorOtherOrdersManMarkingRecommendationTitle: "Rekommendation",
-    seniorOtherOrdersManMarkingSourceRecommended: "Rekommenderad av uppställningsalgoritmen",
-    seniorOtherOrdersManMarkingSourceManual: "Manuellt vald",
-    seniorOtherOrdersManMarkingSourceLoaded: "Laddad från befintliga matchorder",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Manuellt ändrad rekommendation",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Manuellt ändrad laddad order",
+    seniorOtherOrdersManMarkingSourceRecommended: "Algoritmens rekommendation",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Ingen rekommendation",
+    seniorOtherOrdersManMarkingSourceManual: "Manuellt val",
+    seniorOtherOrdersManMarkingSourceLoaded: "Laddad order",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Ändrad från algoritmens rekommendation",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ändrad laddad order",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Varför detta mål",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Varför denna markering",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Förväntad matchpåverkan",
@@ -1758,6 +1760,20 @@ export const messagesSv: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Ingen forward, ytter eller innermittfältare nådde den inställda konsekvenströskeln.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Historiska kandidater fanns, men målets spelardetaljer kunde inte laddas.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Måldetaljer fanns, men ingen användbar uppskattad effektiv huvudfärdighet kunde tas fram.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Måldetaljer fanns, men löneuppgifter saknades.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Måldetaljer fanns, men åldersuppgifter saknades.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Måldetaljer fanns, men spelaren ligger utanför lönemodellens stödda åldersintervall.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Måldetaljer fanns, men ingen lönebaserad rå uppskattning av huvudfärdighet kunde tas fram.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Måldetaljer fanns, men formuppgifter saknades.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Måldetaljer fanns, men uthållighetsuppgifter saknades.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "En rå uppskattning av huvudfärdighet togs fram, men kunde inte omvandlas till en uppskattad effektiv huvudfärdighet.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "Ingen giltig mittback, ytterback eller innermittfältare finns i startelvan just nu.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Giltiga positioner finns, men effektivt försvar eller normalt positionsvärde kunde inte beräknas.",
     seniorOtherOrdersManMarkingNoPositivePair: "Giltiga markerare och mål hittades, men varje utvärderat par hade noll eller negativ uppskattad nettofördel.",

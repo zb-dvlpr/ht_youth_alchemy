@@ -932,6 +932,23 @@ type OpponentTrackedLineupPlayer = {
   name: string;
 };
 
+type OpponentTargetMainSkillEstimateKind =
+  | "estimated"
+  | "tooOld"
+  | "unavailable"
+  | "detailsUnavailable";
+
+type OpponentTargetEstimateFailureReason =
+  | "detailsUnavailable"
+  | "salaryUnavailable"
+  | "ageUnavailable"
+  | "tooOld"
+  | "rawEstimateUnavailable"
+  | "formUnavailable"
+  | "staminaUnavailable"
+  | "effectiveCalculationUnavailable"
+  | null;
+
 type OpponentTargetPlayer = {
   playerId: number;
   role: OpponentTrackedRole;
@@ -950,7 +967,8 @@ type OpponentTargetPlayer = {
   motherClubBonus: boolean | null;
   wageIncludesForeignBonus: boolean | null;
   estimatedRawMainSkill: number | null;
-  mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable" | "detailsUnavailable";
+  mainSkillEstimateKind: OpponentTargetMainSkillEstimateKind;
+  estimateFailureReason: OpponentTargetEstimateFailureReason;
   estimatedEffectiveMainSkill: number | null;
 };
 
@@ -974,8 +992,27 @@ type OpponentPotentialTargetPlayer = {
   motherClubBonus: boolean | null;
   wageIncludesForeignBonus: boolean | null;
   estimatedRawMainSkill: number | null;
-  mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable" | "detailsUnavailable";
+  mainSkillEstimateKind: OpponentTargetMainSkillEstimateKind;
+  estimateFailureReason: OpponentTargetEstimateFailureReason;
   estimatedEffectiveMainSkill: number | null;
+};
+
+const OPPONENT_TARGET_PLAYER_SNAPSHOT_VERSION = 2;
+
+type OpponentTargetPlayerSnapshot = {
+  snapshotVersion: typeof OPPONENT_TARGET_PLAYER_SNAPSHOT_VERSION;
+  playerId: number;
+  name: string;
+  tsi: number | null;
+  stamina: number | null;
+  ageDays: number | null;
+  salary: number | null;
+  age: number | null;
+  specialty: number | null;
+  form: number | null;
+  loyalty: number | null;
+  motherClubBonus: boolean | null;
+  wageIncludesForeignBonus: boolean | null;
 };
 
 type SeniorAiManMarkingRole = SeniorManMarkingMarkerRole;
@@ -1028,6 +1065,7 @@ type SeniorManMarkingGeneratedReport = {
     | "detailsUnavailable"
     | "estimateUnavailable"
     | "validTargets";
+  targetEstimateFailureReason: OpponentTargetEstimateFailureReason;
   markerDiagnosticStatus: "noEligiblePosition" | "dataUnavailable" | "validMarkers";
   decision: SeniorManMarkingPairDecision;
 };
@@ -4354,23 +4392,7 @@ export default function SeniorDashboard({
   );
   const opponentCupStatusCacheRef = useRef<Map<number, boolean>>(new Map());
   const opponentTargetPlayerCacheRef = useRef<
-    Map<
-      number,
-      {
-        playerId: number;
-        name: string;
-        tsi: number | null;
-        stamina: number | null;
-        ageDays: number | null;
-        salary: number | null;
-        age: number | null;
-        specialty: number | null;
-        form: number | null;
-        loyalty: number | null;
-        motherClubBonus: boolean | null;
-        wageIncludesForeignBonus: boolean | null;
-      } | null
-    >
+    Map<number, OpponentTargetPlayerSnapshot | null>
   >(
     new Map()
   );
@@ -12385,12 +12407,15 @@ function buildSeniorAiManMarkingReadySignature(params: {
     seniorOtherOrdersManMarkingTargetStatus,
     otherOrdersManMarkingTargetState.reason === "roleUnknown"
       ? messages.seniorOtherOrdersManMarkingTargetRoleUnknown
-      : otherOrdersManMarkingTargetState.target?.mainSkillEstimateKind ===
-            "detailsUnavailable"
-        ? messages.seniorOtherOrdersManMarkingTargetDetailsUnavailable
-        : otherOrdersManMarkingTargetState.target &&
-            !seniorOtherOrdersManMarkingExplanationTarget
-          ? messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable
+      : otherOrdersManMarkingTargetState.target &&
+          !seniorOtherOrdersManMarkingExplanationTarget
+        ? seniorManMarkingTargetEstimateFailureMessage(
+            otherOrdersManMarkingTargetState.target.estimateFailureReason
+          ) ?? messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable
+        : effectiveSeniorAiManMarkingGeneratedReport?.targetEstimateFailureReason
+          ? seniorManMarkingTargetEstimateFailureMessage(
+              effectiveSeniorAiManMarkingGeneratedReport.targetEstimateFailureReason
+            )
           : null,
     otherOrdersManMarkingContextState.status === "loading" ||
       otherOrdersManMarkingTargetState.status === "loading"
@@ -14997,23 +15022,13 @@ const refreshDetailsForPlayers = async (
   const fetchOpponentTargetPlayer = async (
     playerId: number,
     fallbackName: string
-  ): Promise<{
-    playerId: number;
-    name: string;
-    tsi: number | null;
-    stamina: number | null;
-    ageDays: number | null;
-    salary: number | null;
-    age: number | null;
-    specialty: number | null;
-    form: number | null;
-    loyalty: number | null;
-    motherClubBonus: boolean | null;
-    wageIncludesForeignBonus: boolean | null;
-  } | null> => {
+  ): Promise<OpponentTargetPlayerSnapshot | null> => {
     const cached = opponentTargetPlayerCacheRef.current.get(playerId);
     if (cached !== undefined) {
-      return cached;
+      if (cached === null || cached.snapshotVersion === OPPONENT_TARGET_PLAYER_SNAPSHOT_VERSION) {
+        return cached;
+      }
+      opponentTargetPlayerCacheRef.current.delete(playerId);
     }
     try {
       const { response, payload } = await fetchChppJson<{
@@ -15060,7 +15075,16 @@ const refreshDetailsForPlayers = async (
           : typeof nativeLeagueId === "number" && typeof owningLeagueId === "number"
             ? nativeLeagueId !== owningLeagueId
             : null;
-      const snapshot = {
+      const form =
+        parseNumber(playerNode.PlayerForm) ??
+        parseNumber(playerNode.Form) ??
+        parseNumber(playerSkills?.Form) ??
+        parseNumber(playerSkills?.PlayerForm);
+      const stamina =
+        parseNumber(playerNode.StaminaSkill) ??
+        parseNumber(playerSkills?.StaminaSkill);
+      const snapshot: OpponentTargetPlayerSnapshot = {
+        snapshotVersion: OPPONENT_TARGET_PLAYER_SNAPSHOT_VERSION,
         playerId,
         name:
           formatPlayerName({
@@ -15079,8 +15103,8 @@ const refreshDetailsForPlayers = async (
         salary: parseNumber(playerNode.Salary),
         age,
         specialty: parseNumber(playerNode.Specialty),
-        form: playerSkills ? parseNumber(playerSkills.Form) : null,
-        stamina: playerSkills ? parseNumber(playerSkills.StaminaSkill) : null,
+        form,
+        stamina,
         loyalty: parseNumber(playerNode.Loyalty),
         motherClubBonus: parseBoolean(
           trainerData?.MotherClubBonus ?? playerNode.MotherClubBonus
@@ -15138,13 +15162,38 @@ const refreshDetailsForPlayers = async (
   ): {
     estimatedRawMainSkill: number | null;
     estimatedEffectiveMainSkill: number | null;
-    mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable";
+    mainSkillEstimateKind: Exclude<
+      OpponentTargetMainSkillEstimateKind,
+      "detailsUnavailable"
+    >;
+    estimateFailureReason: OpponentTargetEstimateFailureReason;
   } {
     if (!isSeniorManMarkingTargetRole(target.role)) {
       return {
         estimatedRawMainSkill: null,
         estimatedEffectiveMainSkill: null,
         mainSkillEstimateKind: "unavailable",
+        estimateFailureReason: "rawEstimateUnavailable",
+      };
+    }
+    if (
+      typeof target.salary !== "number" ||
+      !Number.isFinite(target.salary) ||
+      target.salary <= 0
+    ) {
+      return {
+        estimatedRawMainSkill: null,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "unavailable",
+        estimateFailureReason: "salaryUnavailable",
+      };
+    }
+    if (typeof target.age !== "number" || !Number.isFinite(target.age)) {
+      return {
+        estimatedRawMainSkill: null,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "unavailable",
+        estimateFailureReason: "ageUnavailable",
       };
     }
     const estimation = estimateChronicleMainSkillFromWage({
@@ -15164,18 +15213,50 @@ const refreshDetailsForPlayers = async (
         estimatedRawMainSkill: null,
         estimatedEffectiveMainSkill: null,
         mainSkillEstimateKind: estimation.kind,
+        estimateFailureReason:
+          estimation.kind === "tooOld" ? "tooOld" : "rawEstimateUnavailable",
       };
     }
-    return {
-      estimatedRawMainSkill: estimation.level,
-      estimatedEffectiveMainSkill: calculateEffectiveSkill({
+    if (typeof target.form !== "number" || !Number.isFinite(target.form)) {
+      return {
+        estimatedRawMainSkill: estimation.level,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "estimated",
+        estimateFailureReason: "formUnavailable",
+      };
+    }
+    if (typeof target.stamina !== "number" || !Number.isFinite(target.stamina)) {
+      return {
+        estimatedRawMainSkill: estimation.level,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "estimated",
+        estimateFailureReason: "staminaUnavailable",
+      };
+    }
+    const estimatedEffectiveMainSkill = calculateEffectiveSkill({
       rawSkill: estimation.level,
       loyalty: target.loyalty,
       motherClubBonus: target.motherClubBonus,
       form: target.form,
       stamina: target.stamina,
-      }),
+    });
+    if (
+      typeof estimatedEffectiveMainSkill !== "number" ||
+      !Number.isFinite(estimatedEffectiveMainSkill) ||
+      estimatedEffectiveMainSkill <= 0
+    ) {
+      return {
+        estimatedRawMainSkill: estimation.level,
+        estimatedEffectiveMainSkill: null,
+        mainSkillEstimateKind: "estimated",
+        estimateFailureReason: "effectiveCalculationUnavailable",
+      };
+    }
+    return {
+      estimatedRawMainSkill: estimation.level,
+      estimatedEffectiveMainSkill,
       mainSkillEstimateKind: "estimated",
+      estimateFailureReason: null,
     };
   }
 
@@ -15359,6 +15440,7 @@ const refreshDetailsForPlayers = async (
       adjustedTargetComparisonStrength:
         target.estimatedEffectiveMainSkill * specialtyMultiplier,
       mainSkillEstimateKind: target.mainSkillEstimateKind,
+      estimateFailureReason: target.estimateFailureReason,
     };
   }
 
@@ -15378,6 +15460,31 @@ const refreshDetailsForPlayers = async (
       ) ?? null;
     if (!marker || !target) return null;
     return { evaluation, marker, target };
+  }
+
+  function seniorManMarkingTargetEstimateFailureMessage(
+    reason: OpponentTargetEstimateFailureReason
+  ): string | null {
+    switch (reason) {
+      case "detailsUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetDetailsUnavailable;
+      case "salaryUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetSalaryUnavailable;
+      case "ageUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetAgeUnavailable;
+      case "tooOld":
+        return messages.seniorOtherOrdersManMarkingTargetTooOld;
+      case "rawEstimateUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetRawEstimateUnavailable;
+      case "formUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetFormUnavailable;
+      case "staminaUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetStaminaUnavailable;
+      case "effectiveCalculationUnavailable":
+        return messages.seniorOtherOrdersManMarkingTargetEffectiveUnavailable;
+      case null:
+        return null;
+    }
   }
 
   function inferOpponentManMarkingRoleFromRows(
@@ -15457,6 +15564,7 @@ const refreshDetailsForPlayers = async (
           estimatedRawMainSkill: null,
           estimatedEffectiveMainSkill: null,
           mainSkillEstimateKind: "detailsUnavailable" as const,
+          estimateFailureReason: "detailsUnavailable" as const,
         };
     return {
       playerId,
@@ -15502,6 +15610,10 @@ const refreshDetailsForPlayers = async (
         (target.mainSkillEstimateKind === "estimated" &&
           target.estimatedEffectiveMainSkill === null)
     );
+    const targetEstimateFailureReason =
+      opponentContext.potentialManMarkingTargets.find(
+        (target) => target.estimateFailureReason !== null
+      )?.estimateFailureReason ?? null;
     return {
       matchId,
       signature,
@@ -15524,6 +15636,7 @@ const refreshDetailsForPlayers = async (
                 : hasEstimateFailure
                   ? "estimateUnavailable"
                   : "estimateUnavailable",
+      targetEstimateFailureReason,
       markerDiagnosticStatus: markerDiagnostics.status,
       decision,
     };
@@ -15623,11 +15736,20 @@ const refreshDetailsForPlayers = async (
       otherOrdersInitialManMarkingPair !== null &&
       (markerId ?? null) === otherOrdersInitialManMarkingPair.markerId &&
       (targetId ?? null) === otherOrdersInitialManMarkingPair.targetId;
+    const hasCurrentManMarkingPair =
+      typeof markerId === "number" &&
+      markerId > 0 &&
+      typeof targetId === "number" &&
+      targetId > 0;
     const source: SeniorManMarkingExplanationData["source"] =
       otherOrdersManMarkingOrigin === "generated"
-        ? currentMatchesGenerated
-          ? "recommended"
-          : "modifiedRecommendation"
+        ? originalRecommendedPair
+          ? currentMatchesGenerated
+            ? "recommended"
+            : "modifiedRecommendation"
+          : hasCurrentManMarkingPair
+            ? "manual"
+            : "noRecommendation"
         : otherOrdersManMarkingOrigin === "loaded"
           ? currentMatchesInitial
             ? "loaded"
@@ -15778,6 +15900,7 @@ const refreshDetailsForPlayers = async (
                 estimatedRawMainSkill: null,
                 estimatedEffectiveMainSkill: null,
                 mainSkillEstimateKind: "detailsUnavailable" as const,
+                estimateFailureReason: "detailsUnavailable" as const,
               };
           return {
             ...baseTarget,
@@ -15793,7 +15916,8 @@ const refreshDetailsForPlayers = async (
           estimatedEffectiveMainSkill: number;
         } =>
           typeof entry.estimatedEffectiveMainSkill === "number" &&
-          Number.isFinite(entry.estimatedEffectiveMainSkill)
+          Number.isFinite(entry.estimatedEffectiveMainSkill) &&
+          entry.estimatedEffectiveMainSkill > 0
       )
       .map(
         (entry) =>
@@ -15816,6 +15940,7 @@ const refreshDetailsForPlayers = async (
             wageIncludesForeignBonus: entry.wageIncludesForeignBonus,
             estimatedRawMainSkill: entry.estimatedRawMainSkill,
             mainSkillEstimateKind: entry.mainSkillEstimateKind,
+            estimateFailureReason: entry.estimateFailureReason,
             estimatedEffectiveMainSkill: entry.estimatedEffectiveMainSkill,
           }) satisfies OpponentTargetPlayer
       );

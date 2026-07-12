@@ -1204,11 +1204,13 @@ export const messagesNl: Messages = {
   seniorOtherOrdersUnknownOpponentPlayer: "Speler {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Uitleg mandekking",
     seniorOtherOrdersManMarkingRecommendationTitle: "Aanbeveling",
-    seniorOtherOrdersManMarkingSourceRecommended: "Aanbevolen door het opstellingsalgoritme",
-    seniorOtherOrdersManMarkingSourceManual: "Handmatig geselecteerd",
-    seniorOtherOrdersManMarkingSourceLoaded: "Geladen uit bestaande wedstrijdorders",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Handmatig aangepaste aanbeveling",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Handmatig aangepaste geladen order",
+    seniorOtherOrdersManMarkingSourceRecommended: "Algoritme-aanbeveling",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Geen aanbeveling",
+    seniorOtherOrdersManMarkingSourceManual: "Handmatige selectie",
+    seniorOtherOrdersManMarkingSourceLoaded: "Geladen order",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Gewijzigd ten opzichte van de algoritme-aanbeveling",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Geladen order gewijzigd",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Waarom dit doelwit",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Waarom deze mandekker",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Verwacht wedstrijdeffect",
@@ -1226,6 +1228,20 @@ export const messagesNl: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Geen aanvaller, vleugelspeler of inner midfielder haalde de ingestelde consistentiedrempel.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Er waren historische kandidaten, maar de spelersdetails van het doelwit konden niet worden geladen.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Doelwitdetails waren beschikbaar, maar er kon geen bruikbare geschatte effectieve hoofdvaardigheid worden bepaald.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Doelwitdetails waren beschikbaar, maar salarisgegevens ontbraken.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Doelwitdetails waren beschikbaar, maar leeftijdsgegevens ontbraken.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Doelwitdetails waren beschikbaar, maar de speler valt buiten het ondersteunde leeftijdsbereik van het loonmodel.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Doelwitdetails waren beschikbaar, maar er kon geen ruwe hoofdvaardigheidsschatting op basis van salaris worden gemaakt.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Doelwitdetails waren beschikbaar, maar vormgegevens ontbraken.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Doelwitdetails waren beschikbaar, maar conditiegegevens ontbraken.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "Er is een ruwe hoofdvaardigheidsschatting gemaakt, maar die kon niet worden omgezet naar een geschatte effectieve hoofdvaardigheid.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "Er staat momenteel geen geschikte centrale verdediger, wingback of inner midfielder in de basis.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Er zijn geschikte posities, maar effectieve Verdedigen of normale positiewaarde kon niet worden berekend.",
     seniorOtherOrdersManMarkingNoPositivePair: "Er zijn geldige mandekkers en doelwitten gevonden, maar elk beoordeeld paar had nul of negatieve geschatte nettowinst.",

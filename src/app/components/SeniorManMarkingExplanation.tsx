@@ -39,6 +39,16 @@ export type SeniorManMarkingExplanationTarget = SeniorManMarkingExplanationPlaye
   estimatedEffectiveMainSkill: number | null;
   adjustedTargetComparisonStrength: number | null;
   mainSkillEstimateKind: "estimated" | "tooOld" | "unavailable" | "detailsUnavailable";
+  estimateFailureReason:
+    | "detailsUnavailable"
+    | "salaryUnavailable"
+    | "ageUnavailable"
+    | "tooOld"
+    | "rawEstimateUnavailable"
+    | "formUnavailable"
+    | "staminaUnavailable"
+    | "effectiveCalculationUnavailable"
+    | null;
 };
 
 export type SeniorManMarkingExplanationPair = {
@@ -49,6 +59,7 @@ export type SeniorManMarkingExplanationPair = {
 
 export type SeniorManMarkingExplanationSource =
   | "recommended"
+  | "noRecommendation"
   | "manual"
   | "loaded"
   | "modifiedRecommendation"
@@ -120,6 +131,8 @@ const sourceLabel = (
   switch (source) {
     case "recommended":
       return messages.seniorOtherOrdersManMarkingSourceRecommended;
+    case "noRecommendation":
+      return messages.seniorOtherOrdersManMarkingSourceNoRecommendation;
     case "loaded":
       return messages.seniorOtherOrdersManMarkingSourceLoaded;
     case "modifiedRecommendation":

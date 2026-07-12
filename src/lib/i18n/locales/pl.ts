@@ -1198,11 +1198,13 @@ export const messagesPl: Messages = {
   seniorOtherOrdersUnknownOpponentPlayer: "Zawodnik {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Wyjaśnienie krycia indywidualnego",
     seniorOtherOrdersManMarkingRecommendationTitle: "Rekomendacja",
-    seniorOtherOrdersManMarkingSourceRecommended: "Rekomendowane przez algorytm ustawienia",
-    seniorOtherOrdersManMarkingSourceManual: "Wybrane ręcznie",
-    seniorOtherOrdersManMarkingSourceLoaded: "Wczytane z istniejących poleceń meczowych",
-    seniorOtherOrdersManMarkingSourceModifiedRecommendation: "Ręcznie zmieniona rekomendacja",
-    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Ręcznie zmienione wczytane polecenie",
+    seniorOtherOrdersManMarkingSourceRecommended: "Rekomendacja algorytmu",
+    seniorOtherOrdersManMarkingSourceNoRecommendation: "Brak rekomendacji",
+    seniorOtherOrdersManMarkingSourceManual: "Wybór ręczny",
+    seniorOtherOrdersManMarkingSourceLoaded: "Wczytane polecenie",
+    seniorOtherOrdersManMarkingSourceModifiedRecommendation:
+      "Zmienione względem rekomendacji algorytmu",
+    seniorOtherOrdersManMarkingSourceModifiedLoaded: "Zmienione wczytane polecenie",
     seniorOtherOrdersManMarkingWhyTargetTitle: "Dlaczego ten cel",
     seniorOtherOrdersManMarkingWhyMarkerTitle: "Dlaczego ten kryjący",
     seniorOtherOrdersManMarkingExpectedEffectTitle: "Oczekiwany efekt w meczu",
@@ -1220,6 +1222,20 @@ export const messagesPl: Messages = {
     seniorOtherOrdersManMarkingNoConsistentTarget: "Żaden napastnik, skrzydłowy ani środkowy pomocnik nie osiągnął ustawionego progu powtarzalności.",
     seniorOtherOrdersManMarkingTargetDetailsUnavailable: "Istnieli kandydaci historyczni, ale nie udało się wczytać szczegółów celu.",
     seniorOtherOrdersManMarkingTargetEstimateUnavailable: "Szczegóły celu były dostępne, ale nie udało się uzyskać użytecznej szacowanej efektywnej głównej umiejętności.",
+    seniorOtherOrdersManMarkingTargetSalaryUnavailable:
+      "Szczegóły celu były dostępne, ale brakowało danych o pensji.",
+    seniorOtherOrdersManMarkingTargetAgeUnavailable:
+      "Szczegóły celu były dostępne, ale brakowało danych o wieku.",
+    seniorOtherOrdersManMarkingTargetTooOld:
+      "Szczegóły celu były dostępne, ale zawodnik jest poza zakresem wieku obsługiwanym przez model płac.",
+    seniorOtherOrdersManMarkingTargetRawEstimateUnavailable:
+      "Szczegóły celu były dostępne, ale nie udało się uzyskać surowej estymacji głównej umiejętności na podstawie pensji.",
+    seniorOtherOrdersManMarkingTargetFormUnavailable:
+      "Szczegóły celu były dostępne, ale brakowało danych o formie.",
+    seniorOtherOrdersManMarkingTargetStaminaUnavailable:
+      "Szczegóły celu były dostępne, ale brakowało danych o kondycji.",
+    seniorOtherOrdersManMarkingTargetEffectiveUnavailable:
+      "Uzyskano surową estymację głównej umiejętności, ale nie udało się przeliczyć jej na szacowaną efektywną główną umiejętność.",
     seniorOtherOrdersManMarkingNoEligibleMarker: "W wyjściowej jedenastce nie ma obecnie kwalifikującego się środkowego obrońcy, bocznego obrońcy ani środkowego pomocnika.",
     seniorOtherOrdersManMarkingMarkerDataUnavailable: "Istnieją kwalifikujące się pozycje, ale nie udało się obliczyć efektywnej Obrony lub normalnej wartości roli.",
     seniorOtherOrdersManMarkingNoPositivePair: "Znaleziono poprawnych kryjących i cele, ale każda oceniona para miała zerową lub ujemną szacowaną korzyść netto.",

@@ -412,6 +412,14 @@ export default function SeniorManMarkingExplanation({
     currentPair.evaluation.markerPlayerId === selectedPair.markerPlayerId &&
     currentPair.evaluation.targetPlayerId === selectedPair.targetPlayerId &&
     currentPair.evaluation.targetRole === selectedPair.targetRole;
+  const showBestNonPositivePair =
+    data.source === "noRecommendation" &&
+    currentPair === null &&
+    data.decision !== null &&
+    data.decision.selectedPair === null &&
+    data.decision.totalEvaluationCount > 0 &&
+    data.decision.positiveEvaluationCount === 0 &&
+    data.bestRejectedPair !== null;
 
   return (
     <aside className={styles.seniorManMarkingExplanation} aria-live="polite">
@@ -639,13 +647,9 @@ export default function SeniorManMarkingExplanation({
             {!data.targetSelected ? (
               <p>{messages.seniorOtherOrdersManMarkingNoTargetSelected}</p>
             ) : null}
-            {data.bestRejectedPair ? (
+            {showBestNonPositivePair && data.bestRejectedPair ? (
               <>
-                {data.decision &&
-                data.decision.totalEvaluationCount > 0 &&
-                data.decision.positiveEvaluationCount === 0 ? (
-                  <p>{messages.seniorOtherOrdersManMarkingNoPositivePair}</p>
-                ) : null}
+                <p>{messages.seniorOtherOrdersManMarkingNoPositivePair}</p>
                 <p>
                   {messages.seniorOtherOrdersManMarkingBestRejectedPair}{" "}
                   {playerLink(data.bestRejectedPair.marker)} {" → "}{" "}

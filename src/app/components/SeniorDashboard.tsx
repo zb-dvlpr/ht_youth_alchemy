@@ -1059,8 +1059,17 @@ type OpponentFormationContext = {
 
 type SeniorAiManMarkingSelection = {
   marker: SeniorAiManMarkingMarker;
-  target: OpponentTargetPlayer;
+  target: {
+    playerId: number;
+    name: string;
+  };
   decision: SeniorManMarkingPairDecision;
+};
+
+type GeneratedManMarkingRunResult = {
+  decision: SeniorManMarkingPairDecision;
+  selection: SeniorAiManMarkingSelection | null;
+  target: OpponentTargetPlayer | null;
 };
 
 type SeniorManMarkingOrderOrigin = "generated" | "loaded" | "manual";
@@ -6272,42 +6281,48 @@ export default function SeniorDashboard({
     if (
       !seniorAiManMarkingSupported ||
       !effectiveSeniorAiManMarkingEnabled ||
-      !seniorAiManMarkingTarget
+      !effectiveSeniorAiManMarkingGeneratedReport
     ) {
       return null;
     }
-    if (!isSeniorManMarkingTargetRole(seniorAiManMarkingTarget.role)) return null;
-    const decision = buildSeniorManMarkingPairDecision(
-      buildSeniorManMarkingMarkerCandidates(assignments),
-      buildSeniorManMarkingTargetCandidates([seniorAiManMarkingTarget])
-    );
+    const decision = effectiveSeniorAiManMarkingGeneratedReport.decision;
     const bestPair = decision.selectedPair;
     if (!bestPair) return null;
-    const markerPlayer = playersById.get(bestPair.markerPlayerId);
-    if (!markerPlayer) return null;
-    const marker = {
-      playerId: bestPair.markerPlayerId,
-      role: bestPair.markerRole,
-      slot: bestPair.markerSlot,
-      name: formatPlayerName(markerPlayer) || String(bestPair.markerPlayerId),
-      baseEffectiveDefending: bestPair.baseEffectiveDefending,
-      adjustedMarkingStrength: bestPair.adjustedMarkerStrength,
-      normalRoleValue: bestPair.normalRoleValue,
-    } satisfies SeniorAiManMarkingMarker;
+    const marker = effectiveSeniorAiManMarkingGeneratedReport.markers.find(
+      (candidate) =>
+        candidate.id === bestPair.markerPlayerId &&
+        candidate.role === bestPair.markerRole &&
+        candidate.slot === bestPair.markerSlot
+    );
+    const target = effectiveSeniorAiManMarkingGeneratedReport.targets.find(
+      (candidate) =>
+        candidate.id === bestPair.targetPlayerId &&
+        candidate.role === bestPair.targetRole
+    );
+    if (!marker || !target) return null;
     return {
-      marker,
-      target: seniorAiManMarkingTarget,
+      marker: {
+        playerId: marker.id,
+        role: marker.role,
+        slot: marker.slot,
+        name: marker.name,
+        baseEffectiveDefending: marker.baseEffectiveDefending,
+        adjustedMarkingStrength: marker.adjustedMarkingStrength,
+        normalRoleValue: marker.normalRoleValue,
+      },
+      target: {
+        playerId: target.id,
+        name: target.name,
+      },
       decision,
     } satisfies SeniorAiManMarkingSelection;
   }, [
-    assignments,
-    detailsById,
-    seniorAiManMarkingCandidates,
     effectiveSeniorAiManMarkingEnabled,
-    playersById,
+    effectiveSeniorAiManMarkingGeneratedReport,
     seniorAiManMarkingSupported,
-    seniorAiManMarkingTarget,
   ]);
+  const seniorAiManMarkingSelectedPair =
+    seniorAiManMarkingSelection?.decision.selectedPair ?? null;
   const seniorAiManMarkingToggleTooltip: ReactNode = premiumUnlocked
     ? messages.seniorAiManMarkingToggleTooltip
     : messages.seniorAiManMarkingPremiumTooltip;
@@ -6532,13 +6547,22 @@ export default function SeniorDashboard({
     void (async () => {
       const context = await fetchOpponentFormationRowsForMatch(loadedMatchId);
       if (!context || cancelled) return;
-      setSeniorAiManMarkingTarget(context.manMarkingTarget);
+      const selectedPair =
+        effectiveSeniorAiManMarkingGeneratedReport?.decision.selectedPair ?? null;
+      const selectedTarget = selectedPair
+        ? context.manMarkingTargets.find(
+            (target) =>
+              target.playerId === selectedPair.targetPlayerId &&
+              target.role === selectedPair.targetRole
+          ) ?? null
+        : null;
+      setSeniorAiManMarkingTarget(selectedTarget ?? context.manMarkingTarget);
       setOpponentFormationsModal((prev) =>
         prev && prev.matchId === loadedMatchId
           ? {
               ...prev,
               potentialManMarkingTargets: context.potentialManMarkingTargets,
-              manMarkingTarget: context.manMarkingTarget,
+              manMarkingTarget: selectedTarget ?? context.manMarkingTarget,
             }
           : prev
       );
@@ -6548,6 +6572,7 @@ export default function SeniorDashboard({
     };
   }, [
     loadedMatchId,
+    effectiveSeniorAiManMarkingGeneratedReport,
     effectiveSeniorAiManMarkingEnabled,
     seniorAiManMarkingFuzziness,
     seniorAiManMarkingSupported,
@@ -10998,9 +11023,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
           : basePayload;
       if (
         !effectiveSeniorAiManMarkingEnabled ||
-        !seniorAiManMarkingSelection ||
         !seniorAiManMarkingReady ||
         !seniorAiManMarkingSupported ||
+        !seniorAiManMarkingSelectedPair ||
         seniorAiSubmitEnabledMatchId !== matchId
       ) {
         return payloadWithSeniorAiSetPieces;
@@ -11009,8 +11034,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
         ...payloadWithSeniorAiSetPieces,
         settings: {
           ...payloadWithSeniorAiSetPieces.settings,
-          manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
-          manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
+          manMarkerPlayerId: seniorAiManMarkingSelectedPair.markerPlayerId,
+          manMarkingPlayerId: seniorAiManMarkingSelectedPair.targetPlayerId,
         },
       };
     },
@@ -11019,7 +11044,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       effectiveSeniorAiManMarkingEnabled,
       selectSeniorAiSetPiecesPlayerId,
       seniorAiManMarkingReady,
-      seniorAiManMarkingSelection,
+      seniorAiManMarkingSelectedPair,
       seniorAiManMarkingSupported,
       seniorAiPreparedSubmissionMode,
       seniorAiSubmitEnabledMatchId,
@@ -11682,7 +11707,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       return null;
     }
     const submittedSelection = seniorAiManMarkingReady ? seniorAiManMarkingSelection : null;
-    const target = submittedSelection?.target ?? seniorAiManMarkingTarget;
+    const target = submittedSelection?.target ?? null;
     const marker = submittedSelection?.marker ?? null;
     const hasAnyMarkerCandidate = Object.values(seniorAiManMarkingCandidates).some(Boolean);
     return {
@@ -11869,7 +11894,29 @@ function buildSeniorAiManMarkingReadySignature(params: {
           ? extraTimePreparedSubmission.matchId
           : null;
     if (generatedMatchId === null) return;
-    const seedKey = `${generatedMatchId}:${seniorAiPreparedSubmissionMode ?? "extraTime"}`;
+    const requiresManMarkingReport =
+      effectiveSeniorAiManMarkingEnabled && seniorAiManMarkingSupported;
+    if (requiresManMarkingReport && !effectiveSeniorAiManMarkingGeneratedReport) {
+      return;
+    }
+    if (
+      seniorEditableOrdersState?.matchId === generatedMatchId &&
+      seniorEditableOrdersState.source === "mixed"
+    ) {
+      return;
+    }
+    const selectedPair =
+      effectiveSeniorAiManMarkingGeneratedReport?.decision.selectedPair ?? null;
+    const seedKey = [
+      generatedMatchId,
+      seniorAiPreparedSubmissionMode ?? "extraTime",
+      effectiveSeniorAiManMarkingGeneratedReport?.signature ?? "no-report",
+      effectiveSeniorAiManMarkingGeneratedReport?.fuzziness ?? "no-fuzziness",
+      selectedPair?.markerPlayerId ?? 0,
+      selectedPair?.targetPlayerId ?? 0,
+      selectedPair?.markerRole ?? "none",
+      selectedPair?.targetRole ?? "none",
+    ].join(":");
     if (seededSeniorEditableOrdersContextRef.current === seedKey) return;
     const defaultPayload = buildLineupPayload(assignments, tacticType, {
       behaviors,
@@ -11890,6 +11937,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
   }, [
     seniorAiSubmitEnabledMatchId,
     seniorAiPreparedSubmissionMode,
+    effectiveSeniorAiManMarkingEnabled,
+    effectiveSeniorAiManMarkingGeneratedReport,
+    seniorAiManMarkingSupported,
+    seniorEditableOrdersState?.matchId,
+    seniorEditableOrdersState?.source,
     extraTimePreparedSubmission?.matchId,
   ]);
 
@@ -12374,7 +12426,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
     seniorOtherOrdersRecommendedManMarkingPair !== null &&
     seniorOtherOrdersManMarkingTargetOptions.some(
       (target) =>
-        target.playerId === seniorOtherOrdersRecommendedManMarkingPair.targetPlayerId
+        target.playerId === seniorOtherOrdersRecommendedManMarkingPair.targetPlayerId &&
+        target.role === seniorOtherOrdersRecommendedManMarkingPair.targetRole
     );
   const seniorOtherOrdersCurrentManMarkingMatchesRecommendation =
     seniorOtherOrdersRecommendedManMarkingPair !== null &&
@@ -12390,6 +12443,71 @@ function buildSeniorAiManMarkingReadySignature(params: {
     otherOrdersManMarkingOrigin === "generated" &&
     otherOrdersManMarkingTouched &&
     !seniorOtherOrdersCurrentManMarkingMatchesRecommendation;
+
+  function buildSeniorOtherOrdersManMarkingOrder(
+    draft: SeniorEditableOrdersState,
+    markerPlayerId: number,
+    targetPlayerId: number
+  ): SeniorEditablePlayerOrder {
+    return {
+      id:
+        draft.manMarkingOrder?.id ??
+        `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
+      orderType: 4,
+      minute: draft.manMarkingOrder?.minute ?? SENIOR_ORDER_DEFAULT_MINUTE,
+      standing: draft.manMarkingOrder?.standing ?? SENIOR_ORDER_DEFAULT_CONDITION,
+      card: draft.manMarkingOrder?.card ?? SENIOR_ORDER_DEFAULT_CONDITION,
+      subjectPlayerId: markerPlayerId,
+      objectPlayerId: targetPlayerId,
+      newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+      newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+    };
+  }
+
+  useEffect(() => {
+    if (!otherOrdersEditorOpen) return;
+    if (!effectiveSeniorAiManMarkingEnabled) return;
+    if (otherOrdersManMarkingOrigin !== "generated") return;
+    if (otherOrdersManMarkingTouched) return;
+    if (!otherOrdersDraft) return;
+    const recommendedPair = seniorOtherOrdersRecommendedManMarkingPair;
+    if (!recommendedPair) return;
+    if (
+      !seniorOtherOrdersRecommendedMarkerIsSelectable ||
+      !seniorOtherOrdersRecommendedTargetIsSelectable ||
+      seniorOtherOrdersCurrentManMarkingMatchesRecommendation
+    ) {
+      return;
+    }
+    setOtherOrdersDraft((current) => {
+      if (!current) return current;
+      if (
+        current.manMarkingOrder?.subjectPlayerId === recommendedPair.markerPlayerId &&
+        current.manMarkingOrder?.objectPlayerId === recommendedPair.targetPlayerId
+      ) {
+        return current;
+      }
+      return {
+        ...current,
+        manMarkingOrder: buildSeniorOtherOrdersManMarkingOrder(
+          current,
+          recommendedPair.markerPlayerId,
+          recommendedPair.targetPlayerId
+        ),
+      };
+    });
+    setOtherOrdersValidationError(null);
+  }, [
+    effectiveSeniorAiManMarkingEnabled,
+    otherOrdersDraft,
+    otherOrdersEditorOpen,
+    otherOrdersManMarkingOrigin,
+    otherOrdersManMarkingTouched,
+    seniorOtherOrdersCurrentManMarkingMatchesRecommendation,
+    seniorOtherOrdersRecommendedManMarkingPair,
+    seniorOtherOrdersRecommendedMarkerIsSelectable,
+    seniorOtherOrdersRecommendedTargetIsSelectable,
+  ]);
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) return;
@@ -12503,20 +12621,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
     updateOtherOrdersDraft((draft) => ({
       ...draft,
       source: "mixed",
-      manMarkingOrder: {
-        id:
-          draft.manMarkingOrder?.id ??
-          `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
-        orderType: 4,
-        minute: draft.manMarkingOrder?.minute ?? SENIOR_ORDER_DEFAULT_MINUTE,
-        standing:
-          draft.manMarkingOrder?.standing ?? SENIOR_ORDER_DEFAULT_CONDITION,
-        card: draft.manMarkingOrder?.card ?? SENIOR_ORDER_DEFAULT_CONDITION,
-        subjectPlayerId: recommendedPair.markerPlayerId,
-        objectPlayerId: recommendedPair.targetPlayerId,
-        newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
-        newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
-      },
+      manMarkingOrder: buildSeniorOtherOrdersManMarkingOrder(
+        draft,
+        recommendedPair.markerPlayerId,
+        recommendedPair.targetPlayerId
+      ),
     }));
     setOtherOrdersManMarkingOrigin("generated");
     setOtherOrdersManMarkingTouched(false);
@@ -15967,12 +16076,19 @@ const refreshDetailsForPlayers = async (
       markerId > 0 &&
       typeof targetId === "number" &&
       targetId > 0;
+    const generatedRecommendationSyncPending =
+      otherOrdersManMarkingOrigin === "generated" &&
+      !otherOrdersManMarkingTouched &&
+      originalRecommendedPair !== null &&
+      !currentMatchesGenerated;
     const source: SeniorManMarkingExplanationData["source"] =
       otherOrdersManMarkingOrigin === "generated"
         ? originalRecommendedPair
           ? currentMatchesGenerated
             ? "recommended"
-            : "modifiedRecommendation"
+            : otherOrdersManMarkingTouched
+              ? "modifiedRecommendation"
+              : "recommended"
           : hasCurrentManMarkingPair
             ? "manual"
             : "noRecommendation"
@@ -15983,7 +16099,7 @@ const refreshDetailsForPlayers = async (
           : "manual";
     return {
       enabled: true,
-      loading,
+      loading: loading || generatedRecommendationSyncPending,
       source,
       currentMarker,
       currentTarget,
@@ -17178,17 +17294,19 @@ const refreshDetailsForPlayers = async (
         | null = null;
       let fixedFormationTacticRows: FixedFormationTacticRow[] = [];
       let selectedManMarkingMarker: SeniorAiManMarkingMarker | null = null;
-      let selectedManMarkingTarget: OpponentTargetPlayer | null =
-        opponentContext.manMarkingTarget;
+      let selectedManMarkingTarget: OpponentTargetPlayer | null = null;
+      const manMarkingModeForCurrentRun =
+        mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
+          ? mode
+          : null;
+      const manMarkingSupportedForCurrentRun =
+        manMarkingModeForCurrentRun !== null &&
+        SENIOR_AI_MAN_MARKING_SUPPORTED_MODES.has(manMarkingModeForCurrentRun);
       const selectManMarkingForAssignments = (
         chosenAssignments: LineupAssignments,
         targets: OpponentTargetPlayer[]
-      ): SeniorAiManMarkingSelection | null => {
-        if (
-          !seniorAiManMarkingSupported ||
-          !effectiveSeniorAiManMarkingEnabled ||
-          targets.length === 0
-        ) {
+      ): GeneratedManMarkingRunResult | null => {
+        if (!manMarkingSupportedForCurrentRun || !effectiveSeniorAiManMarkingEnabled) {
           return null;
         }
         const decision = buildSeniorManMarkingPairDecision(
@@ -17196,7 +17314,13 @@ const refreshDetailsForPlayers = async (
           buildSeniorManMarkingTargetCandidates(targets)
         );
         const bestPair = decision.selectedPair;
-        if (!bestPair) return null;
+        if (!bestPair) {
+          return {
+            decision,
+            selection: null,
+            target: null,
+          };
+        }
         const markerPlayer = playersById.get(bestPair.markerPlayerId);
         const target =
           targets.find(
@@ -17204,19 +17328,29 @@ const refreshDetailsForPlayers = async (
               candidate.playerId === bestPair.targetPlayerId &&
               candidate.role === bestPair.targetRole
           ) ?? null;
-        if (!markerPlayer || !target) return null;
+        if (!markerPlayer || !target) {
+          return {
+            decision,
+            selection: null,
+            target: null,
+          };
+        }
         return {
-          marker: {
-            playerId: bestPair.markerPlayerId,
-            role: bestPair.markerRole,
-            slot: bestPair.markerSlot,
-            name: formatPlayerName(markerPlayer) || String(bestPair.markerPlayerId),
-            baseEffectiveDefending: bestPair.baseEffectiveDefending,
-            adjustedMarkingStrength: bestPair.adjustedMarkerStrength,
-            normalRoleValue: bestPair.normalRoleValue,
-          },
-          target,
           decision,
+          target,
+          selection: {
+            marker: {
+              playerId: bestPair.markerPlayerId,
+              role: bestPair.markerRole,
+              slot: bestPair.markerSlot,
+              name: formatPlayerName(markerPlayer) || String(bestPair.markerPlayerId),
+              baseEffectiveDefending: bestPair.baseEffectiveDefending,
+              adjustedMarkingStrength: bestPair.adjustedMarkerStrength,
+              normalRoleValue: bestPair.normalRoleValue,
+            },
+            target,
+            decision,
+          },
         };
       };
 
@@ -17380,12 +17514,13 @@ const refreshDetailsForPlayers = async (
           });
         }
 
-        const selectedManMarking = selectManMarkingForAssignments(
+        const generatedManMarkingResult = selectManMarkingForAssignments(
           chosenAssignments,
           opponentContext.manMarkingTargets
         );
+        const selectedManMarking = generatedManMarkingResult?.selection ?? null;
         selectedManMarkingMarker = selectedManMarking?.marker ?? null;
-        selectedManMarkingTarget = selectedManMarking?.target ?? null;
+        selectedManMarkingTarget = generatedManMarkingResult?.target ?? null;
         const chosenBehaviors =
           selectedManMarkingMarker !== null
             ? {
@@ -17400,48 +17535,33 @@ const refreshDetailsForPlayers = async (
         setLoadedMatchId(matchId);
         setSeniorRatingsMatchContext(buildSeniorRatingsMatchContext(matchId));
         setSeniorAiManMarkingTarget(selectedManMarkingTarget);
+        const manMarkingSignature =
+          buildSeniorAiManMarkingReadySignature({
+            matchId,
+            mode: manMarkingModeForCurrentRun,
+            tacticType: chosenTactic,
+            assignments: chosenAssignments,
+            behaviors: chosenBehaviors,
+          }) ?? "";
         setSeniorAiManMarkingReadyContext({
-          signature:
-            buildSeniorAiManMarkingReadySignature({
-              matchId,
-              mode:
-                mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
-                  ? mode
-                  : null,
-              tacticType: chosenTactic,
-              assignments: chosenAssignments,
-              behaviors: chosenBehaviors,
-            }) ?? "",
+          signature: manMarkingSignature,
         });
         setSeniorAiManMarkingGeneratedReport(
-          buildSeniorManMarkingGeneratedReport(
-            matchId,
-            buildSeniorAiManMarkingReadySignature({
-              matchId,
-              mode:
-                mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
-                  ? mode
-                  : null,
-              tacticType: chosenTactic,
-              assignments: chosenAssignments,
-              behaviors: chosenBehaviors,
-            }) ?? "",
-            chosenAssignments,
-            opponentContext,
-            selectedManMarking?.decision ??
-              buildSeniorManMarkingPairDecision(
-                buildSeniorManMarkingMarkerCandidates(chosenAssignments),
-                buildSeniorManMarkingTargetCandidates(opponentContext.manMarkingTargets)
+          generatedManMarkingResult
+            ? buildSeniorManMarkingGeneratedReport(
+                matchId,
+                manMarkingSignature,
+                chosenAssignments,
+                opponentContext,
+                generatedManMarkingResult.decision
               )
-          )
+            : null
         );
         setOtherOrdersManMarkingOrigin("generated");
         setExtraTimePreparedSubmission(null);
         lockSeniorAiSubmitToMatch(
           matchId,
-          mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
-            ? mode
-            : null
+          manMarkingModeForCurrentRun
         );
         if (showSetBestLineupDebugModal) {
           setNonTraineeAssignmentModal({

@@ -446,7 +446,9 @@ export default function SeniorManMarkingExplanation({
                 : messages.seniorOtherOrdersManMarkingCurrentPairSummary}
             </p>
             <p>
-              {playerLink(currentPair.marker)} {" → "} {playerLink(currentPair.target)} (
+              {playerLink(currentPair.marker)} (
+              {roleLabel(messages, currentPair.marker.role)}) {" → "}{" "}
+              {playerLink(currentPair.target)} (
               {roleLabel(messages, currentPair.target.role)})
             </p>
           </section>

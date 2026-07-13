@@ -2,6 +2,7 @@ import type { Messages } from "@/lib/i18n";
 import { resolveInjuryStatus } from "@/lib/injuries";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import { formatSekCurrency, SEK_DISPLAY_CURRENCY } from "@/lib/currency";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 import type { ReminderCandidate, ReminderRule } from "./types";
 import {
   seniorSalaryIncreaseEpisodeKey,
@@ -56,10 +57,7 @@ export type SeniorReminderContextEventDetail = {
 };
 
 export const formatSeniorReminderPlayerName = (player: SeniorReminderPlayer) =>
-  [player.FirstName, player.NickName, player.LastName]
-    .filter((part): part is string => Boolean(part && part.trim()))
-    .join(" ")
-    .trim() || String(player.PlayerID);
+  formatSeniorPlayerName(player) || String(player.PlayerID);
 
 const formatReminderSalaryFromSek = (salarySek: number) =>
   formatSekCurrency(salarySek, SEK_DISPLAY_CURRENCY);

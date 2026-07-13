@@ -41,6 +41,7 @@ import {
   resolveLeagueOriginFlagDisplay,
   type OriginFlagDisplay,
 } from "@/lib/originFlag";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 
 export const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 export const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
@@ -1093,9 +1094,11 @@ export const normalizeTransferSearchResults = (input: unknown): TransferSearchRe
 };
 
 export const formatTransferSearchPlayerName = (player: TransferSearchResult) =>
-  [player.firstName, player.nickName ? `"${player.nickName}"` : null, player.lastName]
-    .filter(Boolean)
-    .join(" ");
+  formatSeniorPlayerName({
+    firstName: player.firstName,
+    nickName: player.nickName,
+    lastName: player.lastName,
+  });
 
 export const displayToSek = (
   value: string,

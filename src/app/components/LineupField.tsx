@@ -9,12 +9,14 @@ import { getSkillMaxReached } from "@/lib/skills";
 import Tooltip from "./Tooltip";
 import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
 import { useChppPermissions } from "./ChppPermissionsProvider";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 
 export type LineupAssignments = Record<string, number | null>;
 export type LineupBehaviors = Record<string, number>;
 
 type YouthPlayer = {
   YouthPlayerID: number;
+  PlayerNumber?: number;
   FirstName: string;
   NickName?: string;
   LastName: string;
@@ -69,6 +71,7 @@ type LineupFieldProps = {
     label: string;
     meta?: string | null;
   }>;
+  formatPlayerDisplayName?: (player: YouthPlayer) => string;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -354,6 +357,19 @@ function formatName(player: YouthPlayer) {
     .join(" ");
 }
 
+const playerNumberValue = (player: YouthPlayer): number | null => {
+  return normalizeSeniorShirtNumber(player.PlayerNumber);
+};
+
+const formatDisplayName = (
+  player: YouthPlayer,
+  formatPlayerDisplayName?: (player: YouthPlayer) => string
+) => {
+  const name = formatPlayerDisplayName?.(player) ?? formatName(player);
+  const playerNumber = playerNumberValue(player);
+  return playerNumber !== null ? `${playerNumber}. ${name}` : name;
+};
+
 function parseSkillValue(skill: SkillInput): number | null {
   if (skill === null || skill === undefined) return null;
   if (typeof skill === "number") return Number.isFinite(skill) ? skill : null;
@@ -467,6 +483,7 @@ export default function LineupField({
   onSelectPlayer,
   onEmptySlotSelect,
   emptySlotPickerOptions,
+  formatPlayerDisplayName,
   messages,
   allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
@@ -1275,7 +1292,7 @@ export default function LineupField({
                             event,
                             position.id,
                             assignedPlayer.YouthPlayerID,
-                            formatName(assignedPlayer)
+                            formatDisplayName(assignedPlayer, formatPlayerDisplayName)
                           )
                         }
                         onMouseEnter={() => {
@@ -1301,7 +1318,7 @@ export default function LineupField({
                           }
                           isDragActive.current = true;
                           setDragGhost(event, {
-                            label: formatName(assignedPlayer),
+                            label: formatDisplayName(assignedPlayer, formatPlayerDisplayName),
                             className: styles.dragGhost,
                             slotSelector: `.${styles.fieldSlot}`,
                           });
@@ -1316,7 +1333,7 @@ export default function LineupField({
                         }}
                       >
                         <span className={styles.slotName}>
-                          {formatName(assignedPlayer)}
+                          {formatDisplayName(assignedPlayer, formatPlayerDisplayName)}
                         </span>
                         {assignedInjuryStatus ? (
                           <span
@@ -1513,7 +1530,7 @@ export default function LineupField({
                           event,
                           slot.id,
                           assignedPlayer.YouthPlayerID,
-                          formatName(assignedPlayer)
+                          formatDisplayName(assignedPlayer, formatPlayerDisplayName)
                         )
                       }
                       onMouseEnter={() => {
@@ -1539,7 +1556,7 @@ export default function LineupField({
                         }
                         isDragActive.current = true;
                         setDragGhost(event, {
-                          label: formatName(assignedPlayer),
+                          label: formatDisplayName(assignedPlayer, formatPlayerDisplayName),
                           className: styles.dragGhost,
                           slotSelector: `.${styles.fieldSlot}`,
                         });
@@ -1554,7 +1571,7 @@ export default function LineupField({
                       }}
                     >
                       <span className={styles.slotName}>
-                        {formatName(assignedPlayer)}
+                        {formatDisplayName(assignedPlayer, formatPlayerDisplayName)}
                       </span>
                       {assignedInjuryStatus ? (
                         <span

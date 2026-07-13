@@ -9,6 +9,7 @@ import {
 import { normalizeArray, parseChppDate } from "@/lib/chpp/utils";
 import { POSITION_COLUMNS, normalizeMatchRoleId } from "@/lib/positions";
 import { mapWithConcurrency } from "@/lib/async";
+import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 
 const MATCHESARCHIVE_VERSION = "1.5";
 const MATCHLINEUP_VERSION = "2.1";
@@ -420,9 +421,7 @@ export async function GET(request: Request) {
           return;
         }
         if (result.manMarkingPlayerIds.has(playerId)) return;
-        const fullName = [player.FirstName, player.NickName, player.LastName]
-          .filter(Boolean)
-          .join(" ");
+        const fullName = formatSeniorPlayerName(player);
 
         if (!playersMap.has(playerId)) {
           playersMap.set(playerId, {

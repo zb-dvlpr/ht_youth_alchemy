@@ -16,6 +16,7 @@ import {
   SEK_DISPLAY_CURRENCY,
   type DisplayCurrency,
 } from "@/lib/currency";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 
 type RatingRow = {
   id: number;
@@ -47,6 +48,7 @@ type RatingsMatrixProps = {
   injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
   cardStatusByName?: Record<string, { display: string; label: string }>;
   transferListingByName?: Record<string, SeniorTransferListing | null>;
+  playerNumberByPlayerId?: Record<number, number | undefined>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
@@ -84,6 +86,22 @@ function formatRating(value: number | null) {
   if (value === null || value === undefined) return "—";
   return Number(value).toFixed(1);
 }
+
+const playerNumberValue = (value: number | null | undefined): number | null =>
+  normalizeSeniorShirtNumber(value);
+
+const compareOptionalPlayerNumbers = (
+  leftNumber: number | null,
+  rightNumber: number | null,
+  direction: "asc" | "desc"
+) => {
+  if (leftNumber === null && rightNumber === null) return 0;
+  if (leftNumber === null) return 1;
+  if (rightNumber === null) return -1;
+  return direction === "asc"
+    ? leftNumber - rightNumber
+    : rightNumber - leftNumber;
+};
 
 type RatingColumnScale = {
   min: number;
@@ -146,6 +164,7 @@ export default function RatingsMatrix({
   injuryStatusByName,
   cardStatusByName,
   transferListingByName = {},
+  playerNumberByPlayerId = {},
   newPlayerIds = [],
   newRatingsByPlayerId = {},
   selectedName,
@@ -268,7 +287,7 @@ export default function RatingsMatrix({
     response?.lastAppliedMatchId,
     response?.lastAppliedMatchSourceSystem,
   ]);
-  const [sortKey, setSortKey] = useState<number | "name" | null>(null);
+  const [sortKey, setSortKey] = useState<number | "name" | "playerNumber" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);
 
@@ -280,6 +299,17 @@ export default function RatingsMatrix({
         a.name.localeCompare(b.name) * direction
       );
     }
+    if (sortKey === "playerNumber") {
+      return [...players].sort((a, b) => {
+        const result = compareOptionalPlayerNumbers(
+          playerNumberValue(playerNumberByPlayerId[a.id]),
+          playerNumberValue(playerNumberByPlayerId[b.id]),
+          sortDir
+        );
+        if (result !== 0) return result;
+        return a.name.localeCompare(b.name);
+      });
+    }
     return [...players].sort((a, b) => {
       const aVal = a.ratings[String(sortKey)];
       const bVal = b.ratings[String(sortKey)];
@@ -290,7 +320,7 @@ export default function RatingsMatrix({
       if (bNum === null) return -1;
       return (aNum - bNum) * direction;
     });
-  }, [players, sortDir, sortKey]);
+  }, [playerNumberByPlayerId, players, sortDir, sortKey]);
 
   const orderedRows = useMemo(() => {
     if (
@@ -329,14 +359,14 @@ export default function RatingsMatrix({
     orderedPlayerIds,
   ]);
 
-  const handleSort = (position: number | "name") => {
+  const handleSort = (position: number | "name" | "playerNumber") => {
     pendingSortRef.current = true;
     onSortStart?.();
     if (sortKey === position) {
       setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(position);
-      setSortDir("desc");
+      setSortDir(position === "playerNumber" ? "asc" : "desc");
     }
   };
 
@@ -440,7 +470,21 @@ export default function RatingsMatrix({
           <thead>
             <tr>
               <th className={styles.matrixIndexHeader}>
-                {messages.ratingsIndexLabel}
+                <button
+                  type="button"
+                  className={styles.matrixSortButton}
+                  onClick={() => handleSort("playerNumber")}
+                  aria-label={`${messages.ratingsSortBy} ${messages.sortShirtNumber}`}
+                >
+                  {messages.ratingsIndexLabel}
+                  <span className={styles.matrixSortIcon}>
+                    {sortKey === "playerNumber"
+                      ? sortDir === "asc"
+                        ? "▲"
+                        : "▼"
+                      : "⇅"}
+                  </span>
+                </button>
               </th>
               <th className={styles.matrixPlayerHeader}>
                 <button
@@ -487,7 +531,7 @@ export default function RatingsMatrix({
             </tr>
           </thead>
           <tbody>
-            {orderedRows.map((row, index) => {
+            {orderedRows.map((row) => {
               const isSelected = selectedName === row.name;
               const isNewPlayer = newPlayerIdSet.has(row.id);
               return (
@@ -497,7 +541,9 @@ export default function RatingsMatrix({
                     isSelected ? styles.matrixRowSelected : ""
                   }`}
                 >
-                <td className={styles.matrixIndex}>{index + 1}</td>
+                <td className={styles.matrixIndex}>
+                  {playerNumberValue(playerNumberByPlayerId[row.id]) ?? ""}
+                </td>
                 <td className={styles.matrixPlayer}>
                   <div className={styles.matrixPlayerContent}>
                     {onPlayerDragStart ? (

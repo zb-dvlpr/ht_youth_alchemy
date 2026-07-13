@@ -1684,16 +1684,16 @@ export const messagesEn: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Behaviour change",
     seniorOtherOrdersPositionSwapLabel: "Position swap",
     seniorOtherOrdersManMarkingOrderLabel: "Man marking",
-    seniorOtherOrdersMarkerLabel: "Marker",
-    seniorOtherOrdersTargetLabel: "Target",
+    seniorOtherOrdersMarkerLabel: "Eligible marker candidates",
+    seniorOtherOrdersTargetLabel: "Eligible target candidates",
     seniorOtherOrdersOpponentIdPlaceholder: "Opponent player ID",
-    seniorOtherOrdersCurrentTarget: "Current target: {{target}}",
     seniorOtherOrdersManMarkingNoOpponent:
       "Choose a match before selecting a man-marking target.",
     seniorOtherOrdersOpponentPlayersLoading: "Loading opponent players...",
     seniorOtherOrdersOpponentPlayersLoadError: "Unable to load opponent players.",
     seniorOtherOrdersOpponentPlayersRetry: "Retry",
     seniorOtherOrdersOpponentPlayersNone: "No opponent players found.",
+    seniorOtherOrdersManMarkingMarkerPlaceholder: "Choose marker",
     seniorOtherOrdersManMarkingTargetPlaceholder: "Choose target",
     seniorOtherOrdersUnknownOpponentPlayer: "Player {{playerId}}",
     seniorOtherOrdersManMarkingExplanationTitle: "Man marking explanation",
@@ -1718,8 +1718,24 @@ export const messagesEn: Messages = {
     seniorOtherOrdersManMarkingNoTargetSelected: "No target is currently selected.",
     seniorOtherOrdersManMarkingInvalidMarkerPosition:
       "The selected player is not currently fielded in a valid man-marking position.",
+    seniorOtherOrdersManMarkingMarkerNotStarting:
+      "The selected marker is not in the current starting XI.",
+    seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition:
+      "The selected marker is in the starting XI but is not playing as a central defender, wingback or inner midfielder.",
+    seniorOtherOrdersManMarkingMarkerInvalidSave:
+      "Choose an eligible marker candidate before saving the man-marking order.",
+    seniorOtherOrdersManMarkingTargetInvalidSave:
+      "Choose an eligible target candidate before saving the man-marking order.",
     seniorOtherOrdersManMarkingTargetRoleUnknown:
       "The target's expected markable position could not be established from the analysed history.",
+    seniorOtherOrdersManMarkingTargetNotObserved:
+      "{{player}} was not observed in the analysed starting lineups across {{total}} analysed matches.",
+    seniorOtherOrdersManMarkingTargetAmbiguousPredominant:
+      "{{player}} had no unique predominant position in the analysed matches.",
+    seniorOtherOrdersManMarkingTargetNonMarkablePredominant:
+      "{{player}} predominantly played as a {{role}}, which is not an eligible man-marking target position.",
+    seniorOtherOrdersManMarkingTargetBelowFuzziness:
+      "{{player}} appeared as a {{role}} in {{count}} of {{total}} analysed matches ({{percent}}), below the required {{threshold}} consistency threshold.",
     seniorOtherOrdersManMarkingNoHistory:
       "No usable opponent match history was available for this match context.",
     seniorOtherOrdersManMarkingNoConsistentTarget:
@@ -1767,8 +1783,9 @@ export const messagesEn: Messages = {
     seniorOtherOrdersManMarkingMarkerDataUnavailable:
       "Eligible marker positions exist, but the required effective Defending or normal role value could not be calculated.",
     seniorOtherOrdersManMarkingNoPositivePair:
-      "Valid markers and targets were found, but every evaluated pairing had zero or negative estimated net benefit.",
-    seniorOtherOrdersManMarkingBestRejectedPair: "Least unfavourable evaluated pair:",
+      "No evaluated pair had a positive estimated net benefit.",
+    seniorOtherOrdersManMarkingBestRejectedPair:
+      "Best evaluated non-positive pair:",
     seniorOtherOrdersManMarkingPositiveResult:
       "This pair is positive under the app's man-marking model.",
     seniorOtherOrdersManMarkingNeutralResult:
@@ -1786,8 +1803,9 @@ export const messagesEn: Messages = {
     seniorOtherOrdersManMarkingRoleWinger: "winger",
     seniorOtherOrdersManMarkingRecommendationSummary:
       "This pair had the highest positive estimated net benefit among {{count}} valid evaluated pairs.",
+    seniorOtherOrdersManMarkingSelectedPairTitle: "Selected pair",
     seniorOtherOrdersManMarkingCurrentPairSummary:
-      "The calculation below applies to the currently selected pair.",
+      "This analysis applies to the currently selected marker and target.",
     seniorOtherOrdersManMarkingTargetConsistency:
       "Expected role: {{role}}. The player appeared there in {{count}} of {{total}} analysed matches ({{percent}}).",
     seniorOtherOrdersManMarkingEstimatedRawMainSkill: "Estimated raw main skill",
@@ -1804,17 +1822,20 @@ export const messagesEn: Messages = {
       "The marker is playing as {{role}} with effective Defending {{defending}}, adjusted marking strength {{adjusted}}, and estimated normal positional value {{normal}}.",
     seniorOtherOrdersManMarkingMarkerSpecialtyEffect:
       "Specialty: {{specialty}}. Man-marking comparison multiplier: {{multiplier}}.",
-    seniorOtherOrdersManMarkingTargetLoss: "Affected contribution removed",
-    seniorOtherOrdersManMarkingTargetRetained: "Affected contribution retained",
-    seniorOtherOrdersManMarkingMarkerPenalty: "Marker self-penalty",
+    seniorOtherOrdersManMarkingTargetLoss:
+      "Estimated target main-skill contribution neutralised",
+    seniorOtherOrdersManMarkingTargetRetained:
+      "Estimated target main-skill contribution remaining",
+    seniorOtherOrdersManMarkingMarkerPenalty:
+      "Reduction in marker's normal positional contribution",
     seniorOtherOrdersManMarkingTargetValueRemoved: "Estimated target value removed",
     seniorOtherOrdersManMarkingMarkerValueLost: "Estimated marker value lost",
     seniorOtherOrdersManMarkingNetBenefit: "Estimated net benefit",
     seniorOtherOrdersManMarkingTargetNameLoading: "Loading target name...",
     seniorOtherOrdersManMarkingClosePenaltyReason:
-      "The 50% marker penalty applies because the marker and target are in the corresponding close role pairing.",
+      "Because {{markerRole}} and {{targetRole}} form a close role pairing, man marking is estimated to reduce the marker's normal positional contribution by {{penalty}}.",
     seniorOtherOrdersManMarkingDistantPenaltyReason:
-      "The 65% marker penalty applies because these roles are not one of the close role pairings.",
+      "Because {{markerRole}} and {{targetRole}} do not form a close role pairing, man marking is estimated to reduce the marker's normal positional contribution by {{penalty}}.",
     seniorOtherOrdersManMarkingAlternativeSummary:
       "Next-best net benefit: {{net}}. Difference from the current pair: {{difference}}.",
     seniorOtherOrdersManMarkingValidTargets: "Valid target estimates are available.",

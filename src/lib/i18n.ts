@@ -1372,12 +1372,12 @@ export type Messages = {
   seniorOtherOrdersMarkerLabel: string;
   seniorOtherOrdersTargetLabel: string;
   seniorOtherOrdersOpponentIdPlaceholder: string;
-  seniorOtherOrdersCurrentTarget: string;
   seniorOtherOrdersManMarkingNoOpponent: string;
   seniorOtherOrdersOpponentPlayersLoading: string;
   seniorOtherOrdersOpponentPlayersLoadError: string;
   seniorOtherOrdersOpponentPlayersRetry: string;
   seniorOtherOrdersOpponentPlayersNone: string;
+  seniorOtherOrdersManMarkingMarkerPlaceholder: string;
   seniorOtherOrdersManMarkingTargetPlaceholder: string;
   seniorOtherOrdersUnknownOpponentPlayer: string;
   seniorOtherOrdersManMarkingExplanationTitle: string;
@@ -1400,7 +1400,15 @@ export type Messages = {
   seniorOtherOrdersManMarkingNoMarkerSelected: string;
   seniorOtherOrdersManMarkingNoTargetSelected: string;
   seniorOtherOrdersManMarkingInvalidMarkerPosition: string;
+  seniorOtherOrdersManMarkingMarkerNotStarting: string;
+  seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: string;
+  seniorOtherOrdersManMarkingMarkerInvalidSave: string;
+  seniorOtherOrdersManMarkingTargetInvalidSave: string;
   seniorOtherOrdersManMarkingTargetRoleUnknown: string;
+  seniorOtherOrdersManMarkingTargetNotObserved: string;
+  seniorOtherOrdersManMarkingTargetAmbiguousPredominant: string;
+  seniorOtherOrdersManMarkingTargetNonMarkablePredominant: string;
+  seniorOtherOrdersManMarkingTargetBelowFuzziness: string;
   seniorOtherOrdersManMarkingNoHistory: string;
   seniorOtherOrdersManMarkingNoConsistentTarget: string;
   seniorOtherOrdersManMarkingTargetDetailsUnavailable: string;
@@ -1437,6 +1445,7 @@ export type Messages = {
   seniorOtherOrdersManMarkingRoleForward: string;
   seniorOtherOrdersManMarkingRoleWinger: string;
   seniorOtherOrdersManMarkingRecommendationSummary: string;
+  seniorOtherOrdersManMarkingSelectedPairTitle: string;
   seniorOtherOrdersManMarkingCurrentPairSummary: string;
   seniorOtherOrdersManMarkingTargetConsistency: string;
   seniorOtherOrdersManMarkingEstimatedRawMainSkill: string;

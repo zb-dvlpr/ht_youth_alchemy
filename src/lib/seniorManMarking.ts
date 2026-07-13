@@ -1,5 +1,28 @@
 export type SeniorManMarkingMarkerRole = "CD" | "WB" | "IM";
 export type SeniorManMarkingTargetRole = "F" | "W" | "IM";
+export type SeniorManMarkingObservedOpponentRole =
+  | "KP"
+  | "CD"
+  | "WB"
+  | "IM"
+  | "W"
+  | "F";
+export type SeniorManMarkingPredominantTargetFailureReason =
+  | "noObservations"
+  | "ambiguousPredominantRole"
+  | "predominantRoleNotMarkable"
+  | "belowFuzziness";
+
+export type SeniorManMarkingPredominantTargetPosition = {
+  predominantRole: SeniorManMarkingObservedOpponentRole | null;
+  predominantCount: number;
+  analysedMatchCount: number;
+  roleConsistencyPercent: number;
+  isUniquePredominantRole: boolean;
+  isMarkableRole: boolean;
+  passesFuzziness: boolean;
+  failureReason: SeniorManMarkingPredominantTargetFailureReason | null;
+};
 
 export type SeniorManMarkingMarkerCandidate = {
   playerId: number;
@@ -99,18 +122,90 @@ export function calculateSeniorManMarkingTargetLossFraction(
   return result;
 }
 
+export function isSeniorManMarkingCloseRolePair(
+  markerRole: SeniorManMarkingMarkerRole,
+  targetRole: SeniorManMarkingTargetRole
+): boolean {
+  return (
+    (markerRole === "CD" && targetRole === "F") ||
+    (markerRole === "WB" && targetRole === "W") ||
+    (markerRole === "IM" && targetRole === "IM")
+  );
+}
+
 export function getSeniorManMarkingSelfPenalty(
   markerRole: SeniorManMarkingMarkerRole,
   targetRole: SeniorManMarkingTargetRole
 ): 0.5 | 0.65 {
-  if (
-    (markerRole === "CD" && targetRole === "F") ||
-    (markerRole === "WB" && targetRole === "W") ||
-    (markerRole === "IM" && targetRole === "IM")
-  ) {
-    return 0.5;
+  return isSeniorManMarkingCloseRolePair(markerRole, targetRole) ? 0.5 : 0.65;
+}
+
+export function isSeniorManMarkingTargetRole(
+  role: SeniorManMarkingObservedOpponentRole
+): role is SeniorManMarkingTargetRole {
+  return role === "F" || role === "W" || role === "IM";
+}
+
+export function evaluateSeniorManMarkingPredominantTargetPosition(
+  counts: Partial<Record<SeniorManMarkingObservedOpponentRole, number>>,
+  analysedMatchCount: number,
+  consistencyThresholdPercent: number
+): SeniorManMarkingPredominantTargetPosition {
+  const entries = (["KP", "CD", "WB", "IM", "W", "F"] as const)
+    .map((role) => ({
+      role,
+      count:
+        typeof counts[role] === "number" && Number.isFinite(counts[role])
+          ? Math.max(0, Math.floor(counts[role] ?? 0))
+          : 0,
+    }))
+    .filter((entry) => entry.count > 0);
+  if (!entries.length || analysedMatchCount <= 0) {
+    return {
+      predominantRole: null,
+      predominantCount: 0,
+      analysedMatchCount,
+      roleConsistencyPercent: 0,
+      isUniquePredominantRole: false,
+      isMarkableRole: false,
+      passesFuzziness: false,
+      failureReason: "noObservations",
+    };
   }
-  return 0.65;
+
+  const highestCount = Math.max(...entries.map((entry) => entry.count));
+  const highestEntries = entries.filter((entry) => entry.count === highestCount);
+  if (highestEntries.length !== 1) {
+    return {
+      predominantRole: null,
+      predominantCount: highestCount,
+      analysedMatchCount,
+      roleConsistencyPercent: (highestCount / analysedMatchCount) * 100,
+      isUniquePredominantRole: false,
+      isMarkableRole: false,
+      passesFuzziness: false,
+      failureReason: "ambiguousPredominantRole",
+    };
+  }
+
+  const predominant = highestEntries[0];
+  const isMarkableRole = isSeniorManMarkingTargetRole(predominant.role);
+  const passesFuzziness =
+    predominant.count * 100 >= analysedMatchCount * consistencyThresholdPercent;
+  return {
+    predominantRole: predominant.role,
+    predominantCount: predominant.count,
+    analysedMatchCount,
+    roleConsistencyPercent: (predominant.count / analysedMatchCount) * 100,
+    isUniquePredominantRole: true,
+    isMarkableRole,
+    passesFuzziness,
+    failureReason: !isMarkableRole
+      ? "predominantRoleNotMarkable"
+      : !passesFuzziness
+        ? "belowFuzziness"
+        : null,
+  };
 }
 
 export function evaluateSeniorManMarkingPair(

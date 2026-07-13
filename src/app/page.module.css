@@ -8071,6 +8071,14 @@ html[data-theme="dark"] .seniorManMarkingCompactList {
   color: #cdbfaa;
 }
 
+html[data-theme="dark"] .seniorManMarkingMetricPositive dd {
+  color: #9ee493;
+}
+
+html[data-theme="dark"] .seniorManMarkingMetricNegative dd {
+  color: #ff9b9b;
+}
+
 html[data-theme="dark"] .seniorManMarkingSourceBadge {
   border-color: rgba(232, 210, 174, 0.28);
   background: rgba(232, 210, 174, 0.12);
@@ -12397,6 +12405,16 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorManMarkingMetric dd {
   margin: 0;
   font-size: 13px;
+}
+
+.seniorManMarkingMetricPositive dd {
+  color: #257a38;
+  font-weight: 700;
+}
+
+.seniorManMarkingMetricNegative dd {
+  color: #b42318;
+  font-weight: 700;
 }
 
 .seniorManMarkingCompactList {

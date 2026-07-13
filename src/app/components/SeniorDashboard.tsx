@@ -167,11 +167,15 @@ import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 import {
   buildSeniorManMarkingPairDecision,
+  evaluateSeniorManMarkingPredominantTargetPosition,
   evaluateSeniorManMarkingPair,
   getSeniorManMarkerSpecialtyMultiplier,
   getSeniorManMarkingTargetSpecialtyMultiplier,
+  isSeniorManMarkingTargetRole,
   type SeniorManMarkingMarkerCandidate,
   type SeniorManMarkingMarkerRole,
+  type SeniorManMarkingObservedOpponentRole,
+  type SeniorManMarkingPredominantTargetFailureReason,
   type SeniorManMarkingPairDecision,
   type SeniorManMarkingPairEvaluation,
   type SeniorManMarkingTargetCandidate,
@@ -925,7 +929,7 @@ type OpponentFormationRow = {
   trackedPlayers: OpponentTrackedLineupPlayer[];
 };
 
-type OpponentTrackedRole = "KP" | "WB" | "CD" | "W" | "IM" | "F";
+type OpponentTrackedRole = SeniorManMarkingObservedOpponentRole;
 
 type OpponentTrackedLineupPlayer = {
   playerId: number;
@@ -998,6 +1002,17 @@ type OpponentPotentialTargetPlayer = {
   estimatedEffectiveMainSkill: number | null;
 };
 
+type OpponentManMarkingPositionDiagnostic = {
+  playerId: number;
+  name: string;
+  counts: Partial<Record<OpponentTrackedRole, number>>;
+  predominantRole: OpponentTrackedRole | null;
+  predominantCount: number;
+  analysedMatchCount: number;
+  roleConsistencyPercent: number;
+  failureReason: SeniorManMarkingPredominantTargetFailureReason | null;
+};
+
 const OPPONENT_TARGET_PLAYER_SNAPSHOT_VERSION = 2;
 
 type OpponentTargetPlayerSnapshot = {
@@ -1036,6 +1051,7 @@ type OpponentFormationContext = {
   selectedMatchSourceSystem: string;
   rows: OpponentFormationRow[];
   manMarkingFuzziness: number;
+  manMarkingPositionDiagnostics: OpponentManMarkingPositionDiagnostic[];
   potentialManMarkingTargets: OpponentPotentialTargetPlayer[];
   manMarkingTargets: OpponentTargetPlayer[];
   manMarkingTarget: OpponentTargetPlayer | null;
@@ -1141,17 +1157,6 @@ type SeniorOrderPlayerOption = {
   id: number;
   name: string;
   setPiecesSkill: number | null;
-};
-
-type SeniorOpponentManMarkingPlayer = {
-  playerId: number;
-  name: string;
-};
-
-type SeniorOpponentPlayersResponse = {
-  data?: { HattrickData?: { Team?: { PlayerList?: { Player?: unknown } } } };
-  error?: string;
-  details?: string;
 };
 
 type SeniorSubmitDisclaimerOrderSubstitution = SeniorOtherOrdersSummarySubstitution & {
@@ -4014,13 +4019,6 @@ export default function SeniorDashboard({
   const [lineupMutationEpoch, setLineupMutationEpoch] = useState(0);
   const [otherOrdersOpponentTargetNamesById, setOtherOrdersOpponentTargetNamesById] =
     useState<Record<number, string>>({});
-  const [opponentPlayersForSession, setOpponentPlayersForSession] = useState<
-    SeniorOpponentManMarkingPlayer[] | null
-  >(null);
-  const [opponentPlayersLoading, setOpponentPlayersLoading] = useState(false);
-  const [opponentPlayersError, setOpponentPlayersError] = useState<string | null>(
-    null
-  );
   const [manMarkingTargetDropdownOpen, setManMarkingTargetDropdownOpen] =
     useState(false);
   const [otherOrdersManMarkingContextState, setOtherOrdersManMarkingContextState] =
@@ -4035,7 +4033,8 @@ export default function SeniorDashboard({
       status: "idle" | "loading" | "ready" | "error";
       target: OpponentTargetPlayer | null;
       reason: SeniorManMarkingExplanationData["targetStatus"] | null;
-    }>({ key: "", status: "idle", target: null, reason: null });
+      invalidReason: string | null;
+    }>({ key: "", status: "idle", target: null, reason: null, invalidReason: null });
   const [devSimulateTacticalAssistant, setDevSimulateTacticalAssistant] =
     useState(false);
   const [devSimulatedTacticalAssistantLevel, setDevSimulatedTacticalAssistantLevel] =
@@ -4053,6 +4052,8 @@ export default function SeniorDashboard({
     useState<SeniorManMarkingGeneratedReport | null>(null);
   const [otherOrdersManMarkingOrigin, setOtherOrdersManMarkingOrigin] =
     useState<SeniorManMarkingOrderOrigin>("manual");
+  const [otherOrdersManMarkingTouched, setOtherOrdersManMarkingTouched] =
+    useState(false);
   const [otherOrdersInitialManMarkingPair, setOtherOrdersInitialManMarkingPair] =
     useState<{ markerId: number | null; targetId: number | null } | null>(null);
   const [tacticType, setTacticType] = useState(0);
@@ -4398,7 +4399,6 @@ export default function SeniorDashboard({
   >(
     new Map()
   );
-  const opponentPlayersSessionRequestIdRef = useRef(0);
   const opponentScoutTeamRequestIdRef = useRef(0);
   const manMarkingTargetDropdownRef = useRef<HTMLDivElement | null>(null);
   const otherOrdersFlashArmedRef = useRef(false);
@@ -7010,12 +7010,6 @@ function manMarkingRoleForSlot(
     if (slot === "IM_L" || slot === "IM_C" || slot === "IM_R") return "IM";
     if (slot === "CD_L" || slot === "CD_C" || slot === "CD_R") return "CD";
   return null;
-}
-
-function isSeniorManMarkingTargetRole(
-  role: OpponentTrackedRole
-): role is SeniorManMarkingTargetRole {
-  return role === "F" || role === "W" || role === "IM";
 }
 
 function manMarkingTargetRoleId(role: SeniorManMarkingTargetRole): number {
@@ -11765,15 +11759,19 @@ function buildSeniorAiManMarkingReadySignature(params: {
       }
       if (
         typeof orders.manMarkingOrder.subjectPlayerId !== "number" ||
-        !startingXiOrderPlayerIdSet.has(orders.manMarkingOrder.subjectPlayerId)
+        !seniorOtherOrdersManMarkingMarkerDiagnostics.validMarkers.some(
+          (marker) => marker.id === orders.manMarkingOrder?.subjectPlayerId
+        )
       ) {
-        return messages.seniorOtherOrdersInvalidOwnPlayer;
+        return messages.seniorOtherOrdersManMarkingMarkerInvalidSave;
       }
       if (
         typeof orders.manMarkingOrder.objectPlayerId !== "number" ||
-        orders.manMarkingOrder.objectPlayerId <= 0
+        !otherOrdersManMarkingContextState.context?.manMarkingTargets.some(
+          (target) => target.playerId === orders.manMarkingOrder?.objectPlayerId
+        )
       ) {
-        return messages.seniorOtherOrdersInvalidManMarkingTarget;
+        return messages.seniorOtherOrdersManMarkingTargetInvalidSave;
       }
     }
     for (const order of orders.playerOrders) {
@@ -11904,18 +11902,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOtherOrdersModalMatchId(null);
     setOtherOrdersDraft(null);
     setOtherOrdersValidationError(null);
-    opponentPlayersSessionRequestIdRef.current += 1;
-    setOpponentPlayersForSession(null);
-    setOpponentPlayersLoading(false);
-    setOpponentPlayersError(null);
     setOtherOrdersManMarkingContextState({ matchId: null, status: "idle", context: null });
     setOtherOrdersManMarkingTargetState({
       key: "",
       status: "idle",
       target: null,
       reason: null,
+      invalidReason: null,
     });
     setOtherOrdersInitialManMarkingPair(null);
+    setOtherOrdersManMarkingTouched(false);
     setManMarkingTargetDropdownOpen(false);
   };
   const saveOtherOrdersEditor = () => {
@@ -11936,10 +11932,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   useEffect(() => {
-    opponentPlayersSessionRequestIdRef.current += 1;
-    setOpponentPlayersForSession(null);
-    setOpponentPlayersLoading(false);
-    setOpponentPlayersError(null);
     setManMarkingTargetDropdownOpen(false);
   }, [otherOrdersEditorOpen]);
 
@@ -12018,6 +12010,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         status: "idle",
         target: null,
         reason: null,
+        invalidReason: null,
       });
       return;
     }
@@ -12034,6 +12027,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         status: "ready",
         target: contextTarget,
         reason: null,
+        invalidReason: null,
       });
       return;
     }
@@ -12043,6 +12037,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         status: "loading",
         target: null,
         reason: null,
+        invalidReason: null,
       });
       return;
     }
@@ -12056,6 +12051,21 @@ function buildSeniorAiManMarkingReadySignature(params: {
           otherOrdersManMarkingContextState.status === "error"
             ? "noHistory"
             : "noOpponent",
+        invalidReason: null,
+      });
+      return;
+    }
+    const positionInvalidReason = seniorManMarkingTargetPositionInvalidReason(
+      targetId,
+      context
+    );
+    if (positionInvalidReason) {
+      setOtherOrdersManMarkingTargetState({
+        key,
+        status: "error",
+        target: null,
+        reason: "roleUnknown",
+        invalidReason: positionInvalidReason,
       });
       return;
     }
@@ -12065,6 +12075,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       status: "loading",
       target: null,
       reason: null,
+      invalidReason: null,
     });
     const fallbackName = seniorOtherOrdersOpponentPlayerName(targetId);
     void resolveOpponentTargetForExplanation(targetId, fallbackName, context)
@@ -12075,6 +12086,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
           status: target ? "ready" : "error",
           target,
           reason: target ? null : "roleUnknown",
+          invalidReason: target
+            ? null
+            : seniorManMarkingTargetPositionInvalidReason(targetId, context),
         });
       })
       .catch(() => {
@@ -12084,6 +12098,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
           status: "error",
           target: null,
           reason: "detailsUnavailable",
+          invalidReason: null,
         });
       });
     return () => {
@@ -12096,7 +12111,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
     otherOrdersDraft?.matchId,
     otherOrdersEditorOpen,
     otherOrdersManMarkingContextState,
-    opponentPlayersForSession,
     otherOrdersOpponentTargetNamesById,
   ]);
 
@@ -12121,6 +12135,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
           }
         : null
     );
+    setOtherOrdersManMarkingTouched(false);
     setOtherOrdersValidationError(null);
   }, [otherOrdersEditorOpen, otherOrdersModalMatchId]);
 
@@ -12291,7 +12306,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
       )?.name,
       opponentTargetPlayerCacheRef.current.get(playerId)?.name,
       otherOrdersOpponentTargetNamesById[playerId],
-      opponentPlayersForSession?.find((player) => player.playerId === playerId)?.name,
     ];
     return (
       candidates.find((name) => isResolvedOpponentPlayerName(playerId, name)) ?? null
@@ -12311,94 +12325,43 @@ function buildSeniorAiManMarkingReadySignature(params: {
       seniorOtherOrdersUnknownOpponentPlayerLabel(playerId)
     );
   };
-  const normalizeOpponentPlayersForManMarking = (
-    payload: SeniorOpponentPlayersResponse | null | undefined
-  ): SeniorOpponentManMarkingPlayer[] => {
-    const raw = payload?.data?.HattrickData?.Team?.PlayerList?.Player;
-    const rawPlayers = Array.isArray(raw) ? raw : raw ? [raw] : [];
-    return rawPlayers
-      .map((player) => {
-        if (!player || typeof player !== "object") return null;
-        const playerNode = player as Record<string, unknown>;
-        const playerId = parseNumber(playerNode.PlayerID);
-        if (!playerId || playerId <= 0) return null;
-        const name =
-          formatPlayerName({
-            FirstName:
-              typeof playerNode.FirstName === "string" ? playerNode.FirstName : "",
-            NickName:
-              typeof playerNode.NickName === "string" && playerNode.NickName
-                ? playerNode.NickName
-                : undefined,
-            LastName:
-              typeof playerNode.LastName === "string" ? playerNode.LastName : "",
-          }) || seniorOtherOrdersUnknownOpponentPlayerLabel(playerId);
-        return { playerId, name };
-      })
-      .filter(
-        (player): player is SeniorOpponentManMarkingPlayer => Boolean(player)
-      )
-      .sort((left, right) => left.name.localeCompare(right.name));
-  };
-  const ensureOpponentPlayersForManMarking = async (force = false) => {
-    if (!force && (opponentPlayersForSession || opponentPlayersLoading)) return;
-    if (!activeOtherOrdersOpponentTeam) {
-      setOpponentPlayersError(messages.seniorOtherOrdersManMarkingNoOpponent);
-      return;
-    }
-
-    setOpponentPlayersLoading(true);
-    setOpponentPlayersError(null);
-    const requestId = opponentPlayersSessionRequestIdRef.current;
-    try {
-      const { response, payload } = await fetchChppJson<SeniorOpponentPlayersResponse>(
-        `/api/chpp/players?teamId=${activeOtherOrdersOpponentTeam.teamId}`,
-        { cache: "no-store" }
-      );
-      if (!response.ok || payload?.error) {
-        throw new Error(
-          payload?.details ??
-            payload?.error ??
-            messages.seniorOtherOrdersOpponentPlayersLoadError
-        );
-      }
-      const normalized = normalizeOpponentPlayersForManMarking(payload);
-      if (opponentPlayersSessionRequestIdRef.current !== requestId) return;
-      setOpponentPlayersForSession(normalized);
-      setOtherOrdersOpponentTargetNamesById((prev) => {
-        const next = { ...prev };
-        normalized.forEach((player) => {
-          next[player.playerId] = player.name;
-        });
-        return next;
-      });
-    } catch (error) {
-      if (opponentPlayersSessionRequestIdRef.current !== requestId) return;
-      setOpponentPlayersError(
-        error instanceof Error
-          ? error.message
-          : messages.seniorOtherOrdersOpponentPlayersLoadError
-      );
-    } finally {
-      if (opponentPlayersSessionRequestIdRef.current === requestId) {
-        setOpponentPlayersLoading(false);
-      }
-    }
-  };
-  const seniorOtherOrdersOpponentTargetOptions = (selectedPlayerId: number | null) => {
-    const options = [...(opponentPlayersForSession ?? [])];
-    if (
-      typeof selectedPlayerId === "number" &&
-      selectedPlayerId > 0 &&
-      !options.some((player) => player.playerId === selectedPlayerId)
-    ) {
-      options.unshift({
-        playerId: selectedPlayerId,
-        name: seniorOtherOrdersOpponentPlayerName(selectedPlayerId),
-      });
-    }
-    return options;
-  };
+  const seniorOtherOrdersManMarkingMarkerDiagnostics =
+    buildSeniorManMarkingMarkerExplanation(assignments);
+  const seniorOtherOrdersManMarkingMarkerOptions =
+    seniorOtherOrdersManMarkingMarkerDiagnostics.validMarkers.map((marker) => ({
+      ...marker,
+      label: `${marker.name} (${seniorManMarkingObservedRoleLabel(marker.role)})`,
+    }));
+  const seniorOtherOrdersSelectedMarkerId =
+    otherOrdersDraft?.manMarkingOrder?.subjectPlayerId ?? null;
+  const seniorOtherOrdersSelectedMarkerOptionValue =
+    typeof seniorOtherOrdersSelectedMarkerId === "number" &&
+    seniorOtherOrdersManMarkingMarkerOptions.some(
+      (marker) => marker.id === seniorOtherOrdersSelectedMarkerId
+    )
+      ? seniorOtherOrdersSelectedMarkerId
+      : 0;
+  const seniorOtherOrdersManMarkingTargetOptions =
+    otherOrdersManMarkingContextState.context?.manMarkingTargets
+      .map((target) => ({
+        ...target,
+        label: `${target.name} (${seniorManMarkingObservedRoleLabel(target.role)})`,
+      }))
+      .sort((left, right) => {
+        const skillResult =
+          (right.estimatedEffectiveMainSkill ?? -1) -
+          (left.estimatedEffectiveMainSkill ?? -1);
+        if (skillResult !== 0) return skillResult;
+        if (left.playerId !== right.playerId) return left.playerId - right.playerId;
+        return left.role.localeCompare(right.role);
+      }) ?? [];
+  const seniorOtherOrdersSelectedTargetId =
+    otherOrdersDraft?.manMarkingOrder?.objectPlayerId ?? null;
+  const seniorOtherOrdersSelectedTargetIsEligible =
+    typeof seniorOtherOrdersSelectedTargetId === "number" &&
+    seniorOtherOrdersManMarkingTargetOptions.some(
+      (target) => target.playerId === seniorOtherOrdersSelectedTargetId
+    );
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) return;
@@ -12474,6 +12437,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ]);
 
   const updateSeniorOtherOrdersManMarkingTarget = (nextTargetId: number | null) => {
+    setOtherOrdersManMarkingTouched(true);
     if (!otherOrdersDraft?.manMarkingOrder) {
       setOtherOrdersManMarkingOrigin("manual");
     }
@@ -12501,9 +12465,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
   const openSeniorOtherOrdersManMarkingTargetDropdown = () => {
     setManMarkingTargetDropdownOpen(true);
-    if (activeOtherOrdersOpponentTeam) {
-      void ensureOpponentPlayersForManMarking();
-    }
   };
   const seniorOtherOrdersManMarkingExplanationTarget = useMemo(() => {
     if (!otherOrdersManMarkingTargetState.target) return null;
@@ -15636,52 +15597,80 @@ const refreshDetailsForPlayers = async (
     }
   }
 
-  function inferOpponentManMarkingRoleFromRows(
-    rows: OpponentFormationRow[],
-    playerId: number
-  ): {
-    role: SeniorManMarkingTargetRole;
-    observedRoleCount: number;
-    analysedMatchCount: number;
-    roleConsistencyPercent: number;
-  } | null {
-    const fixedRoleOrder: SeniorManMarkingTargetRole[] = ["F", "W", "IM"];
-    const counts = new Map<
-      SeniorManMarkingTargetRole,
-      { count: number; latestIndex: number }
-    >();
-    rows.forEach((row, rowIndex) => {
-      const seenRoles = new Set<SeniorManMarkingTargetRole>();
-      row.trackedPlayers.forEach((player) => {
-        if (player.playerId !== playerId || !isSeniorManMarkingTargetRole(player.role)) {
-          return;
-        }
-        seenRoles.add(player.role);
-      });
-      seenRoles.forEach((role) => {
-        const current = counts.get(role);
-        counts.set(role, {
-          count: (current?.count ?? 0) + 1,
-          latestIndex:
-            current === undefined ? rowIndex : Math.min(current.latestIndex, rowIndex),
-        });
-      });
-    });
-    const best =
-      Array.from(counts.entries()).sort((left, right) => {
-        if (right[1].count !== left[1].count) return right[1].count - left[1].count;
-        if (left[1].latestIndex !== right[1].latestIndex) {
-          return left[1].latestIndex - right[1].latestIndex;
-        }
-        return fixedRoleOrder.indexOf(left[0]) - fixedRoleOrder.indexOf(right[0]);
-      })[0] ?? null;
-    if (!best || rows.length === 0) return null;
-    return {
-      role: best[0],
-      observedRoleCount: best[1].count,
-      analysedMatchCount: rows.length,
-      roleConsistencyPercent: (best[1].count / rows.length) * 100,
-    };
+  function seniorManMarkingObservedRoleLabel(role: OpponentTrackedRole): string {
+    switch (role) {
+      case "KP":
+        return messages.posKeeperFull;
+      case "CD":
+        return messages.seniorOtherOrdersManMarkingRoleCentralDefender;
+      case "WB":
+        return messages.seniorOtherOrdersManMarkingRoleWingback;
+      case "IM":
+        return messages.seniorOtherOrdersManMarkingRoleInnerMidfielder;
+      case "F":
+        return messages.seniorOtherOrdersManMarkingRoleForward;
+      case "W":
+        return messages.seniorOtherOrdersManMarkingRoleWinger;
+    }
+  }
+
+  function seniorManMarkingTargetPositionInvalidReason(
+    playerId: number,
+    context: OpponentFormationContext
+  ): string | null {
+    const diagnostic =
+      context.manMarkingPositionDiagnostics.find(
+        (entry) => entry.playerId === playerId
+      ) ?? null;
+    const name =
+      diagnostic?.name ||
+      resolveKnownOpponentTargetName(playerId) ||
+      seniorOtherOrdersUnknownOpponentPlayerLabel(playerId);
+    if (!diagnostic) {
+      return messages.seniorOtherOrdersManMarkingTargetNotObserved
+        .replace("{{player}}", name)
+        .replace("{{total}}", String(context.rows.length));
+    }
+    switch (diagnostic.failureReason) {
+      case null:
+        return null;
+      case "noObservations":
+        return messages.seniorOtherOrdersManMarkingTargetNotObserved
+          .replace("{{player}}", name)
+          .replace("{{total}}", String(context.rows.length));
+      case "ambiguousPredominantRole":
+        return messages.seniorOtherOrdersManMarkingTargetAmbiguousPredominant.replace(
+          "{{player}}",
+          name
+        );
+      case "predominantRoleNotMarkable":
+        return messages.seniorOtherOrdersManMarkingTargetNonMarkablePredominant
+          .replace("{{player}}", name)
+          .replace(
+            "{{role}}",
+            diagnostic.predominantRole
+              ? seniorManMarkingObservedRoleLabel(diagnostic.predominantRole)
+              : messages.unknownShort
+          );
+      case "belowFuzziness":
+        return messages.seniorOtherOrdersManMarkingTargetBelowFuzziness
+          .replace("{{player}}", name)
+          .replace(
+            "{{role}}",
+            diagnostic.predominantRole
+              ? seniorManMarkingObservedRoleLabel(diagnostic.predominantRole)
+              : messages.unknownShort
+          )
+          .replace("{{count}}", String(diagnostic.predominantCount))
+          .replace("{{total}}", String(diagnostic.analysedMatchCount))
+          .replace(
+            "{{percent}}",
+            `${new Intl.NumberFormat(numberFormatLocale, {
+              maximumFractionDigits: 0,
+            }).format(diagnostic.roleConsistencyPercent)}%`
+          )
+          .replace("{{threshold}}", `${context.manMarkingFuzziness}%`);
+    }
   }
 
   async function resolveOpponentTargetForExplanation(
@@ -15690,14 +15679,28 @@ const refreshDetailsForPlayers = async (
     context: OpponentFormationContext | null
   ): Promise<OpponentTargetPlayer | null> {
     if (!context) return null;
-    const inferred = inferOpponentManMarkingRoleFromRows(context.rows, playerId);
-    if (!inferred) return null;
+    const inferred =
+      context.manMarkingPositionDiagnostics.find(
+        (entry) =>
+          entry.playerId === playerId &&
+          entry.failureReason === null &&
+          entry.predominantRole !== null &&
+          isSeniorManMarkingTargetRole(entry.predominantRole)
+      ) ?? null;
+    if (
+      !inferred ||
+      inferred.predominantRole === null ||
+      !isSeniorManMarkingTargetRole(inferred.predominantRole)
+    ) {
+      return null;
+    }
+    const targetRole: SeniorManMarkingTargetRole = inferred.predominantRole;
     const snapshot = await fetchOpponentTargetPlayer(playerId, fallbackName);
     const baseTarget = {
       playerId,
-      role: inferred.role,
+      role: targetRole,
       name: snapshot?.name || fallbackName,
-      count: inferred.observedRoleCount,
+      count: inferred.predominantCount,
       salary: snapshot?.salary ?? null,
       age: snapshot?.age ?? null,
       specialty: snapshot?.specialty ?? null,
@@ -15714,12 +15717,12 @@ const refreshDetailsForPlayers = async (
           estimatedEffectiveMainSkill: null,
           mainSkillEstimateKind: "detailsUnavailable" as const,
           estimateFailureReason: "detailsUnavailable" as const,
-        };
+      };
     return {
       playerId,
-      role: inferred.role,
+      role: targetRole,
       name: snapshot?.name || fallbackName,
-      observedRoleCount: inferred.observedRoleCount,
+      observedRoleCount: inferred.predominantCount,
       analysedMatchCount: inferred.analysedMatchCount,
       roleConsistencyPercent: inferred.roleConsistencyPercent,
       tsi: snapshot?.tsi ?? null,
@@ -15808,18 +15811,24 @@ const refreshDetailsForPlayers = async (
   ): SeniorManMarkingExplanationData | null {
     if (!effectiveSeniorAiManMarkingEnabled || !otherOrdersDraft) return null;
     const generatedReport = effectiveSeniorAiManMarkingGeneratedReport;
-    const markerDiagnostics = buildSeniorManMarkingMarkerExplanation(assignments);
+    const markerDiagnostics = seniorOtherOrdersManMarkingMarkerDiagnostics;
     const markerId = otherOrdersDraft.manMarkingOrder?.subjectPlayerId ?? null;
     const targetId = otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null;
     const currentMarker =
       typeof markerId === "number" && markerId > 0
         ? markerDiagnostics.validMarkers.find((marker) => marker.id === markerId) ?? null
         : null;
+    const selectedMarkerStartingSlot =
+      typeof markerId === "number" && markerId > 0
+        ? FIELD_SLOT_ORDER.find((slot) => assignments[slot] === markerId) ?? null
+        : null;
     const markerInvalidReason =
       typeof markerId === "number" && markerId > 0 && !currentMarker
-        ? !FIELD_SLOT_ORDER.some((slot) => assignments[slot] === markerId)
-          ? messages.seniorOtherOrdersManMarkingInvalidMarkerPosition
-          : messages.seniorOtherOrdersManMarkingMarkerDataUnavailable
+        ? selectedMarkerStartingSlot === null
+          ? messages.seniorOtherOrdersManMarkingMarkerNotStarting
+          : manMarkingRoleForSlot(selectedMarkerStartingSlot) === null
+            ? messages.seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition
+            : messages.seniorOtherOrdersManMarkingMarkerDataUnavailable
         : null;
     const currentPair =
       currentMarker && currentTarget
@@ -15902,7 +15911,7 @@ const refreshDetailsForPlayers = async (
     const source: SeniorManMarkingExplanationData["source"] =
       otherOrdersManMarkingOrigin === "generated"
         ? originalRecommendedPair
-          ? currentMatchesGenerated
+          ? currentMatchesGenerated && !otherOrdersManMarkingTouched
             ? "recommended"
             : "modifiedRecommendation"
           : hasCurrentManMarkingPair
@@ -15927,7 +15936,12 @@ const refreshDetailsForPlayers = async (
       markerStatus: markerDiagnostics.status,
       targetStatus,
       validMarkers: markerDiagnostics.validMarkers,
-      validTargets: generatedReport?.targets ?? (currentTarget ? [currentTarget] : []),
+      validTargets:
+        otherOrdersManMarkingContextState.context?.manMarkingTargets
+          .map(buildSeniorManMarkingTargetExplanation)
+          .filter(
+            (target): target is SeniorManMarkingExplanationTarget => Boolean(target)
+          ) ?? (currentTarget ? [currentTarget] : []),
       failedTargets: generatedReport?.failedTargets ?? [],
       excludedMarkerMessages: markerDiagnostics.excludedMarkerMessages,
       potentialTargetCount: generatedReport?.potentialTargetCount ?? 0,
@@ -15937,7 +15951,7 @@ const refreshDetailsForPlayers = async (
       markerSelected: typeof markerId === "number" && markerId > 0,
       targetSelected: typeof targetId === "number" && targetId > 0,
       markerInvalidReason,
-      targetInvalidReason,
+      targetInvalidReason: targetInvalidReason ?? otherOrdersManMarkingTargetState.invalidReason,
     };
   }
 
@@ -15985,11 +15999,13 @@ const refreshDetailsForPlayers = async (
     rows: OpponentFormationRow[],
     consistencyThresholdPct: number
   ): Promise<{
+    positionDiagnostics: OpponentManMarkingPositionDiagnostic[];
     potentialTargets: OpponentPotentialTargetPlayer[];
     resolvedTargets: OpponentTargetPlayer[];
   }> => {
     if (!rows.length) {
       return {
+        positionDiagnostics: [],
         potentialTargets: [],
         resolvedTargets: [],
       };
@@ -15998,30 +16014,74 @@ const refreshDetailsForPlayers = async (
       SENIOR_AI_MAN_MARKING_FUZZINESS_MAX,
       Math.max(SENIOR_AI_MAN_MARKING_FUZZINESS_MIN, Math.round(consistencyThresholdPct))
     );
-    const counts = new Map<string, { playerId: number; role: OpponentTrackedRole; name: string; count: number }>();
-    const manMarkingRoles = new Set<OpponentTrackedRole>(["W", "IM", "F"]);
+    const playerObservations = new Map<
+      number,
+      {
+        playerId: number;
+        name: string;
+        counts: Partial<Record<OpponentTrackedRole, number>>;
+      }
+    >();
     rows.forEach((row) => {
       const uniqueEntries = new Map<string, OpponentTrackedLineupPlayer>();
       row.trackedPlayers.forEach((player) => {
-        if (!manMarkingRoles.has(player.role)) return;
         uniqueEntries.set(`${player.playerId}:${player.role}`, player);
       });
       uniqueEntries.forEach((player) => {
-        const key = `${player.playerId}:${player.role}`;
-        const current = counts.get(key);
-        counts.set(key, {
+        const current = playerObservations.get(player.playerId) ?? {
           playerId: player.playerId,
-          role: player.role,
           name: player.name,
-          count: (current?.count ?? 0) + 1,
-        });
+          counts: {},
+        };
+        current.name = player.name || current.name;
+        current.counts[player.role] = (current.counts[player.role] ?? 0) + 1;
+        playerObservations.set(player.playerId, current);
       });
     });
-    const consistentPlayers = Array.from(counts.values()).filter((entry) =>
-      entry.count * 100 >= rows.length * clampedThreshold
-    );
+    const positionDiagnostics = Array.from(playerObservations.values())
+      .map((entry) => {
+        const decision = evaluateSeniorManMarkingPredominantTargetPosition(
+          entry.counts,
+          rows.length,
+          clampedThreshold
+        );
+        return {
+          playerId: entry.playerId,
+          name: entry.name,
+          counts: entry.counts,
+          predominantRole: decision.predominantRole,
+          predominantCount: decision.predominantCount,
+          analysedMatchCount: decision.analysedMatchCount,
+          roleConsistencyPercent: decision.roleConsistencyPercent,
+          failureReason: decision.failureReason,
+        } satisfies OpponentManMarkingPositionDiagnostic;
+      })
+      .sort((left, right) => {
+        if (left.playerId !== right.playerId) return left.playerId - right.playerId;
+        return left.name.localeCompare(right.name);
+      });
+    const consistentPlayers = positionDiagnostics
+      .filter(
+        (
+          entry
+        ): entry is OpponentManMarkingPositionDiagnostic & {
+          predominantRole: SeniorManMarkingTargetRole;
+        } =>
+          entry.failureReason === null &&
+          entry.predominantRole !== null &&
+          isSeniorManMarkingTargetRole(entry.predominantRole)
+      )
+      .map((entry) => ({
+        playerId: entry.playerId,
+        role: entry.predominantRole,
+        name: entry.name,
+        count: entry.predominantCount,
+        analysedMatchCount: entry.analysedMatchCount,
+        roleConsistencyPercent: entry.roleConsistencyPercent,
+      }));
     if (!consistentPlayers.length) {
       return {
+        positionDiagnostics,
         potentialTargets: [],
         resolvedTargets: [],
       };
@@ -16037,9 +16097,8 @@ const refreshDetailsForPlayers = async (
             role: entry.role,
             name: snapshot?.name || entry.name,
             count: entry.count,
-            analysedMatchCount: rows.length,
-            roleConsistencyPercent:
-              rows.length > 0 ? (entry.count / rows.length) * 100 : 0,
+            analysedMatchCount: entry.analysedMatchCount,
+            roleConsistencyPercent: entry.roleConsistencyPercent,
             thresholdMet: true,
             detailsLoaded: Boolean(snapshot),
             tsi: snapshot?.tsi ?? null,
@@ -16104,6 +16163,7 @@ const refreshDetailsForPlayers = async (
           }) satisfies OpponentTargetPlayer
       );
     return {
+      positionDiagnostics,
       potentialTargets: enrichedCandidates,
       resolvedTargets: [...resolvedCandidates].sort((left, right) => {
         const skillResult =
@@ -16120,18 +16180,18 @@ const refreshDetailsForPlayers = async (
     rows: OpponentFormationRow[],
     consistencyThresholdPct: number
   ): Promise<{
+    positionDiagnostics: OpponentManMarkingPositionDiagnostic[];
     potentialTargets: OpponentPotentialTargetPlayer[];
     targets: OpponentTargetPlayer[];
     target: OpponentTargetPlayer | null;
   }> => {
-    const { potentialTargets, resolvedTargets } = await determineOpponentManMarkingCandidates(
-      rows,
-      consistencyThresholdPct
-    );
+    const { positionDiagnostics, potentialTargets, resolvedTargets } =
+      await determineOpponentManMarkingCandidates(rows, consistencyThresholdPct);
     if (!resolvedTargets.length) {
-      return { potentialTargets, targets: [], target: null };
+      return { positionDiagnostics, potentialTargets, targets: [], target: null };
     }
     return {
+      positionDiagnostics,
       potentialTargets,
       targets: resolvedTargets,
       target: resolvedTargets[0] ?? null,
@@ -16160,6 +16220,7 @@ const refreshDetailsForPlayers = async (
       const updatedContext = {
         ...cachedContext,
         manMarkingFuzziness: seniorAiManMarkingFuzziness,
+        manMarkingPositionDiagnostics: updatedManMarking.positionDiagnostics,
         potentialManMarkingTargets: updatedManMarking.potentialTargets,
         manMarkingTargets: updatedManMarking.targets,
         manMarkingTarget: updatedManMarking.target,
@@ -16412,6 +16473,7 @@ const refreshDetailsForPlayers = async (
       selectedMatchSourceSystem,
       rows,
       manMarkingFuzziness: seniorAiManMarkingFuzziness,
+      manMarkingPositionDiagnostics: manMarking.positionDiagnostics,
       potentialManMarkingTargets: manMarking.potentialTargets,
       manMarkingTargets: manMarking.targets,
       manMarkingTarget: manMarking.target,
@@ -22015,9 +22077,10 @@ const refreshDetailsForPlayers = async (
                     <span>{messages.seniorOtherOrdersMarkerLabel}</span>
                     <select
                       className={styles.seniorOtherOrdersSelect}
-                      value={otherOrdersDraft.manMarkingOrder?.subjectPlayerId ?? 0}
+                      value={seniorOtherOrdersSelectedMarkerOptionValue}
                       onChange={(event) => {
                         const nextMarkerId = Number(event.target.value) || null;
+                        setOtherOrdersManMarkingTouched(true);
                         if (!otherOrdersDraft.manMarkingOrder) {
                           setOtherOrdersManMarkingOrigin("manual");
                         }
@@ -22052,13 +22115,13 @@ const refreshDetailsForPlayers = async (
                       }}
                     >
                       <option value={0}>
-                        {startingXiOrderPlayerOptions.length === 0
+                        {seniorOtherOrdersManMarkingMarkerOptions.length === 0
                           ? messages.seniorOtherOrdersNoStartingXiPlayers
-                          : messages.unknownShort}
+                          : messages.seniorOtherOrdersManMarkingMarkerPlaceholder}
                       </option>
-                      {startingXiOrderPlayerOptions.map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {seniorOtherOrdersPlayerNameLabel(player)}
+                      {seniorOtherOrdersManMarkingMarkerOptions.map((player) => (
+                        <option key={`${player.id}:${player.slot}`} value={player.id}>
+                          {player.label}
                         </option>
                       ))}
                     </select>
@@ -22076,10 +22139,16 @@ const refreshDetailsForPlayers = async (
                         aria-haspopup="listbox"
                         aria-expanded={manMarkingTargetDropdownOpen}
                       >
-                        {otherOrdersDraft.manMarkingOrder?.objectPlayerId
-                          ? seniorOtherOrdersOpponentPlayerName(
+                        {seniorOtherOrdersSelectedTargetIsEligible &&
+                        otherOrdersDraft.manMarkingOrder?.objectPlayerId
+                          ? (seniorOtherOrdersManMarkingTargetOptions.find(
+                              (target) =>
+                                target.playerId ===
+                                otherOrdersDraft.manMarkingOrder?.objectPlayerId
+                            )?.label ??
+                            seniorOtherOrdersOpponentPlayerName(
                               otherOrdersDraft.manMarkingOrder.objectPlayerId
-                            )
+                            ))
                           : messages.seniorOtherOrdersManMarkingTargetPlaceholder}
                       </button>
                       {manMarkingTargetDropdownOpen ? (
@@ -22092,45 +22161,54 @@ const refreshDetailsForPlayers = async (
                               {messages.seniorOtherOrdersManMarkingNoOpponent}
                             </div>
                           ) : null}
-                          {opponentPlayersLoading ? (
+                          {otherOrdersManMarkingContextState.status === "loading" ? (
                             <div className={styles.seniorOtherOrdersComboboxStatus}>
                               <span className={styles.spinner} aria-hidden="true" />
                               <span>
-                                {messages.seniorOtherOrdersOpponentPlayersLoading}
+                                {messages.seniorOtherOrdersManMarkingLoading}
                               </span>
                             </div>
                           ) : null}
-                          {opponentPlayersError ? (
+                          {otherOrdersManMarkingContextState.status === "error" ? (
                             <div className={styles.seniorOtherOrdersComboboxStatus}>
-                              <span>{opponentPlayersError}</span>
+                              <span>{messages.seniorOtherOrdersManMarkingNoHistory}</span>
                               <button
                                 type="button"
                                 className={styles.seniorOtherOrdersInlineButton}
                                 onClick={() => {
-                                  setOpponentPlayersForSession(null);
-                                  void ensureOpponentPlayersForManMarking(true);
+                                  opponentFormationContextCacheRef.current.delete(
+                                    otherOrdersModalMatchId ?? 0
+                                  );
+                                  if (typeof otherOrdersModalMatchId === "number") {
+                                    void fetchOpponentFormationRowsForMatch(
+                                      otherOrdersModalMatchId
+                                    ).then((context) => {
+                                      setOtherOrdersManMarkingContextState({
+                                        matchId: otherOrdersModalMatchId,
+                                        status: context ? "ready" : "error",
+                                        context,
+                                      });
+                                    });
+                                  }
                                 }}
                               >
                                 {messages.seniorOtherOrdersOpponentPlayersRetry}
                               </button>
                             </div>
                           ) : null}
-                          {!opponentPlayersLoading &&
-                          !opponentPlayersError &&
+                          {otherOrdersManMarkingContextState.status !== "loading" &&
+                          otherOrdersManMarkingContextState.status !== "error" &&
                           activeOtherOrdersOpponentTeam &&
-                          seniorOtherOrdersOpponentTargetOptions(
-                            otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
-                          ).length === 0 ? (
+                          seniorOtherOrdersManMarkingTargetOptions.length === 0 ? (
                             <div className={styles.seniorOtherOrdersComboboxStatus}>
                               {messages.seniorOtherOrdersOpponentPlayersNone}
                             </div>
                           ) : null}
-                          {!opponentPlayersLoading && !opponentPlayersError
-                            ? seniorOtherOrdersOpponentTargetOptions(
-                                otherOrdersDraft.manMarkingOrder?.objectPlayerId ?? null
-                              ).map((player) => (
+                          {otherOrdersManMarkingContextState.status !== "loading" &&
+                          otherOrdersManMarkingContextState.status !== "error"
+                            ? seniorOtherOrdersManMarkingTargetOptions.map((player) => (
                                 <button
-                                  key={player.playerId}
+                                  key={`${player.playerId}:${player.role}`}
                                   type="button"
                                   role="option"
                                   className={styles.seniorOtherOrdersComboboxOption}
@@ -22145,7 +22223,7 @@ const refreshDetailsForPlayers = async (
                                     setManMarkingTargetDropdownOpen(false);
                                   }}
                                 >
-                                  {player.name}
+                                  {player.label}
                                 </button>
                               ))
                             : null}
@@ -22155,16 +22233,6 @@ const refreshDetailsForPlayers = async (
                     {!activeOtherOrdersOpponentTeam ? (
                       <small className={styles.seniorOtherOrdersInlineStatus}>
                         {messages.seniorOtherOrdersManMarkingNoOpponent}
-                      </small>
-                    ) : null}
-                    {otherOrdersDraft.manMarkingOrder?.objectPlayerId ? (
-                      <small>
-                        {messages.seniorOtherOrdersCurrentTarget.replace(
-                          "{{target}}",
-                          seniorOtherOrdersOpponentPlayerName(
-                            otherOrdersDraft.manMarkingOrder.objectPlayerId
-                          )
-                        )}
                       </small>
                     ) : null}
                   </label>

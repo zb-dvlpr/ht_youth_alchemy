@@ -3,6 +3,7 @@ import { Messages } from "@/lib/i18n";
 import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
 import {
   SENIOR_MAN_MARKING_EPSILON,
+  isSeniorManMarkingCloseRolePair,
   type SeniorManMarkingMarkerRole,
   type SeniorManMarkingPairDecision,
   type SeniorManMarkingPairEvaluation,
@@ -231,12 +232,28 @@ const pairResultLabel = (messages: Messages, netBenefit: number) => {
   return messages.seniorOtherOrdersManMarkingNeutralResult;
 };
 
-const metric = (label: string, value: ReactNode) => (
-  <div className={styles.seniorManMarkingMetric}>
+type MetricVariant = "default" | "positive" | "negative";
+
+const metric = (label: string, value: ReactNode, variant: MetricVariant = "default") => (
+  <div
+    className={`${styles.seniorManMarkingMetric} ${
+      variant === "positive"
+        ? styles.seniorManMarkingMetricPositive
+        : variant === "negative"
+          ? styles.seniorManMarkingMetricNegative
+          : ""
+    }`}
+  >
     <dt>{label}</dt>
     <dd>{value}</dd>
   </div>
 );
+
+const netBenefitVariant = (netBenefit: number): MetricVariant => {
+  if (netBenefit > SENIOR_MAN_MARKING_EPSILON) return "positive";
+  if (netBenefit < -SENIOR_MAN_MARKING_EPSILON) return "negative";
+  return "default";
+};
 
 const pairMetrics = (
   messages: Messages,
@@ -268,47 +285,12 @@ const pairMetrics = (
       )}
       {metric(
         messages.seniorOtherOrdersManMarkingNetBenefit,
-        formatNumber(locale, evaluation.netBenefit)
+        formatNumber(locale, evaluation.netBenefit),
+        netBenefitVariant(evaluation.netBenefit)
       )}
     </dl>
   );
 };
-
-function renderMarkerSummary(
-  messages: Messages,
-  locale: string,
-  marker: SeniorManMarkingExplanationMarker
-) {
-  return (
-    <li key={marker.id}>
-      {playerLink(marker)} · {roleLabel(messages, marker.role)} ·{" "}
-      {messages.seniorOtherOrdersManMarkingEffectiveDefending}:{" "}
-      {formatNumber(locale, marker.baseEffectiveDefending)} ·{" "}
-      {messages.seniorOtherOrdersManMarkingAdjustedStrength}:{" "}
-      {formatNumber(locale, marker.adjustedMarkingStrength)} ·{" "}
-      {messages.seniorOtherOrdersManMarkingNormalRoleValue}:{" "}
-      {formatNumber(locale, marker.normalRoleValue)}
-    </li>
-  );
-}
-
-function renderTargetSummary(
-  messages: Messages,
-  locale: string,
-  target: SeniorManMarkingExplanationTarget
-) {
-  return (
-    <li key={`${target.id}:${target.role}`}>
-      {playerLink(target)} · {roleLabel(messages, target.role)} ·{" "}
-      {target.observedRoleCount}/{target.analysedMatchCount} (
-      {formatConsistencyPercent(locale, target.roleConsistencyPercent)}) ·{" "}
-      {messages.seniorOtherOrdersManMarkingEstimatedEffectiveMainSkill}:{" "}
-      {target.estimatedEffectiveMainSkill === null
-        ? messages.unknownShort
-        : formatNumber(locale, target.estimatedEffectiveMainSkill)}
-    </li>
-  );
-}
 
 function targetFailureReasonMessage(
   messages: Messages,
@@ -396,6 +378,7 @@ export default function SeniorManMarkingExplanation({
   const currentPair = data.currentPair;
   const selectedPair = data.decision?.selectedPair ?? null;
   const isRecommendedCurrent =
+    data.source === "recommended" &&
     currentPair !== null &&
     selectedPair !== null &&
     currentPair.evaluation.markerPlayerId === selectedPair.markerPlayerId &&
@@ -420,7 +403,11 @@ export default function SeniorManMarkingExplanation({
       {!data.loading && currentPair ? (
         <>
           <section className={styles.seniorManMarkingExplanationSection}>
-            <h5>{messages.seniorOtherOrdersManMarkingRecommendationTitle}</h5>
+            <h5>
+              {isRecommendedCurrent
+                ? messages.seniorOtherOrdersManMarkingRecommendationTitle
+                : messages.seniorOtherOrdersManMarkingSelectedPairTitle}
+            </h5>
             <p>
               {isRecommendedCurrent
                 ? messages.seniorOtherOrdersManMarkingRecommendationSummary
@@ -476,7 +463,9 @@ export default function SeniorManMarkingExplanation({
                   : formatNumber(locale, currentPair.target.adjustedTargetComparisonStrength)
               )}
             </dl>
-            <p>{messages.seniorOtherOrdersManMarkingTargetChosenAsPair}</p>
+            {isRecommendedCurrent ? (
+              <p>{messages.seniorOtherOrdersManMarkingTargetChosenAsPair}</p>
+            ) : null}
           </section>
 
           <section className={styles.seniorManMarkingExplanationSection}>
@@ -511,14 +500,24 @@ export default function SeniorManMarkingExplanation({
             <h5>{messages.seniorOtherOrdersManMarkingExpectedEffectTitle}</h5>
             <p>{pairResultLabel(messages, currentPair.evaluation.netBenefit)}</p>
             <p>
-              {currentPair.evaluation.markerSelfPenaltyFraction === 0.5
+              {(isSeniorManMarkingCloseRolePair(
+                currentPair.marker.role,
+                currentPair.target.role
+              )
                 ? messages.seniorOtherOrdersManMarkingClosePenaltyReason
-                : messages.seniorOtherOrdersManMarkingDistantPenaltyReason}
+                : messages.seniorOtherOrdersManMarkingDistantPenaltyReason
+              )
+                .replace("{{markerRole}}", roleLabel(messages, currentPair.marker.role))
+                .replace("{{targetRole}}", roleLabel(messages, currentPair.target.role))
+                .replace(
+                  "{{penalty}}",
+                  formatPercent(locale, currentPair.evaluation.markerSelfPenaltyFraction)
+                )}
             </p>
             {pairMetrics(messages, locale, currentPair)}
           </section>
 
-          {data.nextBestPair ? (
+          {isRecommendedCurrent && data.nextBestPair ? (
             <section className={styles.seniorManMarkingExplanationSection}>
               <h5>{messages.seniorOtherOrdersManMarkingAlternativesTitle}</h5>
               <p>
@@ -547,73 +546,67 @@ export default function SeniorManMarkingExplanation({
 
       {!data.loading && !currentPair ? (
         <>
-          <section className={styles.seniorManMarkingExplanationSection}>
-            <h5>{messages.seniorOtherOrdersManMarkingTargetAssessmentTitle}</h5>
-            <p>
-              {data.targetInvalidReason ??
-                (data.targetStatus === "noOpponent"
-                  ? messages.seniorOtherOrdersManMarkingNoOpponent
-                  : data.targetStatus === "noHistory"
-                    ? messages.seniorOtherOrdersManMarkingNoHistory
-                    : data.targetStatus === "noConsistentTarget"
-                      ? messages.seniorOtherOrdersManMarkingNoConsistentTarget
-                      : data.targetStatus === "detailsUnavailable"
-                        ? messages.seniorOtherOrdersManMarkingTargetDetailsUnavailable
-                        : data.targetStatus === "estimateUnavailable"
-                          ? messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable
-                          : data.targetStatus === "roleUnknown"
-                            ? messages.seniorOtherOrdersManMarkingTargetRoleUnknown
-                            : messages.seniorOtherOrdersManMarkingValidTargets)}
-            </p>
-            {data.validTargets.length ? (
-              <ul className={styles.seniorManMarkingCompactList}>
-                {data.validTargets.slice(0, 5).map((target) =>
-                  renderTargetSummary(messages, locale, target)
-                )}
-              </ul>
-            ) : null}
-            {!data.validTargets.length && data.failedTargets.length ? (
-              <>
+          {data.markerInvalidReason || data.targetInvalidReason ? (
+            <section className={styles.seniorManMarkingExplanationSection}>
+              <h5>{messages.seniorOtherOrdersManMarkingSelectedPairTitle}</h5>
+              {data.markerInvalidReason ? <p>{data.markerInvalidReason}</p> : null}
+              {data.targetInvalidReason ? <p>{data.targetInvalidReason}</p> : null}
+            </section>
+          ) : (
+            <>
+              <section className={styles.seniorManMarkingExplanationSection}>
+                <h5>{messages.seniorOtherOrdersManMarkingTargetAssessmentTitle}</h5>
                 <p>
-                  {messages.seniorOtherOrdersManMarkingTargetFailuresIntro.replace(
-                    "{{count}}",
-                    String(data.failedTargets.length)
-                  )}
+                  {data.targetStatus === "noOpponent"
+                    ? messages.seniorOtherOrdersManMarkingNoOpponent
+                    : data.targetStatus === "noHistory"
+                      ? messages.seniorOtherOrdersManMarkingNoHistory
+                      : data.targetStatus === "noConsistentTarget"
+                        ? messages.seniorOtherOrdersManMarkingNoConsistentTarget
+                        : data.targetStatus === "detailsUnavailable"
+                          ? messages.seniorOtherOrdersManMarkingTargetDetailsUnavailable
+                          : data.targetStatus === "estimateUnavailable"
+                            ? messages.seniorOtherOrdersManMarkingTargetEstimateUnavailable
+                            : data.targetStatus === "roleUnknown"
+                              ? messages.seniorOtherOrdersManMarkingTargetRoleUnknown
+                              : messages.seniorOtherOrdersManMarkingValidTargets}
                 </p>
-                <ul className={styles.seniorManMarkingCompactList}>
-                  {data.failedTargets.slice(0, 6).map((target) =>
-                    renderFailedTargetDiagnostic(messages, locale, target)
-                  )}
-                </ul>
-              </>
-            ) : null}
-          </section>
+                {!data.validTargets.length && data.failedTargets.length ? (
+                  <>
+                    <p>
+                      {messages.seniorOtherOrdersManMarkingTargetFailuresIntro.replace(
+                        "{{count}}",
+                        String(data.failedTargets.length)
+                      )}
+                    </p>
+                    <ul className={styles.seniorManMarkingCompactList}>
+                      {data.failedTargets.slice(0, 6).map((target) =>
+                        renderFailedTargetDiagnostic(messages, locale, target)
+                      )}
+                    </ul>
+                  </>
+                ) : null}
+              </section>
 
-          <section className={styles.seniorManMarkingExplanationSection}>
-            <h5>{messages.seniorOtherOrdersManMarkingMarkerAssessmentTitle}</h5>
-            <p>
-              {data.markerInvalidReason ??
-                (data.markerStatus === "noEligiblePosition"
-                  ? messages.seniorOtherOrdersManMarkingNoEligibleMarker
-                  : data.markerStatus === "dataUnavailable"
-                    ? messages.seniorOtherOrdersManMarkingMarkerDataUnavailable
-                    : messages.seniorOtherOrdersManMarkingValidMarkers)}
-            </p>
-            {data.validMarkers.length ? (
-              <ul className={styles.seniorManMarkingCompactList}>
-                {data.validMarkers.slice(0, 5).map((marker) =>
-                  renderMarkerSummary(messages, locale, marker)
-                )}
-              </ul>
-            ) : null}
-            {data.excludedMarkerMessages.length ? (
-              <ul className={styles.seniorManMarkingCompactList}>
-                {data.excludedMarkerMessages.slice(0, 4).map((message, index) => (
-                  <li key={`${message}-${index}`}>{message}</li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
+              <section className={styles.seniorManMarkingExplanationSection}>
+                <h5>{messages.seniorOtherOrdersManMarkingMarkerAssessmentTitle}</h5>
+                <p>
+                  {data.markerStatus === "noEligiblePosition"
+                    ? messages.seniorOtherOrdersManMarkingNoEligibleMarker
+                    : data.markerStatus === "dataUnavailable"
+                      ? messages.seniorOtherOrdersManMarkingMarkerDataUnavailable
+                      : messages.seniorOtherOrdersManMarkingValidMarkers}
+                </p>
+                {data.excludedMarkerMessages.length ? (
+                  <ul className={styles.seniorManMarkingCompactList}>
+                    {data.excludedMarkerMessages.slice(0, 4).map((message, index) => (
+                      <li key={`${message}-${index}`}>{message}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            </>
+          )}
 
           <section className={styles.seniorManMarkingExplanationSection}>
             <h5>{messages.seniorOtherOrdersManMarkingPairAssessmentTitle}</h5>
@@ -625,7 +618,11 @@ export default function SeniorManMarkingExplanation({
             ) : null}
             {data.bestRejectedPair ? (
               <>
-                <p>{messages.seniorOtherOrdersManMarkingNoPositivePair}</p>
+                {data.decision &&
+                data.decision.totalEvaluationCount > 0 &&
+                data.decision.positiveEvaluationCount === 0 ? (
+                  <p>{messages.seniorOtherOrdersManMarkingNoPositivePair}</p>
+                ) : null}
                 <p>
                   {messages.seniorOtherOrdersManMarkingBestRejectedPair}{" "}
                   {playerLink(data.bestRejectedPair.marker)} {" → "}{" "}

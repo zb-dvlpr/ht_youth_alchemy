@@ -1369,6 +1369,7 @@ export type Messages = {
   seniorOtherOrdersBehaviourChangeLabel: string;
   seniorOtherOrdersPositionSwapLabel: string;
   seniorOtherOrdersManMarkingOrderLabel: string;
+  seniorOtherOrdersResetManMarkingRecommendation: string;
   seniorOtherOrdersMarkerLabel: string;
   seniorOtherOrdersTargetLabel: string;
   seniorOtherOrdersOpponentIdPlaceholder: string;

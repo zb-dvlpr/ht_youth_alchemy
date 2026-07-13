@@ -1189,6 +1189,7 @@ export const messagesNl: Messages = {
   seniorOtherOrdersBehaviourChangeLabel: "Verhaltensaenderung",
   seniorOtherOrdersPositionSwapLabel: "Positionswechsel",
   seniorOtherOrdersManMarkingOrderLabel: "Manndeckung",
+  seniorOtherOrdersResetManMarkingRecommendation: "Zet mandekking terug naar de algoritme-aanbeveling",
   seniorOtherOrdersMarkerLabel: "Geschikte mandekkers",
   seniorOtherOrdersTargetLabel: "Geschikte doelwitten",
   seniorOtherOrdersOpponentIdPlaceholder: "Gegnerische Spieler-ID",

@@ -1732,6 +1732,7 @@ export const messagesEs: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Changement de comportement",
     seniorOtherOrdersPositionSwapLabel: "Echange de position",
     seniorOtherOrdersManMarkingOrderLabel: "Marquage individuel",
+    seniorOtherOrdersResetManMarkingRecommendation: "Restablecer el marcaje al hombre a la recomendación del algoritmo",
     seniorOtherOrdersMarkerLabel: "Candidatos marcadores elegibles",
     seniorOtherOrdersTargetLabel: "Candidatos objetivo elegibles",
     seniorOtherOrdersOpponentIdPlaceholder: "ID joueur adverse",

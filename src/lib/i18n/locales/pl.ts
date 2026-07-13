@@ -1183,6 +1183,7 @@ export const messagesPl: Messages = {
   seniorOtherOrdersBehaviourChangeLabel: "Verhaltensaenderung",
   seniorOtherOrdersPositionSwapLabel: "Positionswechsel",
   seniorOtherOrdersManMarkingOrderLabel: "Manndeckung",
+  seniorOtherOrdersResetManMarkingRecommendation: "Przywróć krycie indywidualne do rekomendacji algorytmu",
   seniorOtherOrdersMarkerLabel: "Kwalifikujący się kryjący",
   seniorOtherOrdersTargetLabel: "Kwalifikujące się cele",
   seniorOtherOrdersOpponentIdPlaceholder: "Gegnerische Spieler-ID",

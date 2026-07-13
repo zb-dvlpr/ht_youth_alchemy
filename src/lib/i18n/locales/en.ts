@@ -1684,6 +1684,8 @@ export const messagesEn: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Behaviour change",
     seniorOtherOrdersPositionSwapLabel: "Position swap",
     seniorOtherOrdersManMarkingOrderLabel: "Man marking",
+    seniorOtherOrdersResetManMarkingRecommendation:
+      "Reset man marking to algorithm recommendation",
     seniorOtherOrdersMarkerLabel: "Eligible marker candidates",
     seniorOtherOrdersTargetLabel: "Eligible target candidates",
     seniorOtherOrdersOpponentIdPlaceholder: "Opponent player ID",

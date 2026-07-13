@@ -1730,6 +1730,7 @@ export const messagesFr: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Changement de comportement",
     seniorOtherOrdersPositionSwapLabel: "Echange de position",
     seniorOtherOrdersManMarkingOrderLabel: "Marquage individuel",
+    seniorOtherOrdersResetManMarkingRecommendation: "Réinitialiser le marquage individuel sur la recommandation de l’algorithme",
     seniorOtherOrdersMarkerLabel: "Candidats marqueurs éligibles",
     seniorOtherOrdersTargetLabel: "Candidats cibles éligibles",
     seniorOtherOrdersOpponentIdPlaceholder: "ID joueur adverse",

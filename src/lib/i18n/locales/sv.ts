@@ -1721,6 +1721,7 @@ export const messagesSv: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Verhaltensaenderung",
     seniorOtherOrdersPositionSwapLabel: "Positionswechsel",
     seniorOtherOrdersManMarkingOrderLabel: "Manndeckung",
+    seniorOtherOrdersResetManMarkingRecommendation: "Återställ man-markering till algoritmens rekommendation",
     seniorOtherOrdersMarkerLabel: "Valbara markeringskandidater",
     seniorOtherOrdersTargetLabel: "Valbara målkandidater",
     seniorOtherOrdersOpponentIdPlaceholder: "Gegnerische Spieler-ID",

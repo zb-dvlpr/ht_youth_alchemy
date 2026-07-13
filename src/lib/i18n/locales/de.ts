@@ -1715,6 +1715,7 @@ export const messagesDe: Messages = {
     seniorOtherOrdersBehaviourChangeLabel: "Verhaltensaenderung",
     seniorOtherOrdersPositionSwapLabel: "Positionswechsel",
     seniorOtherOrdersManMarkingOrderLabel: "Manndeckung",
+    seniorOtherOrdersResetManMarkingRecommendation: "Manndeckung auf Algorithmusempfehlung zurücksetzen",
     seniorOtherOrdersMarkerLabel: "Geeignete Deckungskandidaten",
     seniorOtherOrdersTargetLabel: "Geeignete Zielkandidaten",
     seniorOtherOrdersOpponentIdPlaceholder: "Gegnerische Spieler-ID",

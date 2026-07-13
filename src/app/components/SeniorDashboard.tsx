@@ -6183,6 +6183,8 @@ export default function SeniorDashboard({
   const seniorAiManMarkingSupported =
     seniorAiPreparedSubmissionMode !== null &&
     SENIOR_AI_MAN_MARKING_SUPPORTED_MODES.has(seniorAiPreparedSubmissionMode);
+  const seniorOtherOrdersManMarkingCandidatesEnabled =
+    otherOrdersEditorOpen && typeof otherOrdersModalMatchId === "number";
   const seniorAiManMarkingCurrentSignature = buildSeniorAiManMarkingReadySignature({
     matchId: loadedMatchId,
     mode: seniorAiPreparedSubmissionMode,
@@ -11953,8 +11955,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
   useEffect(() => {
     if (
-      !otherOrdersEditorOpen ||
-      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorOtherOrdersManMarkingCandidatesEnabled ||
       typeof otherOrdersModalMatchId !== "number"
     ) {
       setOtherOrdersManMarkingContextState({
@@ -11991,17 +11992,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
       cancelled = true;
     };
   }, [
-    effectiveSeniorAiManMarkingEnabled,
     otherOrdersEditorOpen,
     otherOrdersModalMatchId,
     seniorAiManMarkingFuzziness,
+    seniorOtherOrdersManMarkingCandidatesEnabled,
   ]);
 
   useEffect(() => {
     const targetId = otherOrdersDraft?.manMarkingOrder?.objectPlayerId ?? null;
     if (
-      !otherOrdersEditorOpen ||
-      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorOtherOrdersManMarkingCandidatesEnabled ||
       typeof targetId !== "number" ||
       targetId <= 0
     ) {
@@ -12105,13 +12105,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
       cancelled = true;
     };
   }, [
-    effectiveSeniorAiManMarkingEnabled,
     effectiveSeniorAiManMarkingGeneratedReport,
     otherOrdersDraft?.manMarkingOrder?.objectPlayerId,
     otherOrdersDraft?.matchId,
     otherOrdersEditorOpen,
     otherOrdersManMarkingContextState,
     otherOrdersOpponentTargetNamesById,
+    seniorOtherOrdersManMarkingCandidatesEnabled,
   ]);
 
   useEffect(() => {
@@ -12362,6 +12362,34 @@ function buildSeniorAiManMarkingReadySignature(params: {
     seniorOtherOrdersManMarkingTargetOptions.some(
       (target) => target.playerId === seniorOtherOrdersSelectedTargetId
     );
+  const seniorOtherOrdersRecommendedManMarkingPair =
+    effectiveSeniorAiManMarkingGeneratedReport?.decision.selectedPair ?? null;
+  const seniorOtherOrdersRecommendedMarkerIsSelectable =
+    seniorOtherOrdersRecommendedManMarkingPair !== null &&
+    seniorOtherOrdersManMarkingMarkerOptions.some(
+      (marker) =>
+        marker.id === seniorOtherOrdersRecommendedManMarkingPair.markerPlayerId
+    );
+  const seniorOtherOrdersRecommendedTargetIsSelectable =
+    seniorOtherOrdersRecommendedManMarkingPair !== null &&
+    seniorOtherOrdersManMarkingTargetOptions.some(
+      (target) =>
+        target.playerId === seniorOtherOrdersRecommendedManMarkingPair.targetPlayerId
+    );
+  const seniorOtherOrdersCurrentManMarkingMatchesRecommendation =
+    seniorOtherOrdersRecommendedManMarkingPair !== null &&
+    otherOrdersDraft?.manMarkingOrder?.subjectPlayerId ===
+      seniorOtherOrdersRecommendedManMarkingPair.markerPlayerId &&
+    otherOrdersDraft?.manMarkingOrder?.objectPlayerId ===
+      seniorOtherOrdersRecommendedManMarkingPair.targetPlayerId;
+  const canResetSeniorOtherOrdersManMarkingToRecommendation =
+    effectiveSeniorAiManMarkingEnabled &&
+    seniorOtherOrdersRecommendedManMarkingPair !== null &&
+    seniorOtherOrdersRecommendedMarkerIsSelectable &&
+    seniorOtherOrdersRecommendedTargetIsSelectable &&
+    otherOrdersManMarkingOrigin === "generated" &&
+    otherOrdersManMarkingTouched &&
+    !seniorOtherOrdersCurrentManMarkingMatchesRecommendation;
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) return;
@@ -12462,6 +12490,37 @@ function buildSeniorAiManMarkingReadySignature(params: {
               newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
             },
     }));
+  };
+  const resetSeniorOtherOrdersManMarkingToRecommendation = () => {
+    const recommendedPair = seniorOtherOrdersRecommendedManMarkingPair;
+    if (
+      !recommendedPair ||
+      !seniorOtherOrdersRecommendedMarkerIsSelectable ||
+      !seniorOtherOrdersRecommendedTargetIsSelectable
+    ) {
+      return;
+    }
+    updateOtherOrdersDraft((draft) => ({
+      ...draft,
+      source: "mixed",
+      manMarkingOrder: {
+        id:
+          draft.manMarkingOrder?.id ??
+          `man-marking-${draft.matchId ?? "draft"}-${Date.now()}`,
+        orderType: 4,
+        minute: draft.manMarkingOrder?.minute ?? SENIOR_ORDER_DEFAULT_MINUTE,
+        standing:
+          draft.manMarkingOrder?.standing ?? SENIOR_ORDER_DEFAULT_CONDITION,
+        card: draft.manMarkingOrder?.card ?? SENIOR_ORDER_DEFAULT_CONDITION,
+        subjectPlayerId: recommendedPair.markerPlayerId,
+        objectPlayerId: recommendedPair.targetPlayerId,
+        newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+        newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+      },
+    }));
+    setOtherOrdersManMarkingOrigin("generated");
+    setOtherOrdersManMarkingTouched(false);
+    setManMarkingTargetDropdownOpen(false);
   };
   const openSeniorOtherOrdersManMarkingTargetDropdown = () => {
     setManMarkingTargetDropdownOpen(true);
@@ -15911,7 +15970,7 @@ const refreshDetailsForPlayers = async (
     const source: SeniorManMarkingExplanationData["source"] =
       otherOrdersManMarkingOrigin === "generated"
         ? originalRecommendedPair
-          ? currentMatchesGenerated && !otherOrdersManMarkingTouched
+          ? currentMatchesGenerated
             ? "recommended"
             : "modifiedRecommendation"
           : hasCurrentManMarkingPair
@@ -22050,21 +22109,42 @@ const refreshDetailsForPlayers = async (
               >
                 <div className={styles.seniorOtherOrdersSectionHeader}>
                   <h3>{messages.seniorOtherOrdersManMarkingTitle}</h3>
-                  {otherOrdersDraft.manMarkingOrder ? (
-                    <button
-                      type="button"
-                      className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersDeleteOrderButton}`}
-                      onClick={() =>
-                        updateOtherOrdersDraft((draft) => ({
-                          ...draft,
-                          source: "mixed",
-                          manMarkingOrder: null,
-                        }))
-                      }
-                      onPointerDown={() => setManMarkingTargetDropdownOpen(false)}
-                    >
-                      {messages.seniorOtherOrdersClear}
-                    </button>
+                  {canResetSeniorOtherOrdersManMarkingToRecommendation ||
+                  otherOrdersDraft.manMarkingOrder ? (
+                    <div className={styles.seniorOtherOrdersSectionHeaderActions}>
+                      {canResetSeniorOtherOrdersManMarkingToRecommendation ? (
+                        <button
+                          type="button"
+                          className={styles.lineupButtonSecondary}
+                          onClick={resetSeniorOtherOrdersManMarkingToRecommendation}
+                        >
+                          {messages.seniorOtherOrdersResetManMarkingRecommendation}
+                        </button>
+                      ) : null}
+                      {otherOrdersDraft.manMarkingOrder ? (
+                        <button
+                          type="button"
+                          className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersDeleteOrderButton}`}
+                          onClick={() => {
+                            if (
+                              otherOrdersManMarkingOrigin === "generated" &&
+                              seniorOtherOrdersRecommendedManMarkingPair !== null
+                            ) {
+                              setOtherOrdersManMarkingTouched(true);
+                            }
+                            updateOtherOrdersDraft((draft) => ({
+                              ...draft,
+                              source: "mixed",
+                              manMarkingOrder: null,
+                            }));
+                            setManMarkingTargetDropdownOpen(false);
+                          }}
+                          onPointerDown={() => setManMarkingTargetDropdownOpen(false)}
+                        >
+                          {messages.seniorOtherOrdersClear}
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
                 {!otherOrdersDraft.manMarkingOrder ? (

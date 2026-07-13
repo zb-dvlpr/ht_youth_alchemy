@@ -12010,6 +12010,15 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   color: #7a6a56;
 }
 
+.seniorOtherOrdersSectionHeaderActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
 .seniorOtherOrdersSectionCounters {
   display: grid;
   gap: 2px;
@@ -12045,6 +12054,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .seniorOtherOrdersFormGrid {
+  --senior-other-orders-control-height: 36px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -12068,12 +12078,20 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorOtherOrdersSelect {
   width: 100%;
   min-width: 0;
+  box-sizing: border-box;
   border: 1px solid #d6c6b1;
   border-radius: 6px;
   background: #fff;
   color: #3f352c;
   padding: 7px 8px;
   font: inherit;
+  line-height: 1.2;
+}
+
+.seniorOtherOrdersSelect {
+  height: var(--senior-other-orders-control-height, 36px);
+  min-height: var(--senior-other-orders-control-height, 36px);
+  text-overflow: ellipsis;
 }
 
 .seniorOtherOrdersInlineStatus,
@@ -12113,15 +12131,24 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .seniorOtherOrdersComboboxButton {
   width: 100%;
   min-width: 0;
+  height: var(--senior-other-orders-control-height, 36px);
+  min-height: var(--senior-other-orders-control-height, 36px);
+  box-sizing: border-box;
   border: 1px solid #d6c6b1;
   border-radius: 6px;
   background: #fff;
   color: #3f352c;
   padding: 7px 28px 7px 8px;
   font: inherit;
+  line-height: 1.2;
   text-align: left;
   cursor: pointer;
   position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .seniorOtherOrdersComboboxButton::after {

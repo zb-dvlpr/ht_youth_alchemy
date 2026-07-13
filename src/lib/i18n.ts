@@ -1466,7 +1466,9 @@ export type Messages = {
   seniorOtherOrdersManMarkingTargetNameLoading: string;
   seniorOtherOrdersManMarkingClosePenaltyReason: string;
   seniorOtherOrdersManMarkingDistantPenaltyReason: string;
-  seniorOtherOrdersManMarkingAlternativeSummary: string;
+  seniorOtherOrdersManMarkingAlternativeSummaryLower: string;
+  seniorOtherOrdersManMarkingAlternativeSummaryEqual: string;
+  seniorOtherOrdersManMarkingAlternativeSummaryHigher: string;
   seniorOtherOrdersManMarkingValidTargets: string;
   seniorOtherOrdersManMarkingValidMarkers: string;
   seniorOtherOrdersManMarkingEffectiveDefending: string;

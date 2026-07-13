@@ -1838,8 +1838,12 @@ export const messagesEn: Messages = {
       "Because {{markerRole}} and {{targetRole}} form a close role pairing, man marking is estimated to reduce the marker's normal positional contribution by {{penalty}}.",
     seniorOtherOrdersManMarkingDistantPenaltyReason:
       "Because {{markerRole}} and {{targetRole}} do not form a close role pairing, man marking is estimated to reduce the marker's normal positional contribution by {{penalty}}.",
-    seniorOtherOrdersManMarkingAlternativeSummary:
-      "Next-best net benefit: {{net}}. Difference from the current pair: {{difference}}.",
+    seniorOtherOrdersManMarkingAlternativeSummaryLower:
+      "Next-best net benefit: {{net}}. This is {{difference}} lower than the recommended pair.",
+    seniorOtherOrdersManMarkingAlternativeSummaryEqual:
+      "Next-best net benefit: {{net}}. This is effectively the same as the recommended pair.",
+    seniorOtherOrdersManMarkingAlternativeSummaryHigher:
+      "Next-best net benefit: {{net}}. This is {{difference}} higher than the recommended pair.",
     seniorOtherOrdersManMarkingValidTargets: "Valid target estimates are available.",
     seniorOtherOrdersManMarkingValidMarkers: "Valid marker candidates are available.",
     seniorOtherOrdersManMarkingEffectiveDefending: "effective Defending",

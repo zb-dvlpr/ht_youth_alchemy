@@ -255,6 +255,34 @@ const netBenefitVariant = (netBenefit: number): MetricVariant => {
   return "default";
 };
 
+const formatAlternativeSummary = (
+  messages: Messages,
+  locale: string,
+  recommendedPair: SeniorManMarkingExplanationPair,
+  alternativePair: SeniorManMarkingExplanationPair
+) => {
+  const recommendedNetBenefit = recommendedPair.evaluation.netBenefit;
+  const alternativeNetBenefit = alternativePair.evaluation.netBenefit;
+  const difference = recommendedNetBenefit - alternativeNetBenefit;
+  const formattedNetBenefit = formatNumber(locale, alternativeNetBenefit);
+
+  if (Math.abs(difference) <= SENIOR_MAN_MARKING_EPSILON) {
+    return messages.seniorOtherOrdersManMarkingAlternativeSummaryEqual.replace(
+      "{{net}}",
+      formattedNetBenefit
+    );
+  }
+
+  const template =
+    difference > SENIOR_MAN_MARKING_EPSILON
+      ? messages.seniorOtherOrdersManMarkingAlternativeSummaryLower
+      : messages.seniorOtherOrdersManMarkingAlternativeSummaryHigher;
+
+  return template
+    .replace("{{net}}", formattedNetBenefit)
+    .replace("{{difference}}", formatNumber(locale, Math.abs(difference)));
+};
+
 const pairMetrics = (
   messages: Messages,
   locale: string,
@@ -521,19 +549,12 @@ export default function SeniorManMarkingExplanation({
             <section className={styles.seniorManMarkingExplanationSection}>
               <h5>{messages.seniorOtherOrdersManMarkingAlternativesTitle}</h5>
               <p>
-                {messages.seniorOtherOrdersManMarkingAlternativeSummary
-                  .replace(
-                    "{{net}}",
-                    formatNumber(locale, data.nextBestPair.evaluation.netBenefit)
-                  )
-                  .replace(
-                    "{{difference}}",
-                    formatNumber(
-                      locale,
-                      currentPair.evaluation.netBenefit -
-                        data.nextBestPair.evaluation.netBenefit
-                    )
-                  )}
+                {formatAlternativeSummary(
+                  messages,
+                  locale,
+                  currentPair,
+                  data.nextBestPair
+                )}
               </p>
               <p>
                 {playerLink(data.nextBestPair.marker)} {" → "}{" "}

@@ -2031,6 +2031,7 @@ export const messagesSv: Messages = {
     trainingPassing: "Passningar",
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
+    trainingScoringAndSetPieces: "Målskytte och fasta situationer",
     trainingDefendingDefendersMidfielders:
       "Försvar (Målvakt, Backar + Alla Mittfältare)",
     trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",

@@ -2042,6 +2042,7 @@ export const messagesEs: Messages = {
     trainingPassing: "Pases",
     trainingScoring: "Finalización",
     trainingSetPieces: "Balón parado",
+    trainingScoringAndSetPieces: "Finalización y balón parado",
     trainingDefendingDefendersMidfielders:
       "Defensa (Portero, Defensas + Todos los Mediocampistas)",
     trainingWingerWingerAttackers: "Extremos (Extremos + Delanteros)",

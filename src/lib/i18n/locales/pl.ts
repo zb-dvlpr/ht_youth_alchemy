@@ -1773,7 +1773,7 @@ export const messagesPl: Messages = {
   trainingTitle: "Skoncentrowany trening umiejętności",
   trainingSectionFocused: "Skoncentrowany trening umiejętności",
   trainingSectionExtended: "Rozszerzony trening umiejętności",
-  trainingSectionCombined: "Łączony trening umiejętności",
+  trainingSectionCombined: "Trening łączony",
   trainingRegimenLabel: "Reżim treningowy",
   trainingSetButtonLabel: "Ustaw",
   trainingSetButtonTooltip: "Ustaw jako nowy reżim treningowy",
@@ -1790,6 +1790,7 @@ export const messagesPl: Messages = {
   trainingPassing: "Podania",
   trainingScoring: "Skuteczność",
   trainingSetPieces: "St. fragmenty",
+  trainingScoringAndSetPieces: "Skuteczność i stałe fragmenty gry",
   trainingDefendingDefendersMidfielders:
     "Defensywa (Bramkarz, Obrońcy + Wszyscy Pomocnicy)",
   trainingWingerWingerAttackers: "Skrzydła (Skrzydłowi + Napastnicy)",

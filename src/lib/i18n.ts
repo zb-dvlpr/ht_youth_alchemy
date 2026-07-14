@@ -1636,6 +1636,7 @@ export type Messages = {
   trainingPassing: string;
   trainingScoring: string;
   trainingSetPieces: string;
+  trainingScoringAndSetPieces: string;
   trainingDefendingDefendersMidfielders: string;
   trainingWingerWingerAttackers: string;
   trainingPassingDefendersMidfielders: string;

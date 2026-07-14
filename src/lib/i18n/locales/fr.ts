@@ -2040,6 +2040,7 @@ export const messagesFr: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finition",
     trainingSetPieces: "Coups de pied arrêtés",
+    trainingScoringAndSetPieces: "Finition et coups de pied arrêtés",
     trainingDefendingDefendersMidfielders:
       "Défense (Gardien, Défenseurs + Tous les Milieux)",
     trainingWingerWingerAttackers: "Ailier (Ailiers + Attaquants)",

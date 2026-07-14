@@ -2008,7 +2008,7 @@ export const messagesDe: Messages = {
     trainingTitle: "Fokussiertes Fähigkeitstraining",
     trainingSectionFocused: "Fokussiertes Fähigkeitstraining",
     trainingSectionExtended: "Erweitertes Fähigkeitstraining",
-    trainingSectionCombined: "Kombiniertes Fähigkeitstraining",
+    trainingSectionCombined: "Kombiniertes Training",
     trainingRegimenLabel: "Trainingsregime",
     trainingSetButtonLabel: "Setzen",
     trainingSetButtonTooltip: "Als neues Trainingsregime setzen",
@@ -2025,6 +2025,7 @@ export const messagesDe: Messages = {
     trainingPassing: "Passspiel",
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
+    trainingScoringAndSetPieces: "Torschuss und Standards",
     trainingDefendingDefendersMidfielders:
       "Verteidigung (Torhüter, Verteidiger + alle Mittelfeldspieler)",
     trainingWingerWingerAttackers: "Flügelspiel (Flügel + Stürmer)",

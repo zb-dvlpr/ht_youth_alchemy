@@ -2045,6 +2045,7 @@ export const messagesPt: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finalização",
     trainingSetPieces: "Bolas paradas",
+    trainingScoringAndSetPieces: "Finalização e bolas paradas",
     trainingDefendingDefendersMidfielders:
       "Defesa (Guarda-redes, Defesas + Todos os Médios)",
     trainingWingerWingerAttackers: "Ala (Alas + Avançados)",

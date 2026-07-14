@@ -79,10 +79,16 @@ import {
   optimizeRevealSecondaryMax,
   optimizeRevealPrimaryCurrentAndSecondaryMax,
   buildSkillRanking,
+  buildScoringSetPiecesRanking,
+  getTrainingBaseSkills,
+  isScoringSetPiecesTraining,
   rankPlayersForYouthLineupSlot,
+  resolvePrimaryCurrentRevealSkill,
+  resolveSecondaryMaxRevealSkill,
   type OptimizerPlayer,
   type OptimizerDebug,
   type SkillKey,
+  type SingleSkillTrainingKey,
   type TrainingSkillKey,
   type YouthLineupSlotId,
 } from "@/lib/optimizer";
@@ -215,7 +221,7 @@ const BASE_TRAINING_SKILLS: SkillKey[] = [
   "scoring",
   "setpieces",
 ];
-const TRAINING_BASE_SKILL_MAP: Record<TrainingSkillKey, SkillKey> = {
+const TRAINING_BASE_SKILL_MAP: Record<SingleSkillTrainingKey, SkillKey> = {
   keeper: "keeper",
   defending: "defending",
   playmaking: "playmaking",
@@ -683,9 +689,10 @@ const TRAINING_SKILLS: TrainingSkillKey[] = [
   "defending_defenders_midfielders",
   "winger_winger_attackers",
   "passing_defenders_midfielders",
+  "scoring_setpieces",
 ];
 const TRAINING_SKILL_SECTIONS: Array<{
-  title: "focused" | "extended";
+  title: "focused" | "extended" | "combined";
   options: TrainingSkillKey[];
 }> = [
   {
@@ -708,14 +715,21 @@ const TRAINING_SKILL_SECTIONS: Array<{
       "passing_defenders_midfielders",
     ],
   },
+  {
+    title: "combined",
+    options: ["scoring_setpieces"],
+  },
 ];
 const DEFAULT_PRIMARY_TRAINING: TrainingSkillKey = "keeper";
 const DEFAULT_SECONDARY_TRAINING: TrainingSkillKey = "defending";
 const TRAINING_UNSET_LABEL = "-";
-const TRAINING_SKILL_VALUE_KEYS: Record<
-  TrainingSkillKey,
-  { current: string; max: string }
-> = {
+type TrainingSkillValueDescriptor = {
+  skill: SkillKey;
+  current: string;
+  max: string;
+};
+
+const SINGLE_SKILL_VALUE_KEYS: Record<SkillKey, { current: string; max: string }> = {
   keeper: { current: "KeeperSkill", max: "KeeperSkillMax" },
   defending: { current: "DefenderSkill", max: "DefenderSkillMax" },
   playmaking: { current: "PlaymakerSkill", max: "PlaymakerSkillMax" },
@@ -723,16 +737,15 @@ const TRAINING_SKILL_VALUE_KEYS: Record<
   passing: { current: "PassingSkill", max: "PassingSkillMax" },
   scoring: { current: "ScorerSkill", max: "ScorerSkillMax" },
   setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
-  defending_defenders_midfielders: {
-    current: "DefenderSkill",
-    max: "DefenderSkillMax",
-  },
-  winger_winger_attackers: { current: "WingerSkill", max: "WingerSkillMax" },
-  passing_defenders_midfielders: {
-    current: "PassingSkill",
-    max: "PassingSkillMax",
-  },
 };
+
+const trainingValueDescriptors = (
+  training: TrainingSkillKey
+): TrainingSkillValueDescriptor[] =>
+  getTrainingBaseSkills(training).map((skill) => ({
+    skill,
+    ...SINGLE_SKILL_VALUE_KEYS[skill],
+  }));
 
 const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
   1: "KeeperSkill",
@@ -756,7 +769,7 @@ const parsePersistedTraining = (
   return isTrainingSkill(value) ? value : fallback;
 };
 
-const toBaseTrainingSkill = (value: TrainingSkillKey): SkillKey =>
+const toBaseTrainingSkill = (value: SingleSkillTrainingKey): SkillKey =>
   TRAINING_BASE_SKILL_MAP[value];
 
 const buildEmptyMatrixNewMarkers = (): MatrixNewMarkers => ({
@@ -1446,8 +1459,8 @@ export default function Dashboard({
         playerDetailsById.get(playerId)?.PlayerSkills,
         player.PlayerSkills
       );
-      TRAINING_SKILLS.map(
-        (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
+      TRAINING_SKILLS.flatMap((trainingSkill) =>
+        trainingValueDescriptors(trainingSkill)
       ).forEach((keys) => {
         if (getKnownSkillValue(merged?.[keys.current]) !== null) {
           currentSkillCandidates.push({ playerId, skillKey: keys.current });
@@ -5048,12 +5061,24 @@ export default function Dashboard({
       if (!combinedExtra.includes(id)) combinedExtra.push(id);
     };
     if (isTrainingSkill(primaryTraining)) {
-      rankingBySkill.get(toBaseTrainingSkill(primaryTraining))?.forEach(pushUnique);
+      if (isScoringSetPiecesTraining(primaryTraining)) {
+        buildScoringSetPiecesRanking(optimizerPlayers, trainingPreferences).ordered
+          .map((entry) => entry.playerId)
+          .forEach(pushUnique);
+      } else {
+        rankingBySkill.get(toBaseTrainingSkill(primaryTraining))?.forEach(pushUnique);
+      }
     }
     if (isTrainingSkill(secondaryTraining)) {
-      rankingBySkill
-        .get(toBaseTrainingSkill(secondaryTraining))
-        ?.forEach(pushUnique);
+      if (isScoringSetPiecesTraining(secondaryTraining)) {
+        buildScoringSetPiecesRanking(optimizerPlayers, trainingPreferences).ordered
+          .map((entry) => entry.playerId)
+          .forEach(pushUnique);
+      } else {
+        rankingBySkill
+          .get(toBaseTrainingSkill(secondaryTraining))
+          ?.forEach(pushUnique);
+      }
     }
     optimizerPlayers.forEach((player) => pushUnique(player.id));
     const extraId = pickNextFrom(combinedExtra);
@@ -5092,8 +5117,8 @@ export default function Dashboard({
         optimizerPlayers,
         ratingsCache,
         starPlayerId,
-        toBaseTrainingSkill(primaryTraining),
-        toBaseTrainingSkill(secondaryTraining),
+        primaryTraining,
+        secondaryTraining,
         autoSelectionApplied,
         trainingPreferences
       );
@@ -5329,6 +5354,25 @@ export default function Dashboard({
       return null;
     };
 
+    const extraBenchRanking: number[] = [];
+    const pushExtraBenchUnique = (playerId: number) => {
+      if (!extraBenchRanking.includes(playerId)) extraBenchRanking.push(playerId);
+    };
+    if (isScoringSetPiecesTraining(primaryTraining)) {
+      buildScoringSetPiecesRanking(optimizerPlayers, trainingPreferences).ordered
+        .map((entry) => entry.playerId)
+        .forEach(pushExtraBenchUnique);
+    } else {
+      rankingBySkill.get(toBaseTrainingSkill(primaryTraining))?.forEach(pushExtraBenchUnique);
+    }
+    if (isScoringSetPiecesTraining(secondaryTraining)) {
+      buildScoringSetPiecesRanking(optimizerPlayers, trainingPreferences).ordered
+        .map((entry) => entry.playerId)
+        .forEach(pushExtraBenchUnique);
+    } else {
+      rankingBySkill.get(toBaseTrainingSkill(secondaryTraining))?.forEach(pushExtraBenchUnique);
+    }
+
     const benchOrder = [
       { id: "B_GK", skill: "keeper" as const },
       { id: "B_CD", skill: "defending" as const },
@@ -5336,13 +5380,17 @@ export default function Dashboard({
       { id: "B_IM", skill: "playmaking" as const },
       { id: "B_F", skill: "scoring" as const },
       { id: "B_W", skill: "winger" as const },
-      { id: "B_X", skill: toBaseTrainingSkill(primaryTraining) },
+      { id: "B_X", skill: null },
     ];
 
     benchOrder.forEach((slot) => {
       if (nextAssignments[slot.id]) return;
       const nextId = pickNextFrom(
-        slot.skill ? rankingBySkill.get(slot.skill) : undefined
+        slot.id === "B_X"
+          ? extraBenchRanking
+          : slot.skill
+            ? rankingBySkill.get(slot.skill)
+            : undefined
       );
       nextAssignments[slot.id] = nextId ?? null;
       if (nextId) usedPlayers.add(nextId);
@@ -6196,8 +6244,9 @@ export default function Dashboard({
           previousSkillsByPlayerId.set(playerId, previousMerged);
           currentSkillsByPlayerId.set(playerId, nextMerged);
 
-          TRAINING_SKILLS.forEach((trainingSkill) => {
-            const keys = TRAINING_SKILL_VALUE_KEYS[trainingSkill];
+          TRAINING_SKILLS.flatMap((trainingSkill) =>
+            trainingValueDescriptors(trainingSkill)
+          ).forEach((keys) => {
             const previousCurrent = getKnownSkillValue(previousMerged?.[keys.current]);
             const nextCurrent = getKnownSkillValue(nextMerged?.[keys.current]);
             if (
@@ -6686,6 +6735,8 @@ export default function Dashboard({
         return messages.trainingWingerWingerAttackers;
       case "passing_defenders_midfielders":
         return messages.trainingPassingDefendersMidfielders;
+      case "scoring_setpieces":
+        return messages.trainingScoringAndSetPieces;
       case null:
       case "":
         return TRAINING_UNSET_LABEL;
@@ -6703,6 +6754,20 @@ export default function Dashboard({
         return messages.trainingPassing;
       default:
         return trainingLabel(skill);
+    }
+  };
+  const trainingSectionLabel = (
+    section: "focused" | "extended" | "combined"
+  ) => {
+    switch (section) {
+      case "focused":
+        return messages.trainingSectionFocused;
+      case "extended":
+        return messages.trainingSectionExtended;
+      case "combined":
+        return messages.trainingSectionCombined;
+      default:
+        return messages.unknownShort;
     }
   };
 
@@ -6737,11 +6802,39 @@ export default function Dashboard({
   const optimizeStarPlayerName = starPlayerId
     ? formatPlayerName(playersById.get(starPlayerId) ?? ({} as YouthPlayer))
     : messages.unknownShort;
+  const optimizeStarOptimizerPlayer =
+    optimizerPlayers.find((player) => player.id === starPlayerId) ?? null;
+  const resolvedPrimaryRevealSkill =
+    optimizeStarOptimizerPlayer && isTrainingSkill(primaryTraining)
+      ? resolvePrimaryCurrentRevealSkill(optimizeStarOptimizerPlayer, primaryTraining)
+      : null;
   const optimizePrimaryTrainingName = isTrainingSkill(primaryTraining)
-    ? optimizeTrainingLabel(primaryTraining)
+    ? isScoringSetPiecesTraining(primaryTraining)
+      ? resolvedPrimaryRevealSkill
+        ? trainingLabel(resolvedPrimaryRevealSkill)
+        : optimizeTrainingLabel(primaryTraining)
+      : optimizeTrainingLabel(primaryTraining)
     : messages.trainingUnset;
+  const selectedRevealSecondaryOptimizerPlayer =
+    revealSecondaryTargetPlayerId !== null
+      ? optimizerPlayers.find((player) => player.id === revealSecondaryTargetPlayerId) ??
+        null
+      : null;
+  const resolvedSecondaryRevealSkill =
+    selectedRevealSecondaryOptimizerPlayer && isTrainingSkill(secondaryTraining)
+      ? resolveSecondaryMaxRevealSkill(
+          selectedRevealSecondaryOptimizerPlayer,
+          secondaryTraining
+        )
+      : optimizeStarOptimizerPlayer && isTrainingSkill(secondaryTraining)
+        ? resolveSecondaryMaxRevealSkill(optimizeStarOptimizerPlayer, secondaryTraining)
+        : null;
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
-    ? optimizeTrainingLabel(secondaryTraining)
+    ? isScoringSetPiecesTraining(secondaryTraining)
+      ? resolvedSecondaryRevealSkill
+        ? trainingLabel(resolvedSecondaryRevealSkill)
+        : optimizeTrainingLabel(secondaryTraining)
+      : optimizeTrainingLabel(secondaryTraining)
     : messages.trainingUnset;
   const combinedRevealAllowsSamePlayerTarget = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -6752,7 +6845,6 @@ export default function Dashboard({
   }, [primaryTraining, secondaryTraining]);
   const eligibleRevealSecondaryTargetOptions = useMemo(() => {
     if (!isTrainingSkill(secondaryTraining)) return [];
-    const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
     return optimizerPlayers
       .filter((player) => {
         if (
@@ -6765,7 +6857,10 @@ export default function Dashboard({
           playerDetailsById.get(player.id)?.PlayerSkills ??
           playerList.find((entry) => entry.YouthPlayerID === player.id)?.PlayerSkills ??
           null;
-        return getKnownSkillValue(sourceSkills?.[secondaryMaxKey]) === null;
+        return resolveSecondaryMaxRevealSkill(
+          { ...player, skills: sourceSkills },
+          secondaryTraining
+        ) !== null;
       })
       .map((player) => ({
         playerId: player.id,
@@ -6839,23 +6934,42 @@ export default function Dashboard({
       null;
     if (!starSkills) return reasons;
 
-    const primaryCurrentKey = TRAINING_SKILL_VALUE_KEYS[primaryTraining].current;
-    const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
     const starName =
       [starPlayer?.FirstName, starPlayer?.NickName || null, starPlayer?.LastName]
         .filter(Boolean)
         .join(" ") || messages.unknownShort;
-    const primaryTrainingName = optimizeTrainingLabel(primaryTraining).toLocaleLowerCase();
-    const secondaryTrainingName =
-      optimizeTrainingLabel(secondaryTraining).toLocaleLowerCase();
+    const starOptimizerPlayer =
+      optimizerPlayers.find((player) => player.id === starPlayerId) ?? null;
+    const resolvedStarPrimarySkill = starOptimizerPlayer
+      ? resolvePrimaryCurrentRevealSkill(
+          { ...starOptimizerPlayer, skills: starSkills },
+          primaryTraining
+        )
+      : null;
+    const resolvedStarSecondarySkill = starOptimizerPlayer
+      ? resolveSecondaryMaxRevealSkill(
+          { ...starOptimizerPlayer, skills: starSkills },
+          secondaryTraining
+        )
+      : null;
+    const primaryTrainingName = (
+      resolvedStarPrimarySkill
+        ? trainingLabel(resolvedStarPrimarySkill)
+        : optimizeTrainingLabel(primaryTraining)
+    ).toLocaleLowerCase();
+    const secondaryTrainingName = (
+      resolvedStarSecondarySkill
+        ? trainingLabel(resolvedStarSecondarySkill)
+        : optimizeTrainingLabel(secondaryTraining)
+    ).toLocaleLowerCase();
 
-    if (getKnownSkillValue(starSkills[primaryCurrentKey]) !== null) {
+    if (!resolvedStarPrimarySkill) {
       reasons.revealPrimaryCurrent = messages.optimizeRevealPrimaryCurrentKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", primaryTrainingName);
       reasons.revealPrimaryCurrentAndSecondaryMax = reasons.revealPrimaryCurrent;
     }
-    if (getKnownSkillValue(starSkills[secondaryMaxKey]) !== null) {
+    if (!resolvedStarSecondarySkill) {
       reasons.revealSecondaryMax = messages.optimizeRevealSecondaryMaxKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", secondaryTrainingName);
@@ -6874,7 +6988,17 @@ export default function Dashboard({
             (player) => player.YouthPlayerID === selectedRevealSecondaryTargetOption.playerId
           )?.PlayerSkills ??
           null;
-        if (getKnownSkillValue(targetSkills?.[secondaryMaxKey]) !== null) {
+        const targetOptimizerPlayer =
+          optimizerPlayers.find(
+            (player) => player.id === selectedRevealSecondaryTargetOption.playerId
+          ) ?? null;
+        const resolvedTargetSecondarySkill = targetOptimizerPlayer
+          ? resolveSecondaryMaxRevealSkill(
+              { ...targetOptimizerPlayer, skills: targetSkills },
+              secondaryTraining
+            )
+          : null;
+        if (!resolvedTargetSecondarySkill) {
           reasons.revealPrimaryCurrentAndSecondaryMax =
             messages.optimizeRevealSecondaryMaxKnownTooltip
               .replace("{{player}}", selectedRevealSecondaryTargetOption.label)
@@ -7140,9 +7264,7 @@ export default function Dashboard({
               {TRAINING_SKILL_SECTIONS.map((section) => (
                 <div key={`primary-section-${section.title}`}>
                   <div className={styles.trainingSelectSectionHeader}>
-                    {section.title === "focused"
-                      ? messages.trainingSectionFocused
-                      : messages.trainingSectionExtended}
+                    {trainingSectionLabel(section.title)}
                   </div>
                   <div className={styles.trainingSelectSectionOptions}>
                     {section.options.map((value) => (
@@ -7215,9 +7337,7 @@ export default function Dashboard({
               {TRAINING_SKILL_SECTIONS.map((section) => (
                 <div key={`secondary-section-${section.title}`}>
                   <div className={styles.trainingSelectSectionHeader}>
-                    {section.title === "focused"
-                      ? messages.trainingSectionFocused
-                      : messages.trainingSectionExtended}
+                    {trainingSectionLabel(section.title)}
                   </div>
                   <div className={styles.trainingSelectSectionOptions}>
                     {section.options.map((value) => (
@@ -7297,8 +7417,8 @@ export default function Dashboard({
         optimizerPlayers,
         slotId as YouthLineupSlotId,
         ratingsCache,
-        toBaseTrainingSkill(primaryTraining),
-        toBaseTrainingSkill(secondaryTraining),
+        primaryTraining,
+        secondaryTraining,
         trainingPreferences,
         excludedPlayerIds
       ).map((player) => ({

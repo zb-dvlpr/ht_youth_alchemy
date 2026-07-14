@@ -1779,7 +1779,7 @@ export const messagesNl: Messages = {
   trainingTitle: "Gerichte vaardigheidstraining",
   trainingSectionFocused: "Gerichte vaardigheidstraining",
   trainingSectionExtended: "Uitgebreide vaardigheidstraining",
-  trainingSectionCombined: "Gecombineerde vaardigheidstraining",
+  trainingSectionCombined: "Gecombineerde training",
   trainingRegimenLabel: "Trainingsregime",
   trainingSetButtonLabel: "Instellen",
   trainingSetButtonTooltip: "Instellen als nieuw trainingsregime",
@@ -1796,6 +1796,7 @@ export const messagesNl: Messages = {
   trainingPassing: "Passen",
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
+  trainingScoringAndSetPieces: "Scoren en dode spelmomenten",
   trainingDefendingDefendersMidfielders:
     "Verdedigen (Keeper, Verdedigers + Alle Middenvelders)",
   trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",

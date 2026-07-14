@@ -2015,7 +2015,7 @@ export const messagesEn: Messages = {
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",
     trainingSectionExtended: "Extended skill training",
-    trainingSectionCombined: "Combined skill training",
+    trainingSectionCombined: "Combined training",
     trainingRegimenLabel: "Training regimen",
     trainingSetButtonLabel: "Set",
     trainingSetButtonTooltip: "Set as new training regimen",
@@ -2032,6 +2032,7 @@ export const messagesEn: Messages = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
+    trainingScoringAndSetPieces: "Scoring and set pieces",
     trainingDefendingDefendersMidfielders:
       "Defending (Keeper, Defenders + All Midfielders)",
     trainingWingerWingerAttackers: "Winger (Wingers + Attackers)",

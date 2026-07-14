@@ -1394,6 +1394,14 @@ export const messagesEn: Messages = {
       "Reveal secondary max unavailable. Select a star player and secondary training.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "Combined reveal unavailable. Select a star player, both trainings, and an eligible secondary target.",
+    optimizeRevealNoSafeGoalkeeper:
+      "No eligible goalkeeper can be fielded without compromising the requested reveal.",
+    optimizeRevealAmbiguousPrimary:
+      "The selected player has more than one hidden current value under this combined training regimen, so a specific reveal cannot be guaranteed.",
+    optimizeRevealAmbiguousSecondary:
+      "The selected player has more than one hidden maximum under this combined training regimen, so a specific reveal cannot be guaranteed.",
+    optimizeRevealNoSafeTargetPlacement:
+      "The selected reveal targets cannot be placed in training positions without compromising one of the requested reveals.",
     optimizeRevealTargetPlaceholder: "Select a secondary target",
     optimizeRevealCombinedButton: "Apply combined reveal",
     optimizeRatingsUnavailable:

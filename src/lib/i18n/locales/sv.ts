@@ -1438,6 +1438,14 @@ export const messagesSv: Messages = {
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "Kombinerat avslöjande är inte tillgängligt. Välj en stjärnspelare, båda träningarna och ett giltigt sekundärmål.",
+    optimizeRevealNoSafeGoalkeeper:
+      "Ingen valbar målvakt kan ställas upp utan att äventyra det begärda avslöjandet.",
+    optimizeRevealAmbiguousPrimary:
+      "Den valda spelaren har mer än ett dolt nuvarande värde med den här kombinerade träningen, så ett specifikt avslöjande kan inte garanteras.",
+    optimizeRevealAmbiguousSecondary:
+      "Den valda spelaren har mer än ett dolt maxvärde med den här kombinerade träningen, så ett specifikt avslöjande kan inte garanteras.",
+    optimizeRevealNoSafeTargetPlacement:
+      "De valda avslöjandemålen kan inte placeras på träningspositioner utan att äventyra ett av de begärda avslöjandena.",
     optimizeRevealTargetPlaceholder: "Välj ett sekundärmål",
     optimizeRevealCombinedButton: "Använd kombinerat avslöjande",
     optimizeRatingsUnavailable:

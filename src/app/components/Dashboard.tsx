@@ -5311,6 +5311,26 @@ export default function Dashboard({
       return;
     }
 
+    if (result.error === "no_safe_goalkeeper") {
+      setOptimizeErrorMessage(messages.optimizeRevealNoSafeGoalkeeper);
+      return;
+    }
+
+    if (result.error === "ambiguous_primary_reveal") {
+      setOptimizeErrorMessage(messages.optimizeRevealAmbiguousPrimary);
+      return;
+    }
+
+    if (result.error === "ambiguous_secondary_reveal") {
+      setOptimizeErrorMessage(messages.optimizeRevealAmbiguousSecondary);
+      return;
+    }
+
+    if (result.error === "no_safe_target_placement") {
+      setOptimizeErrorMessage(messages.optimizeRevealNoSafeTargetPlacement);
+      return;
+    }
+
     if (result.error) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);

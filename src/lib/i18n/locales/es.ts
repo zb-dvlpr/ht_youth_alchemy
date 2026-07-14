@@ -1448,6 +1448,14 @@ export const messagesEs: Messages = {
       "Revelar secundario máx. no disponible. Elige jugador estrella y entrenamiento secundario.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "La revelación combinada no está disponible. Elige un jugador estrella, ambos entrenamientos y un objetivo secundario válido.",
+    optimizeRevealNoSafeGoalkeeper:
+      "No se puede alinear ningún portero elegible sin comprometer la revelación solicitada.",
+    optimizeRevealAmbiguousPrimary:
+      "El jugador seleccionado tiene más de un valor actual oculto con este entrenamiento combinado, por lo que no se puede garantizar una revelación concreta.",
+    optimizeRevealAmbiguousSecondary:
+      "El jugador seleccionado tiene más de un valor máximo oculto con este entrenamiento combinado, por lo que no se puede garantizar una revelación concreta.",
+    optimizeRevealNoSafeTargetPlacement:
+      "Los objetivos de revelación seleccionados no pueden colocarse en posiciones de entrenamiento sin comprometer una de las revelaciones solicitadas.",
     optimizeRevealTargetPlaceholder: "Elige un objetivo secundario",
     optimizeRevealCombinedButton: "Aplicar revelación combinada",
     optimizeRatingsUnavailable:

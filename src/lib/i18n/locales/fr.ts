@@ -1446,6 +1446,14 @@ export const messagesFr: Messages = {
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "Révélation combinée indisponible. Sélectionnez un joueur star, les deux entraînements et une cible secondaire éligible.",
+    optimizeRevealNoSafeGoalkeeper:
+      "Aucun gardien éligible ne peut être aligné sans compromettre la révélation demandée.",
+    optimizeRevealAmbiguousPrimary:
+      "Le joueur sélectionné possède plusieurs valeurs actuelles cachées avec cet entraînement combiné, donc une révélation précise ne peut pas être garantie.",
+    optimizeRevealAmbiguousSecondary:
+      "Le joueur sélectionné possède plusieurs valeurs maximales cachées avec cet entraînement combiné, donc une révélation précise ne peut pas être garantie.",
+    optimizeRevealNoSafeTargetPlacement:
+      "Les cibles de révélation sélectionnées ne peuvent pas être placées sur des positions d'entraînement sans compromettre l'une des révélations demandées.",
     optimizeRevealTargetPlaceholder: "Sélectionner une cible secondaire",
     optimizeRevealCombinedButton: "Appliquer la révélation combinée",
     optimizeRatingsUnavailable:

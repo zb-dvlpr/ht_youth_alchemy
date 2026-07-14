@@ -1728,6 +1728,8 @@ export const messagesEn: Messages = {
       "Choose an eligible marker candidate before saving the man-marking order.",
     seniorOtherOrdersManMarkingTargetInvalidSave:
       "Choose an eligible target candidate before saving the man-marking order.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Could not verify the target candidates for this match. Try again before saving the man-marking order.",
     seniorOtherOrdersManMarkingTargetRoleUnknown:
       "The target's expected markable position could not be established from the analysed history.",
     seniorOtherOrdersManMarkingTargetNotObserved:

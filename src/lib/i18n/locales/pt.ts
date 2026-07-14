@@ -1775,6 +1775,8 @@ export const messagesPt: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "{{player}} não teve uma posição predominante única nos jogos analisados.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} não foi observado nas formações iniciais analisadas em {{total}} jogos analisados.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Escolhe um candidato a alvo elegível antes de guardar a ordem de marcação individual.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Não foi possível verificar os candidatos a alvo para este jogo. Tenta novamente antes de guardar a ordem de marcação individual.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Escolhe um candidato a marcador elegível antes de guardar a ordem de marcação individual.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "O marcador selecionado está no onze inicial, mas não joga como defesa central, lateral ou médio interior.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "O marcador selecionado não está no onze inicial atual.",

@@ -1405,6 +1405,7 @@ export type Messages = {
   seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: string;
   seniorOtherOrdersManMarkingMarkerInvalidSave: string;
   seniorOtherOrdersManMarkingTargetInvalidSave: string;
+  seniorOtherOrdersManMarkingTargetContextUnavailable: string;
   seniorOtherOrdersManMarkingTargetRoleUnknown: string;
   seniorOtherOrdersManMarkingTargetNotObserved: string;
   seniorOtherOrdersManMarkingTargetAmbiguousPredominant: string;

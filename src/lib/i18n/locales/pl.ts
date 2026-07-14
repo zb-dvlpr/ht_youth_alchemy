@@ -1223,6 +1223,8 @@ export const messagesPl: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "{{player}} nie miał jednoznacznej dominującej pozycji w analizowanych meczach.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} nie został zaobserwowany w analizowanych składach wyjściowych w {{total}} analizowanych meczach.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Wybierz kwalifikujący się cel przed zapisaniem polecenia krycia indywidualnego.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Nie można zweryfikować kandydatów na cel dla tego meczu. Spróbuj ponownie przed zapisaniem polecenia krycia indywidualnego.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Wybierz kwalifikującego się kryjącego przed zapisaniem polecenia krycia indywidualnego.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "Wybrany kryjący jest w wyjściowej jedenastce, ale nie gra jako środkowy obrońca, boczny obrońca ani środkowy pomocnik.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "Wybrany kryjący nie znajduje się w aktualnej wyjściowej jedenastce.",

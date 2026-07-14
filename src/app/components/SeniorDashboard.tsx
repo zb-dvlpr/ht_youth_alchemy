@@ -1153,6 +1153,8 @@ type SeniorEditablePlayerOrder = {
 type SeniorEditableOrdersState = {
   matchId: number | null;
   source: "generated" | "loaded" | "manual" | "mixed";
+  manMarkingOrigin: SeniorManMarkingOrderOrigin;
+  manMarkingTouched: boolean;
   matchAttitude: number | null;
   coachModifier: number | null;
   playerOrders: SeniorEditablePlayerOrder[];
@@ -1161,6 +1163,25 @@ type SeniorEditableOrdersState = {
   captainPlayerId: number | null;
   setPiecesPlayerId: number | null;
 };
+
+type SeniorManMarkingTargetEligibility =
+  | {
+      status: "notRequired";
+      targets: [];
+    }
+  | {
+      status: "ready";
+      matchId: number;
+      targets: Array<{
+        playerId: number;
+        role: SeniorManMarkingObservedOpponentRole;
+      }>;
+    }
+  | {
+      status: "unavailable";
+      matchId: number | null;
+      targets: [];
+    };
 
 type SeniorOrderPlayerOption = {
   id: number;
@@ -3446,7 +3467,11 @@ const buildSeniorEditableOrderFromSubstitution = (
 const buildSeniorEditableOrdersFromPayload = (
   matchId: number | null,
   payload: MatchOrdersLineupPayload,
-  source: SeniorEditableOrdersState["source"]
+  source: SeniorManMarkingOrderOrigin,
+  options: {
+    manMarkingOrigin?: SeniorManMarkingOrderOrigin;
+    manMarkingTouched?: boolean;
+  } = {}
 ): SeniorEditableOrdersState => {
   const editableOrders = (payload.substitutions ?? []).map((order, index) =>
     buildSeniorEditableOrderFromSubstitution(matchId, order, index)
@@ -3475,6 +3500,8 @@ const buildSeniorEditableOrdersFromPayload = (
   return {
     matchId,
     source,
+    manMarkingOrigin: options.manMarkingOrigin ?? source,
+    manMarkingTouched: options.manMarkingTouched ?? false,
     matchAttitude:
       typeof payload.settings?.speechLevel === "number" ? payload.settings.speechLevel : null,
     coachModifier:
@@ -3542,6 +3569,15 @@ const serializeSeniorEditableOrdersToPayload = (
     ],
   };
 };
+
+const seniorManMarkingOrderMatchesPair = (
+  order: SeniorEditablePlayerOrder | null,
+  pair: SeniorManMarkingPairEvaluation | null
+): boolean =>
+  order !== null &&
+  pair !== null &&
+  order.subjectPlayerId === pair.markerPlayerId &&
+  order.objectPlayerId === pair.targetPlayerId;
 
 const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
   const midfield = ratings.ratingMidfield ?? 0;
@@ -11733,8 +11769,73 @@ function buildSeniorAiManMarkingReadySignature(params: {
     defaultPayload: ReturnType<typeof buildLineupPayload>
   ) => buildSeniorGeneratedLineupPayloadBase(matchId, defaultPayload);
 
-  const validateSeniorEditableOrders = (
+  const mapSeniorManMarkingContextToTargetEligibility = (
+    context: OpponentFormationContext,
+    matchId: number
+  ): SeniorManMarkingTargetEligibility => ({
+    status: "ready",
+    matchId,
+    targets: context.manMarkingTargets.map((target) => ({
+      playerId: target.playerId,
+      role: target.role,
+    })),
+  });
+
+  const resolveSeniorManMarkingTargetEligibility = async (
     orders: SeniorEditableOrdersState
+  ): Promise<SeniorManMarkingTargetEligibility> => {
+    if (!orders.manMarkingOrder) {
+      return { status: "notRequired", targets: [] };
+    }
+    if (typeof orders.matchId !== "number") {
+      return { status: "unavailable", matchId: orders.matchId, targets: [] };
+    }
+    const generatedReport = effectiveSeniorAiManMarkingGeneratedReport;
+    if (
+      generatedReport &&
+      generatedReport.matchId === orders.matchId &&
+      generatedReport.signature === seniorAiManMarkingCurrentSignature &&
+      generatedReport.fuzziness === seniorAiManMarkingFuzziness &&
+      seniorManMarkingOrderMatchesPair(
+        orders.manMarkingOrder,
+        generatedReport.decision.selectedPair
+      )
+    ) {
+      return {
+        status: "ready",
+        matchId: orders.matchId,
+        targets: generatedReport.targets.map((target) => ({
+          playerId: target.id,
+          role: target.role,
+        })),
+      };
+    }
+    const modalContext = otherOrdersManMarkingContextState.context;
+    if (
+      otherOrdersManMarkingContextState.status === "ready" &&
+      otherOrdersManMarkingContextState.matchId === orders.matchId &&
+      modalContext &&
+      modalContext.manMarkingFuzziness === seniorAiManMarkingFuzziness
+    ) {
+      return mapSeniorManMarkingContextToTargetEligibility(
+        modalContext,
+        orders.matchId
+      );
+    }
+    try {
+      const context = await fetchOpponentFormationRowsForMatch(orders.matchId);
+      if (!context) {
+        return { status: "unavailable", matchId: orders.matchId, targets: [] };
+      }
+      return mapSeniorManMarkingContextToTargetEligibility(context, orders.matchId);
+    } catch {
+      return { status: "unavailable", matchId: orders.matchId, targets: [] };
+    }
+  };
+
+  const validateSeniorEditableOrders = (
+    orders: SeniorEditableOrdersState,
+    targetEligibility: SeniorManMarkingTargetEligibility
   ): string | null => {
     if (orders.playerOrders.length > seniorOtherOrdersMaxPlayerOrders) {
       return messages.seniorOtherOrdersOrderLimitReached;
@@ -11794,7 +11895,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
       }
       if (
         typeof orders.manMarkingOrder.objectPlayerId !== "number" ||
-        !otherOrdersManMarkingContextState.context?.manMarkingTargets.some(
+        targetEligibility.status !== "ready"
+      ) {
+        return messages.seniorOtherOrdersManMarkingTargetContextUnavailable;
+      }
+      if (
+        !targetEligibility.targets.some(
           (target) => target.playerId === orders.manMarkingOrder?.objectPlayerId
         )
       ) {
@@ -11832,10 +11938,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return null;
   };
 
-  const applySeniorEditableOrdersToPayload = (
+  const applySeniorEditableOrdersToPayload = async (
     matchId: number,
     payload: MatchOrdersLineupPayload
-  ): MatchOrdersLineupPayload => {
+  ): Promise<MatchOrdersLineupPayload> => {
     const payloadWithEligibleSetPieces =
       seniorOtherOrdersKeeperPlayerId !== null &&
       payload.setPieces === seniorOtherOrdersKeeperPlayerId
@@ -11859,7 +11965,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
       setOtherOrdersValidationError(validationError);
       throw new Error(validationError);
     }
-    const validationError = validateSeniorEditableOrders(savedOrders);
+    const targetEligibility =
+      await resolveSeniorManMarkingTargetEligibility(savedOrders);
+    const validationError = validateSeniorEditableOrders(
+      savedOrders,
+      targetEligibility
+    );
     if (validationError) {
       setOtherOrdersModalMatchId(savedOrders.matchId ?? matchId);
       setOtherOrdersEditorOpen(true);
@@ -11875,11 +11986,11 @@ function buildSeniorAiManMarkingReadySignature(params: {
     });
   };
 
-  const buildSeniorSubmitLineupPayload = (
+  const buildSeniorSubmitLineupPayload = async (
     matchId: number,
     defaultPayload: ReturnType<typeof buildLineupPayload>
   ) =>
-    applySeniorEditableOrdersToPayload(
+    await applySeniorEditableOrdersToPayload(
       matchId,
       buildSeniorGeneratedLineupPayload(matchId, defaultPayload)
     );
@@ -11968,9 +12079,14 @@ function buildSeniorAiManMarkingReadySignature(params: {
     setOtherOrdersManMarkingTouched(false);
     setManMarkingTargetDropdownOpen(false);
   };
-  const saveOtherOrdersEditor = () => {
+  const saveOtherOrdersEditor = async () => {
     if (!otherOrdersDraft) return;
-    const validationError = validateSeniorEditableOrders(otherOrdersDraft);
+    const targetEligibility =
+      await resolveSeniorManMarkingTargetEligibility(otherOrdersDraft);
+    const validationError = validateSeniorEditableOrders(
+      otherOrdersDraft,
+      targetEligibility
+    );
     if (validationError) {
       setOtherOrdersValidationError(validationError);
       return;
@@ -11981,6 +12097,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
         otherOrdersDraft.source === "generated" || otherOrdersDraft.source === "loaded"
           ? "mixed"
           : otherOrdersDraft.source,
+      manMarkingOrigin: otherOrdersManMarkingOrigin,
+      manMarkingTouched: otherOrdersManMarkingTouched,
     });
     closeOtherOrdersEditor();
   };
@@ -12166,6 +12284,46 @@ function buildSeniorAiManMarkingReadySignature(params: {
     seniorOtherOrdersManMarkingCandidatesEnabled,
   ]);
 
+  const resolveSeniorOtherOrdersManMarkingMetadata = (
+    draft: SeniorEditableOrdersState | null
+  ): {
+    origin: SeniorManMarkingOrderOrigin;
+    touched: boolean;
+  } => {
+    if (!draft) return { origin: "manual", touched: false };
+    const legacyDraft = draft as Partial<SeniorEditableOrdersState>;
+    const recommendedPair =
+      effectiveSeniorAiManMarkingGeneratedReport?.matchId === draft.matchId
+        ? effectiveSeniorAiManMarkingGeneratedReport.decision.selectedPair
+        : null;
+    if (seniorManMarkingOrderMatchesPair(draft.manMarkingOrder, recommendedPair)) {
+      return { origin: "generated", touched: false };
+    }
+    if (legacyDraft.manMarkingOrigin && typeof legacyDraft.manMarkingTouched === "boolean") {
+      return {
+        origin: legacyDraft.manMarkingOrigin,
+        touched: legacyDraft.manMarkingTouched,
+      };
+    }
+    if (draft.source === "generated") {
+      return {
+        origin: "generated",
+        touched: Boolean(recommendedPair) &&
+          !seniorManMarkingOrderMatchesPair(draft.manMarkingOrder, recommendedPair),
+      };
+    }
+    if (draft.source === "loaded") {
+      return { origin: "loaded", touched: false };
+    }
+    if (draft.source === "mixed" && recommendedPair !== null) {
+      return {
+        origin: "generated",
+        touched: !seniorManMarkingOrderMatchesPair(draft.manMarkingOrder, recommendedPair),
+      };
+    }
+    return { origin: "manual", touched: false };
+  };
+
   useEffect(() => {
     if (!otherOrdersEditorOpen) {
       setOtherOrdersDraft(null);
@@ -12173,12 +12331,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
       return;
     }
     const nextDraft = buildSeniorEditableOrdersForContext(otherOrdersModalMatchId);
+    const manMarkingMetadata =
+      resolveSeniorOtherOrdersManMarkingMetadata(nextDraft);
     setOtherOrdersDraft(nextDraft);
-    setOtherOrdersManMarkingOrigin(
-      nextDraft?.source === "generated" || nextDraft?.source === "loaded"
-        ? nextDraft.source
-        : "manual"
-    );
+    setOtherOrdersManMarkingOrigin(manMarkingMetadata.origin);
     setOtherOrdersInitialManMarkingPair(
       nextDraft?.manMarkingOrder
         ? {
@@ -12187,9 +12343,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
           }
         : null
     );
-    setOtherOrdersManMarkingTouched(false);
+    setOtherOrdersManMarkingTouched(manMarkingMetadata.touched);
     setOtherOrdersValidationError(null);
-  }, [otherOrdersEditorOpen, otherOrdersModalMatchId]);
+  }, [
+    effectiveSeniorAiManMarkingGeneratedReport,
+    otherOrdersEditorOpen,
+    otherOrdersModalMatchId,
+  ]);
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) return;
@@ -12430,11 +12590,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
         target.role === seniorOtherOrdersRecommendedManMarkingPair.targetRole
     );
   const seniorOtherOrdersCurrentManMarkingMatchesRecommendation =
-    seniorOtherOrdersRecommendedManMarkingPair !== null &&
-    otherOrdersDraft?.manMarkingOrder?.subjectPlayerId ===
-      seniorOtherOrdersRecommendedManMarkingPair.markerPlayerId &&
-    otherOrdersDraft?.manMarkingOrder?.objectPlayerId ===
-      seniorOtherOrdersRecommendedManMarkingPair.targetPlayerId;
+    seniorManMarkingOrderMatchesPair(
+      otherOrdersDraft?.manMarkingOrder ?? null,
+      seniorOtherOrdersRecommendedManMarkingPair
+    );
   const canResetSeniorOtherOrdersManMarkingToRecommendation =
     effectiveSeniorAiManMarkingEnabled &&
     seniorOtherOrdersRecommendedManMarkingPair !== null &&
@@ -12463,6 +12622,32 @@ function buildSeniorAiManMarkingReadySignature(params: {
       newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
     };
   }
+
+  const resolveSeniorOtherOrdersChangedManMarkingMetadata = (
+    nextOrder: SeniorEditablePlayerOrder | null
+  ): {
+    origin: SeniorManMarkingOrderOrigin;
+    touched: boolean;
+  } => {
+    if (
+      seniorManMarkingOrderMatchesPair(
+        nextOrder,
+        seniorOtherOrdersRecommendedManMarkingPair
+      )
+    ) {
+      return { origin: "generated", touched: false };
+    }
+    if (
+      otherOrdersManMarkingOrigin === "generated" &&
+      seniorOtherOrdersRecommendedManMarkingPair !== null
+    ) {
+      return { origin: "generated", touched: true };
+    }
+    if (otherOrdersManMarkingOrigin === "loaded") {
+      return { origin: "loaded", touched: true };
+    }
+    return { origin: "manual", touched: true };
+  };
 
   useEffect(() => {
     if (!otherOrdersEditorOpen) return;
@@ -12583,13 +12768,37 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ]);
 
   const updateSeniorOtherOrdersManMarkingTarget = (nextTargetId: number | null) => {
-    setOtherOrdersManMarkingTouched(true);
-    if (!otherOrdersDraft?.manMarkingOrder) {
-      setOtherOrdersManMarkingOrigin("manual");
-    }
+    const projectedOrder =
+      nextTargetId === null && !otherOrdersDraft?.manMarkingOrder?.subjectPlayerId
+        ? null
+        : {
+            id:
+              otherOrdersDraft?.manMarkingOrder?.id ??
+              `man-marking-${otherOrdersDraft?.matchId ?? "draft"}-${Date.now()}`,
+            orderType: 4 as const,
+            minute:
+              otherOrdersDraft?.manMarkingOrder?.minute ?? SENIOR_ORDER_DEFAULT_MINUTE,
+            standing:
+              otherOrdersDraft?.manMarkingOrder?.standing ??
+              SENIOR_ORDER_DEFAULT_CONDITION,
+            card:
+              otherOrdersDraft?.manMarkingOrder?.card ??
+              SENIOR_ORDER_DEFAULT_CONDITION,
+            subjectPlayerId:
+              otherOrdersDraft?.manMarkingOrder?.subjectPlayerId ?? null,
+            objectPlayerId: nextTargetId,
+            newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+            newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+          };
+    const metadata =
+      resolveSeniorOtherOrdersChangedManMarkingMetadata(projectedOrder);
+    setOtherOrdersManMarkingOrigin(metadata.origin);
+    setOtherOrdersManMarkingTouched(metadata.touched);
     updateOtherOrdersDraft((draft) => ({
       ...draft,
       source: "mixed",
+      manMarkingOrigin: metadata.origin,
+      manMarkingTouched: metadata.touched,
       manMarkingOrder:
         nextTargetId === null && !draft.manMarkingOrder?.subjectPlayerId
           ? null
@@ -12621,6 +12830,8 @@ function buildSeniorAiManMarkingReadySignature(params: {
     updateOtherOrdersDraft((draft) => ({
       ...draft,
       source: "mixed",
+      manMarkingOrigin: "generated",
+      manMarkingTouched: false,
       manMarkingOrder: buildSeniorOtherOrdersManMarkingOrder(
         draft,
         recommendedPair.markerPlayerId,
@@ -16059,14 +16270,10 @@ const refreshDetailsForPlayers = async (
             generatedReport.targets
           )
         : null;
-    const currentMatchesGenerated =
-      currentPair !== null &&
-      originalRecommendedPair !== null &&
-      currentPair.evaluation.markerPlayerId ===
-        originalRecommendedPair.evaluation.markerPlayerId &&
-      currentPair.evaluation.targetPlayerId ===
-        originalRecommendedPair.evaluation.targetPlayerId &&
-      currentPair.evaluation.targetRole === originalRecommendedPair.evaluation.targetRole;
+    const currentMatchesGenerated = seniorManMarkingOrderMatchesPair(
+      otherOrdersDraft.manMarkingOrder,
+      generatedReport?.decision.selectedPair ?? null
+    );
     const currentMatchesInitial =
       otherOrdersInitialManMarkingPair !== null &&
       (markerId ?? null) === otherOrdersInitialManMarkingPair.markerId &&
@@ -16082,18 +16289,18 @@ const refreshDetailsForPlayers = async (
       originalRecommendedPair !== null &&
       !currentMatchesGenerated;
     const source: SeniorManMarkingExplanationData["source"] =
-      otherOrdersManMarkingOrigin === "generated"
+      currentMatchesGenerated
+        ? "recommended"
+        : otherOrdersManMarkingOrigin === "generated"
         ? originalRecommendedPair
-          ? currentMatchesGenerated
-            ? "recommended"
-            : otherOrdersManMarkingTouched
+          ? otherOrdersManMarkingTouched
               ? "modifiedRecommendation"
               : "recommended"
           : hasCurrentManMarkingPair
             ? "manual"
             : "noRecommendation"
         : otherOrdersManMarkingOrigin === "loaded"
-          ? currentMatchesInitial
+          ? !otherOrdersManMarkingTouched && currentMatchesInitial
             ? "loaded"
             : "modifiedLoaded"
           : "manual";
@@ -22246,15 +22453,15 @@ const refreshDetailsForPlayers = async (
                           type="button"
                           className={`${styles.lineupButtonSecondary} ${styles.seniorOtherOrdersDeleteOrderButton}`}
                           onClick={() => {
-                            if (
-                              otherOrdersManMarkingOrigin === "generated" &&
-                              seniorOtherOrdersRecommendedManMarkingPair !== null
-                            ) {
-                              setOtherOrdersManMarkingTouched(true);
-                            }
+                            const metadata =
+                              resolveSeniorOtherOrdersChangedManMarkingMetadata(null);
+                            setOtherOrdersManMarkingOrigin(metadata.origin);
+                            setOtherOrdersManMarkingTouched(metadata.touched);
                             updateOtherOrdersDraft((draft) => ({
                               ...draft,
                               source: "mixed",
+                              manMarkingOrigin: metadata.origin,
+                              manMarkingTouched: metadata.touched,
                               manMarkingOrder: null,
                             }));
                             setManMarkingTargetDropdownOpen(false);
@@ -22280,13 +22487,43 @@ const refreshDetailsForPlayers = async (
                       value={seniorOtherOrdersSelectedMarkerOptionValue}
                       onChange={(event) => {
                         const nextMarkerId = Number(event.target.value) || null;
-                        setOtherOrdersManMarkingTouched(true);
-                        if (!otherOrdersDraft.manMarkingOrder) {
-                          setOtherOrdersManMarkingOrigin("manual");
-                        }
+                        const projectedOrder =
+                          nextMarkerId === null &&
+                          !otherOrdersDraft.manMarkingOrder?.objectPlayerId
+                            ? null
+                            : {
+                                id:
+                                  otherOrdersDraft.manMarkingOrder?.id ??
+                                  `man-marking-${otherOrdersDraft.matchId ?? "draft"}-${Date.now()}`,
+                                orderType: 4 as const,
+                                minute:
+                                  otherOrdersDraft.manMarkingOrder?.minute ??
+                                  SENIOR_ORDER_DEFAULT_MINUTE,
+                                standing:
+                                  otherOrdersDraft.manMarkingOrder?.standing ??
+                                  SENIOR_ORDER_DEFAULT_CONDITION,
+                                card:
+                                  otherOrdersDraft.manMarkingOrder?.card ??
+                                  SENIOR_ORDER_DEFAULT_CONDITION,
+                                subjectPlayerId: nextMarkerId,
+                                objectPlayerId:
+                                  otherOrdersDraft.manMarkingOrder?.objectPlayerId ??
+                                  null,
+                                newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
+                                newPositionBehaviour:
+                                  SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+                              };
+                        const metadata =
+                          resolveSeniorOtherOrdersChangedManMarkingMetadata(
+                            projectedOrder
+                          );
+                        setOtherOrdersManMarkingOrigin(metadata.origin);
+                        setOtherOrdersManMarkingTouched(metadata.touched);
                         updateOtherOrdersDraft((draft) => ({
                           ...draft,
                           source: "mixed",
+                          manMarkingOrigin: metadata.origin,
+                          manMarkingTouched: metadata.touched,
                           manMarkingOrder:
                             nextMarkerId === null && !draft.manMarkingOrder?.objectPlayerId
                               ? null
@@ -22579,7 +22816,9 @@ const refreshDetailsForPlayers = async (
             <button
               type="button"
               className={styles.confirmSubmit}
-              onClick={saveOtherOrdersEditor}
+              onClick={() => {
+                void saveOtherOrdersEditor();
+              }}
               disabled={!otherOrdersDraft}
             >
               {messages.seniorOtherOrdersSave}

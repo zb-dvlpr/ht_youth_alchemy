@@ -1770,6 +1770,8 @@ export const messagesFr: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "{{player}} n’avait pas de position prédominante unique dans les matchs analysés.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} n’a pas été observé dans les compositions de départ analysées sur {{total}} matchs analysés.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Choisissez une cible éligible avant d’enregistrer l’ordre de marquage individuel.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Impossible de vérifier les cibles candidates pour ce match. Réessayez avant d’enregistrer l’ordre de marquage individuel.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Choisissez un marqueur éligible avant d’enregistrer l’ordre de marquage individuel.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "Le marqueur sélectionné est dans le onze de départ, mais ne joue pas défenseur central, arrière latéral ou milieu intérieur.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "Le marqueur sélectionné ne fait pas partie du onze de départ actuel.",

@@ -1761,6 +1761,8 @@ export const messagesSv: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "{{player}} hade ingen unik dominerande position i de analyserade matcherna.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} observerades inte i de analyserade startelvorna över {{total}} analyserade matcher.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Välj en valbar målkandidat innan du sparar markeringsordern.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Det gick inte att verifiera målkandidaterna för den här matchen. Försök igen innan du sparar markeringsordern.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Välj en valbar markeringskandidat innan du sparar markeringsordern.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "Den valda markeraren finns i startelvan men spelar inte som mittback, ytterback eller innermittfältare.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "Den valda markeraren finns inte i den aktuella startelvan.",

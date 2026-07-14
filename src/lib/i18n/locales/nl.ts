@@ -1229,6 +1229,8 @@ export const messagesNl: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "{{player}} had geen unieke overheersende positie in de geanalyseerde wedstrijden.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} werd niet waargenomen in de geanalyseerde basisopstellingen over {{total}} geanalyseerde wedstrijden.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Kies een geschikt doelwit voordat je de mandekkingsopdracht opslaat.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "De doelwitkandidaten voor deze wedstrijd konden niet worden gecontroleerd. Probeer het opnieuw voordat je de mandekkingsopdracht opslaat.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Kies een geschikte mandekker voordat je de mandekkingsopdracht opslaat.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "De geselecteerde mandekker staat in de basiself, maar speelt niet als centrale verdediger, vleugelverdediger of centrale middenvelder.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "De geselecteerde mandekker staat niet in de huidige basiself.",

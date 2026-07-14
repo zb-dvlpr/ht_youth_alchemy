@@ -1755,6 +1755,8 @@ export const messagesDe: Messages = {
     seniorOtherOrdersManMarkingTargetAmbiguousPredominant: "Für {{player}} wurde in den analysierten Spielen keine eindeutige vorherrschende Position festgestellt.",
     seniorOtherOrdersManMarkingTargetNotObserved: "{{player}} wurde in den analysierten Startaufstellungen über {{total}} analysierte Spiele nicht beobachtet.",
     seniorOtherOrdersManMarkingTargetInvalidSave: "Wähle vor dem Speichern der Manndeckung einen geeigneten Zielkandidaten.",
+    seniorOtherOrdersManMarkingTargetContextUnavailable:
+      "Die Zielkandidaten für dieses Spiel konnten nicht geprüft werden. Versuche es vor dem Speichern der Manndeckung erneut.",
     seniorOtherOrdersManMarkingMarkerInvalidSave: "Wähle vor dem Speichern der Manndeckung einen geeigneten Deckungskandidaten.",
     seniorOtherOrdersManMarkingMarkerIneligibleCurrentPosition: "Der ausgewählte Deckungsspieler steht in der Startelf, spielt aber nicht als Innenverteidiger, Außenverteidiger oder zentraler Mittelfeldspieler.",
     seniorOtherOrdersManMarkingMarkerNotStarting: "Der ausgewählte Deckungsspieler steht nicht in der aktuellen Startelf.",

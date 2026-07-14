@@ -1452,6 +1452,14 @@ export const messagesIt: Messages = {
       "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "Rivelazione combinata non disponibile. Seleziona una stella, entrambi gli allenamenti e un obiettivo secondario idoneo.",
+    optimizeRevealNoSafeGoalkeeper:
+      "Non è possibile schierare alcun portiere idoneo senza compromettere la rivelazione richiesta.",
+    optimizeRevealAmbiguousPrimary:
+      "Il giocatore selezionato ha più di un valore attuale nascosto con questo allenamento combinato, quindi non è possibile garantire una rivelazione specifica.",
+    optimizeRevealAmbiguousSecondary:
+      "Il giocatore selezionato ha più di un valore massimo nascosto con questo allenamento combinato, quindi non è possibile garantire una rivelazione specifica.",
+    optimizeRevealNoSafeTargetPlacement:
+      "Gli obiettivi di rivelazione selezionati non possono essere piazzati in posizioni di allenamento senza compromettere una delle rivelazioni richieste.",
     optimizeRevealTargetPlaceholder: "Seleziona un obiettivo secondario",
     optimizeRevealCombinedButton: "Applica rivelazione combinata",
     optimizeRatingsUnavailable:

@@ -381,6 +381,55 @@ export function resolveSecondaryMaxRevealSkill(
   return "scoring";
 }
 
+type RevealResolution =
+  | { status: "resolved"; skill: SkillKey }
+  | { status: "already_known" }
+  | { status: "ambiguous" };
+
+function resolvePrimaryCurrentReveal(
+  player: OptimizerPlayer,
+  training: TrainingSkillKey
+): RevealResolution {
+  if (!isScoringSetPiecesTraining(training)) {
+    const skill = toBaseTrainingSkill(training);
+    return skillValues(player, skill).current === null
+      ? { status: "resolved", skill }
+      : { status: "already_known" };
+  }
+  const unknownSkills = SCORING_SETPIECES_SKILLS.filter(
+    (skill) => skillValues(player, skill).current === null
+  );
+  if (unknownSkills.length === 0) return { status: "already_known" };
+  if (unknownSkills.length > 1) return { status: "ambiguous" };
+  return { status: "resolved", skill: unknownSkills[0] };
+}
+
+function resolveSecondaryMaxReveal(
+  player: OptimizerPlayer,
+  training: TrainingSkillKey
+): RevealResolution {
+  if (!isScoringSetPiecesTraining(training)) {
+    const skill = toBaseTrainingSkill(training);
+    return skillValues(player, skill).max === null
+      ? { status: "resolved", skill }
+      : { status: "already_known" };
+  }
+  const unknownSkills = SCORING_SETPIECES_SKILLS.filter(
+    (skill) => skillValues(player, skill).max === null
+  );
+  if (unknownSkills.length === 0) return { status: "already_known" };
+  if (unknownSkills.length > 1) return { status: "ambiguous" };
+  return { status: "resolved", skill: unknownSkills[0] };
+}
+
+function hasKnownCurrent(player: OptimizerPlayer, skill: SkillKey) {
+  return skillValues(player, skill).current !== null;
+}
+
+function hasKnownMaximum(player: OptimizerPlayer, skill: SkillKey) {
+  return skillValues(player, skill).max !== null;
+}
+
 function totalAgeDays(player: OptimizerPlayer): number | null {
   const age = typeof player.age === "number" ? player.age : null;
   const ageDays = typeof player.ageDays === "number" ? player.ageDays : 0;
@@ -1604,26 +1653,110 @@ function fillSlotsWithOrderedIds(
   return freeSlots;
 }
 
-function fillSlotsFromRanking(
-  slots: (typeof ALL_SLOTS)[number][],
-  ranking: RankingEntry[],
+type RevealSlotClass =
+  | "primary_only"
+  | "secondary_only"
+  | "overlap"
+  | "inconsequential";
+
+function trainingAffectsSlot(training: TrainingSkillKey, slot: FieldSlotId) {
+  const role = ROLE_BY_SLOT[slot];
+  return (TRAINING_ROLE_EFFECTS[training][role] ?? 0) > 0;
+}
+
+function classifyRevealSlot(
+  slot: FieldSlotId,
+  primaryTraining: TrainingSkillKey,
+  secondaryTraining: TrainingSkillKey
+): RevealSlotClass {
+  const primary = trainingAffectsSlot(primaryTraining, slot);
+  const secondary = trainingAffectsSlot(secondaryTraining, slot);
+  if (primary && secondary) return "overlap";
+  if (primary) return "primary_only";
+  if (secondary) return "secondary_only";
+  return "inconsequential";
+}
+
+function primaryCurrentSkillsForSlot(
+  slot: FieldSlotId,
+  primaryTraining: TrainingSkillKey
+) {
+  return trainingAffectsSlot(primaryTraining, slot)
+    ? [...getTrainingBaseSkills(primaryTraining)]
+    : [];
+}
+
+function secondaryMaxSkillsForSlot(
+  slot: FieldSlotId,
+  secondaryTraining: TrainingSkillKey
+) {
+  return trainingAffectsSlot(secondaryTraining, slot)
+    ? [...getTrainingBaseSkills(secondaryTraining)]
+    : [];
+}
+
+function playerHasKnownCurrents(player: OptimizerPlayer, skills: SkillKey[]) {
+  return skills.every((skill) => hasKnownCurrent(player, skill));
+}
+
+function playerHasKnownMaxima(player: OptimizerPlayer, skills: SkillKey[]) {
+  return skills.every((skill) => hasKnownMaximum(player, skill));
+}
+
+function fillProtectedSlotsWithSafeIds(
+  slots: FieldSlotId[],
+  orderedPlayerIds: number[],
   lineup: LineupAssignments,
   usedPlayers: Set<number>
 ) {
-  const freeSlots = [...slots];
-  let rankingIndex = 0;
-  while (freeSlots.length) {
-    while (rankingIndex < ranking.length && usedPlayers.has(ranking[rankingIndex].playerId)) {
-      rankingIndex += 1;
-    }
-    const entry = ranking[rankingIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * freeSlots.length);
-    const slot = freeSlots.splice(slotIndex, 1)[0];
-    assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
-    rankingIndex += 1;
+  // Force-reveal isolation is a hard constraint. Once known-value candidates
+  // are exhausted, trained slots remain empty rather than admitting another
+  // player whose hidden value could be revealed instead.
+  fillSlotsWithOrderedIds(slots, orderedPlayerIds, lineup, usedPlayers);
+}
+
+function ensureRevealSafeYouthGoalkeeper(
+  lineup: LineupAssignments,
+  players: OptimizerPlayer[],
+  usedPlayers: Set<number>,
+  isSafeGoalkeeper: (player: OptimizerPlayer) => boolean
+) {
+  if (lineup.KP != null) {
+    const keeper = players.find((player) => player.id === lineup.KP) ?? null;
+    return Boolean(keeper && isSafeGoalkeeper(keeper));
   }
-  return freeSlots;
+  const candidates = players.filter(
+    (player) => !usedPlayers.has(player.id) && isSafeGoalkeeper(player)
+  );
+  const keeper = findBestFallbackKeeperBySkill(candidates, new Set());
+  if (!keeper) return false;
+  return assignYouthFieldPlayer(lineup, usedPlayers, "KP", keeper.id);
+}
+
+function fillInconsequentialSlots(
+  slots: FieldSlotId[],
+  fillPlayers: OptimizerPlayer[],
+  lineup: LineupAssignments,
+  usedPlayers: Set<number>
+) {
+  const orderedRemainingSlots = buildRemainingSlotOrder(
+    slots.filter((slot) => lineup[slot] == null)
+  );
+  const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
+    0,
+    Math.max(0, MAX_YOUTH_FIELD_PLAYERS - assignedLineupCount(lineup))
+  );
+
+  let playerIndex = 0;
+  slotsToFill.forEach((slot) => {
+    while (playerIndex < fillPlayers.length && usedPlayers.has(fillPlayers[playerIndex].id)) {
+      playerIndex += 1;
+    }
+    const player = fillPlayers[playerIndex];
+    if (!player) return;
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
+    playerIndex += 1;
+  });
 }
 
 function fillPrimaryRevealSlots(
@@ -1640,10 +1773,9 @@ function fillPrimaryRevealSlots(
     : [groupedPrimarySlots.primary];
   let eligibleQueue = eligiblePlayerIds.filter((id) => !usedPlayers.has(id));
   primarySlotGroups.forEach((group) => {
-    let freeSlots = fillSlotsWithOrderedIds(group, eligibleQueue, lineup, usedPlayers);
+    fillProtectedSlotsWithSafeIds(group, eligibleQueue, lineup, usedPlayers);
     eligibleQueue = eligibleQueue.filter((id) => !usedPlayers.has(id));
-    freeSlots = fillSlotsFromRanking(freeSlots, ranking, lineup, usedPlayers);
-    void freeSlots;
+    void ranking;
   });
 }
 
@@ -1654,8 +1786,8 @@ function fillSecondaryRevealSlots(
   lineup: LineupAssignments,
   usedPlayers: Set<number>
 ) {
-  const freeAfterEligible = fillSlotsWithOrderedIds(slots, eligiblePlayerIds, lineup, usedPlayers);
-  fillSlotsFromRanking(freeAfterEligible, ranking, lineup, usedPlayers);
+  fillProtectedSlotsWithSafeIds(slots, eligiblePlayerIds, lineup, usedPlayers);
+  void ranking;
 }
 
 function orderLineSlots(
@@ -2222,55 +2354,26 @@ export function optimizeRevealPrimaryCurrent(
     };
   }
 
-  if (
-    isScoringSetPiecesTraining(primaryTraining) ||
-    isScoringSetPiecesTraining(secondaryTraining)
-  ) {
-    const resolvedPrimaryRevealSkill = resolvePrimaryCurrentRevealSkill(
-      starPlayer,
-      primaryTraining
-    );
-    if (!resolvedPrimaryRevealSkill) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "primary_current_known" as const,
-      };
-    }
-    const built = optimizeCombinedLineupForStar(
-      players,
-      starPlayerId,
-      primaryTraining,
-      secondaryTraining,
-      autoSelected,
-      preferences
-    );
-    return {
-      ...built,
-      debug: built.debug
-        ? {
-            ...built.debug,
-            combinedTraining: {
-              ...built.debug.combinedTraining,
-              resolvedPrimaryRevealSkill,
-            },
-          }
-        : null,
-      error: null as null | "missing_inputs" | "missing_star" | "primary_current_known" | "no_primary_slots",
-    };
-  }
-
-  const primary = toBaseTrainingSkill(primaryTraining);
-  const secondary = toBaseTrainingSkill(secondaryTraining);
-
-  const { current: starCurrent } = skillValues(starPlayer, primary);
-  if (starCurrent !== null) {
+  const primaryResolution = resolvePrimaryCurrentReveal(starPlayer, primaryTraining);
+  if (primaryResolution.status === "already_known") {
     return {
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
       error: "primary_current_known" as const,
     };
   }
+  if (primaryResolution.status === "ambiguous") {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "ambiguous_primary_reveal" as const,
+    };
+  }
+
+  const primary = primaryResolution.skill;
+  const secondary = isSingleSkillTrainingKey(secondaryTraining)
+    ? toBaseTrainingSkill(secondaryTraining)
+    : null;
 
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
@@ -2312,17 +2415,36 @@ export function optimizeRevealPrimaryCurrent(
   const lineup: LineupAssignments = {};
   const usedPlayers = new Set<number>();
   assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
-  ensureYouthGoalkeeper(lineup, players, usedPlayers);
+  const primaryCurrentSafetySkills = [...getTrainingBaseSkills(primaryTraining)];
+  const goalkeeperSafe = ensureRevealSafeYouthGoalkeeper(
+    lineup,
+    players,
+    usedPlayers,
+    (player) =>
+      player.id === starPlayerId ||
+      !trainingAffectsSlot(primaryTraining, "KP") ||
+      playerHasKnownCurrents(player, primaryCurrentSafetySkills)
+  );
+  if (!goalkeeperSafe) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
   const playersById = new Map(players.map((player) => [player.id, player]));
 
   const remainingPrimarySlots = primarySlotList.filter((slot) => slot !== starSlot);
   const eligiblePrimary = sortKnownCurrentRevealCandidates(
     primaryRanking.ordered
       .filter(
-        (entry) => !usedPlayers.has(entry.playerId) && entry.current !== null
+        (entry) => !usedPlayers.has(entry.playerId)
       )
       .map((entry) => playersById.get(entry.playerId))
-      .filter((player): player is OptimizerPlayer => Boolean(player)),
+      .filter(
+        (player): player is OptimizerPlayer =>
+          Boolean(player) && playerHasKnownCurrents(player as OptimizerPlayer, primaryCurrentSafetySkills)
+      ),
     primary
   ).map((player) => player.id);
 
@@ -2331,7 +2453,6 @@ export function optimizeRevealPrimaryCurrent(
     ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
     : [groupedPrimarySlots.primary];
 
-  let primaryIndex = 0;
   primarySlotGroups.forEach((slots) => {
     const freePrimarySlots = [...slots];
     while (freePrimarySlots.length && eligiblePrimary.length) {
@@ -2340,21 +2461,6 @@ export function optimizeRevealPrimaryCurrent(
       const playerId = eligiblePrimary.shift();
       if (!playerId) break;
       assignYouthFieldPlayer(lineup, usedPlayers, slot, playerId);
-    }
-
-    while (freePrimarySlots.length) {
-      while (
-        primaryIndex < primaryRanking.ordered.length &&
-        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-      ) {
-        primaryIndex += 1;
-      }
-      const entry = primaryRanking.ordered[primaryIndex];
-      if (!entry) break;
-      const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
-      const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
-      primaryIndex += 1;
     }
   });
 
@@ -2380,7 +2486,23 @@ export function optimizeRevealPrimaryCurrent(
     }
   }
 
-  ensureYouthGoalkeeper(lineup, players, usedPlayers);
+  if (
+    !ensureRevealSafeYouthGoalkeeper(
+      lineup,
+      players,
+      usedPlayers,
+      (player) =>
+        player.id === starPlayerId ||
+        !trainingAffectsSlot(primaryTraining, "KP") ||
+        playerHasKnownCurrents(player, primaryCurrentSafetySkills)
+    )
+  ) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -2401,19 +2523,10 @@ export function optimizeRevealPrimaryCurrent(
   );
   const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
-  const totalSlotsNeeded = 11;
-  const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
-  const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
-  const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
-    0,
-    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
+  const inconsequentialSlots = ALL_SLOTS.filter(
+    (slot) => lineup[slot] == null && !primarySlots.has(slot)
   );
-
-  slotsToFill.forEach((slot, index) => {
-    const player = fillPlayers[index];
-    if (!player) return;
-    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
-  });
+  fillInconsequentialSlots(inconsequentialSlots, fillPlayers, lineup, usedPlayers);
 
   return {
     lineup: validOptimizerResult(lineup),
@@ -2430,12 +2543,28 @@ export function optimizeRevealPrimaryCurrent(
       },
       selection: {
         starPlayerId,
-        primarySkill: primary,
-        secondarySkill: secondary,
+        primarySkill: primaryTraining,
+        secondarySkill: secondaryTraining,
         autoSelected,
       },
+      combinedTraining: {
+        primarySkills: isScoringSetPiecesTraining(primaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        secondarySkills: isScoringSetPiecesTraining(secondaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        resolvedPrimaryRevealSkill: primary,
+      },
     },
-    error: null as null | "missing_inputs" | "missing_star" | "primary_current_known" | "no_primary_slots",
+    error: null as
+      | null
+      | "missing_inputs"
+      | "missing_star"
+      | "primary_current_known"
+      | "ambiguous_primary_reveal"
+      | "no_primary_slots"
+      | "no_safe_goalkeeper",
   };
 }
 
@@ -2463,55 +2592,26 @@ export function optimizeRevealSecondaryMax(
     };
   }
 
-  if (
-    isScoringSetPiecesTraining(primaryTraining) ||
-    isScoringSetPiecesTraining(secondaryTraining)
-  ) {
-    const resolvedSecondaryRevealSkill = resolveSecondaryMaxRevealSkill(
-      starPlayer,
-      secondaryTraining
-    );
-    if (!resolvedSecondaryRevealSkill) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "secondary_max_known" as const,
-      };
-    }
-    const built = optimizeCombinedLineupForStar(
-      players,
-      starPlayerId,
-      primaryTraining,
-      secondaryTraining,
-      autoSelected,
-      preferences
-    );
-    return {
-      ...built,
-      debug: built.debug
-        ? {
-            ...built.debug,
-            combinedTraining: {
-              ...built.debug.combinedTraining,
-              resolvedSecondaryRevealSkill,
-            },
-          }
-        : null,
-      error: null as null | "missing_inputs" | "missing_star" | "secondary_max_known" | "no_secondary_slots",
-    };
-  }
-
-  const primary = toBaseTrainingSkill(primaryTraining);
-  const secondary = toBaseTrainingSkill(secondaryTraining);
-
-  const { max: starSecondaryMax } = skillValues(starPlayer, secondary);
-  if (starSecondaryMax !== null) {
+  const secondaryResolution = resolveSecondaryMaxReveal(starPlayer, secondaryTraining);
+  if (secondaryResolution.status === "already_known") {
     return {
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
       error: "secondary_max_known" as const,
     };
   }
+  if (secondaryResolution.status === "ambiguous") {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "ambiguous_secondary_reveal" as const,
+    };
+  }
+
+  const primary = isSingleSkillTrainingKey(primaryTraining)
+    ? toBaseTrainingSkill(primaryTraining)
+    : null;
+  const secondary = secondaryResolution.skill;
 
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
@@ -2533,20 +2633,10 @@ export function optimizeRevealSecondaryMax(
     };
   }
 
-  const { current: starPrimaryCurrent, max: starPrimaryMax } = skillValues(
-    starPlayer,
-    primary
-  );
   const sharedSlots = [...fullSecondarySlots].filter((slot) =>
     fullPrimarySlots.has(slot)
   );
-  const prefersSharedSlot =
-    sharedSlots.length > 0 &&
-    !(
-      starPrimaryCurrent !== null &&
-      starPrimaryMax !== null &&
-      starPrimaryCurrent >= starPrimaryMax
-    );
+  const prefersSharedSlot = sharedSlots.length > 0 && primary !== null;
   const starSlotCandidates = prefersSharedSlot
     ? sharedSlots
     : secondaryFullSlotList.length
@@ -2556,21 +2646,41 @@ export function optimizeRevealSecondaryMax(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary, preferences);
+  const primaryRanking = primary ? buildSkillRanking(players, primary, preferences) : null;
   const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
   const lineup: LineupAssignments = {};
   const usedPlayers = new Set<number>();
   assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
+  const secondaryMaxSafetySkills = [...getTrainingBaseSkills(secondaryTraining)];
+  const goalkeeperSafe = ensureRevealSafeYouthGoalkeeper(
+    lineup,
+    players,
+    usedPlayers,
+    (player) =>
+      player.id === starPlayerId ||
+      !trainingAffectsSlot(secondaryTraining, "KP") ||
+      playerHasKnownMaxima(player, secondaryMaxSafetySkills)
+  );
+  if (!goalkeeperSafe) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
   const playersById = new Map(players.map((player) => [player.id, player]));
 
   const remainingSecondarySlots = secondarySlotList.filter((slot) => slot !== starSlot);
   const freeSecondarySlots = [...remainingSecondarySlots];
   const eligibleSecondary = sortKnownMaxRevealCandidates(
     secondaryRanking.ordered
-      .filter((entry) => !usedPlayers.has(entry.playerId) && entry.max !== null)
+      .filter((entry) => !usedPlayers.has(entry.playerId))
       .map((entry) => playersById.get(entry.playerId))
-      .filter((player): player is OptimizerPlayer => Boolean(player)),
+      .filter(
+        (player): player is OptimizerPlayer =>
+          Boolean(player) && playerHasKnownMaxima(player as OptimizerPlayer, secondaryMaxSafetySkills)
+      ),
     secondary
   ).map((player) => player.id);
 
@@ -2582,27 +2692,15 @@ export function optimizeRevealSecondaryMax(
     assignYouthFieldPlayer(lineup, usedPlayers, slot, playerId);
   }
 
-  let secondaryIndex = 0;
-  while (freeSecondarySlots.length) {
-    while (
-      secondaryIndex < secondaryRanking.ordered.length &&
-      usedPlayers.has(secondaryRanking.ordered[secondaryIndex].playerId)
-    ) {
-      secondaryIndex += 1;
-    }
-    const entry = secondaryRanking.ordered[secondaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * freeSecondarySlots.length);
-    const slot = freeSecondarySlots.splice(slotIndex, 1)[0];
-    assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
-    secondaryIndex += 1;
-  }
+  void freeSecondarySlots;
 
   const primaryOrder = [...primarySlots].filter(
     (slot) => !secondarySlots.has(slot) && !(slot in lineup)
   );
   let primaryIndex = 0;
-  const groupedPrimarySlots = splitPrimarySlots(primary, primaryOrder);
+  const groupedPrimarySlots = primary
+    ? splitPrimarySlots(primary, primaryOrder)
+    : { primary: primaryOrder, secondary: [] as FieldSlotId[] };
   const primarySlotGroups = groupedPrimarySlots.secondary.length
     ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
     : [groupedPrimarySlots.primary];
@@ -2611,12 +2709,13 @@ export function optimizeRevealSecondaryMax(
     const remainingPrimarySlots = [...slots];
     while (remainingPrimarySlots.length) {
       while (
+        primaryRanking &&
         primaryIndex < primaryRanking.ordered.length &&
         usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
       ) {
         primaryIndex += 1;
       }
-      const entry = primaryRanking.ordered[primaryIndex];
+      const entry = primaryRanking?.ordered[primaryIndex];
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
       const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
@@ -2625,19 +2724,36 @@ export function optimizeRevealSecondaryMax(
     }
   });
 
-  ensureYouthGoalkeeper(lineup, players, usedPlayers);
+  if (
+    !ensureRevealSafeYouthGoalkeeper(
+      lineup,
+      players,
+      usedPlayers,
+      (player) =>
+        player.id === starPlayerId ||
+        !trainingAffectsSlot(secondaryTraining, "KP") ||
+        playerHasKnownMaxima(player, secondaryMaxSafetySkills)
+    )
+  ) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
     (player) =>
-      skillPotential(player, primary) > 0 || skillPotential(player, secondary) > 0
+      (primary ? skillPotential(player, primary) > 0 : false) ||
+      skillPotential(player, secondary) > 0
   );
   const otherPlayers = remainingPlayers.filter(
     (player) => !carePlayers.includes(player)
   );
   const cappedPlayers = otherPlayers.filter(
     (player) =>
-      skillPotential(player, primary) === 0 &&
+      (primary ? skillPotential(player, primary) === 0 : true) &&
       skillPotential(player, secondary) === 0
   );
   const nonCappedPlayers = otherPlayers.filter(
@@ -2645,24 +2761,15 @@ export function optimizeRevealSecondaryMax(
   );
   const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
-  const totalSlotsNeeded = 11;
-  const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
-  const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
-  const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
-    0,
-    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
+  const inconsequentialSlots = ALL_SLOTS.filter(
+    (slot) => lineup[slot] == null && !secondarySlots.has(slot)
   );
-
-  slotsToFill.forEach((slot, index) => {
-    const player = fillPlayers[index];
-    if (!player) return;
-    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
-  });
+  fillInconsequentialSlots(inconsequentialSlots, fillPlayers, lineup, usedPlayers);
 
   return {
     lineup: validOptimizerResult(lineup),
     debug: {
-      primary: { skill: primary, list: primaryRanking.debug },
+      primary: { skill: primary ?? "scoring", list: primaryRanking?.debug ?? [] },
       secondary: { skill: secondary, list: secondaryRanking.debug },
       trainingSlots: {
         primary: [...primarySlots],
@@ -2672,12 +2779,28 @@ export function optimizeRevealSecondaryMax(
       },
       selection: {
         starPlayerId,
-        primarySkill: primary,
-        secondarySkill: secondary,
+        primarySkill: primaryTraining,
+        secondarySkill: secondaryTraining,
         autoSelected,
       },
+      combinedTraining: {
+        primarySkills: isScoringSetPiecesTraining(primaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        secondarySkills: isScoringSetPiecesTraining(secondaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        resolvedSecondaryRevealSkill: secondary,
+      },
     },
-    error: null as null | "missing_inputs" | "missing_star" | "secondary_max_known" | "no_secondary_slots",
+    error: null as
+      | null
+      | "missing_inputs"
+      | "missing_star"
+      | "secondary_max_known"
+      | "ambiguous_secondary_reveal"
+      | "no_secondary_slots"
+      | "no_safe_goalkeeper",
   };
 }
 
@@ -2709,84 +2832,43 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     };
   }
 
-  if (
-    isScoringSetPiecesTraining(primaryTraining) ||
-    isScoringSetPiecesTraining(secondaryTraining)
-  ) {
-    const resolvedPrimaryRevealSkill = resolvePrimaryCurrentRevealSkill(
-      starPlayer,
-      primaryTraining
-    );
-    if (!resolvedPrimaryRevealSkill) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "primary_current_known" as const,
-      };
-    }
-    const resolvedSecondaryRevealSkill = resolveSecondaryMaxRevealSkill(
-      secondaryTargetPlayer,
-      secondaryTraining
-    );
-    if (!resolvedSecondaryRevealSkill) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "secondary_max_known" as const,
-      };
-    }
-    const built = optimizeCombinedLineupForStar(
-      players,
-      starPlayerId,
-      primaryTraining,
-      secondaryTraining,
-      autoSelected,
-      preferences,
-      [secondaryTargetPlayerId]
-    );
-    return {
-      ...built,
-      debug: built.debug
-        ? {
-            ...built.debug,
-            combinedTraining: {
-              ...built.debug.combinedTraining,
-              resolvedPrimaryRevealSkill,
-              resolvedSecondaryRevealSkill,
-            },
-          }
-        : null,
-      error: null as
-        | null
-        | "missing_inputs"
-        | "missing_star"
-        | "primary_current_known"
-        | "secondary_max_known"
-        | "no_primary_slots"
-        | "no_secondary_slots",
-    };
-  }
-
-  const primary = toBaseTrainingSkill(primaryTraining);
-  const secondary = toBaseTrainingSkill(secondaryTraining);
-
-  const { current: starPrimaryCurrent } = skillValues(starPlayer, primary);
-  if (starPrimaryCurrent !== null) {
+  const primaryResolution = resolvePrimaryCurrentReveal(starPlayer, primaryTraining);
+  if (primaryResolution.status === "already_known") {
     return {
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
       error: "primary_current_known" as const,
     };
   }
+  if (primaryResolution.status === "ambiguous") {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "ambiguous_primary_reveal" as const,
+    };
+  }
 
-  const { max: targetSecondaryMax } = skillValues(secondaryTargetPlayer, secondary);
-  if (targetSecondaryMax !== null) {
+  const secondaryResolution = resolveSecondaryMaxReveal(
+    secondaryTargetPlayer,
+    secondaryTraining
+  );
+  if (secondaryResolution.status === "already_known") {
     return {
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
       error: "secondary_max_known" as const,
     };
   }
+  if (secondaryResolution.status === "ambiguous") {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "ambiguous_secondary_reveal" as const,
+    };
+  }
+
+  const primary = primaryResolution.skill;
+  const secondary = secondaryResolution.skill;
 
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
@@ -2795,18 +2877,9 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const fullPrimarySlots = trainingInfo.primaryFullSlots;
-  const fullSecondarySlots = trainingInfo.secondaryFullSlots;
   const primarySlotList = [...primarySlots];
   const secondarySlotList = [...secondarySlots];
   const overlapSlots = primarySlotList.filter((slot) => secondarySlots.has(slot));
-  const overlapSlotSet = new Set<(typeof ALL_SLOTS)[number]>(overlapSlots);
-  const overlapPrimaryFullSlots = new Set<(typeof ALL_SLOTS)[number]>(
-    [...fullPrimarySlots].filter((slot) => overlapSlotSet.has(slot))
-  );
-  const overlapSecondaryFullSlots = new Set<(typeof ALL_SLOTS)[number]>(
-    [...fullSecondarySlots].filter((slot) => overlapSlotSet.has(slot))
-  );
   const strictPrimarySlots = primarySlotList.filter((slot) => !secondarySlots.has(slot));
   const strictSecondarySlots = secondarySlotList.filter((slot) => !primarySlots.has(slot));
 
@@ -2832,130 +2905,127 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   const usedPlayers = new Set<number>();
   let starSlot: (typeof ALL_SLOTS)[number] | null = null;
   let secondaryTargetSlot: (typeof ALL_SLOTS)[number] | null = null;
+  const primaryOnlySlots = strictPrimarySlots;
+  const secondaryOnlySlots = strictSecondarySlots;
+  const isSafeForSlot = (
+    player: OptimizerPlayer,
+    slot: FieldSlotId,
+    options?: { asPrimaryTarget?: boolean; asSecondaryTarget?: boolean }
+  ) => {
+    const currentSkills = primaryCurrentSkillsForSlot(slot, primaryTraining);
+    const maxSkills = secondaryMaxSkillsForSlot(slot, secondaryTraining);
+    const currentSafe =
+      options?.asPrimaryTarget || playerHasKnownCurrents(player, currentSkills);
+    const maxSafe =
+      options?.asSecondaryTarget || playerHasKnownMaxima(player, maxSkills);
+    return currentSafe && maxSafe;
+  };
+  const pickPreferredSlot = (
+    skill: SkillKey,
+    slots: FieldSlotId[],
+    player: OptimizerPlayer,
+    options: { asPrimaryTarget?: boolean; asSecondaryTarget?: boolean },
+    excludedSlots: Set<FieldSlotId> = new Set()
+  ) => {
+    const safeSlots = slots.filter(
+      (slot) => !excludedSlots.has(slot) && isSafeForSlot(player, slot, options)
+    );
+    if (!safeSlots.length) return null;
+    const preferred = preferStarSlots(skill, safeSlots);
+    return preferred[Math.floor(Math.random() * preferred.length)] ?? null;
+  };
 
-  if (overlapSlots.length === 0) {
-    if (samePlayerReveal) {
+  if (samePlayerReveal) {
+    starSlot = pickPreferredSlot(primary, overlapSlots, starPlayer, {
+      asPrimaryTarget: true,
+      asSecondaryTarget: true,
+    });
+    if (!starSlot) {
       return {
         lineup: {} as LineupAssignments,
         debug: null as OptimizerDebug | null,
-        error: "no_secondary_slots" as const,
+        error: "no_safe_target_placement" as const,
       };
     }
-    const prefersSharedStarSlot = canStillBenefitFromSecondaryTraining(
-      starPlayer,
-      secondary
-    );
-    starSlot = pickStarTrainingSlot(
-      primary,
-      primarySlots,
-      fullPrimarySlots,
-      secondary,
-      fullSecondarySlots,
-      prefersSharedStarSlot
-    );
-    assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
-
-    const { current: targetPrimaryCurrent, max: targetPrimaryMax } = skillValues(
-      secondaryTargetPlayer,
-      primary
-    );
-    const sharedSlots: (typeof ALL_SLOTS)[number][] = [];
-    const prefersSharedSecondaryTargetSlot =
-      sharedSlots.length > 0 &&
-      !(
-        targetPrimaryCurrent !== null &&
-        targetPrimaryMax !== null &&
-        targetPrimaryCurrent >= targetPrimaryMax
-      );
-    const secondaryTargetSlotCandidates = prefersSharedSecondaryTargetSlot
-      ? sharedSlots
-      : [...fullSecondarySlots].length
-        ? [...fullSecondarySlots]
-        : secondarySlotList;
-    const secondaryPreferredSlots = preferStarSlots(primary, secondaryTargetSlotCandidates);
-    secondaryTargetSlot =
-      secondaryPreferredSlots[
-        Math.floor(Math.random() * secondaryPreferredSlots.length)
-      ] ?? null;
-    if (!secondaryTargetSlot) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "no_secondary_slots" as const,
-      };
-    }
-    assignYouthFieldPlayer(lineup, usedPlayers, secondaryTargetSlot, secondaryTargetPlayer.id);
-  } else if (samePlayerReveal) {
-    starSlot = pickStarTrainingSlot(
-      primary,
-      overlapSlotSet,
-      overlapPrimaryFullSlots,
-      secondary,
-      overlapSecondaryFullSlots,
-      true
-    );
     assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
   } else {
-    if (overlapSlots.length < 2) {
+    starSlot =
+      pickPreferredSlot(primary, primaryOnlySlots, starPlayer, {
+        asPrimaryTarget: true,
+      }) ??
+      pickPreferredSlot(primary, overlapSlots, starPlayer, {
+        asPrimaryTarget: true,
+      });
+    if (!starSlot) {
       return {
         lineup: {} as LineupAssignments,
         debug: null as OptimizerDebug | null,
-        error: "no_secondary_slots" as const,
+        error: "no_safe_target_placement" as const,
       };
     }
-    const allowedOverlapStarSlots = new Set<(typeof ALL_SLOTS)[number]>(
-      overlapSlots.filter((slot) => overlapSlots.some((candidate) => candidate !== slot))
-    );
-    starSlot = pickStarTrainingSlot(
-      primary,
-      overlapSlotSet,
-      overlapPrimaryFullSlots,
-      secondary,
-      overlapSecondaryFullSlots,
-      true,
-      allowedOverlapStarSlots
-    );
     assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
 
-    const targetFullSlots = [...overlapSecondaryFullSlots].filter((slot) => slot !== starSlot);
-    const targetSlots = overlapSlots.filter((slot) => slot !== starSlot);
-    const targetSlotCandidates = targetFullSlots.length ? targetFullSlots : targetSlots;
-    if (!targetSlotCandidates.length) {
-      return {
-        lineup: {} as LineupAssignments,
-        debug: null as OptimizerDebug | null,
-        error: "no_secondary_slots" as const,
-      };
-    }
-    const secondaryPreferredSlots = preferStarSlots(secondary, targetSlotCandidates);
     secondaryTargetSlot =
-      secondaryPreferredSlots[
-        Math.floor(Math.random() * secondaryPreferredSlots.length)
-      ] ?? null;
+      pickPreferredSlot(secondary, secondaryOnlySlots, secondaryTargetPlayer, {
+        asSecondaryTarget: true,
+      }) ??
+      pickPreferredSlot(
+        secondary,
+        overlapSlots,
+        secondaryTargetPlayer,
+        { asSecondaryTarget: true },
+        new Set([starSlot])
+      );
     if (!secondaryTargetSlot) {
       return {
         lineup: {} as LineupAssignments,
         debug: null as OptimizerDebug | null,
-        error: "no_secondary_slots" as const,
+        error: "no_safe_target_placement" as const,
       };
     }
     assignYouthFieldPlayer(lineup, usedPlayers, secondaryTargetSlot, secondaryTargetPlayer.id);
   }
 
-  ensureYouthGoalkeeper(lineup, players, usedPlayers);
+  const goalkeeperSafe = ensureRevealSafeYouthGoalkeeper(
+    lineup,
+    players,
+    usedPlayers,
+    (player) =>
+      isSafeForSlot(player, "KP", {
+        asPrimaryTarget: player.id === starPlayerId,
+        asSecondaryTarget: player.id === secondaryTargetPlayerId,
+      })
+  );
+  if (!goalkeeperSafe) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
   const playersById = new Map(players.map((player) => [player.id, player]));
   const eligiblePrimary = orderedKnownCurrentRevealIds(
     playersById,
     primaryRanking.ordered,
     usedPlayers,
     primary
-  );
+  ).filter((playerId) => {
+    const player = playersById.get(playerId);
+    return player
+      ? playerHasKnownCurrents(player, [...getTrainingBaseSkills(primaryTraining)])
+      : false;
+  });
   const eligibleSecondary = orderedKnownMaxRevealIds(
     playersById,
     secondaryRanking.ordered,
     usedPlayers,
     secondary
-  );
+  ).filter((playerId) => {
+    const player = playersById.get(playerId);
+    return player
+      ? playerHasKnownMaxima(player, [...getTrainingBaseSkills(secondaryTraining)])
+      : false;
+  });
 
   if (overlapSlots.length === 0) {
     fillPrimaryRevealSlots(
@@ -3001,7 +3071,24 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     );
   }
 
-  ensureYouthGoalkeeper(lineup, players, usedPlayers);
+  if (
+    !ensureRevealSafeYouthGoalkeeper(
+      lineup,
+      players,
+      usedPlayers,
+      (player) =>
+        isSafeForSlot(player, "KP", {
+          asPrimaryTarget: player.id === starPlayerId,
+          asSecondaryTarget: player.id === secondaryTargetPlayerId,
+        })
+    )
+  ) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_safe_goalkeeper" as const,
+    };
+  }
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -3021,18 +3108,13 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   );
   const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
-  const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
-  const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
-  const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
-    0,
-    Math.max(0, 11 - assignedLineupCount(lineup))
+  const inconsequentialSlots = ALL_SLOTS.filter(
+    (slot) =>
+      lineup[slot] == null &&
+      classifyRevealSlot(slot, primaryTraining, secondaryTraining) ===
+        "inconsequential"
   );
-
-  slotsToFill.forEach((slot, index) => {
-    const player = fillPlayers[index];
-    if (!player) return;
-    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
-  });
+  fillInconsequentialSlots(inconsequentialSlots, fillPlayers, lineup, usedPlayers);
 
   return {
     lineup: validOptimizerResult(lineup),
@@ -3047,9 +3129,19 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       },
       selection: {
         starPlayerId,
-        primarySkill: primary,
-        secondarySkill: secondary,
+        primarySkill: primaryTraining,
+        secondarySkill: secondaryTraining,
         autoSelected,
+      },
+      combinedTraining: {
+        primarySkills: isScoringSetPiecesTraining(primaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        secondarySkills: isScoringSetPiecesTraining(secondaryTraining)
+          ? [...SCORING_SETPIECES_SKILLS]
+          : undefined,
+        resolvedPrimaryRevealSkill: primary,
+        resolvedSecondaryRevealSkill: secondary,
       },
     },
     error: null as
@@ -3058,8 +3150,12 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       | "missing_star"
       | "primary_current_known"
       | "secondary_max_known"
+      | "ambiguous_primary_reveal"
+      | "ambiguous_secondary_reveal"
       | "no_primary_slots"
-      | "no_secondary_slots",
+      | "no_secondary_slots"
+      | "no_safe_goalkeeper"
+      | "no_safe_target_placement",
   };
 }
 

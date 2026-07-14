@@ -512,6 +512,14 @@ export const messagesNl: Messages = {
     "Onthul de huidige {{trainingLower}}-waarde van {{player}} en de maximale {{secondaryTrainingLower}}-waarde van {{secondaryPlayer}}",
   optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
     "Gecombineerd onthullen is niet beschikbaar. Selecteer een sterspeler, beide trainingen en een geldig secundair doel.",
+  optimizeRevealNoSafeGoalkeeper:
+    "Er kan geen geschikte keeper worden opgesteld zonder de gevraagde onthulling in gevaar te brengen.",
+  optimizeRevealAmbiguousPrimary:
+    "De geselecteerde speler heeft meer dan één verborgen huidige waarde met deze gecombineerde training, waardoor een specifieke onthulling niet kan worden gegarandeerd.",
+  optimizeRevealAmbiguousSecondary:
+    "De geselecteerde speler heeft meer dan één verborgen maximale waarde met deze gecombineerde training, waardoor een specifieke onthulling niet kan worden gegarandeerd.",
+  optimizeRevealNoSafeTargetPlacement:
+    "De geselecteerde onthullingsdoelen kunnen niet op trainingsposities worden geplaatst zonder een van de gevraagde onthullingen in gevaar te brengen.",
   optimizeRevealTargetPlaceholder: "Selecteer een secundair doel",
   optimizeRevealCombinedButton: "Gecombineerd toepassen",
   betaPillLabel: "Beta",

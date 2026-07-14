@@ -1432,6 +1432,14 @@ export const messagesDe: Messages = {
       "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
     optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
       "Kombiniertes Aufdecken nicht verfügbar. Starspieler, beide Trainings und ein geeignetes Sekundärziel wählen.",
+    optimizeRevealNoSafeGoalkeeper:
+      "Es kann kein geeigneter Torwart aufgestellt werden, ohne die gewünschte Enthüllung zu gefährden.",
+    optimizeRevealAmbiguousPrimary:
+      "Der ausgewählte Spieler hat unter diesem kombinierten Training mehr als einen verborgenen aktuellen Wert, daher kann eine bestimmte Enthüllung nicht garantiert werden.",
+    optimizeRevealAmbiguousSecondary:
+      "Der ausgewählte Spieler hat unter diesem kombinierten Training mehr als einen verborgenen Maximalwert, daher kann eine bestimmte Enthüllung nicht garantiert werden.",
+    optimizeRevealNoSafeTargetPlacement:
+      "Die ausgewählten Enthüllungsziele können nicht auf Trainingspositionen platziert werden, ohne eine der gewünschten Enthüllungen zu gefährden.",
     optimizeRevealTargetPlaceholder: "Sekundärziel auswählen",
     optimizeRevealCombinedButton: "Kombiniert anwenden",
     optimizeRatingsUnavailable:

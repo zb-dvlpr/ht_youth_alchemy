@@ -1885,6 +1885,14 @@ export const messagesPl: Messages = {
     "Odkrywanie maksymalnej wartości drugorzędnej niedostępne. Wybierz gwiazdę i trening drugorzędny.",
   optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
     "Łączone odkrywanie niedostępne. Wybierz gwiazdę, oba treningi i prawidłowy cel drugorzędny.",
+  optimizeRevealNoSafeGoalkeeper:
+    "Nie można wystawić żadnego uprawnionego bramkarza bez naruszenia żądanego odkrycia.",
+  optimizeRevealAmbiguousPrimary:
+    "Wybrany zawodnik ma więcej niż jedną ukrytą bieżącą wartość w tym treningu łączonym, więc nie można zagwarantować konkretnego odkrycia.",
+  optimizeRevealAmbiguousSecondary:
+    "Wybrany zawodnik ma więcej niż jedną ukrytą maksymalną wartość w tym treningu łączonym, więc nie można zagwarantować konkretnego odkrycia.",
+  optimizeRevealNoSafeTargetPlacement:
+    "Wybranych celów odkrycia nie można ustawić na pozycjach treningowych bez naruszenia jednego z żądanych odkryć.",
   optimizeRevealTargetPlaceholder: "Wybierz cel drugorzędny",
   optimizeRevealCombinedButton: "Zastosuj łączone odkrywanie",
   optimizeRatingsUnavailable:

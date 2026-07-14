@@ -1148,6 +1148,10 @@ export type Messages = {
   optimizeRevealSecondaryMaxKnownTooltip: string;
   optimizeRevealSecondaryMaxUnavailable: string;
   optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable: string;
+  optimizeRevealNoSafeGoalkeeper: string;
+  optimizeRevealAmbiguousPrimary: string;
+  optimizeRevealAmbiguousSecondary: string;
+  optimizeRevealNoSafeTargetPlacement: string;
   optimizeRevealTargetPlaceholder: string;
   optimizeRevealCombinedButton: string;
   optimizeRatingsUnavailable: string;

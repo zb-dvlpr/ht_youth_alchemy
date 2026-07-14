@@ -8096,7 +8096,7 @@ export default function Dashboard({
       />
       <Modal
         open={!!optimizeErrorMessage}
-        title={messages.optimizeMenuRevealPrimaryCurrent}
+        title={messages.optimizeRevealUnavailableTitle}
         body={optimizeErrorMessage ?? ""}
         actions={
           <button

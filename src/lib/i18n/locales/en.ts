@@ -1380,6 +1380,7 @@ export const messagesEn: Messages = {
       "Reveal {{player}}'s {{trainingLower}} max value",
     optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
       "Reveal {{player}}'s {{trainingLower}} current value and {{secondaryPlayer}}'s {{secondaryTrainingLower}} max value",
+    optimizeRevealUnavailableTitle: "Reveal unavailable",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
     optimizeRevealPrimaryCurrentKnownTooltip:

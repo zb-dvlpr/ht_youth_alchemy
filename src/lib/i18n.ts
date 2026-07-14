@@ -1141,6 +1141,7 @@ export type Messages = {
   optimizeMenuRevealPrimaryCurrent: string;
   optimizeMenuRevealSecondaryMax: string;
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax: string;
+  optimizeRevealUnavailableTitle: string;
   optimizeRevealPrimaryCurrentKnown: string;
   optimizeRevealPrimaryCurrentKnownTooltip: string;
   optimizeRevealPrimaryCurrentUnavailable: string;

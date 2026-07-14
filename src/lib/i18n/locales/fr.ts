@@ -1432,6 +1432,7 @@ export const messagesFr: Messages = {
       "Révéler la valeur max de {{trainingLower}} pour {{player}}",
     optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
       "Révéler la valeur actuelle de {{trainingLower}} pour {{player}} et la valeur max de {{secondaryTrainingLower}} pour {{secondaryPlayer}}",
+    optimizeRevealUnavailableTitle: "Révélation indisponible",
     optimizeRevealPrimaryCurrentKnown:
       "Révélation indisponible : valeur primaire actuelle déjà connue.",
     optimizeRevealPrimaryCurrentKnownTooltip:

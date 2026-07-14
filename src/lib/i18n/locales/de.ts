@@ -1418,6 +1418,7 @@ export const messagesDe: Messages = {
       "{{player}}: maximalen {{training}}-Wert aufdecken",
     optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
       "Aktuellen {{trainingLower}}-Wert von {{player}} und maximalen {{secondaryTrainingLower}}-Wert von {{secondaryPlayer}} aufdecken",
+    optimizeRevealUnavailableTitle: "Aufdecken nicht verfügbar",
     optimizeRevealPrimaryCurrentKnown:
       "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
     optimizeRevealPrimaryCurrentKnownTooltip:

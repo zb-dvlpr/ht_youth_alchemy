@@ -1871,6 +1871,7 @@ export const messagesPl: Messages = {
     "Odkryj maksymalną wartość umiejętności {{trainingLower}} zawodnika {{player}}",
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
     "Odkryj bieżącą wartość {{trainingLower}} zawodnika {{player}} oraz maksymalną wartość {{secondaryTrainingLower}} zawodnika {{secondaryPlayer}}",
+  optimizeRevealUnavailableTitle: "Odkrywanie niedostępne",
   optimizeRevealPrimaryCurrentKnown:
     "Odkrywanie bieżącej wartości głównej niedostępne: bieżąca wartość głównej umiejętności gwiazdy jest już znana.",
   optimizeRevealPrimaryCurrentKnownTooltip:

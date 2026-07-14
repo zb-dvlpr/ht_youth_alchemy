@@ -348,17 +348,8 @@ export function resolvePrimaryCurrentRevealSkill(
   if (!isScoringSetPiecesTraining(training)) {
     return toBaseTrainingSkill(training);
   }
-  const scoring = skillValues(player, "scoring");
-  const setPieces = skillValues(player, "setpieces");
-  const scoringUnknown = scoring.current === null;
-  const setPiecesUnknown = setPieces.current === null;
-  if (scoringUnknown && !setPiecesUnknown) return "scoring";
-  if (!scoringUnknown && setPiecesUnknown) return "setpieces";
-  if (!scoringUnknown && !setPiecesUnknown) return null;
-  const scoringMax = scoring.max ?? Number.NEGATIVE_INFINITY;
-  const setPiecesMax = setPieces.max ?? Number.NEGATIVE_INFINITY;
-  if (setPiecesMax > scoringMax) return "setpieces";
-  return "scoring";
+  const resolution = resolvePrimaryCurrentReveal(player, training);
+  return resolution.status === "resolved" ? resolution.skill : null;
 }
 
 export function resolveSecondaryMaxRevealSkill(
@@ -368,17 +359,8 @@ export function resolveSecondaryMaxRevealSkill(
   if (!isScoringSetPiecesTraining(training)) {
     return toBaseTrainingSkill(training);
   }
-  const scoring = skillValues(player, "scoring");
-  const setPieces = skillValues(player, "setpieces");
-  const scoringUnknown = scoring.max === null;
-  const setPiecesUnknown = setPieces.max === null;
-  if (scoringUnknown && !setPiecesUnknown) return "scoring";
-  if (!scoringUnknown && setPiecesUnknown) return "setpieces";
-  if (!scoringUnknown && !setPiecesUnknown) return null;
-  const scoringCurrent = scoring.current ?? Number.NEGATIVE_INFINITY;
-  const setPiecesCurrent = setPieces.current ?? Number.NEGATIVE_INFINITY;
-  if (setPiecesCurrent > scoringCurrent) return "setpieces";
-  return "scoring";
+  const resolution = resolveSecondaryMaxReveal(player, training);
+  return resolution.status === "resolved" ? resolution.skill : null;
 }
 
 type RevealResolution =
@@ -1667,10 +1649,18 @@ function trainingAffectsSlot(training: TrainingSkillKey, slot: FieldSlotId) {
 function classifyRevealSlot(
   slot: FieldSlotId,
   primaryTraining: TrainingSkillKey,
-  secondaryTraining: TrainingSkillKey
+  secondaryTraining: TrainingSkillKey,
+  options?: {
+    enforcePrimaryCurrentIsolation?: boolean;
+    enforceSecondaryMaxIsolation?: boolean;
+  }
 ): RevealSlotClass {
-  const primary = trainingAffectsSlot(primaryTraining, slot);
-  const secondary = trainingAffectsSlot(secondaryTraining, slot);
+  const primary =
+    (options?.enforcePrimaryCurrentIsolation ?? true) &&
+    trainingAffectsSlot(primaryTraining, slot);
+  const secondary =
+    (options?.enforceSecondaryMaxIsolation ?? true) &&
+    trainingAffectsSlot(secondaryTraining, slot);
   if (primary && secondary) return "overlap";
   if (primary) return "primary_only";
   if (secondary) return "secondary_only";
@@ -2375,6 +2365,41 @@ export function optimizeRevealPrimaryCurrent(
     ? toBaseTrainingSkill(secondaryTraining)
     : null;
 
+  if (isScoringSetPiecesTraining(primaryTraining)) {
+    const result = optimizeCombinedLineupForStar(
+      players,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      autoSelected,
+      preferences
+    );
+    return {
+      ...result,
+      debug: result.debug
+        ? {
+            ...result.debug,
+            combinedTraining: {
+              ...result.debug.combinedTraining,
+              primarySkills: [...SCORING_SETPIECES_SKILLS],
+              secondarySkills: isScoringSetPiecesTraining(secondaryTraining)
+                ? [...SCORING_SETPIECES_SKILLS]
+                : result.debug.combinedTraining?.secondarySkills,
+              resolvedPrimaryRevealSkill: primary,
+            },
+          }
+        : null,
+      error: null as
+        | null
+        | "missing_inputs"
+        | "missing_star"
+        | "primary_current_known"
+        | "ambiguous_primary_reveal"
+        | "no_primary_slots"
+        | "no_safe_goalkeeper",
+    };
+  }
+
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
   const secondarySlots = trainingInfo.secondarySlots;
@@ -2612,6 +2637,41 @@ export function optimizeRevealSecondaryMax(
     ? toBaseTrainingSkill(primaryTraining)
     : null;
   const secondary = secondaryResolution.skill;
+
+  if (isScoringSetPiecesTraining(secondaryTraining)) {
+    const result = optimizeCombinedLineupForStar(
+      players,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      autoSelected,
+      preferences
+    );
+    return {
+      ...result,
+      debug: result.debug
+        ? {
+            ...result.debug,
+            combinedTraining: {
+              ...result.debug.combinedTraining,
+              primarySkills: isScoringSetPiecesTraining(primaryTraining)
+                ? [...SCORING_SETPIECES_SKILLS]
+                : result.debug.combinedTraining?.primarySkills,
+              secondarySkills: [...SCORING_SETPIECES_SKILLS],
+              resolvedSecondaryRevealSkill: secondary,
+            },
+          }
+        : null,
+      error: null as
+        | null
+        | "missing_inputs"
+        | "missing_star"
+        | "secondary_max_known"
+        | "ambiguous_secondary_reveal"
+        | "no_secondary_slots"
+        | "no_safe_goalkeeper",
+    };
+  }
 
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
@@ -2869,6 +2929,10 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
 
   const primary = primaryResolution.skill;
   const secondary = secondaryResolution.skill;
+  const enforcePrimaryCurrentIsolation =
+    !isScoringSetPiecesTraining(primaryTraining);
+  const enforceSecondaryMaxIsolation =
+    !isScoringSetPiecesTraining(secondaryTraining);
 
   const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
@@ -2879,9 +2943,30 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   ]);
   const primarySlotList = [...primarySlots];
   const secondarySlotList = [...secondarySlots];
-  const overlapSlots = primarySlotList.filter((slot) => secondarySlots.has(slot));
-  const strictPrimarySlots = primarySlotList.filter((slot) => !secondarySlots.has(slot));
-  const strictSecondarySlots = secondarySlotList.filter((slot) => !primarySlots.has(slot));
+  const primaryProtectedSlots = enforcePrimaryCurrentIsolation
+    ? primarySlotList
+    : [];
+  const secondaryProtectedSlots = enforceSecondaryMaxIsolation
+    ? secondarySlotList
+    : [];
+  const secondaryProtectedSet = new Set(secondaryProtectedSlots);
+  const primaryProtectedSet = new Set(primaryProtectedSlots);
+  const overlapSlots = primaryProtectedSlots.filter((slot) =>
+    secondaryProtectedSet.has(slot)
+  );
+  const strictPrimarySlots = primaryProtectedSlots.filter(
+    (slot) => !secondaryProtectedSet.has(slot)
+  );
+  const strictSecondarySlots = secondaryProtectedSlots.filter(
+    (slot) => !primaryProtectedSet.has(slot)
+  );
+  const effectiveInconsequentialSlots = ALL_SLOTS.filter(
+    (slot) =>
+      classifyRevealSlot(slot, primaryTraining, secondaryTraining, {
+        enforcePrimaryCurrentIsolation,
+        enforceSecondaryMaxIsolation,
+      }) === "inconsequential"
+  );
 
   if (!primarySlotList.length) {
     return {
@@ -2895,6 +2980,45 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
       error: "no_secondary_slots" as const,
+    };
+  }
+
+  if (!enforcePrimaryCurrentIsolation && !enforceSecondaryMaxIsolation) {
+    const result = optimizeCombinedLineupForStar(
+      players,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      autoSelected,
+      preferences,
+      starPlayerId === secondaryTargetPlayerId ? [] : [secondaryTargetPlayerId]
+    );
+    return {
+      ...result,
+      debug: result.debug
+        ? {
+            ...result.debug,
+            combinedTraining: {
+              ...result.debug.combinedTraining,
+              primarySkills: [...SCORING_SETPIECES_SKILLS],
+              secondarySkills: [...SCORING_SETPIECES_SKILLS],
+              resolvedPrimaryRevealSkill: primary,
+              resolvedSecondaryRevealSkill: secondary,
+            },
+          }
+        : null,
+      error: null as
+        | null
+        | "missing_inputs"
+        | "missing_star"
+        | "primary_current_known"
+        | "secondary_max_known"
+        | "ambiguous_primary_reveal"
+        | "ambiguous_secondary_reveal"
+        | "no_primary_slots"
+        | "no_secondary_slots"
+        | "no_safe_goalkeeper"
+        | "no_safe_target_placement",
     };
   }
 
@@ -2912,8 +3036,12 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     slot: FieldSlotId,
     options?: { asPrimaryTarget?: boolean; asSecondaryTarget?: boolean }
   ) => {
-    const currentSkills = primaryCurrentSkillsForSlot(slot, primaryTraining);
-    const maxSkills = secondaryMaxSkillsForSlot(slot, secondaryTraining);
+    const currentSkills = enforcePrimaryCurrentIsolation
+      ? primaryCurrentSkillsForSlot(slot, primaryTraining)
+      : [];
+    const maxSkills = enforceSecondaryMaxIsolation
+      ? secondaryMaxSkillsForSlot(slot, secondaryTraining)
+      : [];
     const currentSafe =
       options?.asPrimaryTarget || playerHasKnownCurrents(player, currentSkills);
     const maxSafe =
@@ -2936,7 +3064,15 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   };
 
   if (samePlayerReveal) {
-    starSlot = pickPreferredSlot(primary, overlapSlots, starPlayer, {
+    const samePlayerSlots =
+      enforcePrimaryCurrentIsolation && enforceSecondaryMaxIsolation
+        ? overlapSlots
+        : enforcePrimaryCurrentIsolation
+        ? primaryProtectedSlots
+        : enforceSecondaryMaxIsolation
+        ? secondaryProtectedSlots
+        : [...ALL_SLOTS];
+    starSlot = pickPreferredSlot(primary, samePlayerSlots, starPlayer, {
       asPrimaryTarget: true,
       asSecondaryTarget: true,
     });
@@ -2950,10 +3086,17 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
   } else {
     starSlot =
-      pickPreferredSlot(primary, primaryOnlySlots, starPlayer, {
+      (enforcePrimaryCurrentIsolation
+        ? pickPreferredSlot(primary, primaryOnlySlots, starPlayer, {
+            asPrimaryTarget: true,
+          })
+        : pickPreferredSlot(primary, effectiveInconsequentialSlots, starPlayer, {
+            asPrimaryTarget: true,
+          })) ??
+      pickPreferredSlot(primary, overlapSlots, starPlayer, {
         asPrimaryTarget: true,
       }) ??
-      pickPreferredSlot(primary, overlapSlots, starPlayer, {
+      pickPreferredSlot(primary, [...ALL_SLOTS], starPlayer, {
         asPrimaryTarget: true,
       });
     if (!starSlot) {
@@ -2966,12 +3109,27 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
 
     secondaryTargetSlot =
-      pickPreferredSlot(secondary, secondaryOnlySlots, secondaryTargetPlayer, {
-        asSecondaryTarget: true,
-      }) ??
+      (enforceSecondaryMaxIsolation
+        ? pickPreferredSlot(secondary, secondaryOnlySlots, secondaryTargetPlayer, {
+            asSecondaryTarget: true,
+          })
+        : pickPreferredSlot(
+            secondary,
+            effectiveInconsequentialSlots,
+            secondaryTargetPlayer,
+            { asSecondaryTarget: true },
+            new Set([starSlot])
+          )) ??
       pickPreferredSlot(
         secondary,
         overlapSlots,
+        secondaryTargetPlayer,
+        { asSecondaryTarget: true },
+        new Set([starSlot])
+      ) ??
+      pickPreferredSlot(
+        secondary,
+        [...ALL_SLOTS],
         secondaryTargetPlayer,
         { asSecondaryTarget: true },
         new Set([starSlot])
@@ -3010,6 +3168,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     usedPlayers,
     primary
   ).filter((playerId) => {
+    if (!enforcePrimaryCurrentIsolation) return false;
     const player = playersById.get(playerId);
     return player
       ? playerHasKnownCurrents(player, [...getTrainingBaseSkills(primaryTraining)])
@@ -3021,28 +3180,36 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     usedPlayers,
     secondary
   ).filter((playerId) => {
+    if (!enforceSecondaryMaxIsolation) return false;
     const player = playersById.get(playerId);
     return player
       ? playerHasKnownMaxima(player, [...getTrainingBaseSkills(secondaryTraining)])
       : false;
   });
 
-  if (overlapSlots.length === 0) {
-    fillPrimaryRevealSlots(
-      primary,
-      primarySlotList.filter((slot) => !(slot in lineup)),
-      eligiblePrimary,
-      primaryRanking.ordered,
-      lineup,
-      usedPlayers
-    );
-    fillSecondaryRevealSlots(
-      secondarySlotList.filter((slot) => !(slot in lineup)),
-      eligibleSecondary,
-      secondaryRanking.ordered,
-      lineup,
-      usedPlayers
-    );
+  if (!enforcePrimaryCurrentIsolation && !enforceSecondaryMaxIsolation) {
+    // No protected slots remain when both all-position combined reveal sides are
+    // structurally non-isolatable.
+  } else if (overlapSlots.length === 0) {
+    if (enforcePrimaryCurrentIsolation) {
+      fillPrimaryRevealSlots(
+        primary,
+        primaryProtectedSlots.filter((slot) => !(slot in lineup)),
+        eligiblePrimary,
+        primaryRanking.ordered,
+        lineup,
+        usedPlayers
+      );
+    }
+    if (enforceSecondaryMaxIsolation) {
+      fillSecondaryRevealSlots(
+        secondaryProtectedSlots.filter((slot) => !(slot in lineup)),
+        eligibleSecondary,
+        secondaryRanking.ordered,
+        lineup,
+        usedPlayers
+      );
+    }
   } else {
     const overlapKnownBoth = orderedBothRevealKnownIds(
       eligiblePrimary,
@@ -3111,8 +3278,10 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   const inconsequentialSlots = ALL_SLOTS.filter(
     (slot) =>
       lineup[slot] == null &&
-      classifyRevealSlot(slot, primaryTraining, secondaryTraining) ===
-        "inconsequential"
+      classifyRevealSlot(slot, primaryTraining, secondaryTraining, {
+        enforcePrimaryCurrentIsolation,
+        enforceSecondaryMaxIsolation,
+      }) === "inconsequential"
   );
   fillInconsequentialSlots(inconsequentialSlots, fillPlayers, lineup, usedPlayers);
 

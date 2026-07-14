@@ -510,6 +510,7 @@ export const messagesNl: Messages = {
   settingsDebugTitle: "Diagnostische instellingen",
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
     "Onthul de huidige {{trainingLower}}-waarde van {{player}} en de maximale {{secondaryTrainingLower}}-waarde van {{secondaryPlayer}}",
+  optimizeRevealUnavailableTitle: "Onthullen niet beschikbaar",
   optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
     "Gecombineerd onthullen is niet beschikbaar. Selecteer een sterspeler, beide trainingen en een geldig secundair doel.",
   optimizeRevealNoSafeGoalkeeper:

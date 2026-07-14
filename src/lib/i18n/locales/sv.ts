@@ -1424,6 +1424,7 @@ export const messagesSv: Messages = {
       "Avslöja {{player}}s maxvärde i {{trainingLower}}",
     optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
       "Avslöja {{player}}s nuvarande värde i {{trainingLower}} och {{secondaryPlayer}}s maxvärde i {{secondaryTrainingLower}}",
+    optimizeRevealUnavailableTitle: "Avslöjande ej tillgängligt",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
     optimizeRevealPrimaryCurrentKnownTooltip:

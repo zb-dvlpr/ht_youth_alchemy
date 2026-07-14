@@ -281,6 +281,27 @@ type PlayerDetailCacheEntry = {
   fetchedAt: number;
 };
 
+type PersistedSeniorDataSnapshot = {
+  schemaVersion: number;
+  players: SeniorPlayer[];
+  matchesState: MatchesResponse;
+  ratingsResponse: RatingsMatrixResponse | null;
+  latestFetchedRatingsResponse: RatingsMatrixResponse | null;
+  detailsCache: Record<number, PlayerDetailCacheEntry>;
+  seniorTeamGeneralInfo: SeniorTeamGeneralInfo | null;
+};
+
+type StoredSeniorDataSnapshotInput = {
+  schemaVersion?: unknown;
+  players?: unknown;
+  matchesState?: unknown;
+  fetchedRatingsResponse?: unknown;
+  ratingsResponse?: unknown;
+  latestFetchedRatingsResponse?: unknown;
+  detailsCache?: unknown;
+  seniorTeamGeneralInfo?: unknown;
+};
+
 type ObservedSeniorSelectionSnapshot = {
   selectedId: number | null;
   activeDetailsTab: PlayerDetailsPanelTab;
@@ -575,6 +596,7 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const SENIOR_DATA_SCHEMA_VERSION = 2;
 const SENIOR_TEAM_GENERAL_INFO_SCHEMA_VERSION = 1;
 const LEAGUE_ORIGINS_STORAGE_KEY = "ya_senior_worlddetails_league_origins_v1";
 const LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION = 3;
@@ -2749,6 +2771,46 @@ const normalizeSeniorPlayerDetails = (
   };
 };
 
+const hasCurrentSeniorDataSchema = (
+  value: unknown
+): value is PersistedSeniorDataSnapshot => {
+  if (!value || typeof value !== "object") return false;
+  return (
+    (value as { schemaVersion?: unknown }).schemaVersion ===
+    SENIOR_DATA_SCHEMA_VERSION
+  );
+};
+
+const normalizePersistedSeniorDetailsCache = (
+  input: unknown
+): Record<number, PlayerDetailCacheEntry> => {
+  if (!input || typeof input !== "object") return {};
+  const normalized: Record<number, PlayerDetailCacheEntry> = {};
+  Object.entries(input as Record<string, unknown>).forEach(([key, value]) => {
+    const playerId = Number(key);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (!value || typeof value !== "object") return;
+    const entry = value as { fetchedAt?: unknown; data?: unknown };
+    const fetchedAt =
+      typeof entry.fetchedAt === "number" && Number.isFinite(entry.fetchedAt)
+        ? entry.fetchedAt
+        : null;
+    if (fetchedAt === null) return;
+    const data = normalizeSeniorPlayerDetails(entry.data, playerId);
+    if (!data) return;
+    normalized[playerId] = { data, fetchedAt };
+  });
+  return normalized;
+};
+
+const normalizePersistedSeniorRatingsResponse = (
+  input: unknown
+): RatingsMatrixResponse | null => {
+  if (!input || typeof input !== "object") return null;
+  const candidate = input as RatingsMatrixResponse;
+  return hasCurrentSeniorRatingsAlgorithmVersion(candidate) ? candidate : null;
+};
+
 const readStoredLastRefresh = (storageKey = LAST_REFRESH_STORAGE_KEY) => {
   if (typeof window === "undefined") return null;
   const value = window.localStorage.getItem(storageKey);
@@ -4245,6 +4307,8 @@ export default function SeniorDashboard({
     setSeniorPredictedRatingsEnabled,
   ] = useState(false);
   const [dataRestored, setDataRestored] = useState(false);
+  const [seniorDataMigrationPendingKey, setSeniorDataMigrationPendingKey] =
+    useState<string | null>(null);
   const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
     matchId: number | null;
     title: string;
@@ -4454,6 +4518,7 @@ export default function SeniorDashboard({
   const otherOrdersFlashTimeoutRef = useRef<number | null>(null);
   const seededSeniorEditableOrdersContextRef = useRef<string | null>(null);
   const suppressNextUpdatesRecordingRef = useRef(false);
+  const seniorDataMigrationPendingKeyRef = useRef<string | null>(null);
   const refreshAllRef = useRef<
     ((
       reason: "manual" | "stale",
@@ -4741,7 +4806,8 @@ export default function SeniorDashboard({
   });
 
   const buildSeniorDataPersistencePayload = useCallback(
-    () => ({
+    (): PersistedSeniorDataSnapshot => ({
+      schemaVersion: SENIOR_DATA_SCHEMA_VERSION,
       players,
       matchesState,
       ratingsResponse,
@@ -4764,6 +4830,7 @@ export default function SeniorDashboard({
       reason: string,
       options?: {
         allowEmpty?: boolean;
+        allowIdentityMigrationCompletion?: boolean;
         keyOverride?: string;
         payloadOverride?: ReturnType<typeof buildSeniorDataPersistencePayload>;
       }
@@ -4773,6 +4840,13 @@ export default function SeniorDashboard({
       const targetKey = options?.keyOverride ?? dataStorageKey;
       const payload =
         options?.payloadOverride ?? buildSeniorDataPersistencePayload();
+
+      if (
+        seniorDataMigrationPendingKeyRef.current === targetKey &&
+        !options?.allowIdentityMigrationCompletion
+      ) {
+        return false;
+      }
 
       if (!options?.allowEmpty && !seniorDataSnapshotHasUsefulData(payload)) {
         return false;
@@ -4787,6 +4861,17 @@ export default function SeniorDashboard({
     },
     [dataStorageKey, buildSeniorDataPersistencePayload]
   );
+
+  const markSeniorDataMigrationPending = (key: string | null) => {
+    seniorDataMigrationPendingKeyRef.current = key;
+    setSeniorDataMigrationPendingKey(key);
+  };
+
+  const clearSeniorDataMigrationPendingForKey = (key: string) => {
+    if (seniorDataMigrationPendingKeyRef.current !== key) return;
+    seniorDataMigrationPendingKeyRef.current = null;
+    setSeniorDataMigrationPendingKey(null);
+  };
 
   const startingXiComplete = useMemo(() => {
     const startingPlayerIds = FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
@@ -14861,6 +14946,7 @@ const refreshDetailsForPlayers = async (
     options?: { startup?: boolean }
   ) => {
     if (refreshing) return false;
+    const refreshDataStorageKey = dataStorageKey;
     const isStartup = options?.startup ?? false;
     const refreshRunId = ++refreshRunSeqRef.current;
     activeRefreshRunIdRef.current = refreshRunId;
@@ -14942,6 +15028,40 @@ const refreshDetailsForPlayers = async (
       setRefreshProgressPct(10);
       const nextPlayers = await fetchPlayers(effectiveTeamId);
       if (isStopped()) return false;
+      if (
+        seniorDataMigrationPendingKeyRef.current === refreshDataStorageKey &&
+        resolvedSeniorTeamIdRef.current === effectiveTeamId &&
+        nextPlayers.length > 0
+      ) {
+        const migratedRatingsResponse = buildEffectiveSeniorRatingsResponse(
+          effectiveRatingsResponse,
+          ratingsManualEditsByPlayerId,
+          nextPlayers
+        );
+        const migratedSeniorTeamGeneralInfo =
+          nextSeniorTeamGeneralInfo ??
+          (isSeniorTeamGeneralInfo(seniorTeamGeneralInfo, effectiveTeamId)
+            ? seniorTeamGeneralInfo
+            : null);
+        const migratedPayload: PersistedSeniorDataSnapshot = {
+          schemaVersion: SENIOR_DATA_SCHEMA_VERSION,
+          players: nextPlayers,
+          matchesState,
+          ratingsResponse: migratedRatingsResponse,
+          latestFetchedRatingsResponse: effectiveRatingsResponse,
+          detailsCache: {},
+          seniorTeamGeneralInfo: migratedSeniorTeamGeneralInfo,
+        };
+        setPlayers(nextPlayers);
+        setDetailsCache({});
+        setSeniorTeamGeneralInfo(migratedSeniorTeamGeneralInfo);
+        persistSeniorDataSnapshot("identity-migration-complete", {
+          keyOverride: refreshDataStorageKey,
+          payloadOverride: migratedPayload,
+          allowIdentityMigrationCompletion: true,
+        });
+        clearSeniorDataMigrationPendingForKey(refreshDataStorageKey);
+      }
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
       setRefreshProgressPct(30);
@@ -15149,7 +15269,8 @@ const refreshDetailsForPlayers = async (
           ? seniorTeamGeneralInfo
           : null);
       setSeniorTeamGeneralInfo(refreshedSeniorTeamGeneralInfo);
-      const refreshedDataPayload = {
+      const refreshedDataPayload: PersistedSeniorDataSnapshot = {
+        schemaVersion: SENIOR_DATA_SCHEMA_VERSION,
         players: nextPlayers,
         matchesState: nextMatches,
         ratingsResponse: refreshedRatingsResponse,
@@ -18416,6 +18537,7 @@ const refreshDetailsForPlayers = async (
     setLoadError(null);
     setLoadErrorDetails(null);
     setLastRefreshAt(null);
+    markSeniorDataMigrationPending(null);
     persistedMarkersBaselineRef.current = null;
     opponentFormationContextCacheRef.current = new Map();
     opponentTargetPlayerCacheRef.current = new Map();
@@ -18802,17 +18924,17 @@ const refreshDetailsForPlayers = async (
       const rawData = window.localStorage.getItem(dataStorageKey);
       let restoredPlayersCount = 0;
       let restoredRatings: RatingsMatrixResponse | null = null;
+      let requiresSeniorDataMigration = false;
       if (rawData) {
         try {
-          const parsed = JSON.parse(rawData) as {
-            players?: unknown;
-            matchesState?: MatchesResponse;
-            fetchedRatingsResponse?: RatingsMatrixResponse | null;
-            ratingsResponse?: RatingsMatrixResponse | null;
-            latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
-            detailsCache?: Record<number, PlayerDetailCacheEntry>;
-            seniorTeamGeneralInfo?: unknown;
-          };
+          const parsed = JSON.parse(rawData) as StoredSeniorDataSnapshotInput;
+          requiresSeniorDataMigration = !hasCurrentSeniorDataSchema(parsed);
+          if (requiresSeniorDataMigration) {
+            markSeniorDataMigrationPending(dataStorageKey);
+            suppressNextUpdatesRecordingRef.current = true;
+          } else {
+            clearSeniorDataMigrationPendingForKey(dataStorageKey);
+          }
           const restoredPlayers = normalizeSeniorPlayers(parsed.players);
           restoredPlayersCount = restoredPlayers.length;
           if (restoredPlayers.length > 0) {
@@ -18822,26 +18944,18 @@ const refreshDetailsForPlayers = async (
             setMatchesState(parsed.matchesState);
           }
           const parsedLatestFetchedRatings =
-            parsed.fetchedRatingsResponse &&
-            typeof parsed.fetchedRatingsResponse === "object" &&
-            hasCurrentSeniorRatingsAlgorithmVersion(parsed.fetchedRatingsResponse)
-              ? parsed.fetchedRatingsResponse
-              : parsed.latestFetchedRatingsResponse &&
-                  typeof parsed.latestFetchedRatingsResponse === "object" &&
-                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
-                ? parsed.latestFetchedRatingsResponse
-                : parsed.ratingsResponse &&
-                    typeof parsed.ratingsResponse === "object" &&
-                    hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-                  ? parsed.ratingsResponse
-                  : null;
+            normalizePersistedSeniorRatingsResponse(parsed.fetchedRatingsResponse) ??
+            normalizePersistedSeniorRatingsResponse(parsed.latestFetchedRatingsResponse) ??
+            normalizePersistedSeniorRatingsResponse(parsed.ratingsResponse);
           restoredRatings = parsedLatestFetchedRatings;
           if (parsedLatestFetchedRatings) {
             setLatestFetchedRatingsResponse(parsedLatestFetchedRatings);
           }
-          if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
-            setDetailsCache(parsed.detailsCache);
-          }
+          setDetailsCache(
+            requiresSeniorDataMigration
+              ? {}
+              : normalizePersistedSeniorDetailsCache(parsed.detailsCache)
+          );
           setSeniorTeamGeneralInfo(
             isSeniorTeamGeneralInfo(parsed.seniorTeamGeneralInfo, activeSeniorTeamId)
               ? parsed.seniorTeamGeneralInfo
@@ -18851,10 +18965,11 @@ const refreshDetailsForPlayers = async (
             parsedLatestFetchedRatings
           );
           if (
-            !forceWipeLegacyUpdatesState &&
-            restoredPlayers.length > 0 ||
+            !requiresSeniorDataMigration &&
             (!forceWipeLegacyUpdatesState &&
-              Object.keys(persistedRatingsByPlayerId).length > 0)
+              restoredPlayers.length > 0 ||
+              (!forceWipeLegacyUpdatesState &&
+                Object.keys(persistedRatingsByPlayerId).length > 0))
           ) {
             persistedMarkersBaselineRef.current = {
               players: restoredPlayers,
@@ -18870,10 +18985,14 @@ const refreshDetailsForPlayers = async (
       const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
       const restoredRatingsUsable = seniorRatingsHasCells(restoredRatings);
       const shouldRefresh =
+        requiresSeniorDataMigration ||
         !restoredRatingsUsable ||
         !lastRefresh ||
         Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
-      const shouldBootstrap = restoredPlayersCount === 0 || !restoredRatingsUsable;
+      const shouldBootstrap =
+        requiresSeniorDataMigration ||
+        restoredPlayersCount === 0 ||
+        !restoredRatingsUsable;
       if (shouldBootstrap) {
         suppressNextUpdatesRecordingRef.current = true;
       }
@@ -19159,6 +19278,7 @@ const refreshDetailsForPlayers = async (
     matchesState,
     players,
     ratingsResponse,
+    seniorDataMigrationPendingKey,
     persistSeniorDataSnapshot,
     buildSeniorDataPersistencePayload,
   ]);
@@ -19744,8 +19864,17 @@ const refreshDetailsForPlayers = async (
           entry.ratings.length > 0 ||
           entry.attributes.length > 0
       )
-      .sort((a, b) => a.playerName.localeCompare(b.playerName));
-  }, [selectedUpdatesEntry]);
+      .map((entry) => {
+        const currentPlayer = playersById.get(entry.playerId);
+        return {
+          ...entry,
+          displayPlayerName: currentPlayer
+            ? formatPlayerName(currentPlayer)
+            : entry.playerName,
+        };
+      })
+      .sort((a, b) => a.displayPlayerName.localeCompare(b.displayPlayerName));
+  }, [playersById, selectedUpdatesEntry]);
 
   const skillLabelByKey = (skillKey: string) => {
     switch (skillKey) {
@@ -21828,7 +21957,9 @@ const refreshDetailsForPlayers = async (
                   {selectedUpdatesRows.map((entry) => (
                     <article key={entry.playerId} className={styles.seniorUpdatesPlayerCard}>
                       <div className={styles.seniorUpdatesPlayerHeader}>
-                        <h4 className={styles.seniorUpdatesPlayerName}>{entry.playerName}</h4>
+                        <h4 className={styles.seniorUpdatesPlayerName}>
+                          {entry.displayPlayerName}
+                        </h4>
                         {entry.isNewPlayer ? (
                           <span className={styles.matrixNewPill}>
                             {messages.youthUpdatesNewPlayerLabel}

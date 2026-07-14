@@ -130,15 +130,63 @@ const BENCH_ROLE_BY_SLOT: Partial<Record<BenchSlotId, RoleGroup>> = {
   B_W: "W",
 };
 
-const MAX_LINEUP_PLAYERS = 11;
+const MAX_YOUTH_FIELD_PLAYERS = 11;
 const AUTO_STAR_MAX_AGE_DAYS = 17 * 112;
 
+const YOUTH_FIELD_SLOT_SET = new Set<FieldSlotId>(ALL_SLOTS);
+
 function assignedLineupCount(lineup: LineupAssignments) {
-  return Object.values(lineup).filter((playerId) => playerId !== null).length;
+  return ALL_SLOTS.reduce(
+    (count, slot) => count + (lineup[slot] != null ? 1 : 0),
+    0
+  );
 }
 
 function hasLineupCapacity(lineup: LineupAssignments) {
-  return assignedLineupCount(lineup) < MAX_LINEUP_PLAYERS;
+  return assignedLineupCount(lineup) < MAX_YOUTH_FIELD_PLAYERS;
+}
+
+function canAssignYouthFieldPlayer(
+  lineup: LineupAssignments,
+  slot: FieldSlotId
+) {
+  if (!YOUTH_FIELD_SLOT_SET.has(slot)) return false;
+  if (lineup[slot] != null) return false;
+
+  const count = assignedLineupCount(lineup);
+  if (count >= MAX_YOUTH_FIELD_PLAYERS) return false;
+
+  if (slot !== "KP" && lineup.KP == null && count >= MAX_YOUTH_FIELD_PLAYERS - 1) {
+    return false;
+  }
+
+  return true;
+}
+
+function assignYouthFieldPlayer(
+  lineup: LineupAssignments,
+  usedPlayers: Set<number>,
+  slot: FieldSlotId,
+  playerId: number
+) {
+  if (usedPlayers.has(playerId)) return false;
+  if (!canAssignYouthFieldPlayer(lineup, slot)) return false;
+  lineup[slot] = playerId;
+  usedPlayers.add(playerId);
+  return true;
+}
+
+function isValidYouthFieldLineup(lineup: LineupAssignments) {
+  const ids = ALL_SLOTS
+    .map((slot) => lineup[slot])
+    .filter((playerId): playerId is number => playerId != null);
+  if (ids.length > MAX_YOUTH_FIELD_PLAYERS) return false;
+  if (ids.length > 0 && lineup.KP == null) return false;
+  return new Set(ids).size === ids.length;
+}
+
+function validOptimizerResult(lineup: LineupAssignments) {
+  return isValidYouthFieldLineup(lineup) ? lineup : ({} as LineupAssignments);
 }
 
 const IM_SLOTS = new Set<(typeof ALL_SLOTS)[number]>([
@@ -309,21 +357,17 @@ function findBestFallbackKeeperBySkill(
   return candidates[0] ?? null;
 }
 
-function fillFallbackKeeperBySkillWhenNotTrainingSlot(
+function ensureYouthGoalkeeper(
   lineup: LineupAssignments,
   players: OptimizerPlayer[],
-  usedPlayers: Set<number>,
-  primarySlots: Set<FieldSlotId>,
-  secondarySlots: Set<FieldSlotId>
+  usedPlayers: Set<number>
 ) {
-  if (lineup.KP) return;
-  if (primarySlots.has("KP") || secondarySlots.has("KP")) return;
+  if (lineup.KP != null) return true;
 
   const keeper = findBestFallbackKeeperBySkill(players, usedPlayers);
-  if (!keeper) return;
+  if (!keeper) return false;
 
-  lineup.KP = keeper.id;
-  usedPlayers.add(keeper.id);
+  return assignYouthFieldPlayer(lineup, usedPlayers, "KP", keeper.id);
 }
 
 function resolveTrainingPreferences(
@@ -1300,8 +1344,7 @@ function fillSlotsWithOrderedIds(
     const slot = freeSlots.splice(slotIndex, 1)[0];
     const playerId = pendingPlayerIds.shift();
     if (!playerId) break;
-    lineup[slot] = playerId;
-    usedPlayers.add(playerId);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, playerId);
   }
   return freeSlots;
 }
@@ -1322,8 +1365,7 @@ function fillSlotsFromRanking(
     if (!entry) break;
     const slotIndex = Math.floor(Math.random() * freeSlots.length);
     const slot = freeSlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
     rankingIndex += 1;
   }
   return freeSlots;
@@ -1529,10 +1571,10 @@ export function optimizeLineupForStar(
     ? buildSkillRanking(players, secondarySkill, preferences)
     : null;
 
-  const lineup: LineupAssignments = {
-    [starSlot]: starPlayer.id,
-  };
-  const usedPlayers = new Set<number>([starPlayer.id]);
+  const lineup: LineupAssignments = {};
+  const usedPlayers = new Set<number>();
+  assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const primaryOrder = [...primarySlots].filter((slot) => slot !== starSlot);
   let primaryIndex = 0;
@@ -1554,8 +1596,7 @@ export function optimizeLineupForStar(
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
       const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
-      lineup[slot] = entry.playerId;
-      usedPlayers.add(entry.playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
       primaryIndex += 1;
     }
   });
@@ -1575,19 +1616,12 @@ export function optimizeLineupForStar(
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * remainingSecondarySlots.length);
       const slot = remainingSecondarySlots.splice(slotIndex, 1)[0];
-      lineup[slot] = entry.playerId;
-      usedPlayers.add(entry.playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
       secondaryIndex += 1;
     }
   }
 
-  fillFallbackKeeperBySkillWhenNotTrainingSlot(
-    lineup,
-    players,
-    usedPlayers,
-    primarySlots,
-    secondarySlots
-  );
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -1608,7 +1642,7 @@ export function optimizeLineupForStar(
   );
   const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
-  const totalSlotsNeeded = MAX_LINEUP_PLAYERS;
+  const totalSlotsNeeded = MAX_YOUTH_FIELD_PLAYERS;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
@@ -1619,12 +1653,11 @@ export function optimizeLineupForStar(
   slotsToFill.forEach((slot, index) => {
     const player = fillPlayers[index];
     if (!player) return;
-    lineup[slot] = player.id;
-    usedPlayers.add(player.id);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
   });
 
   return {
-    lineup,
+    lineup: validOptimizerResult(lineup),
     debug: {
       primary: { skill: primarySkill, list: primaryRanking.debug },
       secondary: secondarySkill
@@ -1720,10 +1753,10 @@ export function optimizeRevealPrimaryCurrent(
     ? buildSkillRanking(players, secondary, preferences)
     : null;
 
-  const lineup: LineupAssignments = {
-    [starSlot]: starPlayer.id,
-  };
-  const usedPlayers = new Set<number>([starPlayer.id]);
+  const lineup: LineupAssignments = {};
+  const usedPlayers = new Set<number>();
+  assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
   const playersById = new Map(players.map((player) => [player.id, player]));
 
   const remainingPrimarySlots = primarySlotList.filter((slot) => slot !== starSlot);
@@ -1750,8 +1783,7 @@ export function optimizeRevealPrimaryCurrent(
       const slot = freePrimarySlots.splice(slotIndex, 1)[0];
       const playerId = eligiblePrimary.shift();
       if (!playerId) break;
-      lineup[slot] = playerId;
-      usedPlayers.add(playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, playerId);
     }
 
     while (freePrimarySlots.length) {
@@ -1765,8 +1797,7 @@ export function optimizeRevealPrimaryCurrent(
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
       const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-      lineup[slot] = entry.playerId;
-      usedPlayers.add(entry.playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
       primaryIndex += 1;
     }
   });
@@ -1788,19 +1819,12 @@ export function optimizeRevealPrimaryCurrent(
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * remainingSecondarySlots.length);
       const slot = remainingSecondarySlots.splice(slotIndex, 1)[0];
-      lineup[slot] = entry.playerId;
-      usedPlayers.add(entry.playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
       secondaryIndex += 1;
     }
   }
 
-  fillFallbackKeeperBySkillWhenNotTrainingSlot(
-    lineup,
-    players,
-    usedPlayers,
-    primarySlots,
-    secondarySlots
-  );
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -1826,18 +1850,17 @@ export function optimizeRevealPrimaryCurrent(
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
     0,
-    Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
+    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
   );
 
   slotsToFill.forEach((slot, index) => {
     const player = fillPlayers[index];
     if (!player) return;
-    lineup[slot] = player.id;
-    usedPlayers.add(player.id);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
   });
 
   return {
-    lineup,
+    lineup: validOptimizerResult(lineup),
     debug: {
       primary: { skill: primary, list: primaryRanking.debug },
       secondary: secondary
@@ -1942,10 +1965,9 @@ export function optimizeRevealSecondaryMax(
   const primaryRanking = buildSkillRanking(players, primary, preferences);
   const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
-  const lineup: LineupAssignments = {
-    [starSlot]: starPlayer.id,
-  };
-  const usedPlayers = new Set<number>([starPlayer.id]);
+  const lineup: LineupAssignments = {};
+  const usedPlayers = new Set<number>();
+  assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
   const playersById = new Map(players.map((player) => [player.id, player]));
 
   const remainingSecondarySlots = secondarySlotList.filter((slot) => slot !== starSlot);
@@ -1963,8 +1985,7 @@ export function optimizeRevealSecondaryMax(
     const slot = freeSecondarySlots.splice(slotIndex, 1)[0];
     const playerId = eligibleSecondary.shift();
     if (!playerId) break;
-    lineup[slot] = playerId;
-    usedPlayers.add(playerId);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, playerId);
   }
 
   let secondaryIndex = 0;
@@ -1979,8 +2000,7 @@ export function optimizeRevealSecondaryMax(
     if (!entry) break;
     const slotIndex = Math.floor(Math.random() * freeSecondarySlots.length);
     const slot = freeSecondarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
     secondaryIndex += 1;
   }
 
@@ -2006,19 +2026,12 @@ export function optimizeRevealSecondaryMax(
       if (!entry) break;
       const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
       const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
-      lineup[slot] = entry.playerId;
-      usedPlayers.add(entry.playerId);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, entry.playerId);
       primaryIndex += 1;
     }
   });
 
-  fillFallbackKeeperBySkillWhenNotTrainingSlot(
-    lineup,
-    players,
-    usedPlayers,
-    primarySlots,
-    secondarySlots
-  );
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -2043,18 +2056,17 @@ export function optimizeRevealSecondaryMax(
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
     0,
-    Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
+    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
   );
 
   slotsToFill.forEach((slot, index) => {
     const player = fillPlayers[index];
     if (!player) return;
-    lineup[slot] = player.id;
-    usedPlayers.add(player.id);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
   });
 
   return {
-    lineup,
+    lineup: validOptimizerResult(lineup),
     debug: {
       primary: { skill: primary, list: primaryRanking.debug },
       secondary: { skill: secondary, list: secondaryRanking.debug },
@@ -2165,6 +2177,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   const primaryRanking = buildSkillRanking(players, primary, preferences);
   const secondaryRanking = buildSkillRanking(players, secondary, preferences);
   const lineup: LineupAssignments = {};
+  const usedPlayers = new Set<number>();
   let starSlot: (typeof ALL_SLOTS)[number] | null = null;
   let secondaryTargetSlot: (typeof ALL_SLOTS)[number] | null = null;
 
@@ -2188,7 +2201,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       fullSecondarySlots,
       prefersSharedStarSlot
     );
-    lineup[starSlot] = starPlayer.id;
+    assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
 
     const { current: targetPrimaryCurrent, max: targetPrimaryMax } = skillValues(
       secondaryTargetPlayer,
@@ -2219,7 +2232,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
         error: "no_secondary_slots" as const,
       };
     }
-    lineup[secondaryTargetSlot] = secondaryTargetPlayer.id;
+    assignYouthFieldPlayer(lineup, usedPlayers, secondaryTargetSlot, secondaryTargetPlayer.id);
   } else if (samePlayerReveal) {
     starSlot = pickStarTrainingSlot(
       primary,
@@ -2229,7 +2242,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       overlapSecondaryFullSlots,
       true
     );
-    lineup[starSlot] = starPlayer.id;
+    assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
   } else {
     if (overlapSlots.length < 2) {
       return {
@@ -2250,7 +2263,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
       true,
       allowedOverlapStarSlots
     );
-    lineup[starSlot] = starPlayer.id;
+    assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
 
     const targetFullSlots = [...overlapSecondaryFullSlots].filter((slot) => slot !== starSlot);
     const targetSlots = overlapSlots.filter((slot) => slot !== starSlot);
@@ -2274,13 +2287,10 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
         error: "no_secondary_slots" as const,
       };
     }
-    lineup[secondaryTargetSlot] = secondaryTargetPlayer.id;
+    assignYouthFieldPlayer(lineup, usedPlayers, secondaryTargetSlot, secondaryTargetPlayer.id);
   }
 
-  const usedPlayers = new Set<number>([starPlayer.id]);
-  if (secondaryTargetPlayer.id !== starPlayer.id) {
-    usedPlayers.add(secondaryTargetPlayer.id);
-  }
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
   const playersById = new Map(players.map((player) => [player.id, player]));
   const eligiblePrimary = orderedKnownCurrentRevealIds(
     playersById,
@@ -2339,13 +2349,7 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
     );
   }
 
-  fillFallbackKeeperBySkillWhenNotTrainingSlot(
-    lineup,
-    players,
-    usedPlayers,
-    primarySlots,
-    secondarySlots
-  );
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
   const carePlayers = remainingPlayers.filter(
@@ -2369,18 +2373,17 @@ export function optimizeRevealPrimaryCurrentAndSecondaryMax(
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
     0,
-    Math.max(0, 11 - Object.keys(lineup).length)
+    Math.max(0, 11 - assignedLineupCount(lineup))
   );
 
   slotsToFill.forEach((slot, index) => {
     const player = fillPlayers[index];
     if (!player) return;
-    lineup[slot] = player.id;
-    usedPlayers.add(player.id);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, player.id);
   });
 
   return {
-    lineup,
+    lineup: validOptimizerResult(lineup),
     debug: {
       primary: { skill: primary, list: primaryRanking.debug },
       secondary: { skill: secondary, list: secondaryRanking.debug },
@@ -2477,10 +2480,10 @@ export function optimizeByRatings(
   const primaryRanking = buildSkillRanking(players, primary, preferences);
   const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
-  const lineup: LineupAssignments = {
-    [starSlot]: starPlayer.id,
-  };
-  const usedPlayers = new Set<number>([starPlayer.id]);
+  const lineup: LineupAssignments = {};
+  const usedPlayers = new Set<number>();
+  assignYouthFieldPlayer(lineup, usedPlayers, starSlot, starPlayer.id);
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const fillSlotsWithSlotRatings = (
     slots: (typeof ALL_SLOTS)[number][],
@@ -2515,8 +2518,7 @@ export function optimizeByRatings(
       });
       const candidate = candidates[0];
       if (!candidate) return;
-      lineup[slot] = candidate.id;
-      usedPlayers.add(candidate.id);
+      assignYouthFieldPlayer(lineup, usedPlayers, slot, candidate.id);
     });
   };
 
@@ -2538,20 +2540,14 @@ export function optimizeByRatings(
     }
   }
 
-  fillFallbackKeeperBySkillWhenNotTrainingSlot(
-    lineup,
-    players,
-    usedPlayers,
-    primarySlots,
-    secondarySlots
-  );
+  ensureYouthGoalkeeper(lineup, players, usedPlayers);
 
   const totalSlotsNeeded = 11;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
     0,
-    Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
+    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
   );
 
   slotsToFill.forEach((slot) => {
@@ -2578,12 +2574,11 @@ export function optimizeByRatings(
     });
     const candidate = candidates[0];
     if (!candidate) return;
-    lineup[slot] = candidate.id;
-    usedPlayers.add(candidate.id);
+    assignYouthFieldPlayer(lineup, usedPlayers, slot, candidate.id);
   });
 
   return {
-    lineup,
+    lineup: validOptimizerResult(lineup),
     debug: {
       primary: { skill: primary, list: primaryRanking.debug },
       secondary: { skill: secondary, list: secondaryRanking.debug },

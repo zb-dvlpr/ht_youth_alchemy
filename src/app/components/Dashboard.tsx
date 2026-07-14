@@ -159,7 +159,7 @@ const MOBILE_YOUTH_MEDIA_QUERY = "(max-width: 900px)";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 const YOUTH_UPDATES_SCHEMA_VERSION = 3;
 const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
-const VALID_LINEUP_SLOT_IDS = new Set([
+const YOUTH_FIELD_SLOT_IDS = [
   "KP",
   "WB_L",
   "CD_L",
@@ -174,6 +174,8 @@ const VALID_LINEUP_SLOT_IDS = new Set([
   "F_L",
   "F_C",
   "F_R",
+] as const;
+const YOUTH_BENCH_SLOT_IDS = [
   "B_GK",
   "B_CD",
   "B_WB",
@@ -181,6 +183,13 @@ const VALID_LINEUP_SLOT_IDS = new Set([
   "B_F",
   "B_W",
   "B_X",
+] as const;
+const MAX_YOUTH_FIELD_PLAYERS = 11;
+const YOUTH_FIELD_SLOT_ID_SET = new Set<string>(YOUTH_FIELD_SLOT_IDS);
+const YOUTH_BENCH_SLOT_ID_SET = new Set<string>(YOUTH_BENCH_SLOT_IDS);
+const VALID_LINEUP_SLOT_IDS = new Set<string>([
+  ...YOUTH_FIELD_SLOT_IDS,
+  ...YOUTH_BENCH_SLOT_IDS,
 ]);
 
 const parseSeniorMetricSkill = (value: unknown): number | null => {
@@ -230,6 +239,31 @@ const sanitizeLineupAssignments = (
   Object.fromEntries(
     Object.entries(assignments).filter(([slotId]) => VALID_LINEUP_SLOT_IDS.has(slotId))
   );
+
+const youthFieldPlayerIds = (assignments: LineupAssignments): number[] =>
+  YOUTH_FIELD_SLOT_IDS
+    .map((slotId) => assignments[slotId])
+    .filter((playerId): playerId is number => playerId != null);
+
+const isValidYouthLineupAssignments = (
+  assignments: LineupAssignments,
+  options: { allowEmpty?: boolean } = {}
+): boolean => {
+  const fieldIds = youthFieldPlayerIds(assignments);
+  if (!options.allowEmpty && fieldIds.length === 0) return false;
+  if (fieldIds.length > MAX_YOUTH_FIELD_PLAYERS) return false;
+  if (fieldIds.length > 0 && assignments.KP == null) return false;
+  if (new Set(fieldIds).size !== fieldIds.length) return false;
+
+  const allIds = Object.entries(assignments)
+    .filter(([slotId]) => VALID_LINEUP_SLOT_IDS.has(slotId))
+    .map(([, playerId]) => playerId)
+    .filter((playerId): playerId is number => playerId != null);
+  return new Set(allIds).size === allIds.length;
+};
+
+const isYouthFieldSlot = (slotId: string) => YOUTH_FIELD_SLOT_ID_SET.has(slotId);
+const isYouthBenchSlot = (slotId: string) => YOUTH_BENCH_SLOT_ID_SET.has(slotId);
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -2493,7 +2527,12 @@ export default function Dashboard({
       if (forceWipeLegacyUpdatesState) {
         suppressNextUpdatesRecordingRef.current = true;
       }
-      if (parsed.assignments) setAssignments(parsed.assignments);
+      if (parsed.assignments) {
+        const sanitizedAssignments = sanitizeLineupAssignments(parsed.assignments);
+        if (isValidYouthLineupAssignments(sanitizedAssignments, { allowEmpty: true })) {
+          setAssignments(sanitizedAssignments);
+        }
+      }
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
       if (
@@ -4819,6 +4858,7 @@ export default function Dashboard({
 
   const assignPlayer = (slotId: string, playerId: number) => {
     if (isPlayerExcluded(excludedPlayers, playerId)) return;
+    if (!VALID_LINEUP_SLOT_IDS.has(slotId)) return;
     clearPendingYouthSubmittedLineupFeature();
     const clearedSlots = Object.entries(assignments)
       .filter(([, value]) => value === playerId)
@@ -4831,6 +4871,12 @@ export default function Dashboard({
         }
       }
       next[slotId] = playerId;
+      if (isYouthFieldSlot(slotId) && !isValidYouthLineupAssignments(next, { allowEmpty: true })) {
+        return prev;
+      }
+      if (isYouthBenchSlot(slotId) && !isValidYouthLineupAssignments(next, { allowEmpty: true })) {
+        return prev;
+      }
       return next;
     });
     setBehaviors((prev) => {
@@ -4845,8 +4891,12 @@ export default function Dashboard({
   };
 
   const clearSlot = (slotId: string) => {
+    if (!VALID_LINEUP_SLOT_IDS.has(slotId)) return;
     clearPendingYouthSubmittedLineupFeature();
-    setAssignments((prev) => ({ ...prev, [slotId]: null }));
+    setAssignments((prev) => {
+      const next = { ...prev, [slotId]: null };
+      return isValidYouthLineupAssignments(next, { allowEmpty: true }) ? next : prev;
+    });
     setBehaviors((prev) => {
       const next = { ...prev };
       delete next[slotId];
@@ -4857,6 +4907,7 @@ export default function Dashboard({
 
   const moveSlot = (fromSlot: string, toSlot: string) => {
     if (fromSlot === toSlot) return;
+    if (!VALID_LINEUP_SLOT_IDS.has(fromSlot) || !VALID_LINEUP_SLOT_IDS.has(toSlot)) return;
     clearPendingYouthSubmittedLineupFeature();
     setAssignments((prev) => {
       const next = { ...prev };
@@ -4866,7 +4917,7 @@ export default function Dashboard({
       const targetPlayer = next[toSlot] ?? null;
       next[toSlot] = movingPlayer;
       next[fromSlot] = targetPlayer;
-      return next;
+      return isValidYouthLineupAssignments(next, { allowEmpty: true }) ? next : prev;
     });
     setBehaviors((prev) => {
       const next = { ...prev };
@@ -4909,6 +4960,7 @@ export default function Dashboard({
     shuffledSlots.slice(0, outfieldIds.length).forEach((slot, index) => {
       next[slot] = outfieldIds[index] ?? null;
     });
+    if (!isValidYouthLineupAssignments(next, { allowEmpty: true })) return;
     setAssignments(next);
     setBehaviors({});
     setLoadedMatchId(null);
@@ -4947,9 +4999,11 @@ export default function Dashboard({
     );
 
     const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
-    const usedPlayers = new Set<number>(
-      Object.values(nextAssignments).filter(Boolean) as number[]
-    );
+    if (!isValidYouthLineupAssignments(nextAssignments)) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      return;
+    }
+    const usedPlayers = new Set<number>(youthFieldPlayerIds(nextAssignments));
     const rankingBySkill = new Map<SkillKey, number[]>();
     BASE_TRAINING_SKILLS.forEach(
       (skill) => {
@@ -5010,7 +5064,7 @@ export default function Dashboard({
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
     setPendingYouthSubmittedLineupFeature("lineup_optimize_around_star_submitted");
-    if (Object.keys(result.lineup).length) {
+    if (youthFieldPlayerIds(result.lineup).length) {
       addNotification(messages.notificationOptimizeApplied);
     }
   };
@@ -5055,9 +5109,11 @@ export default function Dashboard({
       }
 
       const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
-      const usedPlayers = new Set<number>(
-        Object.values(nextAssignments).filter(Boolean) as number[]
-      );
+      if (!isValidYouthLineupAssignments(nextAssignments)) {
+        setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
+        return;
+      }
+      const usedPlayers = new Set<number>(youthFieldPlayerIds(nextAssignments));
       const ROLE_RATING_CODE: Record<
         "GK" | "WB" | "DEF" | "W" | "IM" | "F",
         number
@@ -5141,7 +5197,7 @@ export default function Dashboard({
       setOptimizerDebug(result.debug ?? null);
       setLoadedMatchId(null);
       setPendingYouthSubmittedLineupFeature("lineup_optimize_by_ratings_submitted");
-      if (Object.keys(result.lineup).length) {
+      if (youthFieldPlayerIds(result.lineup).length) {
         addNotification(messages.notificationOptimizeApplied);
       }
       return;
@@ -5244,9 +5300,17 @@ export default function Dashboard({
     }
 
     const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
-    const usedPlayers = new Set<number>(
-      Object.values(nextAssignments).filter(Boolean) as number[]
-    );
+    if (!isValidYouthLineupAssignments(nextAssignments)) {
+      if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable);
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
+      return;
+    }
+    const usedPlayers = new Set<number>(youthFieldPlayerIds(nextAssignments));
     const rankingBySkill = new Map<SkillKey, number[]>();
     BASE_TRAINING_SKILLS.forEach((skill) => {
       rankingBySkill.set(
@@ -5295,7 +5359,7 @@ export default function Dashboard({
           ? "lineup_double_reveal_submitted"
           : "lineup_reveal_primary_current_submitted"
     );
-    if (Object.keys(result.lineup).length) {
+    if (youthFieldPlayerIds(result.lineup).length) {
       addNotification(messages.notificationOptimizeApplied);
     }
   };
@@ -6417,13 +6481,31 @@ export default function Dashboard({
     matchId: number
   ) => {
     clearPendingYouthSubmittedLineupFeature();
-    setAssignments(nextAssignments);
+    const sanitizedAssignments = sanitizeLineupAssignments(nextAssignments);
+    if (!isValidYouthLineupAssignments(sanitizedAssignments, { allowEmpty: true })) {
+      setAssignments({});
+      setBehaviors({});
+      return;
+    }
+    setAssignments(sanitizedAssignments);
     setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
     setPrimaryTraining(null);
     setSecondaryTraining(null);
     setAutoSelectionApplied(false);
   };
+
+
+  const validateYouthSubmitLineupPayload = useCallback(
+    async (_matchId: number, defaultPayload: Parameters<NonNullable<React.ComponentProps<typeof UpcomingMatches>["buildSubmitLineupPayload"]>>[1]) => {
+      const sanitizedAssignments = sanitizeLineupAssignments(assignments);
+      if (!isValidYouthLineupAssignments(sanitizedAssignments)) {
+        throw new Error(messages.submitOrdersError);
+      }
+      return defaultPayload;
+    },
+    [assignments, messages.submitOrdersError]
+  );
 
   const handleBehaviorChange = (slotId: string, behavior: number) => {
     clearPendingYouthSubmittedLineupFeature();
@@ -7720,6 +7802,7 @@ export default function Dashboard({
           loadedMatchId={loadedMatchId}
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
+          buildSubmitLineupPayload={validateYouthSubmitLineupPayload}
           onSubmitSuccess={() => setShowTrainingReminder(true)}
           analyticsSource="mobile"
         />
@@ -8753,6 +8836,7 @@ export default function Dashboard({
           loadedMatchId={loadedMatchId}
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
+          buildSubmitLineupPayload={validateYouthSubmitLineupPayload}
           onSubmitSuccess={() => setShowTrainingReminder(true)}
           analyticsSource="desktop"
         />

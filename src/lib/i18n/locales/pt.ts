@@ -1550,6 +1550,14 @@ export const messagesPt: Messages = {
       "Relaxe a configuração da última partida para aumentar o grupo elegível para 18 jogadores.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Relaxe as configurações de minutos já jogados e última partida para aumentar o grupo elegível para 18 jogadores.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "São necessários pelo menos 11 jogadores elegíveis para definir uma formação da equipa B.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Reduza a restrição dos minutos já jogados para aumentar o grupo de jogadores elegíveis da equipa B para pelo menos 11.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Reduza a restrição do último jogo para aumentar o grupo de jogadores elegíveis da equipa B para pelo menos 11.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Reduza as restrições dos minutos já jogados e do último jogo para aumentar o grupo de jogadores elegíveis da equipa B para pelo menos 11.",
     seniorFixedFormationTotalRatingsLabel: "Ratings totais",
     seniorFixedFormationWeightedSumLabel: "Soma ponderada",
     seniorExtraTimeModalTitle: "Por que mirar a prorrogação?",

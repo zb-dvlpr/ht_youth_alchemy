@@ -1490,6 +1490,14 @@ export const messagesEn: Messages = {
       "Relax the last-match setting to increase the eligibility pool to 18 players.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Relax the already-played minutes and last-match settings to increase the eligibility pool to 18 players.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "At least 11 eligible players are required to set a B-team lineup.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Relax the already-played minutes setting to increase the B-team eligibility pool to at least 11 players.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Relax the last-match setting to increase the B-team eligibility pool to at least 11 players.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Relax the already-played minutes and last-match settings to increase the B-team eligibility pool to at least 11 players.",
     seniorFixedFormationTotalRatingsLabel: "Total ratings",
     seniorFixedFormationWeightedSumLabel: "Weighted sum",
     seniorExtraTimeModalTitle: "Why aim for extra time?",

@@ -1530,6 +1530,14 @@ export const messagesDe: Messages = {
       "Lockere die Einstellung zum letzten Spiel, um den Pool auf 18 Spieler zu erhöhen.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Lockere die Einstellungen zu gespielten Minuten und letztem Spiel, um den Pool auf 18 Spieler zu erhöhen.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "Für eine B-Team-Aufstellung sind mindestens 11 spielberechtigte Spieler erforderlich.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Lockere die Einstellung für bereits gespielte Minuten, um den Pool der für das B-Team verfügbaren Spieler auf mindestens 11 zu erhöhen.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Lockere die Einstellung für das letzte Spiel, um den Pool der für das B-Team verfügbaren Spieler auf mindestens 11 zu erhöhen.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Lockere die Einstellungen für bereits gespielte Minuten und das letzte Spiel, um den Pool der für das B-Team verfügbaren Spieler auf mindestens 11 zu erhöhen.",
     seniorFixedFormationTotalRatingsLabel: "Gesamtbewertungen",
     seniorFixedFormationWeightedSumLabel: "Gewichtete Summe",
     seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",

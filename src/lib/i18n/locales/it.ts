@@ -1551,6 +1551,14 @@ export const messagesIt: Messages = {
       "Allenta l'impostazione dell'ultima partita per aumentare il gruppo idoneo a 18 giocatori.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Allenta le impostazioni dei minuti già giocati e dell'ultima partita per aumentare il gruppo idoneo a 18 giocatori.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "Servono almeno 11 giocatori idonei per impostare una formazione della squadra B.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Riduci la restrizione sui minuti già giocati per portare ad almeno 11 il gruppo di giocatori idonei della squadra B.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Riduci la restrizione relativa all’ultima partita per portare ad almeno 11 il gruppo di giocatori idonei della squadra B.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Riduci le restrizioni sui minuti già giocati e sull’ultima partita per portare ad almeno 11 il gruppo di giocatori idonei della squadra B.",
     seniorFixedFormationTotalRatingsLabel: "Valutazioni totali",
     seniorFixedFormationWeightedSumLabel: "Somma pesata",
     seniorExtraTimeModalTitle: "Perché puntare ai supplementari?",

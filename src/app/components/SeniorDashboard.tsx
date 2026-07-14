@@ -642,7 +642,8 @@ const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as co
 const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_PLAYED_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
-const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
+const SENIOR_AI_FULL_SQUAD_SIZE = 18;
+const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 11;
 const SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT = 3;
 const SENIOR_AI_LAST_MATCH_WEEKS_DISABLED = 0;
 const SENIOR_AI_LAST_MATCH_WEEKS_MIN = 2;
@@ -8443,11 +8444,17 @@ function buildSeniorAiManMarkingReadySignature(params: {
     (match: Match) => {
       const matchTypeRaw = Number(match.MatchType);
       const selectedMatchType = Number.isFinite(matchTypeRaw) ? matchTypeRaw : null;
+      const bTeamModeActive = effectiveExtraTimeBTeamEnabled;
+      const requiredPoolSize = bTeamModeActive
+        ? EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE
+        : SENIOR_AI_FULL_SQUAD_SIZE;
       const baselineEligiblePlayers = players.filter((player) =>
         isSeniorAiBaselineEligibleForMatch(player, selectedMatchType)
       );
-      if (baselineEligiblePlayers.length < EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
-        return messages.seniorLineupAiEligibilityNeed18Tooltip;
+      if (baselineEligiblePlayers.length < requiredPoolSize) {
+        return bTeamModeActive
+          ? messages.seniorLineupAiBTeamEligibilityNeed11Tooltip
+          : messages.seniorLineupAiEligibilityNeed18Tooltip;
       }
       const lastMatchExcludedCount = baselineEligiblePlayers.filter((player) =>
         seniorAiLastMatchIneligiblePlayerIds.has(player.PlayerID)
@@ -8468,25 +8475,37 @@ function buildSeniorAiManMarkingReadySignature(params: {
             extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
           )
       ).length;
-      if (filteredEligibleCount >= EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
+      if (filteredEligibleCount >= requiredPoolSize) {
         return null;
       }
       if (alreadyPlayedExcludedCount > 0 && lastMatchExcludedCount > 0) {
-        return messages.seniorLineupAiEligibilityRelaxBothTooltip;
+        return bTeamModeActive
+          ? messages.seniorLineupAiBTeamEligibilityRelaxBothTooltip
+          : messages.seniorLineupAiEligibilityRelaxBothTooltip;
       }
       if (alreadyPlayedExcludedCount > 0) {
-        return messages.seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip;
+        return bTeamModeActive
+          ? messages.seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip
+          : messages.seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip;
       }
       if (lastMatchExcludedCount > 0) {
-        return messages.seniorLineupAiEligibilityRelaxLastMatchTooltip;
+        return bTeamModeActive
+          ? messages.seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip
+          : messages.seniorLineupAiEligibilityRelaxLastMatchTooltip;
       }
-      return messages.seniorLineupAiEligibilityNeed18Tooltip;
+      return bTeamModeActive
+        ? messages.seniorLineupAiBTeamEligibilityNeed11Tooltip
+        : messages.seniorLineupAiEligibilityNeed18Tooltip;
     },
     [
       effectiveExtraTimeBTeamEnabled,
       extraTimeBTeamExcludedPlayerIds,
       extraTimeBTeamRecentMatchState,
       getSeniorAiCardsValueForPlayer,
+      messages.seniorLineupAiBTeamEligibilityNeed11Tooltip,
+      messages.seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip,
+      messages.seniorLineupAiBTeamEligibilityRelaxBothTooltip,
+      messages.seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip,
       messages.seniorLineupAiEligibilityNeed18Tooltip,
       messages.seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip,
       messages.seniorLineupAiEligibilityRelaxBothTooltip,

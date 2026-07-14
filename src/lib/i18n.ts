@@ -1229,6 +1229,10 @@ export type Messages = {
   seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip: string;
   seniorLineupAiEligibilityRelaxLastMatchTooltip: string;
   seniorLineupAiEligibilityRelaxBothTooltip: string;
+  seniorLineupAiBTeamEligibilityNeed11Tooltip: string;
+  seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip: string;
+  seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip: string;
+  seniorLineupAiBTeamEligibilityRelaxBothTooltip: string;
   seniorFixedFormationTotalRatingsLabel: string;
   seniorFixedFormationWeightedSumLabel: string;
   seniorExtraTimeModalTitle: string;

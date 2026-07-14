@@ -1006,6 +1006,14 @@ export const messagesNl: Messages = {
     "Versoepel de instelling voor laatste wedstrijd om de speelgerechtigde groep tot 18 spelers te vergroten.",
   seniorLineupAiEligibilityRelaxBothTooltip:
     "Versoepel de instellingen voor al gespeelde minuten en laatste wedstrijd om de speelgerechtigde groep tot 18 spelers te vergroten.",
+  seniorLineupAiBTeamEligibilityNeed11Tooltip:
+    "Er zijn minimaal 11 beschikbare spelers nodig om een B-teamopstelling te maken.",
+  seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+    "Versoepel de instelling voor reeds gespeelde minuten om de beschikbare B-teamselectie uit te breiden tot minimaal 11 spelers.",
+  seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+    "Versoepel de instelling voor de laatste wedstrijd om de beschikbare B-teamselectie uit te breiden tot minimaal 11 spelers.",
+  seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+    "Versoepel de instellingen voor reeds gespeelde minuten en de laatste wedstrijd om de beschikbare B-teamselectie uit te breiden tot minimaal 11 spelers.",
   seniorFixedFormationTotalRatingsLabel: "Totale ratings",
   seniorFixedFormationWeightedSumLabel: "Gewogen som",
   seniorExtraTimeModalTitle: "Waarom richten op verlenging?",

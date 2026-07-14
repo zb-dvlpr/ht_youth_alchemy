@@ -1545,6 +1545,14 @@ export const messagesFr: Messages = {
       "Assouplissez le réglage du dernier match pour porter le vivier éligible à 18 joueurs.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Assouplissez les réglages des minutes déjà jouées et du dernier match pour porter le vivier éligible à 18 joueurs.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "Au moins 11 joueurs éligibles sont nécessaires pour composer une équipe B.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Assouplissez le réglage des minutes déjà jouées afin de porter à au moins 11 le nombre de joueurs éligibles pour l’équipe B.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Assouplissez le réglage du dernier match afin de porter à au moins 11 le nombre de joueurs éligibles pour l’équipe B.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Assouplissez les réglages des minutes déjà jouées et du dernier match afin de porter à au moins 11 le nombre de joueurs éligibles pour l’équipe B.",
     seniorFixedFormationTotalRatingsLabel: "Notes totales",
     seniorFixedFormationWeightedSumLabel: "Somme pondérée",
     seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",

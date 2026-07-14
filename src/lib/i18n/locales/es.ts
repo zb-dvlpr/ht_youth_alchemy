@@ -1547,6 +1547,14 @@ export const messagesEs: Messages = {
       "Relaja el ajuste del último partido para aumentar el grupo elegible a 18 jugadores.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Relaja los ajustes de minutos ya jugados y último partido para aumentar el grupo elegible a 18 jugadores.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "Se necesitan al menos 11 jugadores elegibles para establecer una alineación del equipo B.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Relaja el ajuste de minutos ya jugados para aumentar a al menos 11 el grupo de jugadores elegibles del equipo B.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Relaja el ajuste del último partido para aumentar a al menos 11 el grupo de jugadores elegibles del equipo B.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Relaja los ajustes de minutos ya jugados y del último partido para aumentar a al menos 11 el grupo de jugadores elegibles del equipo B.",
     seniorFixedFormationTotalRatingsLabel: "Valoraciones totales",
     seniorFixedFormationWeightedSumLabel: "Suma ponderada",
     seniorExtraTimeModalTitle: "¿Por qué apuntar a la prórroga?",

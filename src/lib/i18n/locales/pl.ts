@@ -1000,6 +1000,14 @@ export const messagesPl: Messages = {
     "Poluzuj ustawienie ostatniego meczu, aby zwiększyć pulę do 18 uprawnionych zawodników.",
   seniorLineupAiEligibilityRelaxBothTooltip:
     "Poluzuj ustawienia rozegranych minut i ostatniego meczu, aby zwiększyć pulę do 18 uprawnionych zawodników.",
+  seniorLineupAiBTeamEligibilityNeed11Tooltip:
+    "Do ustawienia składu drużyny B wymaganych jest co najmniej 11 uprawnionych zawodników.",
+  seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+    "Złagodź ustawienie dotyczące już rozegranych minut, aby zwiększyć pulę zawodników uprawnionych do gry w drużynie B do co najmniej 11.",
+  seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+    "Złagodź ustawienie dotyczące ostatniego meczu, aby zwiększyć pulę zawodników uprawnionych do gry w drużynie B do co najmniej 11.",
+  seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+    "Złagodź ustawienia dotyczące już rozegranych minut i ostatniego meczu, aby zwiększyć pulę zawodników uprawnionych do gry w drużynie B do co najmniej 11.",
   seniorFixedFormationTotalRatingsLabel: "Suma ocen",
   seniorFixedFormationWeightedSumLabel: "Suma ważona",
   seniorExtraTimeModalTitle: "Dlaczego warto grać pod dogrywkę?",

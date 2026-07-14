@@ -1536,6 +1536,14 @@ export const messagesSv: Messages = {
       "Lätta på inställningen för senaste match för att öka poolen till 18 valbara spelare.",
     seniorLineupAiEligibilityRelaxBothTooltip:
       "Lätta på inställningarna för redan spelade minuter och senaste match för att öka poolen till 18 valbara spelare.",
+    seniorLineupAiBTeamEligibilityNeed11Tooltip:
+      "Minst 11 valbara spelare krävs för att sätta en B-lagsuppställning.",
+    seniorLineupAiBTeamEligibilityRelaxAlreadyPlayedTooltip:
+      "Lätta på inställningen för redan spelade minuter för att öka B-lagets valbara spelartrupp till minst 11 spelare.",
+    seniorLineupAiBTeamEligibilityRelaxLastMatchTooltip:
+      "Lätta på inställningen för den senaste matchen för att öka B-lagets valbara spelartrupp till minst 11 spelare.",
+    seniorLineupAiBTeamEligibilityRelaxBothTooltip:
+      "Lätta på inställningarna för redan spelade minuter och den senaste matchen för att öka B-lagets valbara spelartrupp till minst 11 spelare.",
     seniorFixedFormationTotalRatingsLabel: "Totala betyg",
     seniorFixedFormationWeightedSumLabel: "Viktad summa",
     seniorExtraTimeModalTitle: "Varför sikta på förlängning?",

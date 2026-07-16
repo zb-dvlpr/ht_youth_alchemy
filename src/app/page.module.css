@@ -1596,6 +1596,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   border: 1px solid transparent;
 }
 
+.helpMenuExternalLink {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.youtubeMenuIcon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
 .settingsFileInput {
   display: none;
 }
@@ -1717,6 +1733,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .feedbackLink:hover {
   border-color: #c9b9a3;
   background: #f1e9dc;
+}
+
+.feedbackLink:focus-visible {
+  outline: 2px solid #7c5c2e;
+  outline-offset: 2px;
 }
 
 .feedbackLink.optimizeMenuItemDisabled:hover {
@@ -6522,6 +6543,10 @@ html[data-theme="dark"] .feedbackLink {
 html[data-theme="dark"] .feedbackLink:hover {
   border-color: rgba(255, 255, 255, 0.22);
   background: #332c25;
+}
+
+html[data-theme="dark"] .feedbackLink:focus-visible {
+  outline-color: #f0c36a;
 }
 
 html[data-theme="dark"] .feedbackLink.optimizeMenuItemDisabled:hover {

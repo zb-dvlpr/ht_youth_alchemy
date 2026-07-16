@@ -9,6 +9,7 @@ export const messagesPl: Messages = {
   helpMenuOpen: "Otwórz pomoc",
   helpMenuManual: "Instrukcja",
   helpMenuChangelog: "Dziennik zmian",
+  helpMenuYouTubeChannel: "Kanał YouTube",
   changelogTitle: "Dziennik zmian",
   manualTitle: "Instrukcja HT Alchemy",
   manualTocTitle: "Spis treści",
@@ -520,6 +521,7 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_8_3_0: "Dodano link do kanału YouTube.",
     changelog_8_2_0: "Ulepszono algorytm krycia indywidualnego w ustawieniu drużyny seniorów, aby uwzględniał efektywne umiejętności, specjalności zawodników, kary pozycyjne oraz szacowane główne umiejętności przeciwnika.",
     changelog_8_1_0: "Wdrożono przewidywane oceny dla seniorskich skladow meczowych.",
     changelog_8_0_0: "Wdrożono kalkulator team spirit.",

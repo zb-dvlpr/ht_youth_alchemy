@@ -703,6 +703,42 @@ export default function PlayerDetailsPanel({
     onActiveTabChangeRef.current?.(nextTab);
   }, []);
 
+  const renderDetailsTab = (
+    tab: PlayerDetailsPanelTab,
+    label: string,
+    videoUrl?: string
+  ) => {
+    const active = resolvedActiveTab === tab;
+
+    return (
+      <span
+        key={tab}
+        className={styles.detailsTabCompound}
+      >
+        <button
+          type="button"
+          className={`${styles.detailsTabButton} ${
+            active ? styles.detailsTabActive : ""
+          } ${videoUrl ? styles.detailsTabButtonWithVideo : ""}`}
+          onClick={() => setResolvedActiveTab(tab)}
+        >
+          {label}
+        </button>
+        {videoUrl ? (
+          <span className={styles.detailsTabVideoSlot}>
+            <YouTubeLink
+              url={videoUrl}
+              label={`${messages.youtubeWatchRelatedVideo}: ${label}`}
+              iconOnly
+              className={styles.detailsTabVideoLink}
+              iconClassName={styles.detailsTabVideoIcon}
+            />
+          </span>
+        ) : null}
+      </span>
+    );
+  };
+
   const handleMatrixPlayerPick = (playerName: string) => {
     setResolvedActiveTab("details");
     onSelectRatingsPlayer?.(playerName);
@@ -1315,12 +1351,14 @@ export default function PlayerDetailsPanel({
               </button>
             </Tooltip>
             {playerKind === "youth" ? (
-              <YouTubeLink
-                url={YOUTUBE_HELP_URLS.youthPlayerDetailsRefresh}
-                label={messages.youtubeWatchRelatedVideo}
-                iconOnly
-                className={styles.detailsNavigationVideoLink}
-              />
+              <span className={styles.youtubeTutorialMobileOnly}>
+                <YouTubeLink
+                  url={YOUTUBE_HELP_URLS.youthPlayerDetailsRefresh}
+                  label={messages.youtubeWatchRelatedVideo}
+                  iconOnly
+                  className={styles.detailsNavigationVideoLink}
+                />
+              </span>
             ) : null}
           </div>
         </div>
@@ -2546,7 +2584,9 @@ export default function PlayerDetailsPanel({
           </table>
         </div>
         {playerKind === "youth" ? (
-          <div className={styles.matrixHelpFooter}>
+          <div
+            className={`${styles.matrixHelpFooter} ${styles.youtubeTutorialMobileOnly}`}
+          >
             <YouTubeLink
               url={YOUTUBE_HELP_URLS.youthSkillsMatrix}
               label={messages.youtubeWatchRelatedVideo}
@@ -2563,33 +2603,27 @@ export default function PlayerDetailsPanel({
       <div className={styles.detailsHeader}>
         {showTabs ? (
           <div className={styles.detailsTabs}>
-            <button
-              type="button"
-              className={`${styles.detailsTabButton} ${
-                resolvedActiveTab === "details" ? styles.detailsTabActive : ""
-              }`}
-              onClick={() => setResolvedActiveTab("details")}
-            >
-              {messages.detailsTabLabel}
-            </button>
-            <button
-              type="button"
-              className={`${styles.detailsTabButton} ${
-                resolvedActiveTab === "skillsMatrix" ? styles.detailsTabActive : ""
-              }`}
-              onClick={() => setResolvedActiveTab("skillsMatrix")}
-            >
-              {messages.skillsMatrixTabLabel}
-            </button>
-            <button
-              type="button"
-              className={`${styles.detailsTabButton} ${
-                resolvedActiveTab === "ratingsMatrix" ? styles.detailsTabActive : ""
-              }`}
-              onClick={() => setResolvedActiveTab("ratingsMatrix")}
-            >
-              {messages.ratingsMatrixTabLabel}
-            </button>
+            {renderDetailsTab(
+              "details",
+              messages.detailsTabLabel,
+              playerKind === "youth"
+                ? YOUTUBE_HELP_URLS.youthPlayerDetailsRefresh
+                : undefined
+            )}
+            {renderDetailsTab(
+              "skillsMatrix",
+              messages.skillsMatrixTabLabel,
+              playerKind === "youth"
+                ? YOUTUBE_HELP_URLS.youthSkillsMatrix
+                : undefined
+            )}
+            {renderDetailsTab(
+              "ratingsMatrix",
+              messages.ratingsMatrixTabLabel,
+              playerKind === "youth"
+                ? YOUTUBE_HELP_URLS.youthRatingsMatrix
+                : undefined
+            )}
           </div>
         ) : (
           <div className={styles.detailsTabs} />
@@ -2669,11 +2703,13 @@ export default function PlayerDetailsPanel({
           displayCurrency={displayCurrency}
           footerRightContent={
             playerKind === "youth" ? (
-              <YouTubeLink
-                url={YOUTUBE_HELP_URLS.youthRatingsMatrix}
-                label={messages.youtubeWatchRelatedVideo}
-                iconOnly
-              />
+              <span className={styles.youtubeTutorialMobileOnly}>
+                <YouTubeLink
+                  url={YOUTUBE_HELP_URLS.youthRatingsMatrix}
+                  label={messages.youtubeWatchRelatedVideo}
+                  iconOnly
+                />
+              </span>
             ) : undefined
           }
         />

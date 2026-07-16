@@ -8633,6 +8633,14 @@ html[data-theme="dark"] .spinner {
   align-items: center;
 }
 
+.detailsTabCompound {
+  display: contents;
+}
+
+.detailsTabVideoSlot {
+  display: none;
+}
+
 .detailsHeaderAux {
   margin-left: auto;
   display: inline-flex;
@@ -9389,6 +9397,10 @@ html[data-theme="dark"] .spinner {
   height: 28px;
 }
 
+.youtubeTutorialMobileOnly {
+  display: flex;
+}
+
 .youthEstimateValueButton {
   border-radius: 8px;
   padding: 6px 10px;
@@ -9402,48 +9414,135 @@ html[data-theme="dark"] .spinner {
   align-items: stretch;
   width: max-content;
   max-width: 100%;
+  gap: 0;
+  padding: 0;
   border-radius: 8px;
   overflow: hidden;
+  background: #244d2b;
+  color: #fff;
+}
+
+.youthEstimateValueActionSegment,
+.youthEstimateValueVideoSegment {
+  display: inline-flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+}
+
+.youthEstimateValueActionSegment > span,
+.youthEstimateValueVideoSegment > span {
+  display: inline-flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
 }
 
 .youthEstimateValueActionSegment {
-  display: inline-flex;
-  align-items: stretch;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
 }
 
-.youthEstimateValueButtonWithVideo {
+.youthEstimateValueVideoSegment {
+  flex: 0 0 auto;
+}
+
+.youthEstimateValueControl .youthEstimateValueButtonWithVideo {
   box-sizing: border-box;
   width: auto;
   min-width: max-content;
   margin: 0;
-  border-radius: 8px 0 0 8px;
-  padding-left: 10px;
-  padding-right: 10px;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 8px 6px 10px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
   white-space: nowrap;
 }
 
-.youthEstimateValueVideoLink {
+.youthEstimateValueControl .youthEstimateValueButtonWithVideo:hover:not(:disabled),
+.youthEstimateValueControl .youthEstimateValueVideoLink:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.youthEstimateValueControl .youthEstimateValueButtonWithVideo:disabled {
+  background: transparent;
+}
+
+.youthEstimateValueControl .youthEstimateValueVideoLink {
   position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 32px;
+  width: 30px;
+  min-width: 30px;
   height: auto;
   min-height: 100%;
-  flex: 0 0 32px;
+  flex: 0 0 30px;
   margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
   transform: none;
-  border-radius: 0 8px 8px 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.28);
-  background: #244d2b;
-  color: #fff;
 }
 
-.youthEstimateValueVideoLink:hover {
-  background: #1d3f23;
+@media (min-width: 901px) {
+  .detailsTabCompound {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+  }
+
+  .detailsTabButtonWithVideo {
+    padding-right: 34px;
+  }
+
+  .detailsTabVideoSlot {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+  }
+
+  .detailsTabVideoSlot > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .detailsTabCompound .detailsTabVideoLink {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border-radius: 4px;
+    background: transparent;
+  }
+
+  .detailsTabCompound .detailsTabVideoLink:hover {
+    background: rgba(63, 54, 44, 0.08);
+  }
+
+  .detailsTabVideoIcon {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+  }
+
+  .youtubeTutorialMobileOnly {
+    display: none;
+  }
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .profileCard {

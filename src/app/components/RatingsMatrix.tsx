@@ -774,26 +774,15 @@ export default function RatingsMatrix({
           </tbody>
         </table>
       </div>
-      {matchesAnalyzed !== null ? (
-        <p className={styles.muted}>
-          {messages.ratingsMatchesAnalyzed.replace("{count}", String(matchesAnalyzed))}
-        </p>
-      ) : null}
-      {lastAppliedFooterParts || footerRightContent ? (
+      {matchesAnalyzed !== null || footerRightContent ? (
         <div className={styles.matrixFooterRow}>
           <div className={styles.matrixFooterText}>
-            {lastAppliedFooterParts ? (
+            {matchesAnalyzed !== null ? (
               <p className={styles.muted}>
-                {lastAppliedFooterParts.before}
-                <a
-                  className={`${styles.matrixRatingLink} ${styles.matrixFooterLink}`}
-                  href={lastAppliedFooterParts.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {lastAppliedFooterParts.matchId}
-                </a>
-                {lastAppliedFooterParts.after}
+                {messages.ratingsMatchesAnalyzed.replace(
+                  "{count}",
+                  String(matchesAnalyzed)
+                )}
               </p>
             ) : null}
           </div>
@@ -801,6 +790,20 @@ export default function RatingsMatrix({
             <div className={styles.matrixFooterRight}>{footerRightContent}</div>
           ) : null}
         </div>
+      ) : null}
+      {lastAppliedFooterParts ? (
+        <p className={styles.muted}>
+          {lastAppliedFooterParts.before}
+          <a
+            className={`${styles.matrixRatingLink} ${styles.matrixFooterLink}`}
+            href={lastAppliedFooterParts.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {lastAppliedFooterParts.matchId}
+          </a>
+          {lastAppliedFooterParts.after}
+        </p>
       ) : null}
     </div>
   );

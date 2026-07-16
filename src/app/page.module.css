@@ -3730,6 +3730,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
 }
 
 .matrixFooterText {
@@ -3742,9 +3743,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .matrixFooterRight {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .matrixHelpFooter {
@@ -8208,11 +8211,6 @@ html[data-theme="dark"] .spinner {
   transform: translateY(-1px);
 }
 
-.playerRowVideoLink {
-  width: 28px;
-  height: 28px;
-}
-
 .starButtonActive {
   color: #f0c84a;
   background: #fff4c2;
@@ -8853,6 +8851,12 @@ html[data-theme="dark"] .spinner {
   flex: 0 1 auto;
 }
 
+.autoSelectVideoLink {
+  width: 28px;
+  height: 28px;
+  align-self: flex-end;
+}
+
 .listHeaderControls {
   display: flex;
   align-items: flex-end;
@@ -9396,19 +9400,28 @@ html[data-theme="dark"] .spinner {
 .youthEstimateValueControl {
   position: relative;
   display: inline-flex;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+}
+
+.youthEstimateValueControl > span {
+  display: inline-flex;
+  max-width: 100%;
 }
 
 .youthEstimateValueButtonWithVideo {
-  padding-right: 38px;
+  box-sizing: border-box;
+  padding-right: 42px;
 }
 
 .youthEstimateValueVideoLink {
   position: absolute;
   top: 50%;
-  right: 4px;
-  z-index: 1;
-  width: 28px;
-  height: 28px;
+  right: 6px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
   transform: translateY(-50%);
 }
 

@@ -381,18 +381,21 @@ export default function YouTubeVideoPlayer({
         role="region"
         aria-label={messages.youtubePlayerTitle}
       >
-        <header
-          className={styles.playerHeader}
-          onPointerDown={handleDragPointerDown}
-          onPointerMove={handleDragPointerMove}
-          onPointerUp={handleDragPointerEnd}
-          onPointerCancel={handleDragPointerEnd}
-        >
-          <div className={styles.playerDragHandle}>
+        <header className={styles.playerHeader}>
+          <div
+            className={styles.playerDragHandle}
+            onPointerDown={handleDragPointerDown}
+            onPointerMove={handleDragPointerMove}
+            onPointerUp={handleDragPointerEnd}
+            onPointerCancel={handleDragPointerEnd}
+          >
             <YouTubeIcon className={styles.playerHeaderIcon} />
             <span className={styles.playerTitle}>{title}</span>
           </div>
-          <div className={styles.playerControls}>
+          <div
+            className={styles.playerControls}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
             {mobile && !minimized ? (
               <button
                 type="button"
@@ -445,11 +448,11 @@ export default function YouTubeVideoPlayer({
             <button
               type="button"
               className={styles.playerControlButton}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setAdjustMode(false);
-                  onClose();
-                }}
+              onClick={(event) => {
+                event.stopPropagation();
+                setAdjustMode(false);
+                onClose();
+              }}
               aria-label={messages.youtubePlayerClose}
             >
               ×

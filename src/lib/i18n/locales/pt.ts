@@ -8,6 +8,7 @@ export const messagesPt: Messages = {
     helpMenuOpen: "Abrir ajuda",
     helpMenuManual: "Manual",
     helpMenuChangelog: "Changelog",
+    helpMenuYouTubeChannel: "Canal do YouTube",
     changelogTitle: "Changelog",
     manualTitle: "Manual do HT Alchemy",
     manualTocTitle: "Índice",
@@ -248,6 +249,7 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_8_3_0: "Foi adicionado um link para o canal do YouTube.",
     changelog_8_2_0: "Melhorado o algoritmo de marcação individual da equipa sénior para considerar as habilidades efetivas, as especialidades dos jogadores, as penalizações de posição e as habilidades principais estimadas do adversário.",
     changelog_8_1_0: "Foram implementadas previsoes de notas para escalacoes seniores de partida.",
     changelog_8_0_0: "Calculadora de espirito de equipe implementada.",

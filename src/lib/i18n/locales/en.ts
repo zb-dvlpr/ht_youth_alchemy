@@ -8,6 +8,7 @@ export const messagesEn: Messages = {
     helpMenuOpen: "Open help",
     helpMenuManual: "Manual",
     helpMenuChangelog: "Changelog",
+    helpMenuYouTubeChannel: "YouTube Channel",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy manual",
     manualTocTitle: "Table of contents",
@@ -246,6 +247,7 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_8_3_0: "Added a link to the YouTube channel.",
     changelog_8_2_0: "Improved the senior lineup man-marking algorithm by accounting for effective skills, player specialities, positional penalties, and estimated opponent main skills.",
     changelog_8_1_0: "Implemented predicted ratings for senior match lineups.",
     changelog_8_0_0: "Implemented team spirit calculator.",

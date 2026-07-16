@@ -8,6 +8,7 @@ export const messagesDe: Messages = {
     helpMenuOpen: "Hilfe öffnen",
     helpMenuManual: "Handbuch",
     helpMenuChangelog: "Changelog",
+    helpMenuYouTubeChannel: "YouTube-Kanal",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy Handbuch",
     manualTocTitle: "Inhaltsverzeichnis",
@@ -248,6 +249,7 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_8_3_0: "Ein Link zum YouTube-Kanal wurde hinzugefügt.",
     changelog_8_2_0: "Der Manndeckungsalgorithmus für die Aufstellung der Seniorenmannschaft wurde verbessert und berücksichtigt nun effektive Fähigkeiten, Spielerspezialitäten, Positionsabzüge und geschätzte Hauptfähigkeiten des Gegners.",
     changelog_8_1_0: "Prognostizierte Ratings fuer Senioren-Spielaufstellungen wurden implementiert.",
     changelog_8_0_0: "Teamstimmungsrechner implementiert.",

@@ -8,6 +8,7 @@ export const messagesSv: Messages = {
     helpMenuOpen: "Öppna hjälp",
     helpMenuManual: "Manual",
     helpMenuChangelog: "Changelog",
+    helpMenuYouTubeChannel: "YouTube-kanal",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy-manual",
     manualTocTitle: "Innehåll",
@@ -247,6 +248,7 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_8_3_0: "En länk till YouTube-kanalen har lagts till.",
     changelog_8_2_0: "Förbättrade seniorlagets algoritm för man-markering så att den nu tar hänsyn till effektiva färdigheter, spelarspecialiteter, positionsavdrag och uppskattade huvudfärdigheter hos motståndaren.",
     changelog_8_1_0: "Prognostiserade betyg for seniora matchuppstallningar har implementerats.",
     changelog_8_0_0: "Lagandaberaknaren har implementerats.",

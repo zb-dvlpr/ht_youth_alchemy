@@ -453,8 +453,8 @@ const calculatePsicoWageAverage = (metricInput: SeniorPlayerMetricInput) => {
   ]);
 };
 
-const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
-  const values = [
+const getFootballSkillValues = (metricInput: SeniorPlayerMetricInput) =>
+  [
     metricInput.keeper,
     metricInput.defending,
     metricInput.playmaking,
@@ -467,7 +467,26 @@ const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
       typeof value === "number" && Number.isFinite(value)
   );
 
+const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
+  const values = getFootballSkillValues(metricInput);
+
   return values.length > 0 ? Math.max(...values) : null;
+};
+
+const hasUniqueHighestFootballSkill = (metricInput: SeniorPlayerMetricInput) => {
+  const values = getFootballSkillValues(metricInput);
+  if (values.length === 0) return false;
+
+  const highest = Math.max(...values);
+  let highestCount = 0;
+
+  for (const value of values) {
+    if (value !== highest) continue;
+    highestCount += 1;
+    if (highestCount > 1) return false;
+  }
+
+  return highestCount === 1;
 };
 
 export const calculateTransferSearchSkillTradingScore = (
@@ -1629,16 +1648,32 @@ const TransferSearchModal = memo(function TransferSearchModal({
   );
   const htmsPotentialFilterActive =
     hasActiveTransferSearchHtmsPotentialFilter(htmsPotentialFilter);
+  const uniqueHighestSkillRequired =
+    resultsViewMode === "cards"
+      ? sortKey === "skillTradingCandidate"
+      : tableSortColumn === "skillTrade";
+  const skillTradingEligibleResults = useMemo(() => {
+    if (!uniqueHighestSkillRequired) return displayedResults;
+
+    return displayedResults.filter((result) => {
+      const metricInput = getSortMetricInput
+        ? getSortMetricInput(result)
+        : buildTransferSearchMetricInput(result);
+      return hasUniqueHighestFootballSkill(metricInput);
+    });
+  }, [displayedResults, getSortMetricInput, uniqueHighestSkillRequired]);
+  const resultSubsetFilterActive =
+    htmsPotentialFilterActive || uniqueHighestSkillRequired;
   const displayedResultCountLabel =
-    htmsPotentialFilterActive && resultCountLabel
+    resultSubsetFilterActive && resultCountLabel
       ? messages.seniorTransferSearchResultsCount.replace(
           "{{count}}",
-          String(displayedResults.length)
+          String(skillTradingEligibleResults.length)
         )
       : resultCountLabel;
   const marketSummary = useMemo(
-    () => buildTransferSearchMarketSummary(displayedResults),
-    [displayedResults]
+    () => buildTransferSearchMarketSummary(skillTradingEligibleResults),
+    [skillTradingEligibleResults]
   );
 
   const updateDraftField = useCallback(
@@ -1891,8 +1926,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
     [messages]
   );
   const sortedResults = useMemo(() => {
-    if (sortKey === "default") return displayedResults;
-    return [...displayedResults].sort((left, right) => {
+    if (sortKey === "default") return skillTradingEligibleResults;
+    return [...skillTradingEligibleResults].sort((left, right) => {
       const leftValue = getTransferSearchSortValue(
         getSortMetricInput ? getSortMetricInput(left) : buildTransferSearchMetricInput(left),
         sortKey
@@ -1907,7 +1942,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       if (rightValue !== leftValue) return rightValue - leftValue;
       return left.playerId - right.playerId;
     });
-  }, [displayedResults, getSortMetricInput, sortKey]);
+  }, [getSortMetricInput, skillTradingEligibleResults, sortKey]);
   const handleSortChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const nextValue = event.target.value;
@@ -2856,7 +2891,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 ) : null}
                 {error ? <p className={styles.errorText}>{error}</p> : null}
-                {!loading && !error && displayedResults.length === 0 ? (
+                {!loading && !error && skillTradingEligibleResults.length === 0 ? (
                   <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
                 ) : null}
                 {resultsViewMode === "table" ? (

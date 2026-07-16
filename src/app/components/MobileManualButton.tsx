@@ -6,8 +6,10 @@ import styles from "../page.module.css";
 import type { Locale, Messages } from "@/lib/i18n";
 import type { FeedbackManagerIdentity } from "@/lib/hattrick/managerIdentity";
 import { collectFeedbackStorageMetadata } from "@/lib/storageDiagnostics";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import YouTubeLink from "./youtube/YouTubeLink";
 
 type MobileManualButtonProps = {
   messages: Messages;
@@ -227,6 +229,15 @@ export default function MobileManualButton({
           >
             {messages.helpMenuManual}
           </button>
+          <YouTubeLink
+            url={YOUTUBE_HELP_URLS.channel}
+            label={messages.helpMenuYouTubeChannel}
+            className={`${styles.feedbackLink} ${styles.helpMenuExternalLink}`}
+            iconClassName={styles.youtubeMenuIcon}
+            onActivate={() => setOpen(false)}
+          >
+            <span>{messages.helpMenuYouTubeChannel}</span>
+          </YouTubeLink>
         </div>
       ) : null}
       <Modal

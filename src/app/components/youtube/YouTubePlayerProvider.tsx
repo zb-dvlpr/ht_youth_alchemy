@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -63,6 +64,22 @@ export function YouTubePlayerProvider({
   const [dimensions, setDimensions] =
     useState<YouTubePlayerDimensions>(DEFAULT_DIMENSIONS);
   const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const root = document.documentElement;
+
+    if (activeVideo) {
+      root.dataset.youtubePlayerOpen = "true";
+    } else {
+      delete root.dataset.youtubePlayerOpen;
+    }
+
+    return () => {
+      delete root.dataset.youtubePlayerOpen;
+    };
+  }, [activeVideo]);
 
   const closeVideo = useCallback(() => {
     setActiveVideo(null);

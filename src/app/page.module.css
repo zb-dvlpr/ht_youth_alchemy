@@ -392,6 +392,33 @@ html[data-mobile-shell="true"] .scaleContainer {
   margin-bottom: 12px;
 }
 
+@media (max-width: 900px) {
+  :global(html[data-youtube-player-open="true"] main[data-app-main="true"]) {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+  }
+
+  :global(html[data-youtube-player-open="true"]) .mobileYouthMenuButton {
+    z-index: 100000;
+  }
+
+  :global(html[data-youtube-player-open="true"]) .mobileYouthMenuDropdown {
+    z-index: 99999;
+  }
+
+  :global(html[data-youtube-player-open="true"]) .confirmOverlay,
+  :global(html[data-youtube-player-open="true"]) .trainingOverlay,
+  :global(html[data-youtube-player-open="true"]) .clubChronicleHelpOverlay,
+  :global(html[data-youtube-player-open="true"]) .clubChronicleHelpCard,
+  :global(html[data-youtube-player-open="true"]) .helpOverlay,
+  :global(html[data-youtube-player-open="true"]) .helpCallout,
+  :global(html[data-youtube-player-open="true"]) .helpCard,
+  :global(html[data-youtube-player-open="true"]) .touchDragGhost {
+    z-index: 2147483646;
+  }
+}
+
 .mobileNavHeader {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

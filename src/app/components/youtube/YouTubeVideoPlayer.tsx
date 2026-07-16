@@ -371,7 +371,7 @@ export default function YouTubeVideoPlayer({
   if (!activeVideo || typeof document === "undefined") return null;
 
   const player = (
-    <div className={styles.playerPortalLayer}>
+    <div className={styles.playerPortalLayer} data-youtube-player-layer="true">
       <section
         className={styles.playerPanel}
         style={{

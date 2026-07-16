@@ -21,6 +21,16 @@ export type Messages = {
   helpMenuManual: string;
   helpMenuChangelog: string;
   helpMenuYouTubeChannel: string;
+  youtubeWatchRelatedVideo: string;
+  youtubePlayerTitle: string;
+  youtubePlayerClose: string;
+  youtubePlayerMinimize: string;
+  youtubePlayerRestore: string;
+  youtubePlayerOpenExternal: string;
+  youtubePlayerAdjust: string;
+  youtubePlayerDoneAdjusting: string;
+  youtubePlayerAdjustHint: string;
+  youtubePlayerResize: string;
   changelogTitle: string;
   manualTitle: string;
   manualTocTitle: string;

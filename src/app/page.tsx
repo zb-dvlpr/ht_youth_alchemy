@@ -26,6 +26,7 @@ import PremiumPill from "./components/PremiumPill";
 import PremiumStatusPill from "./components/PremiumStatusPill";
 import { SupporterStatusProvider } from "./components/SupporterStatusProvider";
 import { ChppPermissionsProvider } from "./components/ChppPermissionsProvider";
+import { YouTubePlayerProvider } from "./components/youtube/YouTubePlayerProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
@@ -513,6 +514,7 @@ export default async function Home({
           ) : null}
           <ChppPermissionsProvider>
           <SupporterStatusProvider isConnected={isConnected}>
+            <YouTubePlayerProvider messages={messages}>
             <AppShell
               messages={messages}
               appVersion={pkg.version}
@@ -664,6 +666,7 @@ export default async function Home({
                 initialLoadDetails={playersResponse.details ?? null}
               />
             </AppShell>
+            </YouTubePlayerProvider>
           </SupporterStatusProvider>
           </ChppPermissionsProvider>
         </div>

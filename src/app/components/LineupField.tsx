@@ -10,6 +10,7 @@ import Tooltip from "./Tooltip";
 import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
 import { useChppPermissions } from "./ChppPermissionsProvider";
 import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
+import YouTubeLink from "./youtube/YouTubeLink";
 
 export type LineupAssignments = Record<string, number | null>;
 export type LineupBehaviors = Record<string, number>;
@@ -76,7 +77,9 @@ type LineupFieldProps = {
   onRandomize?: () => void;
   onReset?: () => void;
   lineupActionsRightContent?: ReactNode;
+  titleLeadingContent?: ReactNode;
   onOptimizeSelect?: (mode: OptimizeMode) => void;
+  optimizeHelpUrls?: Partial<Record<OptimizeMode, string>>;
   tacticType?: number;
   onTacticChange?: (value: number) => void;
   tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
@@ -467,6 +470,8 @@ export default function LineupField({
   trainingTypeAriaLabel,
   optimizeDisabled = false,
   optimizeDisabledReason,
+  titleLeadingContent,
+  optimizeHelpUrls,
   forceOptimizeOpen = false,
   optimizeStarPlayerName,
   optimizePrimaryTrainingName,
@@ -916,6 +921,65 @@ export default function LineupField({
     }
     onOptimizeSelect?.(mode);
   };
+  const handleOptimizeVideoActivate = () => {
+    if (!forceOptimizeOpen) {
+      setOptimizeOpen(false);
+    }
+  };
+  const renderOptimizeHelpLink = (mode: OptimizeMode) => {
+    const url = optimizeHelpUrls?.[mode];
+    if (!url) return null;
+    return (
+      <YouTubeLink
+        url={url}
+        label={messages.youtubeWatchRelatedVideo}
+        iconOnly
+        className={styles.optimizeMenuVideoLink}
+        onActivate={handleOptimizeVideoActivate}
+      />
+    );
+  };
+  const renderOptimizeMenuAction = (
+    mode: OptimizeMode,
+    label: ReactNode,
+    options?: {
+      disabledReason?: string;
+      ariaLabel?: string;
+    }
+  ) => {
+    const helpLink = renderOptimizeHelpLink(mode);
+    const disabled = Boolean(options?.disabledReason);
+    const button = (
+      <button
+        type="button"
+        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${styles.optimizeMenuVideoAction} ${
+          disabled ? styles.optimizeMenuItemDisabled : ""
+        }`}
+        onClick={() => handleOptimizeSelect(mode)}
+        disabled={disabled}
+        aria-label={options?.ariaLabel}
+      >
+        {label}
+      </button>
+    );
+
+    if (!helpLink) return button;
+
+    const row = (
+      <span className={styles.optimizeMenuVideoRow}>
+        {button}
+        {helpLink}
+      </span>
+    );
+
+    return options?.disabledReason ? (
+      <Tooltip content={options.disabledReason} fullWidth>
+        {row}
+      </Tooltip>
+    ) : (
+      row
+    );
+  };
 
   const behaviorLabel = (value: number) => {
     switch (value) {
@@ -1012,6 +1076,7 @@ export default function LineupField({
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
         <div className={styles.fieldHeaderTitleGroup}>
+          {titleLeadingContent}
           <span>{messages.lineupTitle}</span>
           {titleNote ? <span className={styles.fieldHeaderNote}>{titleNote}</span> : null}
         </div>
@@ -1060,68 +1125,28 @@ export default function LineupField({
                   ref={optimizeMenuRef}
                   data-help-anchor="optimize-menu"
                 >
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("star")}
-                  >
-                    {optimizeStarLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("ratings")}
-                  >
-                    {messages.optimizeMenuRatings}
-                  </button>
-                  <Tooltip
-                    content={revealPrimaryCurrentDisabledReason ?? ""}
-                    disabled={!revealPrimaryCurrentDisabledReason}
-                    fullWidth
-                  >
-                    <span className={styles.optimizeMenuItemWrap}>
-                      <button
-                        type="button"
-                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
-                          revealPrimaryCurrentDisabledReason
-                            ? styles.optimizeMenuItemDisabled
-                            : ""
-                        }`}
-                        onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
-                        disabled={Boolean(revealPrimaryCurrentDisabledReason)}
-                        aria-label={
-                          revealPrimaryCurrentDisabledReason ??
-                          revealPrimaryCurrentLabel
-                        }
-                      >
-                        {revealPrimaryCurrentLabel}
-                      </button>
-                    </span>
-                  </Tooltip>
-                  <Tooltip
-                    content={revealSecondaryMaxDisabledReason ?? ""}
-                    disabled={!revealSecondaryMaxDisabledReason}
-                    fullWidth
-                  >
-                    <span className={styles.optimizeMenuItemWrap}>
-                      <button
-                        type="button"
-                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
-                          revealSecondaryMaxDisabledReason
-                            ? styles.optimizeMenuItemDisabled
-                            : ""
-                        }`}
-                        onClick={() => handleOptimizeSelect("revealSecondaryMax")}
-                        disabled={Boolean(revealSecondaryMaxDisabledReason)}
-                        aria-label={
-                          revealSecondaryMaxDisabledReason ??
-                          revealSecondaryMaxLabel
-                        }
-                      >
-                        {revealSecondaryMaxLabel}
-                      </button>
-                    </span>
-                  </Tooltip>
+                  {renderOptimizeMenuAction("star", optimizeStarLabel)}
+                  {renderOptimizeMenuAction("ratings", messages.optimizeMenuRatings)}
+                  {renderOptimizeMenuAction(
+                    "revealPrimaryCurrent",
+                    revealPrimaryCurrentLabel,
+                    {
+                      disabledReason: revealPrimaryCurrentDisabledReason,
+                      ariaLabel:
+                        revealPrimaryCurrentDisabledReason ??
+                        revealPrimaryCurrentLabel,
+                    }
+                  )}
+                  {renderOptimizeMenuAction(
+                    "revealSecondaryMax",
+                    revealSecondaryMaxLabel,
+                    {
+                      disabledReason: revealSecondaryMaxDisabledReason,
+                      ariaLabel:
+                        revealSecondaryMaxDisabledReason ??
+                        revealSecondaryMaxLabel,
+                    }
+                  )}
                   {optimizeCustomMenuContent}
                 </div>
               ) : null}

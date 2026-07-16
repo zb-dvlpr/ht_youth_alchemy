@@ -26,9 +26,11 @@ import MobileToolMenu, { type MobileToolView as YouthMobileView } from "./Mobile
 import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
+import YouTubeLink from "./youtube/YouTubeLink";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import TransferSearchModal, {
@@ -7117,37 +7119,45 @@ export default function Dashboard({
         {optimizeRevealInlineSuffixRemainder}
       </span>
       <div className={styles.optimizeMenuCustomControls}>
-        <Tooltip
-          content={optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""}
-          disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
-        >
-          <span>
-            <button
-              type="button"
-              className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
-                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-                  ? styles.optimizeMenuItemDisabled
-                  : ""
-              }`}
-              onClick={() => {
-                if (!premiumUnlocked) {
-                  openPremiumLicenseModal(youthDoubleRevealLicenseContext);
-                  return;
+        <span className={styles.optimizeMenuVideoRow}>
+          <Tooltip
+            content={optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""}
+            disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
+          >
+            <span>
+              <button
+                type="button"
+                className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${styles.optimizeMenuVideoAction} ${
+                  optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+                    ? styles.optimizeMenuItemDisabled
+                    : ""
+                }`}
+                onClick={() => {
+                  if (!premiumUnlocked) {
+                    openPremiumLicenseModal(youthDoubleRevealLicenseContext);
+                    return;
+                  }
+                  handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax");
+                }}
+                disabled={Boolean(
+                  optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+                )}
+                aria-label={
+                  optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
+                  optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
                 }
-                handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax");
-              }}
-              disabled={Boolean(
-                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-              )}
-              aria-label={
-                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
-                optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
-              }
-            >
-              {messages.optimizeRevealCombinedButton}
-            </button>
-          </span>
-        </Tooltip>
+              >
+                {messages.optimizeRevealCombinedButton}
+              </button>
+            </span>
+          </Tooltip>
+          <YouTubeLink
+            url={YOUTUBE_HELP_URLS.youthDoubleReveal}
+            label={messages.youtubeWatchRelatedVideo}
+            iconOnly
+            className={styles.optimizeMenuVideoLink}
+          />
+        </span>
       </div>
     </span>
   );
@@ -7497,29 +7507,51 @@ export default function Dashboard({
       ? messages.youthEstimateValueTooltip
       : messages.youthEstimateValuePremiumTooltip;
   const youthDetailsHeaderActions = selectedPlayer ? (
-    <Tooltip content={youthEstimateValueTooltip}>
-      <span>
-        <button
-          type="button"
-          className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton}`}
-          onClick={() => {
-            trackYouthFeatureUsed(
-              "estimate_value_clicked",
-              mobileYouthActive ? "mobile" : "desktop"
-            );
-            if (!premiumUnlocked) {
-              openPremiumLicenseModal(youthEstimateValueLicenseContext);
-              return;
-            }
-            void openYouthEstimateValueSearch();
-          }}
-          disabled={youthEstimateValueDisabled}
-        >
-          {messages.youthEstimateValueButton}
-        </button>
-      </span>
-    </Tooltip>
+    <div className={styles.youthEstimateValueControl}>
+      <Tooltip content={youthEstimateValueTooltip}>
+        <span>
+          <button
+            type="button"
+            className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton} ${styles.youthEstimateValueButtonWithVideo}`}
+            onClick={() => {
+              trackYouthFeatureUsed(
+                "estimate_value_clicked",
+                mobileYouthActive ? "mobile" : "desktop"
+              );
+              if (!premiumUnlocked) {
+                openPremiumLicenseModal(youthEstimateValueLicenseContext);
+                return;
+              }
+              void openYouthEstimateValueSearch();
+            }}
+            disabled={youthEstimateValueDisabled}
+          >
+            {messages.youthEstimateValueButton}
+          </button>
+        </span>
+      </Tooltip>
+      <YouTubeLink
+        url={YOUTUBE_HELP_URLS.youthEstimateValue}
+        label={messages.youtubeWatchRelatedVideo}
+        iconOnly
+        className={styles.youthEstimateValueVideoLink}
+      />
+    </div>
   ) : null;
+  const youthLineupTitleVideoLink = (
+    <YouTubeLink
+      url={YOUTUBE_HELP_URLS.youthLineup}
+      label={messages.youtubeWatchRelatedVideo}
+      iconOnly
+      className={styles.fieldHeaderTitleVideoLink}
+    />
+  );
+  const youthOptimizeHelpUrls = {
+    star: YOUTUBE_HELP_URLS.youthOptimizeAroundStar,
+    ratings: YOUTUBE_HELP_URLS.youthOptimizeByRatings,
+    revealPrimaryCurrent: YOUTUBE_HELP_URLS.youthRevealValue,
+    revealSecondaryMax: YOUTUBE_HELP_URLS.youthRevealValue,
+  } as const;
 
   const mobileYouthContent =
     mobileYouthPlayerScreen === "detail" ? (
@@ -7894,7 +7926,9 @@ export default function Dashboard({
           onChangeBehavior={handleBehaviorChange}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
+          titleLeadingContent={youthLineupTitleVideoLink}
           onOptimizeSelect={handleOptimizeSelect}
+          optimizeHelpUrls={youthOptimizeHelpUrls}
           tacticType={tacticType}
           onTacticChange={(value) => {
             clearPendingYouthSubmittedLineupFeature();
@@ -8637,7 +8671,9 @@ export default function Dashboard({
           onChangeBehavior={handleBehaviorChange}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
+          titleLeadingContent={youthLineupTitleVideoLink}
           onOptimizeSelect={handleOptimizeSelect}
+          optimizeHelpUrls={youthOptimizeHelpUrls}
           tacticType={tacticType}
           onTacticChange={(value) => {
             clearPendingYouthSubmittedLineupFeature();

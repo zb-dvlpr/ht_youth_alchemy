@@ -7508,8 +7508,8 @@ export default function Dashboard({
       : messages.youthEstimateValuePremiumTooltip;
   const youthDetailsHeaderActions = selectedPlayer ? (
     <div className={styles.youthEstimateValueControl}>
-      <Tooltip content={youthEstimateValueTooltip}>
-        <span className={styles.youthEstimateValueActionSegment}>
+      <span className={styles.youthEstimateValueActionSegment}>
+        <Tooltip content={youthEstimateValueTooltip}>
           <button
             type="button"
             className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton} ${styles.youthEstimateValueButtonWithVideo}`}
@@ -7528,14 +7528,16 @@ export default function Dashboard({
           >
             {messages.youthEstimateValueButton}
           </button>
-        </span>
-      </Tooltip>
-      <YouTubeLink
-        url={YOUTUBE_HELP_URLS.youthEstimateValue}
-        label={messages.youtubeWatchRelatedVideo}
-        iconOnly
-        className={styles.youthEstimateValueVideoLink}
-      />
+        </Tooltip>
+      </span>
+      <span className={styles.youthEstimateValueVideoSegment}>
+        <YouTubeLink
+          url={YOUTUBE_HELP_URLS.youthEstimateValue}
+          label={messages.youtubeWatchRelatedVideo}
+          iconOnly
+          className={styles.youthEstimateValueVideoLink}
+        />
+      </span>
     </div>
   ) : null;
   const youthLineupTitleVideoLink = (

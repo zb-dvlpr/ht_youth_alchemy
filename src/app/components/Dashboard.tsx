@@ -7509,7 +7509,7 @@ export default function Dashboard({
   const youthDetailsHeaderActions = selectedPlayer ? (
     <div className={styles.youthEstimateValueControl}>
       <Tooltip content={youthEstimateValueTooltip}>
-        <span>
+        <span className={styles.youthEstimateValueActionSegment}>
           <button
             type="button"
             className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton} ${styles.youthEstimateValueButtonWithVideo}`}

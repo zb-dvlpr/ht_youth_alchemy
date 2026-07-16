@@ -819,12 +819,6 @@ export default function YouthPlayerList({
               {sortDirection === "asc" ? "↕️" : "↕️"}
             </button>
           </Tooltip>
-          <YouTubeLink
-            url={YOUTUBE_HELP_URLS.youthStarPlayer}
-            label={messages.youtubeWatchRelatedVideo}
-            iconOnly
-            className={styles.autoSelectVideoLink}
-          />
           <Tooltip
             content={messages.autoSelectTitle}
           >
@@ -840,6 +834,12 @@ export default function YouthPlayerList({
               {messages.autoSelectLabel}
             </button>
           </Tooltip>
+          <YouTubeLink
+            url={YOUTUBE_HELP_URLS.youthStarPlayer}
+            label={messages.youtubeWatchRelatedVideo}
+            iconOnly
+            className={styles.autoSelectVideoLink}
+          />
         </div>
       </div>
       {players.length === 0 ? (

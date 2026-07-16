@@ -9398,31 +9398,52 @@ html[data-theme="dark"] .spinner {
 }
 
 .youthEstimateValueControl {
-  position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   width: max-content;
   max-width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.youthEstimateValueControl > span {
+.youthEstimateValueActionSegment {
   display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
   max-width: 100%;
 }
 
 .youthEstimateValueButtonWithVideo {
   box-sizing: border-box;
-  padding-right: 42px;
+  width: auto;
+  min-width: max-content;
+  margin: 0;
+  border-radius: 8px 0 0 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  white-space: nowrap;
 }
 
 .youthEstimateValueVideoLink {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  z-index: 2;
-  width: 26px;
-  height: 26px;
-  transform: translateY(-50%);
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 32px;
+  height: auto;
+  min-height: 100%;
+  flex: 0 0 32px;
+  margin: 0;
+  transform: none;
+  border-radius: 0 8px 8px 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+  background: #244d2b;
+  color: #fff;
+}
+
+.youthEstimateValueVideoLink:hover {
+  background: #1d3f23;
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .profileCard {

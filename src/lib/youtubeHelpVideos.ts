@@ -8,7 +8,7 @@ export const YOUTUBE_HELP_URLS = {
   youthStarPlayer: "https://youtu.be/XZ9bhMXrtGw?si=fW_IPUzyz_VL9Uya",
   youthOptimizeAroundStar: "https://youtu.be/RTyk3aq3GDE?si=zAvcd-X6yVYQJpNl",
   youthRevealValue: "https://youtu.be/Ob81rT3hzvw?si=KpP65SI91UngXC4u",
-  youthDoubleReveal: "https://youtu.be/xTe2Z9HdKXA?si=S8ngpYK-U5JDeag9",
-  youthOptimizeByRatings: "https://youtu.be/xTe2Z9HdKXA?si=8C6bt3hh8RbngUPM",
+  youthDoubleReveal: "https://youtu.be/xTe2Z9HdKXA?si=DPs6WyA0P0eUymc-",
+  youthOptimizeByRatings: "https://youtu.be/9GatuCbHcGc?si=dsjYE2L9xf9mlFOX",
   youthEstimateValue: "https://youtu.be/Lkoovjqm3c8?si=qD3c6-1PipADgqHP",
 } as const;

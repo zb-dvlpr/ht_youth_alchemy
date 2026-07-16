@@ -819,6 +819,12 @@ export default function YouthPlayerList({
               {sortDirection === "asc" ? "↕️" : "↕️"}
             </button>
           </Tooltip>
+          <YouTubeLink
+            url={YOUTUBE_HELP_URLS.youthStarPlayer}
+            label={messages.youtubeWatchRelatedVideo}
+            iconOnly
+            className={styles.autoSelectVideoLink}
+          />
           <Tooltip
             content={messages.autoSelectTitle}
           >
@@ -1004,12 +1010,6 @@ export default function YouthPlayerList({
                       ★
                     </button>
                   </Tooltip>
-                  <YouTubeLink
-                    url={YOUTUBE_HELP_URLS.youthStarPlayer}
-                    label={messages.youtubeWatchRelatedVideo}
-                    iconOnly
-                    className={styles.playerRowVideoLink}
-                  />
                   <LineupExcludeButton
                     playerName={fullName}
                     excluded={isExcluded}

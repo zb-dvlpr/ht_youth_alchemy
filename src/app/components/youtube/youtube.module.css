@@ -191,10 +191,13 @@
     right: env(safe-area-inset-right);
     bottom: env(safe-area-inset-bottom);
     left: env(safe-area-inset-left);
+    z-index: 2147483647;
+    isolation: isolate;
   }
 
   .playerPanel {
     max-width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+    z-index: 1;
   }
 
   .playerHeader {

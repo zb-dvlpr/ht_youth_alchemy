@@ -20,6 +20,12 @@
   pointer-events: auto;
 }
 
+@media (max-width: 900px) {
+  :global(html[data-youtube-player-open="true"]) .tooltip {
+    z-index: 2147483646;
+  }
+}
+
 .tooltipCard {
   background: #f7f1e3;
   border: 1px solid #d8cbb6;

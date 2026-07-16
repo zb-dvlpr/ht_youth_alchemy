@@ -28,6 +28,8 @@ import {
 } from "@/lib/currency";
 import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
 import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
+import YouTubeLink from "./youtube/YouTubeLink";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -1312,6 +1314,14 @@ export default function PlayerDetailsPanel({
                 ↻
               </button>
             </Tooltip>
+            {playerKind === "youth" ? (
+              <YouTubeLink
+                url={YOUTUBE_HELP_URLS.youthPlayerDetailsRefresh}
+                label={messages.youtubeWatchRelatedVideo}
+                iconOnly
+                className={styles.detailsNavigationVideoLink}
+              />
+            ) : null}
           </div>
         </div>
         {detailsNotice ? <div className={styles.detailsNotice}>{detailsNotice}</div> : null}
@@ -1877,8 +1887,9 @@ export default function PlayerDetailsPanel({
     const ageHeaderLabel = messages.sortAge;
 
     return (
-      <div className={styles.matrixWrapper}>
-        <table
+      <>
+        <div className={styles.matrixWrapper}>
+          <table
           className={`${styles.matrixTable} ${
             playerKind === "senior" ? styles.matrixTableSeniorCompact : ""
           }`}
@@ -2532,8 +2543,18 @@ export default function PlayerDetailsPanel({
               );
             })}
           </tbody>
-        </table>
-      </div>
+          </table>
+        </div>
+        {playerKind === "youth" ? (
+          <div className={styles.matrixHelpFooter}>
+            <YouTubeLink
+              url={YOUTUBE_HELP_URLS.youthSkillsMatrix}
+              label={messages.youtubeWatchRelatedVideo}
+              iconOnly
+            />
+          </div>
+        ) : null}
+      </>
     );
   };
 
@@ -2646,6 +2667,15 @@ export default function PlayerDetailsPanel({
           onManualRatingChange={onRatingsManualCellChange}
           manualEditedRatingsByPlayerId={ratingsManualEditsByPlayerId}
           displayCurrency={displayCurrency}
+          footerRightContent={
+            playerKind === "youth" ? (
+              <YouTubeLink
+                url={YOUTUBE_HELP_URLS.youthRatingsMatrix}
+                label={messages.youtubeWatchRelatedVideo}
+                iconOnly
+              />
+            ) : undefined
+          }
         />
       )}
     </div>

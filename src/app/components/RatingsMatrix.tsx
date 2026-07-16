@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
@@ -75,6 +75,7 @@ type RatingsMatrixProps = {
   onManualRatingChange?: (playerId: number, position: number, value: number | null) => void;
   manualEditedRatingsByPlayerId?: Record<number, Record<string, number>>;
   displayCurrency?: DisplayCurrency;
+  footerRightContent?: ReactNode;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -187,6 +188,7 @@ export default function RatingsMatrix({
   onManualRatingChange,
   manualEditedRatingsByPlayerId = {},
   displayCurrency = SEK_DISPLAY_CURRENCY,
+  footerRightContent,
 }: RatingsMatrixProps) {
   const formatDisplayCurrencyFromSek = (valueSek: number) =>
     formatSekCurrency(valueSek, displayCurrency);
@@ -777,19 +779,28 @@ export default function RatingsMatrix({
           {messages.ratingsMatchesAnalyzed.replace("{count}", String(matchesAnalyzed))}
         </p>
       ) : null}
-      {lastAppliedFooterParts ? (
-        <p className={styles.muted}>
-          {lastAppliedFooterParts.before}
-          <a
-            className={`${styles.matrixRatingLink} ${styles.matrixFooterLink}`}
-            href={lastAppliedFooterParts.href}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {lastAppliedFooterParts.matchId}
-          </a>
-          {lastAppliedFooterParts.after}
-        </p>
+      {lastAppliedFooterParts || footerRightContent ? (
+        <div className={styles.matrixFooterRow}>
+          <div className={styles.matrixFooterText}>
+            {lastAppliedFooterParts ? (
+              <p className={styles.muted}>
+                {lastAppliedFooterParts.before}
+                <a
+                  className={`${styles.matrixRatingLink} ${styles.matrixFooterLink}`}
+                  href={lastAppliedFooterParts.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {lastAppliedFooterParts.matchId}
+                </a>
+                {lastAppliedFooterParts.after}
+              </p>
+            ) : null}
+          </div>
+          {footerRightContent ? (
+            <div className={styles.matrixFooterRight}>{footerRightContent}</div>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

@@ -1,0 +1,232 @@
+.icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.iconOnlyLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.iconOnlyLink:hover {
+  background: rgba(127, 92, 46, 0.12);
+}
+
+.iconOnlyLink:focus-visible,
+.inlineLink:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.playerPortalLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5000;
+}
+
+.playerPanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  overflow: hidden;
+  border: 1px solid rgba(111, 82, 48, 0.36);
+  border-radius: 10px;
+  background: #f7f1e3;
+  color: #2f281f;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.playerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(111, 82, 48, 0.22);
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.playerDragHandle {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.playerHeaderIcon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.playerTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.playerControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.playerControlButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(111, 82, 48, 0.26);
+  border-radius: 7px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.playerControlButton:hover {
+  background: #f1e9dc;
+}
+
+.playerControlButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.playerViewport {
+  position: relative;
+  background: #000;
+}
+
+.playerViewportMinimized {
+  display: none;
+}
+
+.playerIframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 45%,
+    rgba(255, 255, 255, 0.7) 46%,
+    rgba(255, 255, 255, 0.7) 55%,
+    transparent 56%
+  );
+  cursor: nwse-resize;
+}
+
+.adjustOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.18);
+  touch-action: none;
+}
+
+.adjustHint {
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.74);
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .playerPortalLayer {
+    top: env(safe-area-inset-top);
+    right: env(safe-area-inset-right);
+    bottom: env(safe-area-inset-bottom);
+    left: env(safe-area-inset-left);
+  }
+
+  .playerPanel {
+    max-width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+  }
+
+  .playerHeader {
+    min-height: 48px;
+  }
+
+  .playerControlButton {
+    min-width: 32px;
+    height: 32px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .iconOnlyLink:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+:global(html[data-theme="dark"]) .playerPanel {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #1b1917;
+  color: #f3ede4;
+}
+
+:global(html[data-theme="dark"]) .playerHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+:global(html[data-theme="dark"]) .playerControlButton {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #2a241d;
+}
+
+:global(html[data-theme="dark"]) .playerControlButton:hover {
+  background: #332c25;
+}
+
+:global(html[data-theme="dark"]) .iconOnlyLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

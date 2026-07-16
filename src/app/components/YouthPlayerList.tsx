@@ -19,6 +19,8 @@ import { parseChppDate } from "@/lib/chpp/utils";
 import { formatDateTime } from "@/lib/datetime";
 import LineupExcludeButton from "./LineupExcludeButton";
 import { type ExcludedPlayersState, isPlayerExcluded } from "@/lib/lineupExclusions";
+import YouTubeLink from "./youtube/YouTubeLink";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -731,9 +733,16 @@ export default function YouthPlayerList({
   return (
     <div className={styles.card} data-help-anchor={dataHelpAnchor} ref={listCardRef}>
       <div className={styles.listHeader}>
-        <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
-          {messages.youthPlayerList}
-        </h2>
+        <div className={styles.listHeaderTitleGroup}>
+          <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
+            {messages.youthPlayerList}
+          </h2>
+          <YouTubeLink
+            url={YOUTUBE_HELP_URLS.youthPlayerList}
+            label={messages.youtubeWatchRelatedVideo}
+            iconOnly
+          />
+        </div>
         {showTeamSelector && youthTeams.length > 1 ? (
           <label className={styles.teamSelectControl}>
             <span className={styles.sortLabel}>{messages.youthTeamLabel}</span>
@@ -995,6 +1004,12 @@ export default function YouthPlayerList({
                       ★
                     </button>
                   </Tooltip>
+                  <YouTubeLink
+                    url={YOUTUBE_HELP_URLS.youthStarPlayer}
+                    label={messages.youtubeWatchRelatedVideo}
+                    iconOnly
+                    className={styles.playerRowVideoLink}
+                  />
                   <LineupExcludeButton
                     playerName={fullName}
                     excluded={isExcluded}

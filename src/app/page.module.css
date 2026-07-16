@@ -1628,6 +1628,25 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   position: relative;
 }
 
+.optimizeMenuVideoRow {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+
+.optimizeMenuVideoAction {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.optimizeMenuVideoLink {
+  width: 30px;
+  height: auto;
+  min-height: 30px;
+  align-self: stretch;
+}
+
 .optimizeMenuCustomWrap {
   display: grid;
   gap: 8px;
@@ -3704,6 +3723,34 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .matrixFooterLink:hover {
   color: #1d4490;
+}
+
+.matrixFooterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.matrixFooterText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.matrixFooterText .muted {
+  margin: 0;
+}
+
+.matrixFooterRight {
+  display: inline-flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.matrixHelpFooter {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 8px;
 }
 
 .matrixCellHasNew {
@@ -8161,6 +8208,11 @@ html[data-theme="dark"] .spinner {
   transform: translateY(-1px);
 }
 
+.playerRowVideoLink {
+  width: 28px;
+  height: 28px;
+}
+
 .starButtonActive {
   color: #f0c84a;
   background: #fff4c2;
@@ -8789,6 +8841,18 @@ html[data-theme="dark"] .spinner {
   flex: 1 1 100%;
 }
 
+.listHeaderTitleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.listHeaderTitleGroup .listHeaderTitle {
+  flex: 0 1 auto;
+}
+
 .listHeaderControls {
   display: flex;
   align-items: flex-end;
@@ -9316,12 +9380,36 @@ html[data-theme="dark"] .spinner {
   font-size: 13px;
 }
 
+.detailsNavigationVideoLink {
+  width: 28px;
+  height: 28px;
+}
+
 .youthEstimateValueButton {
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 12px;
   line-height: 1;
   white-space: nowrap;
+}
+
+.youthEstimateValueControl {
+  position: relative;
+  display: inline-flex;
+}
+
+.youthEstimateValueButtonWithVideo {
+  padding-right: 38px;
+}
+
+.youthEstimateValueVideoLink {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  transform: translateY(-50%);
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .profileCard {
@@ -13110,6 +13198,12 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   align-items: baseline;
   gap: 10px;
   min-width: 0;
+}
+
+.fieldHeaderTitleVideoLink {
+  width: 28px;
+  height: 28px;
+  color: #f7f1e3;
 }
 
 .fieldHeaderNote {

@@ -3750,14 +3750,14 @@ export default function ClubChronicle({
   const [tsiDetailsSortState, setTsiDetailsSortState] =
     useState<ChronicleSortState>(() =>
       readChronicleTableSortState("tsi-details", {
-        key: "playerNumber",
+        key: "playingPosition",
         direction: "asc",
       })
     );
   const [wagesDetailsSortState, setWagesDetailsSortState] =
     useState<ChronicleSortState>(() =>
       readChronicleTableSortState("wages-details", {
-        key: "playerNumber",
+        key: "playingPosition",
         direction: "asc",
       })
     );

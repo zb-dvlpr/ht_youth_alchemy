@@ -34,6 +34,10 @@
 ## Modals
 - All modal UI must use the shared modal framework/component.
 
+## Videos
+- A video request containing only a UI location and YouTube URL is complete: add the shared textless in-house YouTube icon at that logical location on both desktop and mobile, and open the supplied video through the existing in-app YouTube player.
+- Infer styling and localized accessible labeling from the surrounding UI; do not ask for further implementation details or add visible text, external links, inline embeds, generic icons, or a separate player.
+
 ## Paywalls
 - Whenever a new paywalled feature is introduced, its license modal entry must explain that specific feature in localized copy instead of showing only generic premium messaging.
 

@@ -534,6 +534,7 @@ export default async function Home({
                           className={styles.desktopHeaderVideoLinks}
                           linkClassName={styles.desktopHeaderVideoLink}
                           iconClassName={styles.desktopHeaderVideoIcon}
+                          iconVariant="tight"
                         />
                       </div>
                     </div>

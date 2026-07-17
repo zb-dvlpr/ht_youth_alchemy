@@ -3,7 +3,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import Tooltip from "../Tooltip";
 import { resolveYouTubeTarget } from "@/lib/youtube";
-import YouTubeIcon from "./YouTubeIcon";
+import YouTubeIcon, { type YouTubeIconVariant } from "./YouTubeIcon";
 import { useYouTubePlayer } from "./YouTubePlayerProvider";
 import styles from "./youtube.module.css";
 
@@ -16,6 +16,7 @@ type YouTubeLinkProps = {
   children?: ReactNode;
   onActivate?: () => void;
   mode?: "auto" | "player" | "external";
+  iconVariant?: YouTubeIconVariant;
 };
 
 const isPlainPrimaryClick = (event: MouseEvent<HTMLAnchorElement>) =>
@@ -34,6 +35,7 @@ export default function YouTubeLink({
   children,
   onActivate,
   mode = "auto",
+  iconVariant = "default",
 }: YouTubeLinkProps) {
   const { openVideo } = useYouTubePlayer();
   const target = resolveYouTubeTarget(url);
@@ -47,6 +49,7 @@ export default function YouTubeLink({
     .join(" ");
   const icon = (
     <YouTubeIcon
+      variant={iconVariant}
       className={[styles.icon, iconClassName].filter(Boolean).join(" ")}
     />
   );

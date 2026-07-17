@@ -3,6 +3,7 @@
 import type { Messages } from "@/lib/i18n";
 import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import styles from "../../page.module.css";
+import type { YouTubeIconVariant } from "./YouTubeIcon";
 import YouTubeLink from "./YouTubeLink";
 
 type AppHeaderVideoLinksProps = {
@@ -10,6 +11,7 @@ type AppHeaderVideoLinksProps = {
   className?: string;
   linkClassName?: string;
   iconClassName?: string;
+  iconVariant?: YouTubeIconVariant;
 };
 
 export default function AppHeaderVideoLinks({
@@ -17,6 +19,7 @@ export default function AppHeaderVideoLinks({
   className,
   linkClassName,
   iconClassName,
+  iconVariant = "default",
 }: AppHeaderVideoLinksProps) {
   const resolvedLinkClassName = [styles.appHeaderVideoLink, linkClassName]
     .filter(Boolean)
@@ -36,6 +39,7 @@ export default function AppHeaderVideoLinks({
         label={messages.youtubeAppOverviewVideoOne}
         iconOnly
         mode="player"
+        iconVariant={iconVariant}
         className={resolvedLinkClassName}
         iconClassName={resolvedIconClassName}
       />
@@ -44,6 +48,7 @@ export default function AppHeaderVideoLinks({
         label={messages.youtubeAppOverviewVideoTwo}
         iconOnly
         mode="player"
+        iconVariant={iconVariant}
         className={resolvedLinkClassName}
         iconClassName={resolvedIconClassName}
       />

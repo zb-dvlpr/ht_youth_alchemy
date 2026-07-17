@@ -4458,7 +4458,7 @@ export default function SeniorDashboard({
     });
   const [opponentScoutTeamSortState, setOpponentScoutTeamSortState] =
     useState<TeamScoutDetailSortState>({
-      key: "playerNumber",
+      key: "playingPosition",
       direction: "asc",
     });
   const [

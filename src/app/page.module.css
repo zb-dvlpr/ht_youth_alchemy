@@ -3020,7 +3020,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 
 .confirmCard.manualModal {
   width: min(1120px, 94vw);
-  max-height: min(88vh, 920px);
+  max-height: min(88dvh, 920px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3036,7 +3036,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   display: grid;
   grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
   gap: 24px;
-  height: min(76vh, 780px);
+  height: min(76dvh, 780px);
   overflow: hidden;
   color: #3f362c;
   line-height: 1.6;
@@ -3894,7 +3894,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   left: 50%;
   transform: translateX(-50%);
   width: min(920px, calc(100vw - 32px));
-  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
   overflow: auto;
   background: #fff;
   border-radius: 18px;
@@ -5019,7 +5019,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 .chronicleOngoingMatchEventList {
   display: grid;
   gap: 10px;
-  max-height: min(62vh, 620px);
+  max-height: min(62dvh, 620px);
   margin: 12px 0 0;
   padding: 0;
   overflow: auto;
@@ -5053,7 +5053,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 12px;
-  max-height: min(70vh, 760px);
+  max-height: min(70dvh, 760px);
   overflow: auto;
   padding-right: 4px;
 }
@@ -8998,21 +8998,27 @@ html[data-theme="dark"] .spinner {
 }
 
 .startupLoadingShell {
-  min-height: calc(100vh - 32px);
+  min-height: calc(100dvh - 32px);
   display: grid;
   place-items: center;
   padding: 32px 16px;
+  box-sizing: border-box;
   opacity: 1;
   transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
 .startupLoadingOverlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   min-height: auto;
-  padding: 24px;
-  z-index: 2147483002;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+  z-index: 2147483646;
   pointer-events: auto;
+  overflow: hidden;
   background:
     linear-gradient(180deg, rgba(247, 241, 227, 0.94), rgba(247, 241, 227, 0.9)),
     radial-gradient(circle at top, rgba(255, 255, 255, 0.9), rgba(247, 241, 227, 0.75));
@@ -9027,6 +9033,10 @@ html[data-theme="dark"] .spinner {
 
 .startupLoadingCard {
   width: min(560px, 100%);
+  max-width: 100%;
+  max-height: calc(
+    100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom))
+  );
   padding: 28px 30px 24px;
   border-radius: 24px;
   background: rgba(255, 252, 246, 0.96);
@@ -9035,6 +9045,9 @@ html[data-theme="dark"] .spinner {
   display: grid;
   gap: 18px;
   justify-items: start;
+  min-width: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
 }
 
 .startupLoadingSpinner {
@@ -10590,7 +10603,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 .transferMarketListBody {
   display: grid;
   gap: 10px;
-  max-height: min(78vh, 760px);
+  max-height: min(78dvh, 760px);
   overflow: auto;
   padding: 2px 4px 2px 0;
 }
@@ -11687,20 +11700,32 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 .confirmOverlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   background: rgba(24, 24, 24, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: auto;
   z-index: 2147483646;
 }
 
 .trainingOverlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   background: rgba(24, 24, 24, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: auto;
   z-index: 2147483646;
 }
 
@@ -11710,8 +11735,25 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   border-radius: 16px;
   padding: 18px 20px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
-  width: min(360px, 90%);
+  width: min(360px, 100%);
+  max-width: calc(100vw - max(32px, env(safe-area-inset-left) + env(safe-area-inset-right)));
+  max-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.confirmBody {
+  min-height: 0;
+  overflow: auto;
+}
+
+.confirmTitle,
+.confirmActions {
+  flex: 0 0 auto;
 }
 
 .confirmCard.watchlistModal {
@@ -11771,7 +11813,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .confirmCard.nonTraineeAssignmentDebugModal {
   width: min(1120px, 96vw);
-  max-height: min(88vh, 920px);
+  max-height: min(88dvh, 920px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -11779,8 +11821,8 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .confirmCard.seniorUpdatesModal {
   width: min(1120px, 96vw);
-  height: min(88vh, 920px);
-  max-height: min(88vh, 920px);
+  height: min(88dvh, 920px);
+  max-height: min(88dvh, 920px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -11788,7 +11830,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .confirmCard.seniorExtraTimeModal {
   width: min(1080px, 96vw);
-  max-height: min(86vh, 860px);
+  max-height: min(86dvh, 860px);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -11797,7 +11839,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
 .confirmCard.transferSearchModal {
   width: min(1180px, 96vw);
-  max-height: min(88vh, 920px);
+  max-height: min(88dvh, 920px);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -12120,13 +12162,9 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 }
 
 .confirmCard.seniorOtherOrdersModal {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
   box-sizing: border-box;
   width: min(1120px, calc(100vw - 2rem));
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -12938,8 +12976,10 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   .confirmOverlay {
     align-items: flex-start;
     overflow-y: auto;
-    padding: max(12px, env(safe-area-inset-top)) 12px
-      max(12px, env(safe-area-inset-bottom));
+    padding: max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
   }
 
   .confirmCard {
@@ -13140,8 +13180,8 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);
-    height: 92vh;
-    max-height: 92vh;
+    height: 92dvh;
+    max-height: 92dvh;
   }
 
   .seniorUpdatesGrid {
@@ -13154,7 +13194,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
 
   .confirmCard.seniorExtraTimeModal {
     width: min(96vw, 760px);
-    max-height: 90vh;
+    max-height: 90dvh;
     padding: 12px;
   }
 
@@ -13207,7 +13247,7 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
     min-width: 280px;
     min-height: 160px;
     max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
     overflow: hidden;
   }
 
@@ -13961,25 +14001,31 @@ html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupT
 .optimizerOverlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   background: rgba(20, 17, 14, 0.45);
-  display: block;
-  z-index: 60;
-  padding: 24px;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: auto;
 }
 
 .optimizerModal {
-  width: min(860px, 92vw);
-  max-height: min(78vh, 880px);
+  width: min(860px, 100%);
+  max-width: calc(100vw - max(32px, env(safe-area-inset-left) + env(safe-area-inset-right)));
+  max-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   background: #f7f3ec;
   border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  position: relative;
+  min-width: 0;
 }
 
 .optimizerModalHeader {
@@ -14720,7 +14766,7 @@ html[data-theme="dark"] .slotCardStatus {
 
   .confirmCard.transferSearchModal {
     width: min(96vw, 760px);
-    max-height: 92vh;
+    max-height: 92dvh;
   }
 
   .confirmCard.transferSearchModal.transferSearchModalTableMode {

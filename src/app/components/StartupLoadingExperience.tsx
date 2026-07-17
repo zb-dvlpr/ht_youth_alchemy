@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import styles from "../page.module.css";
 
 type StartupLoadingExperienceProps = {
@@ -16,6 +17,9 @@ type StartupLoadingExperienceProps = {
 
 const FALLBACK_PROGRESS_MAX = 94;
 const STATUS_ROTATION_MS = 900;
+const subscribeMountedSnapshot = () => () => {};
+const getClientMountedSnapshot = () => true;
+const getServerMountedSnapshot = () => false;
 
 export default function StartupLoadingExperience({
   title,
@@ -32,6 +36,11 @@ export default function StartupLoadingExperience({
     [statuses]
   );
   const [fallbackStatusIndex, setFallbackStatusIndex] = useState(0);
+  const mounted = useSyncExternalStore(
+    subscribeMountedSnapshot,
+    getClientMountedSnapshot,
+    getServerMountedSnapshot
+  );
 
   useEffect(() => {
     if (status || rotatingStatuses.length <= 1) return;
@@ -61,7 +70,7 @@ export default function StartupLoadingExperience({
           )
         : 12;
 
-  return (
+  const loadingShell = (
     <div
       className={`${styles.startupLoadingShell}${overlay ? ` ${styles.startupLoadingOverlay}` : ""}${
         fading ? ` ${styles.startupLoadingShellFading}` : ""
@@ -90,4 +99,8 @@ export default function StartupLoadingExperience({
       </div>
     </div>
   );
+
+  if (!overlay) return loadingShell;
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(loadingShell, document.body);
 }

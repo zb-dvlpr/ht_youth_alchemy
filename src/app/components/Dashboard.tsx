@@ -3522,8 +3522,10 @@ export default function Dashboard({
       let nextY = start.offsetY + deltaY;
       const rect = optimizerModalRef.current?.getBoundingClientRect();
       if (rect) {
-        const maxX = Math.max(0, window.innerWidth / 2 - rect.width / 2 - 16);
-        const maxY = Math.max(0, window.innerHeight / 2 - rect.height / 2 - 16);
+        const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+        const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+        const maxX = Math.max(0, viewportWidth / 2 - rect.width / 2 - 16);
+        const maxY = Math.max(0, viewportHeight / 2 - rect.height / 2 - 16);
         nextX = Math.max(-maxX, Math.min(maxX, nextX));
         nextY = Math.max(-maxY, Math.min(maxY, nextY));
       }
@@ -8805,7 +8807,7 @@ export default function Dashboard({
               className={styles.optimizerModal}
               ref={optimizerModalRef}
               style={{
-                transform: `translate(calc(-50% + ${optimizerDragOffset.x}px), calc(-50% + ${optimizerDragOffset.y}px))`,
+                transform: `translate(${optimizerDragOffset.x}px, ${optimizerDragOffset.y}px)`,
               }}
             >
               <div

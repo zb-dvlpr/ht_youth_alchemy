@@ -933,6 +933,8 @@ type CollectiveRatings = {
   overall: number;
 };
 
+type OpponentMatchVenuePerspective = "home" | "away" | null;
+
 type OpponentFormationRow = {
   matchId: number;
   matchType: number | null;
@@ -940,6 +942,11 @@ type OpponentFormationRow = {
   formation: string | null;
   matchDate: string | null;
   againstMyTeam: boolean;
+  homeTeamId: number | null;
+  homeTeamName: string | null;
+  awayTeamId: number | null;
+  awayTeamName: string | null;
+  opponentVenuePerspective: OpponentMatchVenuePerspective;
   tacticType: number | null;
   tacticSkill: number | null;
   ratingMidfield: number | null;
@@ -958,6 +965,86 @@ type OpponentTrackedLineupPlayer = {
   playerId: number;
   role: OpponentTrackedRole;
   name: string;
+};
+
+type OpponentMatchTeamSide = "home" | "away";
+
+type OpponentMatchTeamMetadata = {
+  teamId: number | null;
+  teamName: string | null;
+};
+
+const resolveOpponentVenuePerspective = (
+  opponentTeamId: number,
+  homeTeamId: number | null,
+  awayTeamId: number | null
+): OpponentMatchVenuePerspective => {
+  if (homeTeamId === opponentTeamId) return "home";
+  if (awayTeamId === opponentTeamId) return "away";
+  return null;
+};
+
+const readOpponentMatchTeamMetadata = (
+  team: Record<string, unknown> | null | undefined,
+  side: OpponentMatchTeamSide
+): OpponentMatchTeamMetadata => {
+  const idKey = side === "home" ? "HomeTeamID" : "AwayTeamID";
+  const nameKey = side === "home" ? "HomeTeamName" : "AwayTeamName";
+  return {
+    teamId: parseNumber(team?.[idKey] ?? team?.TeamID),
+    teamName: parseTrimmedString(team?.[nameKey] ?? team?.TeamName),
+  };
+};
+
+const resolveOpponentMatchTeamName = ({
+  teamId,
+  teamName,
+  opponentTeamId,
+  opponentName,
+  ownTeamId,
+  ownTeamName,
+}: {
+  teamId: number | null;
+  teamName: string | null;
+  opponentTeamId: number;
+  opponentName: string | null | undefined;
+  ownTeamId: number;
+  ownTeamName: string | null;
+}) => {
+  if (teamName) return teamName;
+  if (teamId === opponentTeamId) return parseTrimmedString(opponentName);
+  if (teamId === ownTeamId) return ownTeamName;
+  return null;
+};
+
+const formatAnalyzeOpponentMatchLabel = (
+  row: OpponentFormationRow,
+  messages: Messages
+) => {
+  const hasAnyTeamName = Boolean(row.homeTeamName || row.awayTeamName);
+  if (!hasAnyTeamName) {
+    return messages.analyzeOpponentMatchFallback.replace(
+      "{{matchId}}",
+      String(row.matchId)
+    );
+  }
+
+  const homeTeam = row.homeTeamName ?? messages.unknownShort;
+  const awayTeam = row.awayTeamName ?? messages.unknownShort;
+  const venue =
+    row.opponentVenuePerspective === "home"
+      ? messages.homeLabel
+      : row.opponentVenuePerspective === "away"
+        ? messages.awayLabel
+        : null;
+  const template = venue
+    ? messages.analyzeOpponentMatchDisplayTemplate
+    : messages.analyzeOpponentMatchTeamsTemplate;
+
+  return template
+    .replace("{{homeTeam}}", homeTeam)
+    .replace("{{awayTeam}}", awayTeam)
+    .replace("{{venue}}", venue ?? "");
 };
 
 type OpponentTargetMainSkillEstimateKind =
@@ -1350,6 +1437,12 @@ const parseNumber = (value: unknown): number | null => {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const parseTrimmedString = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 };
 
 const normalizeUnknownList = <T,>(value: T | T[] | null | undefined): T[] =>
@@ -16752,6 +16845,10 @@ const refreshDetailsForPlayers = async (
     }
     const teamIdValue = Number(matchesState?.data?.HattrickData?.Team?.TeamID ?? 0);
     if (!Number.isFinite(teamIdValue) || teamIdValue <= 0) return null;
+    const ownTeamNode = matchesState?.data?.HattrickData?.Team as
+      | Record<string, unknown>
+      | undefined;
+    const ownTeamName = parseTrimmedString(ownTeamNode?.TeamName);
     const selectedMatch = allMatches.find((match) => Number(match.MatchID) === matchId);
     if (!selectedMatch) return null;
     const homeTeamId = Number(selectedMatch.HomeTeam?.HomeTeamID ?? 0);
@@ -16814,6 +16911,14 @@ const refreshDetailsForPlayers = async (
         if (candidateMatchType === null || !requestedTypes.has(candidateMatchType)) {
           return null;
         }
+        const homeTeam = readOpponentMatchTeamMetadata(
+          match.HomeTeam as Record<string, unknown> | null | undefined,
+          "home"
+        );
+        const awayTeam = readOpponentMatchTeamMetadata(
+          match.AwayTeam as Record<string, unknown> | null | undefined,
+          "away"
+        );
         return {
           matchId: candidateMatchId,
           matchType: candidateMatchType,
@@ -16822,6 +16927,24 @@ const refreshDetailsForPlayers = async (
             typeof match.SourceSystem === "string" && match.SourceSystem
               ? String(match.SourceSystem)
               : "Hattrick",
+          homeTeamId: homeTeam.teamId,
+          homeTeamName: resolveOpponentMatchTeamName({
+            teamId: homeTeam.teamId,
+            teamName: homeTeam.teamName,
+            opponentTeamId,
+            opponentName,
+            ownTeamId: teamIdValue,
+            ownTeamName,
+          }),
+          awayTeamId: awayTeam.teamId,
+          awayTeamName: resolveOpponentMatchTeamName({
+            teamId: awayTeam.teamId,
+            teamName: awayTeam.teamName,
+            opponentTeamId,
+            opponentName,
+            ownTeamId: teamIdValue,
+            ownTeamName,
+          }),
         };
       })
       .filter(
@@ -16832,6 +16955,10 @@ const refreshDetailsForPlayers = async (
           matchType: number;
           matchDate: string | null;
           sourceSystem: string;
+          homeTeamId: number | null;
+          homeTeamName: string | null;
+          awayTeamId: number | null;
+          awayTeamName: string | null;
         } => Boolean(entry)
       )
       .sort(
@@ -16881,9 +17008,16 @@ const refreshDetailsForPlayers = async (
             ),
           ]);
         if (!detailsResponse.ok || detailsPayload?.error) {
+          const opponentVenuePerspective = resolveOpponentVenuePerspective(
+            opponentTeamId,
+            entry.homeTeamId,
+            entry.awayTeamId
+          );
           return {
             ...entry,
-            againstMyTeam: false,
+            againstMyTeam:
+              entry.homeTeamId === teamIdValue || entry.awayTeamId === teamIdValue,
+            opponentVenuePerspective,
             formation: null,
             tacticType: null,
             tacticSkill: null,
@@ -16900,10 +17034,33 @@ const refreshDetailsForPlayers = async (
         const match = detailsPayload?.data?.HattrickData?.Match;
         const home = match?.HomeTeam;
         const away = match?.AwayTeam;
-        const homeId = parseNumber(home?.HomeTeamID);
-        const awayId = parseNumber(away?.AwayTeamID);
+        const detailHomeTeam = readOpponentMatchTeamMetadata(home, "home");
+        const detailAwayTeam = readOpponentMatchTeamMetadata(away, "away");
+        const homeId = detailHomeTeam.teamId ?? entry.homeTeamId;
+        const awayId = detailAwayTeam.teamId ?? entry.awayTeamId;
+        const homeTeamName = resolveOpponentMatchTeamName({
+          teamId: homeId,
+          teamName: detailHomeTeam.teamName ?? entry.homeTeamName,
+          opponentTeamId,
+          opponentName,
+          ownTeamId: teamIdValue,
+          ownTeamName,
+        });
+        const awayTeamName = resolveOpponentMatchTeamName({
+          teamId: awayId,
+          teamName: detailAwayTeam.teamName ?? entry.awayTeamName,
+          opponentTeamId,
+          opponentName,
+          ownTeamId: teamIdValue,
+          ownTeamName,
+        });
         const againstMyTeam = homeId === teamIdValue || awayId === teamIdValue;
         const isOpponentHome = homeId === opponentTeamId;
+        const opponentVenuePerspective = resolveOpponentVenuePerspective(
+          opponentTeamId,
+          homeId,
+          awayId
+        );
         const trackedPlayers = lineupResponse.ok && !lineupPayload?.error
           ? normalizeUnknownList(
               lineupPayload?.data?.HattrickData?.Team?.StartingLineup?.Player as
@@ -16943,6 +17100,11 @@ const refreshDetailsForPlayers = async (
         return {
           ...entry,
           againstMyTeam,
+          homeTeamId: homeId,
+          homeTeamName,
+          awayTeamId: awayId,
+          awayTeamName,
+          opponentVenuePerspective,
           formation: isOpponentHome
             ? typeof home?.Formation === "string"
               ? String(home.Formation)
@@ -24040,7 +24202,7 @@ const refreshDetailsForPlayers = async (
                   <table className={styles.opponentFormationsTable}>
                     <thead>
                       <tr>
-                        <th>{messages.analyzeOpponentMatchId}</th>
+                        <th>{messages.analyzeOpponentMatchColumn}</th>
                         <th>{messages.clubChronicleTransferHistoryDateColumn}</th>
                         <th>{messages.analyzeOpponentMatchType}</th>
                         <th>{messages.analyzeOpponentFormationColumn}</th>
@@ -24052,6 +24214,10 @@ const refreshDetailsForPlayers = async (
                       {opponentAnalysisModal.opponentRows.map((row) => {
                         const sectorRatings = opponentSectorRatings(row);
                         const foxtrickHatstats = computeFoxtrickHatstats(row);
+                        const matchDisplayLabel = formatAnalyzeOpponentMatchLabel(
+                          row,
+                          messages
+                        );
                         return (
                           <tr key={row.matchId}>
                             <td className={styles.opponentFormationsMatchIdCell}>
@@ -24064,7 +24230,7 @@ const refreshDetailsForPlayers = async (
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                {row.matchId}
+                                {matchDisplayLabel}
                                 {row.againstMyTeam ? "*" : ""}
                               </a>
                             </td>
@@ -24503,37 +24669,44 @@ const refreshDetailsForPlayers = async (
                           </tr>
                         </thead>
                         <tbody>
-                          {opponentFormationsModal.opponentRows.map((row) => (
-                            <tr key={row.matchId}>
-                              <td className={styles.opponentFormationsMatchIdCell}>
-                                <a
-                                  className={styles.chroniclePressLink}
-                                  href={hattrickMatchUrlWithSourceSystem(
-                                    row.matchId,
-                                    row.sourceSystem
+                          {opponentFormationsModal.opponentRows.map((row) => {
+                            const matchDisplayLabel = formatAnalyzeOpponentMatchLabel(
+                              row,
+                              messages
+                            );
+                            return (
+                              <tr key={row.matchId}>
+                                <td className={styles.opponentFormationsMatchIdCell}>
+                                  <a
+                                    className={styles.chroniclePressLink}
+                                    href={hattrickMatchUrlWithSourceSystem(
+                                      row.matchId,
+                                      row.sourceSystem
+                                    )}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {matchDisplayLabel}
+                                    {row.againstMyTeam ? "*" : ""}
+                                  </a>
+                                </td>
+                                <td>
+                                  {(() => {
+                                    const parsedDate = parseChppDate(row.matchDate);
+                                    return parsedDate
+                                      ? formatDateTime(parsedDate)
+                                      : messages.unknownDate;
+                                  })()}
+                                </td>
+                                <td>{matchTypeLabel(row.matchType)}</td>
+                                <td>{row.formation ?? messages.unknownShort}</td>
+                                <td>
+                                  {renderOpponentTrackedLineup(
+                                    row,
+                                    opponentFormationsModal.potentialManMarkingTargets,
+                                    opponentFormationsModal.manMarkingTarget
                                   )}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {row.matchId}
-                                  {row.againstMyTeam ? "*" : ""}
-                                </a>
-                              </td>
-                              <td>
-                                {(() => {
-                                  const parsedDate = parseChppDate(row.matchDate);
-                                  return parsedDate ? formatDateTime(parsedDate) : messages.unknownDate;
-                                })()}
-                              </td>
-                              <td>{matchTypeLabel(row.matchType)}</td>
-                              <td>{row.formation ?? messages.unknownShort}</td>
-                              <td>
-                                {renderOpponentTrackedLineup(
-                                  row,
-                                  opponentFormationsModal.potentialManMarkingTargets,
-                                  opponentFormationsModal.manMarkingTarget
-                                )}
-                              </td>
+                                </td>
                               <td className={styles.opponentFormationsNumberCell}>
                                 {row.formation === opponentFormationsModal.chosenFormation
                                   ? row.ratingMidfield ?? messages.unknownShort
@@ -24570,7 +24743,8 @@ const refreshDetailsForPlayers = async (
                                   : "—"}
                               </td>
                             </tr>
-                          ))}
+                            );
+                          })}
                           {opponentFormationsModal.chosenFormationAverages ? (
                             <tr className={styles.opponentFormationsAverageRow}>
                               <td colSpan={5}>

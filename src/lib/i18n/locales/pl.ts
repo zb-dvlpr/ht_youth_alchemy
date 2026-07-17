@@ -1391,6 +1391,11 @@ export const messagesPl: Messages = {
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
   analyzeOpponentMatchId: "ID meczu",
+  analyzeOpponentMatchColumn: "Mecz",
+  analyzeOpponentMatchTeamsTemplate: "{{homeTeam}} vs. {{awayTeam}}",
+  analyzeOpponentMatchDisplayTemplate:
+    "{{homeTeam}} vs. {{awayTeam}} ({{venue}})",
+  analyzeOpponentMatchFallback: "Mecz {{matchId}}",
   analyzeOpponentMatchType: "Typ meczu",
   analyzeOpponentFormationColumn: "Formacja",
   analyzeOpponentTacticColumn: "Taktyka",

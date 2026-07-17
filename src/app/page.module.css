@@ -231,6 +231,19 @@ html[data-mobile-shell="true"] .scaleContainer {
   align-self: center;
 }
 
+.headerStatusVideoCluster {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.desktopHeaderVideoLinks {
+  align-items: flex-end;
+  gap: 4px;
+  align-self: flex-end;
+}
+
 .appHeaderVideoLink {
   width: 26px;
   height: 26px;
@@ -240,6 +253,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   width: 17px;
   height: 17px;
   flex-basis: 17px;
+}
+
+.desktopHeaderVideoLink {
+  align-items: flex-end;
+  width: 22px;
+  height: 24px;
+  flex-basis: 22px;
+  box-sizing: border-box;
+}
+
+.desktopHeaderVideoIcon {
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
 }
 
 .brandTitle {
@@ -1496,6 +1523,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 .sidebarCollapsed {
   width: 84px;
   padding-inline: 6px;
+  box-sizing: border-box;
 }
 
 .sidebarHeader {
@@ -1541,17 +1569,45 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 }
 
 .sidebarToolEntryCollapsed {
-  gap: 4px;
+  display: grid;
+  grid-template-columns: 40px 22px;
+  align-items: center;
+  column-gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sidebarToolEntryCollapsed .sidebarItem {
-  justify-content: center;
-  padding-inline: 2px;
+  width: 40px;
+  min-width: 40px;
+  height: 42px;
+  justify-content: flex-start;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
-.sidebarToolEntry > :first-child {
+.sidebarToolPrimary {
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.sidebarToolAccessory {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.sidebarToolEntryCollapsed .sidebarToolPrimary {
+  width: 40px;
+  min-width: 40px;
+  flex: 0 0 40px;
+}
+
+.sidebarToolEntryCollapsed .sidebarToolAccessory {
+  width: 22px;
+  min-width: 22px;
 }
 
 .sidebarToolVideoLink {
@@ -1564,6 +1620,19 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   width: 17px;
   height: 17px;
   flex-basis: 17px;
+}
+
+.sidebarToolEntryCollapsed .sidebarToolVideoLink {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+  background: transparent;
+}
+
+.sidebarToolEntryCollapsed .sidebarToolVideoIcon {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
 }
 
 .sidebarItem {

@@ -523,12 +523,19 @@ export default async function Home({
                     <div className={styles.brandRow}>
                       <span className={styles.brandTitle}>{messages.brandTitle}</span>
                       <span className={styles.version}>v{pkg.version}</span>
-                      {premiumLicensingEnabled ? (
-                        <PremiumPill messages={messages} />
-                      ) : (
-                        <PremiumStatusPill messages={messages} />
-                      )}
-                      <AppHeaderVideoLinks messages={messages} />
+                      <div className={styles.headerStatusVideoCluster}>
+                        {premiumLicensingEnabled ? (
+                          <PremiumPill messages={messages} />
+                        ) : (
+                          <PremiumStatusPill messages={messages} />
+                        )}
+                        <AppHeaderVideoLinks
+                          messages={messages}
+                          className={styles.desktopHeaderVideoLinks}
+                          linkClassName={styles.desktopHeaderVideoLink}
+                          iconClassName={styles.desktopHeaderVideoIcon}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className={styles.mobileLauncherHeader}>

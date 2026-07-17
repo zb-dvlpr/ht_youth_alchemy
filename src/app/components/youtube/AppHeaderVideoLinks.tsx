@@ -8,12 +8,23 @@ import YouTubeLink from "./YouTubeLink";
 type AppHeaderVideoLinksProps = {
   messages: Messages;
   className?: string;
+  linkClassName?: string;
+  iconClassName?: string;
 };
 
 export default function AppHeaderVideoLinks({
   messages,
   className,
+  linkClassName,
+  iconClassName,
 }: AppHeaderVideoLinksProps) {
+  const resolvedLinkClassName = [styles.appHeaderVideoLink, linkClassName]
+    .filter(Boolean)
+    .join(" ");
+  const resolvedIconClassName = [styles.appHeaderVideoIcon, iconClassName]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div
       className={[styles.appHeaderVideoLinks, className]
@@ -25,16 +36,16 @@ export default function AppHeaderVideoLinks({
         label={messages.youtubeAppOverviewVideoOne}
         iconOnly
         mode="player"
-        className={styles.appHeaderVideoLink}
-        iconClassName={styles.appHeaderVideoIcon}
+        className={resolvedLinkClassName}
+        iconClassName={resolvedIconClassName}
       />
       <YouTubeLink
         url={YOUTUBE_HELP_URLS.appOverviewSecondary}
         label={messages.youtubeAppOverviewVideoTwo}
         iconOnly
         mode="player"
-        className={styles.appHeaderVideoLink}
-        iconClassName={styles.appHeaderVideoIcon}
+        className={resolvedLinkClassName}
+        iconClassName={resolvedIconClassName}
       />
     </div>
   );

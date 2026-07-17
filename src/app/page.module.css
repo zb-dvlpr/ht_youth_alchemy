@@ -255,18 +255,20 @@ html[data-mobile-shell="true"] .scaleContainer {
   flex-basis: 17px;
 }
 
-.desktopHeaderVideoLink {
-  align-items: flex-end;
+.desktopHeaderVideoLinks .desktopHeaderVideoLink {
+  display: grid;
+  place-items: end center;
   width: 22px;
   height: 24px;
-  flex-basis: 22px;
+  flex: 0 0 22px;
   box-sizing: border-box;
 }
 
-.desktopHeaderVideoIcon {
+.desktopHeaderVideoLinks .desktopHeaderVideoIcon {
+  display: block;
   width: 15px;
-  height: 15px;
-  flex-basis: 15px;
+  height: auto;
+  flex: none;
 }
 
 .brandTitle {

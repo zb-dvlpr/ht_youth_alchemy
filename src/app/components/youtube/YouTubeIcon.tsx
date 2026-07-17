@@ -1,12 +1,20 @@
+export type YouTubeIconVariant = "default" | "tight";
+
 type YouTubeIconProps = {
   className?: string;
+  variant?: YouTubeIconVariant;
 };
 
-export default function YouTubeIcon({ className }: YouTubeIconProps) {
+export default function YouTubeIcon({
+  className,
+  variant = "default",
+}: YouTubeIconProps) {
+  const viewBox = variant === "tight" ? "2 5 20 14" : "0 0 24 24";
+
   return (
     <svg
       className={className}
-      viewBox="0 0 24 24"
+      viewBox={viewBox}
       aria-hidden="true"
       focusable="false"
     >

@@ -1945,6 +1945,11 @@ export const messagesEn: Messages = {
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",
     analyzeOpponentMatchId: "Match ID",
+    analyzeOpponentMatchColumn: "Match",
+    analyzeOpponentMatchTeamsTemplate: "{{homeTeam}} vs. {{awayTeam}}",
+    analyzeOpponentMatchDisplayTemplate:
+      "{{homeTeam}} vs. {{awayTeam}} ({{venue}})",
+    analyzeOpponentMatchFallback: "Match {{matchId}}",
     analyzeOpponentMatchType: "Match type",
     analyzeOpponentFormationColumn: "Formation",
     analyzeOpponentTacticColumn: "Tactic",

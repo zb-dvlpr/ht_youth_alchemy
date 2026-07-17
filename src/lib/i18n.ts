@@ -1556,6 +1556,10 @@ export type Messages = {
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;
   analyzeOpponentMatchId: string;
+  analyzeOpponentMatchColumn: string;
+  analyzeOpponentMatchTeamsTemplate: string;
+  analyzeOpponentMatchDisplayTemplate: string;
+  analyzeOpponentMatchFallback: string;
   analyzeOpponentMatchType: string;
   analyzeOpponentFormationColumn: string;
   analyzeOpponentTacticColumn: string;

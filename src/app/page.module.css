@@ -5587,7 +5587,11 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 }
 
 .opponentFormationsMatchIdCell {
+  min-width: 240px;
+  max-width: 360px;
   font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .opponentFormationsNumberCell {

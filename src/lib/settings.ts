@@ -38,9 +38,6 @@ export const YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY =
 export const DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY =
   "ya_debug_supporter_override_v1";
 export const DEBUG_SUPPORTER_OVERRIDE_EVENT = "ya:debug-supporter-override";
-export const GENERAL_SETTINGS_STORAGE_KEY = "ya_general_enable_scaling_v1";
-export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
-export const DEFAULT_GENERAL_ENABLE_SCALING = false;
 export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
 export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
 
@@ -735,17 +732,4 @@ export function writeDebugSupporterOverride(value: boolean): void {
     // ignore storage errors
   }
   window.dispatchEvent(new CustomEvent(DEBUG_SUPPORTER_OVERRIDE_EVENT));
-}
-
-export function readGeneralEnableScaling(): boolean {
-  if (typeof window === "undefined") {
-    return DEFAULT_GENERAL_ENABLE_SCALING;
-  }
-  try {
-    const stored = window.localStorage.getItem(GENERAL_SETTINGS_STORAGE_KEY);
-    if (stored === null) return DEFAULT_GENERAL_ENABLE_SCALING;
-    return stored === "true";
-  } catch {
-    return DEFAULT_GENERAL_ENABLE_SCALING;
-  }
 }

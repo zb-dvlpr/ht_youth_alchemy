@@ -27,6 +27,10 @@ export type LocalStorageUsageSummaryEntry = {
 
 const STORAGE_HOUSEKEEPING_LAST_RUN_KEY = "ya_storage_housekeeping_last_run_v1";
 
+const RETIRED_LOCAL_STORAGE_KEYS = [
+  "ya_general_enable_scaling_v1",
+] as const;
+
 const STORAGE_KEY_FAMILIES: StorageKeyFamilySpec[] = [
   {
     familyId: "clubChronicleCache",
@@ -98,6 +102,26 @@ export function runStorageHousekeeping(): StorageHousekeepingResult {
     return result;
   }
 
+  const removedKeySet = new Set<string>();
+
+  RETIRED_LOCAL_STORAGE_KEYS.forEach((key) => {
+    if (!keys.includes(key)) return;
+
+    try {
+      window.localStorage.removeItem(key);
+      removedKeySet.add(key);
+      result.removedKeys.push(key);
+    } catch (error) {
+      result.errors.push({
+        key,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Could not remove retired localStorage key.",
+      });
+    }
+  });
+
   STORAGE_KEY_FAMILIES.forEach((spec) => {
     const parsedKeys = keys.flatMap((key) => {
       const parsed = parseStorageKeyForFamily(key, spec);
@@ -108,6 +132,7 @@ export function runStorageHousekeeping(): StorageHousekeepingResult {
     );
 
     parsedKeys.forEach((item) => {
+      if (removedKeySet.has(item.key)) return;
       const shouldPreserveOnlyLegacy =
         spec.preserveIfNoCurrentKey && !hasCurrentKey;
       const shouldRemove =
@@ -118,6 +143,7 @@ export function runStorageHousekeeping(): StorageHousekeepingResult {
       }
       try {
         window.localStorage.removeItem(item.key);
+        removedKeySet.add(item.key);
         result.removedKeys.push(item.key);
       } catch (error) {
         result.errors.push({

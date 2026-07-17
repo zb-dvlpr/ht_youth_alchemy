@@ -8,7 +8,6 @@ import NotificationCenter from "./components/notifications/NotificationCenter";
 import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
 import HelpToggleButton from "./components/HelpToggleButton";
 import ThemeToggle from "./components/ThemeToggle";
-import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
 import SettingsButton from "./components/SettingsButton";
 import SeasonBootstrap from "./components/SeasonBootstrap";
@@ -505,9 +504,8 @@ export default async function Home({
 
   return (
     <main className={styles.main} data-app-main="true">
-      <ViewportScaler />
       <NotificationsProvider>
-        <div className={styles.scaleContainer} data-scale-container="true">
+        <div className={styles.scaleContainer}>
           <SeasonBootstrap season={managerResponse.season ?? null} />
           {process.env.NODE_ENV !== "production" ? (
             <SeniorMlBackfillBootstrap />

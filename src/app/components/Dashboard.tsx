@@ -3552,15 +3552,9 @@ export default function Dashboard({
     const computeCallouts = () => {
       const root = dashboardRef.current;
       if (!root) return;
-      const scaleValue =
-        Number.parseFloat(
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--ui-scale"
-          )
-        ) || 1;
       const rootRect = root.getBoundingClientRect();
-      const rootWidth = rootRect.width / scaleValue;
-      const rootHeight = rootRect.height / scaleValue;
+      const rootWidth = rootRect.width;
+      const rootHeight = rootRect.height;
       const targets: Array<{
         id: string;
         selector: string;
@@ -3621,7 +3615,7 @@ export default function Dashboard({
         textSpan.textContent = text;
         probe.appendChild(textSpan);
         root.appendChild(probe);
-        const width = probe.getBoundingClientRect().width / scaleValue;
+        const width = probe.getBoundingClientRect().width;
         probe.remove();
         return Math.min(width, CALL_OUT_MAX_WIDTH);
       };
@@ -3630,10 +3624,10 @@ export default function Dashboard({
         const el = root.querySelector(target.selector) as HTMLElement | null;
         if (!el) return [];
         const rect = el.getBoundingClientRect();
-        const rectLeft = (rect.left - rootRect.left) / scaleValue;
-        const rectTop = (rect.top - rootRect.top) / scaleValue;
-        const rectWidth = rect.width / scaleValue;
-        const rectHeight = rect.height / scaleValue;
+        const rectLeft = rect.left - rootRect.left;
+        const rectTop = rect.top - rootRect.top;
+        const rectWidth = rect.width;
+        const rectHeight = rect.height;
         const centerX = rectLeft + rectWidth / 2;
         const centerY = rectTop + rectHeight / 2;
         let left = centerX;

@@ -10,7 +10,7 @@ export default async function Loading() {
 
   return (
     <main className={styles.main} data-app-main="true">
-      <div className={styles.scaleContainer} data-scale-container="true">
+      <div className={styles.scaleContainer}>
         <StartupLoadingExperience
           title={messages.startupLoadingTitle}
           subtitle={messages.startupLoadingSubtitle}

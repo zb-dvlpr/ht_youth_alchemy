@@ -1798,28 +1798,41 @@ export default function AppShell({
                     collapsed ? styles.sidebarToolEntryCollapsed : ""
                   }`}
                 >
-                  {renderToolButton(tool)}
-                  {tool.id === "senior" ? (
-                    <YouTubeLink
-                      url={YOUTUBE_HELP_URLS.seniorSquadOptimization}
-                      label={messages.youtubeSeniorSquadOptimizationVideo}
-                      iconOnly
-                      mode="player"
-                      className={styles.sidebarToolVideoLink}
-                      iconClassName={styles.sidebarToolVideoIcon}
-                    />
-                  ) : null}
+                  <div className={styles.sidebarToolPrimary}>
+                    {renderToolButton(tool)}
+                  </div>
+                  <div className={styles.sidebarToolAccessory}>
+                    {tool.id === "senior" ? (
+                      <YouTubeLink
+                        url={YOUTUBE_HELP_URLS.seniorSquadOptimization}
+                        label={messages.youtubeSeniorSquadOptimizationVideo}
+                        iconOnly
+                        mode="player"
+                        className={styles.sidebarToolVideoLink}
+                        iconClassName={styles.sidebarToolVideoIcon}
+                      />
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))}
             <div className={styles.sidebarItemWrap}>
-              {collapsed ? (
-                <Tooltip content={messages.supportOnKofi} fullWidth>
-                  {kofiButton}
-                </Tooltip>
-              ) : (
-                kofiButton
-              )}
+              <div
+                className={`${styles.sidebarToolEntry} ${
+                  collapsed ? styles.sidebarToolEntryCollapsed : ""
+                }`}
+              >
+                <div className={styles.sidebarToolPrimary}>
+                  {collapsed ? (
+                    <Tooltip content={messages.supportOnKofi} fullWidth>
+                      {kofiButton}
+                    </Tooltip>
+                  ) : (
+                    kofiButton
+                  )}
+                </div>
+                <div className={styles.sidebarToolAccessory} />
+              </div>
             </div>
           </nav>
         </aside>

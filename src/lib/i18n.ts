@@ -31,6 +31,10 @@ export type Messages = {
   youtubePlayerDoneAdjusting: string;
   youtubePlayerAdjustHint: string;
   youtubePlayerResize: string;
+  youtubeAppOverviewVideoOne: string;
+  youtubeAppOverviewVideoTwo: string;
+  youtubeSeniorSquadOptimizationVideo: string;
+  youtubeSeniorEditSkillsAgeWageTsiVideo: string;
   changelogTitle: string;
   manualTitle: string;
   manualTocTitle: string;

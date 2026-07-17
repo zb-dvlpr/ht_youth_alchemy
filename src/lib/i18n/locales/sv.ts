@@ -20,6 +20,12 @@ export const messagesSv: Messages = {
     youtubePlayerAdjustHint:
       "Dra för att flytta. Nyp för att ändra storlek.",
     youtubePlayerResize: "Ändra videons storlek",
+    youtubeAppOverviewVideoOne: "Titta på översiktsvideo 1 för Hattrick Alchemy",
+    youtubeAppOverviewVideoTwo: "Titta på översiktsvideo 2 för Hattrick Alchemy",
+    youtubeSeniorSquadOptimizationVideo:
+      "Titta på video om seniortruppoptimering",
+    youtubeSeniorEditSkillsAgeWageTsiVideo:
+      "Titta på video om att redigera färdigheter, ålder, lön och TSI",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy-manual",
     manualTocTitle: "Innehåll",

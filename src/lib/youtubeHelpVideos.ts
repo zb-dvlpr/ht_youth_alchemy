@@ -1,5 +1,9 @@
 export const YOUTUBE_HELP_URLS = {
   channel: "https://www.youtube.com/@HTAlchemy",
+  appOverviewPrimary: "https://youtu.be/F6VktgCdv70?si=adPz2TfVXnO1LJgq",
+  appOverviewSecondary: "https://youtu.be/AqVE3A3KREA?si=BrsEs0pk3f9WrMan",
+  seniorSquadOptimization: "https://youtu.be/dGr88GEj6kA?si=wpp-bp0BLyY8_X44",
+  seniorEditSkillsAgeWageTsi: "https://youtu.be/2dMgmGJi2OA?si=LlqoDaZTZOK4BfWF",
   youthPlayerList: "https://youtu.be/w7XPrWDktLc?si=wMS-7EUd02BrFxeN",
   youthPlayerDetailsRefresh: "https://youtu.be/0V172HmzmTM?si=1yUzSkKrrfiBWw5f",
   youthSkillsMatrix: "https://youtu.be/ujxpCkRXBws?si=S7SsdGs81qXXuYY5",

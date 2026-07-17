@@ -25,6 +25,8 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
 import VersionUpdateGate from "./VersionUpdateGate";
+import AppHeaderVideoLinks from "./youtube/AppHeaderVideoLinks";
+import YouTubeLink from "./youtube/YouTubeLink";
 import { TransferMarketActionBarSlotProvider } from "./TransferMarketActionBarSlot";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
@@ -48,6 +50,7 @@ import {
   MOBILE_LAUNCHER_REQUEST_EVENT,
 } from "@/lib/mobileShellEvents";
 import { runStartupStorageHousekeeping } from "@/lib/storageHousekeeping";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import {
   dismissReminder,
   resolveReminderEvaluation,
@@ -1652,6 +1655,7 @@ export default function AppShell({
           messages={messages}
           className={styles.mobileNavPremiumPill}
         />
+        <AppHeaderVideoLinks messages={messages} />
       </div>
       <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
         <button
@@ -1789,7 +1793,23 @@ export default function AppShell({
           <nav className={styles.sidebarNav}>
             {tools.map((tool) => (
               <div key={tool.id} className={styles.sidebarItemWrap}>
-                {renderToolButton(tool)}
+                <div
+                  className={`${styles.sidebarToolEntry} ${
+                    collapsed ? styles.sidebarToolEntryCollapsed : ""
+                  }`}
+                >
+                  {renderToolButton(tool)}
+                  {tool.id === "senior" ? (
+                    <YouTubeLink
+                      url={YOUTUBE_HELP_URLS.seniorSquadOptimization}
+                      label={messages.youtubeSeniorSquadOptimizationVideo}
+                      iconOnly
+                      mode="player"
+                      className={styles.sidebarToolVideoLink}
+                      iconClassName={styles.sidebarToolVideoIcon}
+                    />
+                  ) : null}
+                </div>
               </div>
             ))}
             <div className={styles.sidebarItemWrap}>
@@ -1958,18 +1978,29 @@ export default function AppShell({
             <div className={styles.mobileLauncher}>
               <div className={styles.mobileLauncherGrid}>
                 {tools.map((tool) => (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    className={styles.mobileLauncherToolCard}
-                    onClick={() => handleSelectTool(tool.id, "mobile_launcher")}
-                    aria-label={tool.label}
-                  >
-                    <span className={styles.mobileLauncherToolIcon} aria-hidden="true">
-                      {tool.badge ? `${tool.badge}${tool.icon}` : tool.icon}
-                    </span>
-                    <span className={styles.mobileLauncherToolLabel}>{tool.label}</span>
-                  </button>
+                  <div key={tool.id} className={styles.mobileLauncherToolCardWrap}>
+                    <button
+                      type="button"
+                      className={styles.mobileLauncherToolCard}
+                      onClick={() => handleSelectTool(tool.id, "mobile_launcher")}
+                      aria-label={tool.label}
+                    >
+                      <span className={styles.mobileLauncherToolIcon} aria-hidden="true">
+                        {tool.badge ? `${tool.badge}${tool.icon}` : tool.icon}
+                      </span>
+                      <span className={styles.mobileLauncherToolLabel}>{tool.label}</span>
+                    </button>
+                    {tool.id === "senior" ? (
+                      <YouTubeLink
+                        url={YOUTUBE_HELP_URLS.seniorSquadOptimization}
+                        label={messages.youtubeSeniorSquadOptimizationVideo}
+                        iconOnly
+                        mode="player"
+                        className={styles.mobileLauncherToolVideoLink}
+                        iconClassName={styles.mobileLauncherToolVideoIcon}
+                      />
+                    ) : null}
+                  </div>
                 ))}
               </div>
               {mobileLauncherUtility ? (

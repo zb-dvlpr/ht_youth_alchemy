@@ -20,6 +20,12 @@ export const messagesEs: Messages = {
     youtubePlayerAdjustHint:
       "Arrastra para mover. Pellizca para cambiar el tamaño.",
     youtubePlayerResize: "Cambiar el tamaño del vídeo",
+    youtubeAppOverviewVideoOne: "Ver el vídeo general de Hattrick Alchemy 1",
+    youtubeAppOverviewVideoTwo: "Ver el vídeo general de Hattrick Alchemy 2",
+    youtubeSeniorSquadOptimizationVideo:
+      "Ver el vídeo de optimización de la plantilla senior",
+    youtubeSeniorEditSkillsAgeWageTsiVideo:
+      "Ver el vídeo de Editar habilidades, edad, salario y TSI",
     changelogTitle: "Changelog",
     manualTitle: "Manual de HT Alchemy",
     manualTocTitle: "Índice",

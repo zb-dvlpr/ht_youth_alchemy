@@ -20,6 +20,12 @@ export const messagesDe: Messages = {
     youtubePlayerAdjustHint:
       "Zum Verschieben ziehen. Zum Skalieren mit zwei Fingern auf- oder zuziehen.",
     youtubePlayerResize: "Video skalieren",
+    youtubeAppOverviewVideoOne: "Hattrick-Alchemy-Übersichtsvideo 1 ansehen",
+    youtubeAppOverviewVideoTwo: "Hattrick-Alchemy-Übersichtsvideo 2 ansehen",
+    youtubeSeniorSquadOptimizationVideo:
+      "Video zur Senior-Kaderoptimierung ansehen",
+    youtubeSeniorEditSkillsAgeWageTsiVideo:
+      "Video zu Fähigkeiten, Alter, Gehalt und TSI bearbeiten ansehen",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy Handbuch",
     manualTocTitle: "Inhaltsverzeichnis",

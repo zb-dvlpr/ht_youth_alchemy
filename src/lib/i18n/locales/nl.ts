@@ -21,6 +21,12 @@ export const messagesNl: Messages = {
   youtubePlayerAdjustHint:
     "Sleep om te verplaatsen. Knijp om het formaat te wijzigen.",
   youtubePlayerResize: "Videoformaat wijzigen",
+  youtubeAppOverviewVideoOne: "Bekijk Hattrick Alchemy-overzichtsvideo 1",
+  youtubeAppOverviewVideoTwo: "Bekijk Hattrick Alchemy-overzichtsvideo 2",
+  youtubeSeniorSquadOptimizationVideo:
+    "Bekijk video over seniorselectie-optimalisatie",
+  youtubeSeniorEditSkillsAgeWageTsiVideo:
+    "Bekijk video over vaardigheden, leeftijd, loon en TSI bewerken",
   changelogTitle: "Wijzigingslogboek",
   manualTitle: "HT Alchemy-handleiding",
   manualTocTitle: "Inhoudsopgave",

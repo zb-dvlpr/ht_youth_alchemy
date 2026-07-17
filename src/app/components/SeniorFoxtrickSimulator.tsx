@@ -5,9 +5,11 @@ import type { KeyboardEvent, PointerEvent } from "react";
 
 import type { Messages } from "@/lib/i18n";
 import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import styles from "../page.module.css";
 import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import Tooltip from "./Tooltip";
+import YouTubeLink from "./youtube/YouTubeLink";
 import {
   getDisplayCurrencyLabel,
   SEK_DISPLAY_CURRENCY,
@@ -588,34 +590,43 @@ export default function SeniorFoxtrickSimulator({
       <div>
         <div className={styles.sectionHeadingRow}>
           <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          <Tooltip
-            content={
-              editingBlocked
-                ? messages.seniorFoxtrickSimulationPremiumTooltip
-                : messages.seniorFoxtrickSimulationTooltip
-            }
-          >
-            <label className={styles.simulationToggle}>
-              <input
-                className={styles.simulationToggleInput}
-                type="checkbox"
-                checked={editingEnabled}
-                onChange={(event) => {
-                  onEditingToggleInteraction?.();
-                  if (editingBlocked) {
-                    event.preventDefault();
-                    onBlockedInteraction?.();
-                    return;
-                  }
-                  toggleEditing(event.currentTarget.checked);
-                }}
-              />
-              <span className={styles.simulationToggleTrack} aria-hidden="true">
-                <span className={styles.simulationToggleThumb} />
-              </span>
-              <span>{messages.seniorFoxtrickEditSkillsLabel}</span>
-            </label>
-          </Tooltip>
+          <div className={styles.seniorSimulationHeadingActions}>
+            <Tooltip
+              content={
+                editingBlocked
+                  ? messages.seniorFoxtrickSimulationPremiumTooltip
+                  : messages.seniorFoxtrickSimulationTooltip
+              }
+            >
+              <label className={styles.simulationToggle}>
+                <input
+                  className={styles.simulationToggleInput}
+                  type="checkbox"
+                  checked={editingEnabled}
+                  onChange={(event) => {
+                    onEditingToggleInteraction?.();
+                    if (editingBlocked) {
+                      event.preventDefault();
+                      onBlockedInteraction?.();
+                      return;
+                    }
+                    toggleEditing(event.currentTarget.checked);
+                  }}
+                />
+                <span className={styles.simulationToggleTrack} aria-hidden="true">
+                  <span className={styles.simulationToggleThumb} />
+                </span>
+                <span>{messages.seniorFoxtrickEditSkillsLabel}</span>
+              </label>
+            </Tooltip>
+            <YouTubeLink
+              url={YOUTUBE_HELP_URLS.seniorEditSkillsAgeWageTsi}
+              label={messages.youtubeSeniorEditSkillsAgeWageTsiVideo}
+              iconOnly
+              mode="player"
+              className={styles.seniorSimulationVideoLink}
+            />
+          </div>
         </div>
 
         {editingEnabled ? (

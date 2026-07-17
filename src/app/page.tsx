@@ -25,6 +25,7 @@ import PremiumPill from "./components/PremiumPill";
 import PremiumStatusPill from "./components/PremiumStatusPill";
 import { SupporterStatusProvider } from "./components/SupporterStatusProvider";
 import { ChppPermissionsProvider } from "./components/ChppPermissionsProvider";
+import AppHeaderVideoLinks from "./components/youtube/AppHeaderVideoLinks";
 import { YouTubePlayerProvider } from "./components/youtube/YouTubePlayerProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
@@ -527,6 +528,7 @@ export default async function Home({
                       ) : (
                         <PremiumStatusPill messages={messages} />
                       )}
+                      <AppHeaderVideoLinks messages={messages} />
                     </div>
                   </div>
                   <div className={styles.mobileLauncherHeader}>
@@ -537,6 +539,7 @@ export default async function Home({
                         messages={messages}
                         className={styles.mobileLauncherPremiumPill}
                       />
+                      <AppHeaderVideoLinks messages={messages} />
                     </div>
                     {isConnected ? (
                       <ConnectedStatus messages={messages} variant="buttonOnly" />

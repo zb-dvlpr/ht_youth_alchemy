@@ -19,6 +19,11 @@ export const messagesEn: Messages = {
     youtubePlayerDoneAdjusting: "Done",
     youtubePlayerAdjustHint: "Drag to move. Pinch to resize.",
     youtubePlayerResize: "Resize video",
+    youtubeAppOverviewVideoOne: "Watch Hattrick Alchemy overview video 1",
+    youtubeAppOverviewVideoTwo: "Watch Hattrick Alchemy overview video 2",
+    youtubeSeniorSquadOptimizationVideo: "Watch Senior squad optimization video",
+    youtubeSeniorEditSkillsAgeWageTsiVideo:
+      "Watch the Edit skills, age, wage and TSI video",
     changelogTitle: "Changelog",
     manualTitle: "HT Alchemy manual",
     manualTocTitle: "Table of contents",

@@ -12,6 +12,13 @@ import styles from "../page.module.css";
 
 type ModalVariant = "local" | "global";
 
+type ViewportRect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
 type ModalProps = {
   open: boolean;
   title?: string;
@@ -28,6 +35,92 @@ type ModalProps = {
 const subscribeMountedSnapshot = () => () => {};
 const getClientMountedSnapshot = () => true;
 const getServerMountedSnapshot = () => false;
+const MODAL_EDGE_GAP = 16;
+const MODAL_MIN_WIDTH = 280;
+const MODAL_MIN_HEIGHT = 160;
+
+const readViewportRect = (): ViewportRect => {
+  if (typeof window === "undefined") {
+    return { left: 0, top: 0, width: 0, height: 0 };
+  }
+  const visualViewport = window.visualViewport;
+  if (visualViewport) {
+    return {
+      left: visualViewport.offsetLeft,
+      top: visualViewport.offsetTop,
+      width: visualViewport.width,
+      height: visualViewport.height,
+    };
+  }
+  return {
+    left: 0,
+    top: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+};
+
+const clampModalSize = (
+  width: number,
+  height: number,
+  viewport: ViewportRect
+) => {
+  const maxWidth = Math.max(MODAL_MIN_WIDTH, viewport.width - MODAL_EDGE_GAP * 2);
+  const maxHeight = Math.max(
+    MODAL_MIN_HEIGHT,
+    viewport.height - MODAL_EDGE_GAP * 2
+  );
+  return {
+    width: Math.max(MODAL_MIN_WIDTH, Math.min(maxWidth, width)),
+    height: Math.max(MODAL_MIN_HEIGHT, Math.min(maxHeight, height)),
+  };
+};
+
+const clampModalPosition = (
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  viewport: ViewportRect
+) => {
+  const minLeft = viewport.left + MODAL_EDGE_GAP;
+  const minTop = viewport.top + MODAL_EDGE_GAP;
+  const maxLeft = Math.max(
+    minLeft,
+    viewport.left + viewport.width - width - MODAL_EDGE_GAP
+  );
+  const maxTop = Math.max(
+    minTop,
+    viewport.top + viewport.height - height - MODAL_EDGE_GAP
+  );
+  return {
+    left: Math.max(minLeft, Math.min(maxLeft, left)),
+    top: Math.max(minTop, Math.min(maxTop, top)),
+  };
+};
+
+const centerModalPosition = (
+  width: number,
+  height: number,
+  viewport: ViewportRect
+) =>
+  clampModalPosition(
+    viewport.left + (viewport.width - width) / 2,
+    viewport.top + (viewport.height - height) / 2,
+    width,
+    height,
+    viewport
+  );
+
+const positionsEqual = (
+  left: { left: number; top: number } | null,
+  right: { left: number; top: number } | null
+) => left?.left === right?.left && left?.top === right?.top;
+
+const sizesEqual = (
+  left: { width: number; height: number } | null,
+  right: { width: number; height: number } | null
+) => left?.width === right?.width && left?.height === right?.height;
 
 export default function Modal({
   open,
@@ -60,6 +153,7 @@ export default function Modal({
     startLeft: number;
     startTop: number;
   } | null>(null);
+  const wasOpenRef = useRef(false);
   const [desktopViewportActive, setDesktopViewportActive] = useState(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(
     null
@@ -73,22 +167,6 @@ export default function Modal({
     getServerMountedSnapshot
   );
 
-  const clampPosition = (
-    left: number,
-    top: number,
-    width: number,
-    height: number
-  ) => {
-    const minLeft = 16;
-    const minTop = 16;
-    const maxLeft = Math.max(minLeft, window.innerWidth - width - 16);
-    const maxTop = Math.max(minTop, window.innerHeight - height - 16);
-    return {
-      left: Math.max(minLeft, Math.min(maxLeft, left)),
-      top: Math.max(minTop, Math.min(maxTop, top)),
-    };
-  };
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mediaQuery = window.matchMedia(DESKTOP_MODAL_MEDIA_QUERY);
@@ -101,15 +179,49 @@ export default function Modal({
   }, [DESKTOP_MODAL_MEDIA_QUERY]);
 
   useEffect(() => {
-    if (!open || !mounted || !desktopViewportActive || !autoPosition) return;
+    if (!open) {
+      wasOpenRef.current = false;
+      dragStateRef.current = null;
+      resizeStateRef.current = null;
+      const frameId = window.requestAnimationFrame(() => {
+        setIsDragging(false);
+        setIsResizing(false);
+      });
+      return () => window.cancelAnimationFrame(frameId);
+    }
+    if (!mounted || !desktopViewportActive || !autoPosition) return;
+    const isFreshOpen = !wasOpenRef.current;
+    wasOpenRef.current = true;
     const frameId = window.requestAnimationFrame(() => {
       const card = cardRef.current;
       if (!card) return;
-      const width = size?.width ?? card.offsetWidth;
-      const height = size?.height ?? card.offsetHeight;
-      setPosition((current) =>
-        current ?? clampPosition((window.innerWidth - width) / 2, (window.innerHeight - height) / 2, width, height)
-      );
+      const viewport = readViewportRect();
+      const measuredWidth = size?.width ?? card.offsetWidth;
+      const measuredHeight = size?.height ?? card.offsetHeight;
+      const measuredBounds = clampModalSize(measuredWidth, measuredHeight, viewport);
+      const nextSize = size
+        ? clampModalSize(size.width, size.height, viewport)
+        : null;
+      const width = nextSize?.width ?? measuredBounds.width;
+      const height = nextSize?.height ?? measuredBounds.height;
+      if (nextSize && !sizesEqual(size, nextSize)) {
+        setSize(nextSize);
+      }
+      const nextPosition = isFreshOpen
+        ? centerModalPosition(width, height, viewport)
+        : null;
+      if (nextPosition) {
+        setPosition((current) =>
+          positionsEqual(current, nextPosition) ? current : nextPosition
+        );
+        return;
+      }
+      setPosition((current) => {
+        const clamped = current
+          ? clampModalPosition(current.left, current.top, width, height, viewport)
+          : centerModalPosition(width, height, viewport);
+        return positionsEqual(current, clamped) ? current : clamped;
+      });
     });
     return () => window.cancelAnimationFrame(frameId);
   }, [autoPosition, desktopViewportActive, mounted, open, size]);
@@ -134,7 +246,13 @@ export default function Modal({
         return;
       }
       setPosition(
-        clampPosition(rawLeft, rawTop, card.offsetWidth, card.offsetHeight)
+        clampModalPosition(
+          rawLeft,
+          rawTop,
+          card.offsetWidth,
+          card.offsetHeight,
+          readViewportRect()
+        )
       );
     };
     const stopDragging = (event: PointerEvent) => {
@@ -158,20 +276,19 @@ export default function Modal({
     const onPointerMove = (event: PointerEvent) => {
       const resizeState = resizeStateRef.current;
       if (!resizeState || event.pointerId !== resizeState.pointerId) return;
-      const minWidth = 280;
-      const minHeight = 160;
+      const viewport = readViewportRect();
       const maxWidth = Math.max(
-        minWidth,
-        window.innerWidth - resizeState.startLeft - 16
+        MODAL_MIN_WIDTH,
+        viewport.left + viewport.width - resizeState.startLeft - MODAL_EDGE_GAP
       );
       const maxHeight = Math.max(
-        minHeight,
-        window.innerHeight - resizeState.startTop - 16
+        MODAL_MIN_HEIGHT,
+        viewport.top + viewport.height - resizeState.startTop - MODAL_EDGE_GAP
       );
       const nextWidth = resizeState.startWidth + (event.clientX - resizeState.startX);
       const nextHeight = resizeState.startHeight + (event.clientY - resizeState.startY);
-      const width = Math.max(minWidth, Math.min(maxWidth, nextWidth));
-      const height = Math.max(minHeight, Math.min(maxHeight, nextHeight));
+      const width = Math.max(MODAL_MIN_WIDTH, Math.min(maxWidth, nextWidth));
+      const height = Math.max(MODAL_MIN_HEIGHT, Math.min(maxHeight, nextHeight));
       setSize({ width, height });
     };
     const stopResizing = (event: PointerEvent) => {
@@ -192,25 +309,59 @@ export default function Modal({
 
   useEffect(() => {
     if (!open || !desktopViewportActive || !autoPosition) return;
-    const onResize = () => {
-      const card = cardRef.current;
-      if (!card) return;
-      const width = size?.width ?? card.offsetWidth;
-      const height = size?.height ?? card.offsetHeight;
-      const maxWidth = Math.max(280, window.innerWidth - 32);
-      const maxHeight = Math.max(160, window.innerHeight - 32);
-      if (size && (size.width > maxWidth || size.height > maxHeight)) {
-        setSize({
-          width: Math.min(size.width, maxWidth),
-          height: Math.min(size.height, maxHeight),
+    let frameId: number | null = null;
+    const reclamp = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        const card = cardRef.current;
+        if (!card) return;
+        const viewport = readViewportRect();
+        const measuredWidth = size?.width ?? card.offsetWidth;
+        const measuredHeight = size?.height ?? card.offsetHeight;
+        const measuredBounds = clampModalSize(
+          measuredWidth,
+          measuredHeight,
+          viewport
+        );
+        const nextSize = size
+          ? clampModalSize(size.width, size.height, viewport)
+          : null;
+        const width = nextSize?.width ?? measuredBounds.width;
+        const height = nextSize?.height ?? measuredBounds.height;
+        if (nextSize && !sizesEqual(size, nextSize)) {
+          setSize(nextSize);
+        }
+        setPosition((current) => {
+          const clamped = current
+            ? clampModalPosition(current.left, current.top, width, height, viewport)
+            : centerModalPosition(width, height, viewport);
+          return positionsEqual(current, clamped) ? current : clamped;
         });
-      }
-      setPosition((current) =>
-        current ? clampPosition(current.left, current.top, width, height) : current
-      );
+      });
     };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener("resize", reclamp);
+    window.addEventListener("orientationchange", reclamp);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener("resize", reclamp);
+    visualViewport?.addEventListener("scroll", reclamp);
+    const card = cardRef.current;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && card
+        ? new ResizeObserver(reclamp)
+        : null;
+    if (card && resizeObserver) {
+      resizeObserver.observe(card);
+    }
+    reclamp();
+    return () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", reclamp);
+      window.removeEventListener("orientationchange", reclamp);
+      visualViewport?.removeEventListener("resize", reclamp);
+      visualViewport?.removeEventListener("scroll", reclamp);
+      resizeObserver?.disconnect();
+    };
   }, [autoPosition, desktopViewportActive, open, size]);
 
   if (!open || !mounted || typeof document === "undefined") return null;
@@ -225,7 +376,9 @@ export default function Modal({
           margin: 0,
         }
       : {}),
-    ...(size ? { width: `${size.width}px`, height: `${size.height}px` } : {}),
+    ...(desktopViewportActive && size
+      ? { width: `${size.width}px`, height: `${size.height}px` }
+      : {}),
   };
 
   return createPortal(

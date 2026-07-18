@@ -7,6 +7,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -49,6 +50,13 @@ import {
   MANUAL_OPEN_EVENT,
   MOBILE_LAUNCHER_REQUEST_EVENT,
 } from "@/lib/mobileShellEvents";
+import {
+  LAYOUT_PREFERENCE_EVENT,
+  LAYOUT_PREFERENCE_STORAGE_KEY,
+  MOBILE_LAYOUT_MEDIA_QUERY,
+  readLayoutPreference,
+  resolveMobileLayout,
+} from "@/lib/mobileLayout";
 import { runStartupStorageHousekeeping } from "@/lib/storageHousekeeping";
 import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import {
@@ -180,8 +188,6 @@ const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
 const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
-const MOBILE_LAYOUT_MAX_WIDTH = 900;
-const MOBILE_LAYOUT_MEDIA_QUERY = `(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`;
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const YOUTH_DASHBOARD_STATE_STORAGE_KEY = "ya_dashboard_state_v2";
 
@@ -203,38 +209,6 @@ const parseBuyCoffeePromptSource = (
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-
-const isMobileLayoutViewport = () => {
-  if (typeof window === "undefined") return false;
-
-  const visualViewportWidth = window.visualViewport?.width;
-  const cssViewportMobile =
-    window.matchMedia?.(MOBILE_LAYOUT_MEDIA_QUERY).matches === true ||
-    window.innerWidth <= MOBILE_LAYOUT_MAX_WIDTH ||
-    (typeof visualViewportWidth === "number" &&
-      visualViewportWidth <= MOBILE_LAYOUT_MAX_WIDTH);
-
-  const screenWidth = window.screen?.width;
-  const screenHeight = window.screen?.height;
-  const physicalScreenMin = Math.min(
-    typeof screenWidth === "number" && screenWidth > 0
-      ? screenWidth
-      : Number.POSITIVE_INFINITY,
-    typeof screenHeight === "number" && screenHeight > 0
-      ? screenHeight
-      : Number.POSITIVE_INFINITY
-  );
-
-  const coarsePointer =
-    window.matchMedia?.("(pointer: coarse)").matches === true ||
-    navigator.maxTouchPoints > 0;
-
-  const noHover = window.matchMedia?.("(hover: none)").matches === true;
-  const phoneOrSmallTabletInDesktopSiteMode =
-    physicalScreenMin <= MOBILE_LAYOUT_MAX_WIDTH && coarsePointer && noHover;
-
-  return cssViewportMobile || phoneOrSmallTabletInDesktopSiteMode;
-};
 
 const normalizeToolId = (value: unknown): ToolId =>
   value === "chronicle" ||
@@ -297,6 +271,7 @@ export default function AppShell({
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [mobileLayoutActive, setMobileLayoutActive] = useState(false);
   const [mobileLauncherOpen, setMobileLauncherOpen] = useState(false);
+  const [mobileLayoutResolved, setMobileLayoutResolved] = useState(false);
   const [mobileNavSegments, setMobileNavSegments] = useState<MobileNavSegment[]>([]);
   const [viewStateRestored, setViewStateRestored] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(56);
@@ -351,7 +326,6 @@ export default function AppShell({
   const youthCachedPromotionReminderContextSignatureRef = useRef<string | null>(
     null
   );
-  const mobileLayoutInitializedRef = useRef(false);
   const { addNotification } = useNotifications();
 
   const persistBuyCoffeePromptState = (nextState: BuyCoffeePromptState) => {
@@ -1075,20 +1049,22 @@ export default function AppShell({
     return () => window.clearTimeout(timer);
   }, [chppAccessBlock]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
     const applyMobileLayoutState = () => {
-      const nextMobileLayoutActive = isMobileLayoutViewport();
-      setMobileLayoutActive(nextMobileLayoutActive);
-      if (!nextMobileLayoutActive) {
-        setMobileLauncherOpen(false);
-        return;
-      }
-      if (!mobileLayoutInitializedRef.current) {
-        mobileLayoutInitializedRef.current = true;
-        setMobileLauncherOpen(true);
-      }
+      const nextMobileLayoutActive = resolveMobileLayout(readLayoutPreference());
+      setMobileLayoutActive((previousMobileLayoutActive) => {
+        if (!nextMobileLayoutActive) {
+          setMobileLauncherOpen(false);
+          return false;
+        }
+        if (!previousMobileLayoutActive) {
+          setMobileLauncherOpen(true);
+        }
+        return true;
+      });
+      setMobileLayoutResolved(true);
     };
 
     applyMobileLayoutState();
@@ -1102,6 +1078,17 @@ export default function AppShell({
     const handleViewportChange = () => {
       applyMobileLayoutState();
     };
+    const handleLayoutPreferenceChange = () => {
+      applyMobileLayoutState();
+    };
+    const handleStorageChange = (event: StorageEvent) => {
+      if (
+        event.key === LAYOUT_PREFERENCE_STORAGE_KEY ||
+        event.key === null
+      ) {
+        applyMobileLayoutState();
+      }
+    };
 
     if (mediaQuery) {
       if (typeof mediaQuery.addEventListener === "function") {
@@ -1111,6 +1098,8 @@ export default function AppShell({
       }
     }
     window.addEventListener("resize", handleViewportChange);
+    window.addEventListener(LAYOUT_PREFERENCE_EVENT, handleLayoutPreferenceChange);
+    window.addEventListener("storage", handleStorageChange);
     visualViewport?.addEventListener("resize", handleViewportChange);
     screenOrientation?.addEventListener?.("change", handleViewportChange);
 
@@ -1123,12 +1112,17 @@ export default function AppShell({
         }
       }
       window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener(
+        LAYOUT_PREFERENCE_EVENT,
+        handleLayoutPreferenceChange
+      );
+      window.removeEventListener("storage", handleStorageChange);
       visualViewport?.removeEventListener("resize", handleViewportChange);
       screenOrientation?.removeEventListener?.("change", handleViewportChange);
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     if (mobileLayoutActive) {
@@ -1136,10 +1130,27 @@ export default function AppShell({
     } else {
       delete root.dataset.mobileShell;
     }
+    if (mobileLayoutResolved) {
+      if (
+        typeof window !== "undefined" &&
+        typeof window.clearTimeout === "function"
+      ) {
+        const pendingTimeout = (
+          window as Window & { __yaMobileLayoutPendingTimeout?: number }
+        ).__yaMobileLayoutPendingTimeout;
+        if (typeof pendingTimeout === "number") {
+          window.clearTimeout(pendingTimeout);
+          delete (
+            window as Window & { __yaMobileLayoutPendingTimeout?: number }
+          ).__yaMobileLayoutPendingTimeout;
+        }
+      }
+      delete root.dataset.mobileLayoutPending;
+    }
     return () => {
       delete root.dataset.mobileShell;
     };
-  }, [mobileLayoutActive]);
+  }, [mobileLayoutActive, mobileLayoutResolved]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

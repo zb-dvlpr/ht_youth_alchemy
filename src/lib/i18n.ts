@@ -407,6 +407,12 @@ export type Messages = {
   settingsClubChronicleUpdatesHistoryHint: string;
   settingsGeneral: string;
   settingsGeneralTitle: string;
+  settingsLayoutTitle: string;
+  settingsLayoutDescription: string;
+  settingsLayoutSelectLabel: string;
+  settingsLayoutAuto: string;
+  settingsLayoutMobile: string;
+  settingsLayoutDesktop: string;
   settingsDisplayCurrencyTitle: string;
   settingsDisplayCurrencyDescription: string;
   settingsDisplayCurrencyCurrentDefault: string;

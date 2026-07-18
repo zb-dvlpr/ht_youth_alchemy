@@ -528,6 +528,13 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsLayoutTitle: "Applayout",
+    settingsLayoutDescription:
+      "Automatiskt använder signaler från visningsyta och enhet. Mobil använder alltid HT Alchemys mobila layout, och Desktop använder alltid desktoplayouten. Den här inställningen kan inte ändra webbläsarens egen Desktop site-inställning.",
+    settingsLayoutSelectLabel: "Layoutval",
+    settingsLayoutAuto: "Automatiskt",
+    settingsLayoutMobile: "Mobil",
+    settingsLayoutDesktop: "Desktop",
     settingsDisplayCurrencyTitle: "Display currency",
     settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
     settingsDisplayCurrencyCurrentDefault: "Current: Default",

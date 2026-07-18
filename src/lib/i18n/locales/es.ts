@@ -530,6 +530,13 @@ export const messagesEs: Messages = {
       "Cuántas diferencias con cambios de refrescos globales se guardan y muestran en el historial de Últimas actualizaciones.",
     settingsGeneral: "General",
     settingsGeneralTitle: "Ajustes generales",
+    settingsLayoutTitle: "Diseño de la app",
+    settingsLayoutDescription:
+      "Automático usa señales de ventana y dispositivo. Móvil usa siempre el diseño móvil de HT Alchemy, y Escritorio usa siempre su diseño de escritorio. Este ajuste no puede cambiar la preferencia Sitio de escritorio del navegador.",
+    settingsLayoutSelectLabel: "Preferencia de diseño",
+    settingsLayoutAuto: "Automático",
+    settingsLayoutMobile: "Móvil",
+    settingsLayoutDesktop: "Escritorio",
     settingsDisplayCurrencyTitle: "Display currency",
     settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
     settingsDisplayCurrencyCurrentDefault: "Current: Default",

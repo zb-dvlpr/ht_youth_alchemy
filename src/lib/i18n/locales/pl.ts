@@ -545,7 +545,9 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
-    changelog_8_3_0: "Dodano link do kanału YouTube.",
+    changelog_9_0_0:
+      "Dodano możliwość instalowania Hattrick Alchemy jako samodzielnej aplikacji.",
+    changelog_8_3_0: "Dodano samouczki w aplikacji.",
     changelog_8_2_0: "Ulepszono algorytm krycia indywidualnego w ustawieniu drużyny seniorów, aby uwzględniał efektywne umiejętności, specjalności zawodników, kary pozycyjne oraz szacowane główne umiejętności przeciwnika.",
     changelog_8_1_0: "Wdrożono przewidywane oceny dla seniorskich skladow meczowych.",
     changelog_8_0_0: "Wdrożono kalkulator team spirit.",

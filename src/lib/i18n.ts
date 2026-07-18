@@ -219,6 +219,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_9_0_0: string;
   changelog_8_3_0: string;
   changelog_8_2_0: string;
   changelog_8_1_0: string;

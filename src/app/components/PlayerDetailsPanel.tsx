@@ -1313,7 +1313,13 @@ export default function PlayerDetailsPanel({
     }
 
     return (
-      <div className={styles.profileCard}>
+      <div
+        className={`${styles.profileCard}${
+          playerKind === "senior"
+            ? ` ${styles.seniorPlayerDetailCompactSurface}`
+            : ""
+        }`}
+      >
         <div className={styles.profileCardTopActions}>
           <div className={styles.profileCardLeftActions}>{detailsHeaderActions}</div>
           <div className={styles.detailsNavigationCorner}>

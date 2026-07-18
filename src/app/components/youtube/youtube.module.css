@@ -185,6 +185,29 @@
   font-weight: 700;
 }
 
+:global(html[data-mobile-shell="true"]) .playerPortalLayer {
+  top: env(safe-area-inset-top);
+  right: env(safe-area-inset-right);
+  bottom: env(safe-area-inset-bottom);
+  left: env(safe-area-inset-left);
+  z-index: 2147483647;
+  isolation: isolate;
+}
+
+:global(html[data-mobile-shell="true"]) .playerPanel {
+  max-width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+  z-index: 1;
+}
+
+:global(html[data-mobile-shell="true"]) .playerHeader {
+  min-height: 48px;
+}
+
+:global(html[data-mobile-shell="true"]) .playerControlButton {
+  min-width: 32px;
+  height: 32px;
+}
+
 @media (max-width: 900px) {
   .playerPortalLayer {
     top: env(safe-area-inset-top);

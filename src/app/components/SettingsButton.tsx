@@ -112,6 +112,13 @@ import {
   importSeniorTeamSpiritSettings,
   type SeniorTeamSpiritStorageExport,
 } from "@/lib/seniorTeamSpiritStorage";
+import {
+  LAYOUT_PREFERENCE_EVENT,
+  LAYOUT_PREFERENCE_STORAGE_KEY,
+  readLayoutPreference,
+  writeLayoutPreference,
+  type LayoutPreference,
+} from "@/lib/mobileLayout";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -197,6 +204,8 @@ export default function SettingsButton({
   const [remindersEnabled, setRemindersEnabledState] = useState(true);
   const [analyticsConsent, setAnalyticsConsent] =
     useState<AnalyticsConsent | null>(null);
+  const [layoutPreference, setLayoutPreference] =
+    useState<LayoutPreference>("auto");
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
     useState<ChppDebugOauthErrorMode>("off");
   const [debugSupporterOverride, setDebugSupporterOverride] = useState(false);
@@ -264,6 +273,7 @@ export default function SettingsButton({
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     setRemindersEnabledState(readReminderStorageState().preferences.enabled);
     setAnalyticsConsent(readAnalyticsConsent());
+    setLayoutPreference(readLayoutPreference());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugSupporterOverride(readDebugSupporterOverride());
@@ -286,6 +296,27 @@ export default function SettingsButton({
     };
     syncAnalyticsConsent();
     return subscribeAnalyticsConsentChange(syncAnalyticsConsent);
+  }, []);
+
+  useEffect(() => {
+    const syncLayoutPreference = () => {
+      setLayoutPreference(readLayoutPreference());
+    };
+    const handleStorageChange = (event: StorageEvent) => {
+      if (
+        event.key === LAYOUT_PREFERENCE_STORAGE_KEY ||
+        event.key === null
+      ) {
+        syncLayoutPreference();
+      }
+    };
+    syncLayoutPreference();
+    window.addEventListener(LAYOUT_PREFERENCE_EVENT, syncLayoutPreference);
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener(LAYOUT_PREFERENCE_EVENT, syncLayoutPreference);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -539,6 +570,11 @@ export default function SettingsButton({
         })
       );
     }
+  };
+
+  const handleLayoutPreferenceChange = (nextPreference: LayoutPreference) => {
+    setLayoutPreference(nextPreference);
+    writeLayoutPreference(nextPreference);
   };
 
   const handleStalenessDaysChange = (value: number) => {
@@ -1366,6 +1402,36 @@ export default function SettingsButton({
         title={messages.settingsGeneralTitle}
         body={
           <div className={styles.settingsModalBody}>
+            <section className={styles.settingsSection}>
+              <div className={styles.settingsSectionHeader}>
+                <h3>{messages.settingsLayoutTitle}</h3>
+                <p className={styles.muted}>
+                  {messages.settingsLayoutDescription}
+                </p>
+              </div>
+              <div className={styles.settingsField}>
+                <label
+                  className={styles.settingsFieldLabel}
+                  htmlFor="layout-preference-select"
+                >
+                  {messages.settingsLayoutSelectLabel}
+                </label>
+                <select
+                  id="layout-preference-select"
+                  className={styles.settingsFieldInput}
+                  value={layoutPreference}
+                  onChange={(event) =>
+                    handleLayoutPreferenceChange(
+                      event.target.value as LayoutPreference
+                    )
+                  }
+                >
+                  <option value="auto">{messages.settingsLayoutAuto}</option>
+                  <option value="mobile">{messages.settingsLayoutMobile}</option>
+                  <option value="desktop">{messages.settingsLayoutDesktop}</option>
+                </select>
+              </div>
+            </section>
             <section className={styles.settingsSection}>
               <div className={styles.settingsSectionHeader}>
                 <h3>{messages.settingsDisplayCurrencyTitle}</h3>

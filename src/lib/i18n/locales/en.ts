@@ -508,6 +508,13 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsLayoutTitle: "App layout",
+    settingsLayoutDescription:
+      "Automatic uses viewport and device signals. Mobile always uses HT Alchemy's mobile layout, and Desktop always uses its desktop layout. This setting cannot change your browser's own Desktop site preference.",
+    settingsLayoutSelectLabel: "Layout preference",
+    settingsLayoutAuto: "Automatic",
+    settingsLayoutMobile: "Mobile",
+    settingsLayoutDesktop: "Desktop",
     settingsDisplayCurrencyTitle: "Display currency",
     settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
     settingsDisplayCurrencyCurrentDefault: "Current: Default",

@@ -528,6 +528,13 @@ export const messagesDe: Messages = {
       "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsLayoutTitle: "App-Layout",
+    settingsLayoutDescription:
+      "Automatisch nutzt Ansichtsfenster- und Gerätesignale. Mobil verwendet immer das mobile Layout von HT Alchemy, Desktop immer das Desktop-Layout. Diese Einstellung kann die Desktop-Website-Vorgabe deines Browsers nicht ändern.",
+    settingsLayoutSelectLabel: "Layout-Einstellung",
+    settingsLayoutAuto: "Automatisch",
+    settingsLayoutMobile: "Mobil",
+    settingsLayoutDesktop: "Desktop",
     settingsDisplayCurrencyTitle: "Display currency",
     settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
     settingsDisplayCurrencyCurrentDefault: "Current: Default",

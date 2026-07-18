@@ -533,6 +533,13 @@ export const messagesIt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostra il modal offrimi un caffè",
     settingsGeneral: "Generale",
     settingsGeneralTitle: "Impostazioni generali",
+    settingsLayoutTitle: "Layout dell'app",
+    settingsLayoutDescription:
+      "Automatico usa segnali di viewport e dispositivo. Mobile usa sempre il layout mobile di HT Alchemy, mentre Desktop usa sempre il layout desktop. Questa impostazione non puo cambiare la preferenza Sito desktop del browser.",
+    settingsLayoutSelectLabel: "Preferenza layout",
+    settingsLayoutAuto: "Automatico",
+    settingsLayoutMobile: "Mobile",
+    settingsLayoutDesktop: "Desktop",
     settingsDisplayCurrencyTitle: "Display currency",
     settingsDisplayCurrencyDescription: "By default, Youth and Senior use the selected team's country currency, and Club Chronicle uses your primary team's country currency.",
     settingsDisplayCurrencyCurrentDefault: "Current: Default",

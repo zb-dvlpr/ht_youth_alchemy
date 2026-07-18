@@ -6385,6 +6385,366 @@ html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
   background: rgba(230, 199, 146, 0.16);
 }
 
+html[data-mobile-layout-pending="true"] .shellFrame {
+  visibility: hidden;
+}
+
+html[data-mobile-shell="true"] .main {
+  padding: 16px 16px 32px;
+}
+
+html[data-mobile-shell="true"] .scaleContainer {
+  padding-top: 0;
+}
+
+html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap {
+  justify-content: center;
+  min-width: 48px;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap {
+  justify-content: flex-end;
+  min-width: 48px;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap > span,
+html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .feedbackButton,
+html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .feedbackButton {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+html[data-mobile-shell="true"] .mobileLauncherUtilityRow .reminderBellWrap .reminderBadge,
+html[data-mobile-shell="true"] .mobileNavActions .reminderBellWrap .reminderBadge {
+  top: -6px;
+  right: -6px;
+}
+
+html[data-mobile-shell="true"] .reminderManagementControls {
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+html[data-mobile-shell="true"] .reminderSnoozeControl {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .reminderSnoozeLabel {
+  flex: 0 0 auto;
+}
+
+html[data-mobile-shell="true"] .reminderSnoozeSelect {
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .reminderDismissButton {
+  align-self: auto;
+  flex: 0 0 auto;
+  margin-left: 0;
+  white-space: nowrap;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 0;
+  min-height: 0;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellTopBar,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellContextBar,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellWorkspace {
+  grid-column: 1;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellWorkspace,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellTopBar {
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"]
+  .shellTopBar {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"]
+  .mobileNavHeader {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  top: 0;
+  z-index: 2147483644;
+  margin: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"]
+  .shellWorkspace {
+  grid-row: 2 / 4;
+  padding-top: calc(var(--mobile-nav-header-height, 56px) + 18px);
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellContextBar {
+  top: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] {
+  row-gap: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"]
+  .clubChronicleStack {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"]
+  .clubChronicleStack
+  .chroniclePanels {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .topBar {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .desktopHeaderBrand,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .desktopHeaderNotifications,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .desktopTopBarActions {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader
+  > * {
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  > * {
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarUtilityCluster,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarStatusCluster {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarUtilityCluster {
+  justify-content: flex-start;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarStatusCluster {
+  justify-content: flex-end;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .langLabel {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .langSwitcher {
+  min-width: 0;
+  padding: 3px 7px;
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .langSelect {
+  max-width: 96px;
+  font-size: 11px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .connectedInfo {
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .connectedBadge {
+  padding: 2px 6px;
+  font-size: 9px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .disconnectButton,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .themeToggle,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .connectButton {
+  min-height: 30px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarControls
+  .connectButton {
+  padding: 5px 8px;
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarStatusCluster
+  .brandClock {
+  min-width: 0;
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarStatusCluster
+  .brandClockZone,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileTopBarStatusCluster
+  .brandClockTime {
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader
+  .mobileDisconnectButton,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader
+  .mobileConnectButton {
+  min-height: 30px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherTitleRow
+  .brandTitle {
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherTitleRow
+  .version {
+  font-size: 11px;
+  line-height: 1;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherTitleRow {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .appHeaderVideoLink {
+  width: 24px;
+  height: 24px;
+}
+
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .appHeaderVideoIcon {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherPremiumPill,
+html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .mobileNavPremiumPill {
+  min-height: 17px;
+  padding-inline: 7px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .topBar {
+  gap: 12px;
+}
+
 @media (max-width: 900px) {
   html[data-mobile-shell="true"] .main {
     padding: 16px 16px 32px;
@@ -15069,6 +15429,237 @@ html[data-mobile-shell="true"] .transferSearchResultsTable {
     font-size: 11px;
     line-height: 1.25;
   }
+}
+
+html[data-mobile-shell="true"] .confirmCard.transferSearchModal {
+  width: min(99vw, 760px);
+  max-height: calc(100dvh - max(16px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  padding: 10px;
+}
+
+html[data-mobile-shell="true"] .confirmCard.transferSearchModal.transferSearchModalTableMode {
+  width: min(99vw, 980px);
+}
+
+html[data-mobile-shell="true"] .transferSearchModal .confirmTitle {
+  font-size: 13px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchModal .confirmBody {
+  padding-bottom: 0;
+}
+
+html[data-mobile-shell="true"] .transferSearchModal .confirmActions {
+  margin-top: 8px;
+  padding-top: 0;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchModal .confirmActions .confirmSubmit {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchModalContent {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsStack {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobilePanelNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchModalSidebar,
+html[data-mobile-shell="true"] .transferSearchModalResults,
+html[data-mobile-shell="true"] .transferSearchMarketSummary {
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchModalResultsTableMode {
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"]
+  .transferSearchModalContent
+  [data-transfer-search-mobile-panel][data-transfer-search-mobile-active="false"] {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .transferSearchMarketBucketRow {
+  grid-template-columns: 1fr auto;
+}
+
+html[data-mobile-shell="true"] .transferSearchMarketBucketTrack {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+html[data-mobile-shell="true"] .transferSearchMarketSummaryHeader {
+  display: grid;
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"] .transferSearchSkillRow,
+html[data-mobile-shell="true"] .transferSearchCriteriaGrid,
+html[data-mobile-shell="true"] .transferSearchRangeGrid,
+html[data-mobile-shell="true"] .transferSearchSimpleRange,
+html[data-mobile-shell="true"] .transferSearchBidGrid {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .transferSearchSkillRow {
+  gap: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchValueGroup {
+  justify-items: start;
+}
+
+html[data-mobile-shell="true"] .transferSearchValueStepper {
+  grid-template-columns: 28px 52px 28px;
+}
+
+html[data-mobile-shell="true"] .transferSearchBidAction {
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferSearchPriceBlock {
+  text-align: left;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultHeader,
+html[data-mobile-shell="true"] .transferSearchSidebarHeader,
+html[data-mobile-shell="true"] .transferSearchResultsHeader {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsHeader {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsHeader .sectionHeading {
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsHeaderControls {
+  width: 100%;
+  justify-content: stretch;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsSortControl,
+html[data-mobile-shell="true"] .transferSearchViewToggle {
+  width: 100%;
+}
+
+html[data-mobile-shell="true"] .transferSearchViewToggle {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchTableShell {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .transferSearchTableScroller {
+  border-radius: 10px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsTable {
+  min-width: 1040px;
+  font-size: 11px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsTable th,
+html[data-mobile-shell="true"] .transferSearchResultsTable td {
+  padding: 6px 7px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultsTable th {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+html[data-mobile-shell="true"] .transferSearchTablePill {
+  min-height: 20px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+html[data-mobile-shell="true"] .transferSearchTableBidButton {
+  min-height: 24px;
+  padding: 3px 6px;
+  font-size: 11px;
+}
+
+html[data-mobile-shell="true"] .transferSearchTableFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+html[data-mobile-shell="true"] .transferSearchFallbackNoticeTable {
+  padding: 5px 7px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+html[data-mobile-shell="true"] .transferSearchMobilePanelButton {
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"]
+  .transferSearchModalResultsTableMode
+  .transferSearchResultsHeader {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+html[data-mobile-shell="true"]
+  .transferSearchModalResultsTableMode
+  .transferSearchResultsHeaderControls {
+  width: auto;
+  justify-content: flex-end;
+}
+
+html[data-mobile-shell="true"]
+  .transferSearchModalResultsTableMode
+  .transferSearchViewToggle {
+  width: auto;
 }
 
 @media (max-width: 800px) {

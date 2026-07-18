@@ -238,9 +238,15 @@ export function ChronicleTable<Row, Snapshot>({
 export function ChronicleDetailHorizontalScroll({
   children,
   refreshKey,
+  className,
+  viewportClassName,
+  fillHeight = false,
 }: {
   children: ReactNode;
   refreshKey: string;
+  className?: string;
+  viewportClassName?: string;
+  fillHeight?: boolean;
 }) {
   const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const floatingScrollRef = useRef<HTMLDivElement | null>(null);
@@ -307,10 +313,16 @@ export function ChronicleDetailHorizontalScroll({
   };
 
   return (
-    <div className={styles.chronicleDetailTableScrollHost}>
+    <div
+      className={`${styles.chronicleDetailTableScrollHost}${
+        fillHeight ? ` ${styles.chronicleDetailTableScrollHostFill}` : ""
+      }${className ? ` ${className}` : ""}`}
+    >
       <div
         ref={tableScrollRef}
-        className={`${styles.chronicleTransferHistoryTableWrap} ${styles.chronicleDetailTableScroll}`}
+        className={`${styles.chronicleTransferHistoryTableWrap} ${
+          styles.chronicleDetailTableScroll
+        }${viewportClassName ? ` ${viewportClassName}` : ""}`}
         onScroll={() =>
           syncScroll(tableScrollRef.current, floatingScrollRef.current)
         }

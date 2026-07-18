@@ -770,6 +770,7 @@ export type Messages = {
   clubChronicleLikelyTraineeLegendLabel: string;
   clubChronicleLikelyTraineeLegendRegimen: string;
   clubChronicleDetailModalMatchesUsedLabel: string;
+  teamScoutDetailInfoButtonLabel: string;
   clubChronicleDetailModalMatchesDebugTitle: string;
   clubChronicleDetailModalMatchesDebugMatchLabel: string;
   clubChronicleDetailModalMatchesDebugMeta: string;

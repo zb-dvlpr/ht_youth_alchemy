@@ -977,6 +977,7 @@ export const messagesDe: Messages = {
       "Wahrscheinliches Trainingsschema: {{regimen}}",
     clubChronicleDetailModalMatchesUsedLabel:
       "Daten aus {{count}} Spielen ermittelt.",
+    teamScoutDetailInfoButtonLabel: "Team-Scout-Informationen",
     clubChronicleDetailModalMatchesDebugTitle: "Berücksichtigte Spiele",
     clubChronicleDetailModalMatchesDebugMatchLabel: "Spiel {{matchId}}",
     clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

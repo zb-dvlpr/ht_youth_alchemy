@@ -123,6 +123,7 @@ import TeamScoutDetailTable, {
   type TeamScoutDetailSortState,
   type TeamScoutLikelyTrainingInfo,
 } from "./TeamScoutDetailTable";
+import TeamScoutDetailCompactToolbar from "./TeamScoutDetailCompactToolbar";
 import {
   resolveLeagueOriginFlagDisplay,
   type OriginFlagDisplay,
@@ -21054,51 +21055,69 @@ type Form7LineupSnapshot = {
       <Modal
         open={tsiDetailsOpen}
         title={messages.clubChronicleTsiDetailsTitle}
-        className={styles.chronicleTsiWagesDetailsModal}
+        className={`${styles.chronicleTsiWagesDetailsModal} ${styles.teamScoutDetailCompactModal}`}
+        overlayClassName={styles.teamScoutDetailCompactOverlay}
         body={
-          selectedTsiTeam ? (
-            <div className={styles.chronicleTsiWagesDetailModalLayout}>
-              <div className={styles.chronicleTsiWagesDetailModalMeta}>
-                <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleColumnTeam}:{" "}
-                  {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
-                </p>
+          <>
+            <TeamScoutDetailCompactToolbar
+              idPrefix="club-chronicle-tsi"
+              title={messages.clubChronicleTsiDetailsTitle}
+              secondaryLabel={selectedTsiTeam?.teamName ?? null}
+              messages={messages}
+              likelyTraining={selectedTsiLikelyTrainingInfo}
+              matchSampleSize={selectedTsiTeam?.detailModalMatchSampleSize ?? null}
+              onShowAnalyzedMatches={
+                IS_DEV_BUILD &&
+                (selectedTsiTeam?.detailModalAnalyzedMatches ?? []).length > 0
+                  ? () => setDetailModalMatchesDebugKind("tsi")
+                  : null
+              }
+              onClose={() => setTsiDetailsOpen(false)}
+            />
+            {selectedTsiTeam ? (
+              <div className={styles.chronicleTsiWagesDetailModalLayout}>
+                <div className={styles.chronicleTsiWagesDetailModalMeta}>
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleColumnTeam}:{" "}
+                    {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
+                  </p>
+                </div>
+                {tsiPlayerRows.length > 0 ? (
+                  <TeamScoutDetailTable
+                    mode="tsi"
+                    rows={tsiPlayerRows}
+                    messages={messages}
+                    displayCurrency={displayCurrency}
+                    likelyTraining={selectedTsiLikelyTrainingInfo}
+                    matchSampleSize={selectedTsiTeam.detailModalMatchSampleSize}
+                    onShowAnalyzedMatches={
+                      IS_DEV_BUILD &&
+                      (selectedTsiTeam.detailModalAnalyzedMatches ?? []).length > 0
+                        ? () => setDetailModalMatchesDebugKind("tsi")
+                        : null
+                    }
+                    showMobileLandscapeHint={showMobileChronicleLandscapeHint}
+                    showEffectiveMainSkillEstimation={
+                      showChronicleEffectiveMainSkillEstimation
+                    }
+                    onShowEffectiveMainSkillEstimationChange={
+                      setShowChronicleEffectiveMainSkillEstimation
+                    }
+                    sortState={tsiDetailsSortState as TeamScoutDetailSortState}
+                    onSortChange={(key) => handleTsiDetailsSort(key)}
+                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                    maskText={messages.clubChronicleNoDivulgoMask}
+                    isMaskActive={noDivulgoActive}
+                    onMaskedRowClick={(row) => handleNoDivulgoDismiss(row.teamId)}
+                  />
+                ) : (
+                  <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+                )}
               </div>
-              {tsiPlayerRows.length > 0 ? (
-                <TeamScoutDetailTable
-                  mode="tsi"
-                  rows={tsiPlayerRows}
-                  messages={messages}
-                  displayCurrency={displayCurrency}
-                  likelyTraining={selectedTsiLikelyTrainingInfo}
-                  matchSampleSize={selectedTsiTeam.detailModalMatchSampleSize}
-                  onShowAnalyzedMatches={
-                    IS_DEV_BUILD &&
-                    (selectedTsiTeam.detailModalAnalyzedMatches ?? []).length > 0
-                      ? () => setDetailModalMatchesDebugKind("tsi")
-                      : null
-                  }
-                  showMobileLandscapeHint={showMobileChronicleLandscapeHint}
-                  showEffectiveMainSkillEstimation={
-                    showChronicleEffectiveMainSkillEstimation
-                  }
-                  onShowEffectiveMainSkillEstimationChange={
-                    setShowChronicleEffectiveMainSkillEstimation
-                  }
-                  sortState={tsiDetailsSortState as TeamScoutDetailSortState}
-                  onSortChange={(key) => handleTsiDetailsSort(key)}
-                  maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                  maskText={messages.clubChronicleNoDivulgoMask}
-                  isMaskActive={noDivulgoActive}
-                  onMaskedRowClick={(row) => handleNoDivulgoDismiss(row.teamId)}
-                />
-              ) : (
-                <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-              )}
-            </div>
-          ) : (
-            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-          )
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+            )}
+          </>
         }
         actions={
           <button
@@ -21116,51 +21135,72 @@ type Form7LineupSnapshot = {
       <Modal
         open={wagesDetailsOpen}
         title={messages.clubChronicleWagesDetailsTitle}
-        className={styles.chronicleTsiWagesDetailsModal}
+        className={`${styles.chronicleTsiWagesDetailsModal} ${styles.teamScoutDetailCompactModal}`}
+        overlayClassName={styles.teamScoutDetailCompactOverlay}
         body={
-          selectedWagesTeam ? (
-            <div className={styles.chronicleTsiWagesDetailModalLayout}>
-              <div className={styles.chronicleTsiWagesDetailModalMeta}>
-                <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleColumnTeam}:{" "}
-                  {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
-                </p>
-              </div>
-              {wagesPlayerRows.length > 0 ? (
-                <TeamScoutDetailTable
-                  mode="wages"
-                  rows={wagesPlayerRows}
-                  messages={messages}
-                  displayCurrency={displayCurrency}
-                  likelyTraining={selectedWagesLikelyTrainingInfo}
-                  matchSampleSize={selectedWagesTeam.detailModalMatchSampleSize}
-                  onShowAnalyzedMatches={
-                    IS_DEV_BUILD &&
-                    (selectedWagesTeam.detailModalAnalyzedMatches ?? []).length > 0
-                      ? () => setDetailModalMatchesDebugKind("wages")
-                      : null
-                  }
-                  showMobileLandscapeHint={showMobileChronicleLandscapeHint}
-                  showEffectiveMainSkillEstimation={
-                    showChronicleEffectiveMainSkillEstimation
-                  }
-                  onShowEffectiveMainSkillEstimationChange={
-                    setShowChronicleEffectiveMainSkillEstimation
-                  }
-                  sortState={wagesDetailsSortState as TeamScoutDetailSortState}
-                  onSortChange={(key) => handleWagesDetailsSort(key)}
-                  maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                  maskText={messages.clubChronicleNoDivulgoMask}
-                  isMaskActive={noDivulgoActive}
-                  onMaskedRowClick={(row) => handleNoDivulgoDismiss(row.teamId)}
-                />
-              ) : (
-                <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          <>
+            <TeamScoutDetailCompactToolbar
+              idPrefix="club-chronicle-wages"
+              title={messages.clubChronicleWagesDetailsTitle}
+              secondaryLabel={selectedWagesTeam?.teamName ?? null}
+              messages={messages}
+              likelyTraining={selectedWagesLikelyTrainingInfo}
+              matchSampleSize={selectedWagesTeam?.detailModalMatchSampleSize ?? null}
+              onShowAnalyzedMatches={
+                IS_DEV_BUILD &&
+                (selectedWagesTeam?.detailModalAnalyzedMatches ?? []).length > 0
+                  ? () => setDetailModalMatchesDebugKind("wages")
+                  : null
+              }
+              showForeignWageBonusNote={wagesPlayerRows.some(
+                (row) => row.wageIncludesForeignBonus === true
               )}
-            </div>
-          ) : (
-            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-          )
+              onClose={() => setWagesDetailsOpen(false)}
+            />
+            {selectedWagesTeam ? (
+              <div className={styles.chronicleTsiWagesDetailModalLayout}>
+                <div className={styles.chronicleTsiWagesDetailModalMeta}>
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleColumnTeam}:{" "}
+                    {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
+                  </p>
+                </div>
+                {wagesPlayerRows.length > 0 ? (
+                  <TeamScoutDetailTable
+                    mode="wages"
+                    rows={wagesPlayerRows}
+                    messages={messages}
+                    displayCurrency={displayCurrency}
+                    likelyTraining={selectedWagesLikelyTrainingInfo}
+                    matchSampleSize={selectedWagesTeam.detailModalMatchSampleSize}
+                    onShowAnalyzedMatches={
+                      IS_DEV_BUILD &&
+                      (selectedWagesTeam.detailModalAnalyzedMatches ?? []).length > 0
+                        ? () => setDetailModalMatchesDebugKind("wages")
+                        : null
+                    }
+                    showMobileLandscapeHint={showMobileChronicleLandscapeHint}
+                    showEffectiveMainSkillEstimation={
+                      showChronicleEffectiveMainSkillEstimation
+                    }
+                    onShowEffectiveMainSkillEstimationChange={
+                      setShowChronicleEffectiveMainSkillEstimation
+                    }
+                    sortState={wagesDetailsSortState as TeamScoutDetailSortState}
+                    onSortChange={(key) => handleWagesDetailsSort(key)}
+                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                    maskText={messages.clubChronicleNoDivulgoMask}
+                    isMaskActive={noDivulgoActive}
+                    onMaskedRowClick={(row) => handleNoDivulgoDismiss(row.teamId)}
+                  />
+                ) : (
+                  <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+                )}
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+            )}
+          </>
         }
         actions={
           <button

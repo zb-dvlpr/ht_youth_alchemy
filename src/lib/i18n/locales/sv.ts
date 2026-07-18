@@ -980,6 +980,7 @@ export const messagesSv: Messages = {
       "Trolig träningsinriktning: {{regimen}}",
     clubChronicleDetailModalMatchesUsedLabel:
       "Data hämtad från {{count}} matcher.",
+    teamScoutDetailInfoButtonLabel: "Lagscoutinformation",
     clubChronicleDetailModalMatchesDebugTitle: "Matcher som ingår",
     clubChronicleDetailModalMatchesDebugMatchLabel: "Match {{matchId}}",
     clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

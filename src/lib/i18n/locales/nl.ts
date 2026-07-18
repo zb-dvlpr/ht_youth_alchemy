@@ -560,7 +560,9 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
-    changelog_8_3_0: "Er is een link naar het YouTube-kanaal toegevoegd.",
+    changelog_9_0_0:
+      "De mogelijkheid toegevoegd om Hattrick Alchemy als zelfstandige app te installeren.",
+    changelog_8_3_0: "In-app-tutorials toegevoegd.",
     changelog_8_2_0: "Het algoritme voor mandekking in de seniorenopstelling is verbeterd en houdt nu rekening met effectieve vaardigheden, spelersspecialiteiten, positiegebonden straffen en geschatte hoofdvaardigheden van de tegenstander.",
     changelog_8_1_0: "Voorspelde ratings voor seniorenwedstrijdopstellingen zijn geimplementeerd.",
     changelog_8_0_0: "Teamgeestcalculator geimplementeerd.",

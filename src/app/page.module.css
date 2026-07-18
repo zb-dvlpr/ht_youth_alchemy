@@ -301,6 +301,7 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -605,14 +606,22 @@ html[data-mobile-shell="true"] .scaleContainer {
 }
 
 .mobileConnectButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  box-sizing: border-box;
   border: 1px solid rgba(31, 111, 63, 0.24);
   background: #1f6f3f;
   color: #f7f1e3;
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 6px 14px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
@@ -625,14 +634,22 @@ html[data-mobile-shell="true"] .scaleContainer {
 }
 
 .mobileDisconnectButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  box-sizing: border-box;
   border: 1px solid rgba(162, 52, 52, 0.4);
   background: rgba(162, 52, 52, 0.12);
   color: #a61f1f;
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 6px 14px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
@@ -6937,18 +6954,31 @@ html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .desktopTo
 html[data-mobile-shell="true"]
   .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
   .mobileLauncherHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  column-gap: 10px;
+  row-gap: 6px;
   min-width: 0;
 }
 
 html[data-mobile-shell="true"]
   .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
   .mobileLauncherHeader
-  > * {
+  .mobileLauncherTitleRow {
   min-width: 0;
+}
+
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader
+  .mobileDisconnectButton,
+html[data-mobile-shell="true"]
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"]
+  .mobileLauncherHeader
+  .mobileConnectButton {
+  align-self: start;
+  justify-self: end;
 }
 
 html[data-mobile-shell="true"]
@@ -7283,15 +7313,22 @@ html[data-mobile-shell="true"]
   }
 
   .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 6px;
     min-width: 0;
   }
 
-  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader > * {
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader .mobileLauncherTitleRow {
     min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader .mobileDisconnectButton,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader .mobileConnectButton {
+    align-self: start;
+    justify-self: end;
   }
 
   .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls {

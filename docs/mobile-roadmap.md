@@ -57,6 +57,7 @@ Last updated: 2026-05-18
 ## Phase 5: Polish and Verification
 - [ ] Tune spacing, touch targets, and motion for mobile ergonomics.
   - [x] Reworked transfer search modals so mobile shows only Results, Search criteria, or Market summary at a time.
+  - [x] Compacted senior player details and transfer-result cards with a shared mobile density surface.
   - [x] Made transfer search mobile panels scroll inside the viewport without hiding criteria behind the footer.
   - [x] Stacked transfer search bid and max-bid controls on mobile to prevent cramped action rows.
   - [x] Fixed transfer search table view on landscape phones so the results pane keeps full usable height while horizontal scrolling remains available.

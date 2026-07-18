@@ -16106,6 +16106,276 @@ html[data-mobile-shell="true"]
   }
 }
 
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface {
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .transferSearchResultCard.seniorPlayerDetailCompactSurface {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .seniorPlayerDetailCompactSurface.profileCard {
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileCardTopActions {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileCardLeftActions {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .detailsNavigationCorner {
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileHeader {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileHeaderMain {
+  flex-basis: auto;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileNameRow {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileName {
+  font-size: 20px;
+  line-height: 1.18;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileHeaderSubrow {
+  margin-top: 2px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileUpdated {
+  font-size: 11px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .playerStatementQuote {
+  margin-top: 5px;
+  padding: 6px 9px 6px 11px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorPersonaLine {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileMeta {
+  gap: 6px;
+  margin-top: 5px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .metaItem,
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .playerAgePill,
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .playerMetricPill {
+  padding: 3px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileInfoRow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+  margin-top: 10px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .infoLabel {
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .infoValue {
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .infoValueTiny {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .sectionDivider {
+  margin: 10px 0 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .sectionHeadingRow {
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .sectionHeading {
+  margin-bottom: 0;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorSimulationHeadingActions {
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationToggle {
+  min-height: 32px;
+  padding: 4px 8px;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorSimulationVideoLink {
+  width: 32px;
+  height: 32px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationControls {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationControlGroup {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationControlLabel {
+  gap: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationControlInput {
+  min-height: 34px;
+  padding: 6px 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillsGrid {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillRow {
+  grid-template-columns: minmax(82px, 108px) minmax(0, 1fr) minmax(28px, 36px);
+  column-gap: 8px;
+  row-gap: 0;
+  align-items: center;
+  min-height: 28px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillBar {
+  min-width: 0;
+  height: 10px;
+}
+
+html[data-mobile-shell="true"]
+  .seniorPlayerDetailCompactSurface
+  .simulationEditableSkillBar {
+  min-height: 18px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillValue {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationWarning {
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorFoxtrickMetrics {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"]
+  .seniorPlayerDetailCompactSurface
+  .seniorFoxtrickMetrics
+  .profileInfoRow {
+  margin-top: 0;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorPsicoTableWrap {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorPsicoTable {
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorPsicoTable th,
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .seniorPsicoTable td {
+  padding: 5px 6px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .transferSearchResultHeader {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .transferSearchPriceBlock {
+  width: 100%;
+  justify-items: start;
+  text-align: left;
+  gap: 2px;
+}
+
+html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .transferSearchPriceValue {
+  font-size: 24px;
+}
+
+@media (orientation: landscape) {
+  html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .profileInfoRow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .transferSearchResultHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .transferSearchPriceBlock {
+    width: fit-content;
+    justify-items: end;
+    text-align: right;
+  }
+}
+
+@media (max-width: 340px) {
+  html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .skillRow {
+    grid-template-columns: minmax(72px, 88px) minmax(0, 1fr) minmax(26px, 32px);
+    column-gap: 6px;
+  }
+
+  html[data-mobile-shell="true"] .seniorPlayerDetailCompactSurface .simulationControlGroup {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .main {
     padding: 20px 16px 40px;

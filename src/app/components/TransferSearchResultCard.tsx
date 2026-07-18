@@ -594,7 +594,10 @@ export default function TransferSearchResultCard({
   );
 
   return (
-    <article key={result.playerId} className={styles.transferSearchResultCard}>
+    <article
+      key={result.playerId}
+      className={`${styles.transferSearchResultCard} ${styles.seniorPlayerDetailCompactSurface}`}
+    >
       <div className={styles.transferSearchResultHeader}>
         <div>
           <h4 className={styles.profileName}>

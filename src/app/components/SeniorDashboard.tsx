@@ -116,6 +116,7 @@ import TeamScoutDetailTable, {
   type TeamScoutLikelyTrainingInfo,
   type TeamScoutPlayerRow,
 } from "./TeamScoutDetailTable";
+import TeamScoutDetailCompactToolbar from "./TeamScoutDetailCompactToolbar";
 import { loadTeamScoutDerivedData } from "@/lib/clubChronicle/teamScoutDetailData";
 import { buildTeamScoutPlayerRows } from "@/lib/clubChronicle/teamScoutDetailRows";
 import type { TeamScoutBasePlayer } from "@/lib/clubChronicle/teamScoutDetailRows";
@@ -24157,11 +24158,58 @@ const refreshDetailsForPlayers = async (
       <Modal
         open={!!opponentAnalysisModal}
         title={opponentAnalysisModal?.title ?? messages.analyzeOpponent}
-        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorOpponentAnalysisModal}`}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorOpponentAnalysisModal} ${
+          opponentAnalysisActiveTab === "scoutTeam"
+            ? styles.teamScoutDetailCompactModal
+            : ""
+        }`}
+        overlayClassName={
+          opponentAnalysisActiveTab === "scoutTeam"
+            ? styles.teamScoutDetailCompactOverlay
+            : undefined
+        }
         body={
           opponentAnalysisModal ? (
             <div className={styles.seniorOpponentAnalysisModalBody}>
-              <div className={styles.detailsTabs} role="tablist">
+              {opponentAnalysisActiveTab === "scoutTeam" ? (
+                <TeamScoutDetailCompactToolbar
+                  idPrefix="senior-opponent-scout"
+                  title={opponentAnalysisModal.title}
+                  messages={messages}
+                  likelyTraining={
+                    opponentScoutTeamState.status === "success"
+                      ? opponentScoutTeamState.data.likelyTraining
+                      : null
+                  }
+                  matchSampleSize={
+                    opponentScoutTeamState.status === "success"
+                      ? opponentScoutTeamState.data.matchCount
+                      : null
+                  }
+                  tabs={[
+                    {
+                      id: "matches",
+                      label: messages.seniorOpponentAnalysisTabMatches,
+                      active: false,
+                      onSelect: () => setOpponentAnalysisActiveTab("matches"),
+                    },
+                    {
+                      id: "scoutTeam",
+                      label: messages.seniorOpponentAnalysisTabScoutTeam,
+                      active: true,
+                      onSelect: () => {
+                        setOpponentAnalysisActiveTab("scoutTeam");
+                        void loadOpponentScoutTeam();
+                      },
+                    },
+                  ]}
+                  onClose={closeOpponentAnalysisModal}
+                />
+              ) : null}
+              <div
+                className={`${styles.detailsTabs} ${styles.seniorOpponentAnalysisStandardTabs}`}
+                role="tablist"
+              >
                 <button
                   type="button"
                   role="tab"

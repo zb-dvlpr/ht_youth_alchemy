@@ -241,6 +241,7 @@ export const messagesNl: Messages = {
     "Waarschijnlijk trainingsregime: {{regimen}}",
   clubChronicleDetailModalMatchesUsedLabel:
     "Gegevens opgehaald uit {{count}} wedstrijden.",
+  teamScoutDetailInfoButtonLabel: "Teamscoutinformatie",
   clubChronicleDetailModalMatchesDebugTitle: "Meegetelde wedstrijden",
   clubChronicleDetailModalMatchesDebugMatchLabel: "Wedstrijd {{matchId}}",
   clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

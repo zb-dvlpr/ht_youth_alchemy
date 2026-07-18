@@ -26,6 +26,7 @@ type ModalProps = {
   actions?: ReactNode;
   variant?: ModalVariant;
   className?: string;
+  overlayClassName?: string;
   autoPosition?: boolean;
   movable?: boolean;
   closeOnBackdrop?: boolean;
@@ -129,6 +130,7 @@ export default function Modal({
   actions,
   variant = "global",
   className,
+  overlayClassName,
   autoPosition = true,
   movable = true,
   closeOnBackdrop = false,
@@ -365,8 +367,11 @@ export default function Modal({
   }, [autoPosition, desktopViewportActive, open, size]);
 
   if (!open || !mounted || typeof document === "undefined") return null;
-  const overlayClass =
+  const baseOverlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
+  const overlayClass = `${baseOverlayClass}${
+    overlayClassName ? ` ${overlayClassName}` : ""
+  }`;
   const cardStyle: CSSProperties = {
     ...(autoPosition && desktopViewportActive && position
       ? {

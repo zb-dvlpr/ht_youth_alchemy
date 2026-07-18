@@ -988,6 +988,7 @@ export const messagesEs: Messages = {
       "Régimen de entrenamiento probable: {{regimen}}",
     clubChronicleDetailModalMatchesUsedLabel:
       "Datos obtenidos de {{count}} partidos.",
+    teamScoutDetailInfoButtonLabel: "Información de ojeo del equipo",
     clubChronicleDetailModalMatchesDebugTitle: "Partidos considerados",
     clubChronicleDetailModalMatchesDebugMatchLabel: "Partido {{matchId}}",
     clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

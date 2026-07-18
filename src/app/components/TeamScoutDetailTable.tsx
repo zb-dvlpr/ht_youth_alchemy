@@ -34,6 +34,7 @@ import {
   type ChronicleSortValue,
   type ChronicleTableColumn,
 } from "./ChronicleTable";
+import TeamScoutDetailInfo from "./TeamScoutDetailInfo";
 
 export type TeamScoutDetailMode = "tsi" | "wages";
 export type TeamScoutDetailColumnKey =
@@ -746,11 +747,15 @@ export default function TeamScoutDetailTable({
         };
 
   if (rows.length === 0) {
-    return <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>;
+    return (
+      <div className={styles.teamScoutDetailTableLayout}>
+        <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+      </div>
+    );
   }
 
   return (
-    <>
+    <div className={styles.teamScoutDetailTableLayout}>
       {showMobileLandscapeHint ? (
         <span className={styles.mobileYouthLandscapeHint}>
           {messages.mobileChronicleLandscapeHint}
@@ -782,60 +787,14 @@ export default function TeamScoutDetailTable({
           />
         </ChronicleDetailHorizontalScroll>
       </div>
-      <div className={styles.chronicleTsiWagesDetailModalFooterNotes}>
-        <div className={styles.chronicleLegend}>
-          <span className={styles.chronicleLegendText}>
-            {messages.clubChronicleMainSkillEstimationFootnote}
-          </span>
-        </div>
-        {likelyTraining ? (
-          <div className={styles.chronicleLegend}>
-            <span className={styles.chronicleLegendItem}>
-              <span
-                className={`${styles.chronicleLegendSwatch} ${styles.chronicleLikelyTraineeSwatch}`}
-                aria-hidden="true"
-              />
-              <span>{messages.clubChronicleLikelyTraineeLegendLabel}</span>
-            </span>
-            <span className={styles.chronicleLegendText}>
-              {messages.clubChronicleLikelyTraineeLegendRegimen.replace(
-                "{{regimen}}",
-                likelyTraining.label
-              )}
-            </span>
-          </div>
-        ) : null}
-        {hasForeignWageBonus ? (
-          <div className={styles.chronicleLegend}>
-            <span className={styles.chronicleLegendText}>
-              ² {messages.seniorWageForeignExtraNote}
-            </span>
-          </div>
-        ) : null}
-        {typeof matchSampleSize === "number" ? (
-          <div className={styles.chronicleLegend}>
-            {onShowAnalyzedMatches ? (
-              <button
-                type="button"
-                className={styles.chronicleLegendButton}
-                onClick={onShowAnalyzedMatches}
-              >
-                {messages.clubChronicleDetailModalMatchesUsedLabel.replace(
-                  "{{count}}",
-                  String(matchSampleSize)
-                )}
-              </button>
-            ) : (
-              <span className={styles.chronicleLegendText}>
-                {messages.clubChronicleDetailModalMatchesUsedLabel.replace(
-                  "{{count}}",
-                  String(matchSampleSize)
-                )}
-              </span>
-            )}
-          </div>
-        ) : null}
-      </div>
-    </>
+      <TeamScoutDetailInfo
+        messages={messages}
+        likelyTraining={likelyTraining}
+        matchSampleSize={matchSampleSize}
+        onShowAnalyzedMatches={onShowAnalyzedMatches}
+        showForeignWageBonusNote={hasForeignWageBonus}
+        variant="footer"
+      />
+    </div>
   );
 }

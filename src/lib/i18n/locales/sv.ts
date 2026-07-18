@@ -981,6 +981,9 @@ export const messagesSv: Messages = {
     clubChronicleDetailModalMatchesUsedLabel:
       "Data hämtad från {{count}} matcher.",
     teamScoutDetailInfoButtonLabel: "Lagscoutinformation",
+    teamScoutInferredTrainingLabel: "Härledd träning: {{training}}",
+    teamScoutDataMatchesLabel: "Data: {{count}} matcher",
+    teamScoutDataMatchLabel: "Data: {{count}} match",
     clubChronicleDetailModalMatchesDebugTitle: "Matcher som ingår",
     clubChronicleDetailModalMatchesDebugMatchLabel: "Match {{matchId}}",
     clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

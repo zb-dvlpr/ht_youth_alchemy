@@ -771,6 +771,9 @@ export type Messages = {
   clubChronicleLikelyTraineeLegendRegimen: string;
   clubChronicleDetailModalMatchesUsedLabel: string;
   teamScoutDetailInfoButtonLabel: string;
+  teamScoutInferredTrainingLabel: string;
+  teamScoutDataMatchesLabel: string;
+  teamScoutDataMatchLabel: string;
   clubChronicleDetailModalMatchesDebugTitle: string;
   clubChronicleDetailModalMatchesDebugMatchLabel: string;
   clubChronicleDetailModalMatchesDebugMeta: string;

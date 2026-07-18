@@ -242,6 +242,9 @@ export const messagesNl: Messages = {
   clubChronicleDetailModalMatchesUsedLabel:
     "Gegevens opgehaald uit {{count}} wedstrijden.",
   teamScoutDetailInfoButtonLabel: "Teamscoutinformatie",
+  teamScoutInferredTrainingLabel: "Afgeleide training: {{training}}",
+  teamScoutDataMatchesLabel: "Gegevens: {{count}} wedstrijden",
+  teamScoutDataMatchLabel: "Gegevens: {{count}} wedstrijd",
   clubChronicleDetailModalMatchesDebugTitle: "Meegetelde wedstrijden",
   clubChronicleDetailModalMatchesDebugMatchLabel: "Wedstrijd {{matchId}}",
   clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

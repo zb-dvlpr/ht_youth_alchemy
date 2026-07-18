@@ -993,6 +993,9 @@ export const messagesIt: Messages = {
     clubChronicleDetailModalMatchesUsedLabel:
       "Dati ricavati da {{count}} partite.",
     teamScoutDetailInfoButtonLabel: "Informazioni scouting squadra",
+    teamScoutInferredTrainingLabel: "Allenamento dedotto: {{training}}",
+    teamScoutDataMatchesLabel: "Dati: {{count}} partite",
+    teamScoutDataMatchLabel: "Dati: {{count}} partita",
     clubChronicleDetailModalMatchesDebugTitle: "Partite considerate",
     clubChronicleDetailModalMatchesDebugMatchLabel: "Partita {{matchId}}",
     clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",

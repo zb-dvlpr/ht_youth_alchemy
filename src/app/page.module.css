@@ -944,6 +944,10 @@ html[data-mobile-shell="true"] .scaleContainer {
   overflow-x: hidden;
 }
 
+.mobileChronicleTeamScoutDetailMode {
+  padding-bottom: 0;
+}
+
 .mobileChronicleContentPanelMode {
   display: contents;
 }
@@ -5468,14 +5472,35 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 
 .chronicleDetailTableScrollHost {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  min-height: 0;
   padding-bottom: 14px;
 }
 
+.chronicleDetailTableScrollHostFill {
+  flex: 1 1 auto;
+  height: 100%;
+  overflow: hidden;
+}
+
 .chronicleDetailTableScroll {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
   scrollbar-width: none;
   scrollbar-gutter: stable;
+}
+
+.chronicleDetailTableScrollHostFill .chronicleDetailTableScroll {
+  flex: 1 1 auto;
 }
 
 .chronicleDetailTableScroll::-webkit-scrollbar {
@@ -5549,7 +5574,40 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  gap: 10px;
   min-height: 0;
+  min-width: 0;
+}
+
+.teamScoutDetailViewport {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.teamScoutDetailViewportMobilePage {
+  height: 100%;
+}
+
+.teamScoutDetailViewportBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.teamScoutDetailStandardMeta {
+  flex: 0 0 auto;
+}
+
+.teamScoutDetailStandardMeta .chroniclePressMeta {
+  margin-bottom: 0;
 }
 
 .teamScoutDetailCompactToolbar {
@@ -5587,268 +5645,315 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   overscroll-behavior: contain;
 }
 
-@media (orientation: landscape) and (max-height: 650px) {
-  html[data-mobile-shell="true"] .teamScoutDetailCompactOverlay {
-    padding:
-      max(4px, env(safe-area-inset-top))
-      max(4px, env(safe-area-inset-right))
-      max(4px, env(safe-area-inset-bottom))
-      max(4px, env(safe-area-inset-left));
-    overflow: hidden;
-  }
+html[data-mobile-shell="true"] .teamScoutDetailCompactOverlay {
+  padding:
+    max(4px, env(safe-area-inset-top))
+    max(4px, env(safe-area-inset-right))
+    max(4px, env(safe-area-inset-bottom))
+    max(4px, env(safe-area-inset-left));
+  overflow: hidden;
+}
 
+html[data-mobile-shell="true"] .confirmCard.teamScoutDetailCompactModal {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 8px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"]
+  .confirmCard.teamScoutDetailCompactModal
+  > .confirmTitle,
+html[data-mobile-shell="true"]
+  .confirmCard.teamScoutDetailCompactModal
+  > .confirmActions {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .confirmCard.teamScoutDetailCompactModal
+  > .confirmBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: auto;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport {
+  gap: 6px;
+  height: 100%;
+}
+
+html[data-mobile-shell="true"]
+  .teamScoutDetailCompactModal
+  .seniorOpponentAnalysisModalBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewportBody,
+html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleTsiWagesDetailModalLayout,
+html[data-mobile-shell="true"] .teamScoutDetailViewport .teamScoutDetailTableLayout {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactToolbar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 0 6px;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactTabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactTab {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 32px;
+  max-width: 92px;
+  border: 1px solid rgba(117, 98, 71, 0.28);
+  border-radius: 8px;
+  padding: 4px 7px;
+  background: rgba(255, 252, 247, 0.9);
+  color: #3f362c;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactTabActive {
+  border-color: rgba(36, 77, 43, 0.36);
+  background: rgba(36, 77, 43, 0.14);
+  color: #244d2b;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactHeading {
+  display: grid;
+  flex: 1 1 120px;
+  min-width: 0;
+  gap: 1px;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactTitle,
+html[data-mobile-shell="true"] .teamScoutDetailCompactSecondary {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactTitle {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #2d261f;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactSecondary {
+  font-size: 11px;
+  line-height: 1.2;
+  color: #6b6256;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactMeta {
+  order: 3;
+  display: inline-flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactMetaChip {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid rgba(117, 98, 71, 0.22);
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(255, 252, 247, 0.82);
+  color: #5b5144;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactActions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactInfoWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid rgba(117, 98, 71, 0.28);
+  border-radius: 9px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(255, 252, 247, 0.92);
+  color: #2d261f;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton:hover,
+html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton:focus-visible,
+html[data-mobile-shell="true"] .teamScoutDetailCompactTab:hover,
+html[data-mobile-shell="true"] .teamScoutDetailCompactTab:focus-visible {
+  border-color: rgba(47, 95, 143, 0.45);
+  outline: 2px solid rgba(47, 95, 143, 0.28);
+  outline-offset: 1px;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailCompactInfoPopover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 50;
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100dvh - 72px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid rgba(117, 98, 71, 0.24);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fffaf2;
+  box-shadow: 0 12px 28px rgba(37, 31, 24, 0.22);
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport .teamScoutDetailStandardMeta,
+html[data-mobile-shell="true"]
+  .teamScoutDetailViewport
+  .chronicleTsiWagesDetailModalFooterNotes,
+html[data-mobile-shell="true"] .teamScoutDetailViewport .mobileYouthLandscapeHint {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleDetailTableScrollHost {
+  padding-bottom: 0;
+}
+
+html[data-mobile-shell="true"]
+  .teamScoutDetailViewport
+  .chronicleTsiWagesDetailModalTableScroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  padding-right: 2px;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleDetailFloatingScrollbar {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleEmpty,
+html[data-mobile-shell="true"] .teamScoutDetailViewport .loadingRow,
+html[data-mobile-shell="true"] .teamScoutDetailViewport .seniorOtherOrdersComboboxStatus {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleTableHeader {
+  z-index: 22;
+}
+
+@media (orientation: landscape) and (max-height: 650px) {
   html[data-mobile-shell="true"] .confirmCard.teamScoutDetailCompactModal {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
     padding: 6px 8px;
     border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  html[data-mobile-shell="true"]
-    .confirmCard.teamScoutDetailCompactModal
-    > .confirmTitle,
-  html[data-mobile-shell="true"]
-    .confirmCard.teamScoutDetailCompactModal
-    > .confirmActions {
-    display: none;
-  }
-
-  html[data-mobile-shell="true"]
-    .confirmCard.teamScoutDetailCompactModal
-    > .confirmBody {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-height: 0;
-    height: auto;
-    margin-bottom: 0;
-    overflow: hidden;
   }
 
   html[data-mobile-shell="true"] .teamScoutDetailCompactToolbar {
-    position: relative;
-    z-index: 40;
-    display: flex;
-    flex: 0 0 auto;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
     min-height: 36px;
     padding: 2px 0 6px;
   }
 
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTabs {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 4px;
-    min-width: 0;
-  }
-
   html[data-mobile-shell="true"] .teamScoutDetailCompactTab {
-    appearance: none;
-    flex: 0 0 auto;
-    min-height: 32px;
     max-width: 84px;
-    border: 1px solid rgba(117, 98, 71, 0.28);
-    border-radius: 8px;
-    padding: 4px 7px;
-    background: rgba(255, 252, 247, 0.9);
-    color: #3f362c;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTabActive {
-    border-color: rgba(36, 77, 43, 0.36);
-    background: rgba(36, 77, 43, 0.14);
-    color: #244d2b;
   }
 
   html[data-mobile-shell="true"] .teamScoutDetailCompactHeading {
-    display: grid;
     flex: 1 1 auto;
-    min-width: 0;
-    gap: 1px;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTitle,
-  html[data-mobile-shell="true"] .teamScoutDetailCompactSecondary {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTitle {
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #2d261f;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactSecondary {
-    font-size: 11px;
-    line-height: 1.2;
-    color: #6b6256;
   }
 
   html[data-mobile-shell="true"] .teamScoutDetailCompactMeta {
-    display: inline-flex;
+    order: 0;
     flex: 0 1 auto;
-    align-items: center;
-    gap: 4px;
-    min-width: 0;
-    max-width: 28%;
-    overflow: hidden;
+    flex-wrap: nowrap;
+    max-width: 42%;
   }
 
   html[data-mobile-shell="true"] .teamScoutDetailCompactMetaChip {
-    min-width: 0;
-    max-width: 96px;
-    border: 1px solid rgba(117, 98, 71, 0.22);
-    border-radius: 999px;
-    padding: 2px 6px;
-    background: rgba(255, 252, 247, 0.82);
-    color: #5b5144;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactActions {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 4px;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactInfoWrap {
-    position: relative;
-    display: inline-flex;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton {
-    appearance: none;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    border: 1px solid rgba(117, 98, 71, 0.28);
-    border-radius: 9px;
-    display: inline-grid;
-    place-items: center;
-    background: rgba(255, 252, 247, 0.92);
-    color: #2d261f;
-    font-size: 17px;
-    font-weight: 800;
-    line-height: 1;
-    cursor: pointer;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton:hover,
-  html[data-mobile-shell="true"] .teamScoutDetailCompactIconButton:focus-visible,
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTab:hover,
-  html[data-mobile-shell="true"] .teamScoutDetailCompactTab:focus-visible {
-    border-color: rgba(47, 95, 143, 0.45);
-    outline: 2px solid rgba(47, 95, 143, 0.28);
-    outline-offset: 1px;
+    max-width: 180px;
   }
 
   html[data-mobile-shell="true"] .teamScoutDetailCompactInfoPopover {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    z-index: 50;
-    width: min(340px, calc(100vw - 24px));
     max-height: calc(100dvh - 60px);
-    overflow: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid rgba(117, 98, 71, 0.24);
-    border-radius: 10px;
-    padding: 10px;
-    background: #fffaf2;
-    box-shadow: 0 12px 28px rgba(37, 31, 24, 0.22);
   }
 
   html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .seniorOpponentAnalysisStandardTabs,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .chronicleTsiWagesDetailModalMeta,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .chronicleTsiWagesDetailModalFooterNotes,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .mobileYouthLandscapeHint {
-    display: none;
-  }
-
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .seniorOpponentAnalysisModalBody,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .chronicleTsiWagesDetailModalLayout,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .teamScoutDetailTableLayout {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
+    .teamScoutDetailViewport
     .chronicleTsiWagesDetailModalLayout {
     gap: 6px;
-  }
-
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .chronicleTsiWagesDetailModalTableScroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .chronicleEmpty,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .loadingRow,
-  html[data-mobile-shell="true"]
-    .teamScoutDetailCompactModal
-    .seniorOtherOrdersComboboxStatus {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-  }
-
-  html[data-mobile-shell="true"] .teamScoutDetailCompactModal .chronicleTableHeader {
-    z-index: 22;
   }
 }
 
@@ -7936,40 +8041,38 @@ html[data-theme="dark"] .chronicleLegendButton:hover {
   color: #b9d2ed;
 }
 
-@media (orientation: landscape) and (max-height: 650px) {
-  html[data-theme="dark"][data-mobile-shell="true"] .teamScoutDetailCompactTitle {
-    color: #f3ede4;
-  }
+html[data-theme="dark"][data-mobile-shell="true"] .teamScoutDetailCompactTitle {
+  color: #f3ede4;
+}
 
-  html[data-theme="dark"][data-mobile-shell="true"]
-    .teamScoutDetailCompactSecondary {
-    color: #b9b0a5;
-  }
+html[data-theme="dark"][data-mobile-shell="true"]
+  .teamScoutDetailCompactSecondary {
+  color: #b9b0a5;
+}
 
-  html[data-theme="dark"][data-mobile-shell="true"] .teamScoutDetailCompactTab,
-  html[data-theme="dark"][data-mobile-shell="true"]
-    .teamScoutDetailCompactIconButton,
-  html[data-theme="dark"][data-mobile-shell="true"]
-    .teamScoutDetailCompactMetaChip {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: #26211c;
-    color: #f3ede4;
-  }
+html[data-theme="dark"][data-mobile-shell="true"] .teamScoutDetailCompactTab,
+html[data-theme="dark"][data-mobile-shell="true"]
+  .teamScoutDetailCompactIconButton,
+html[data-theme="dark"][data-mobile-shell="true"]
+  .teamScoutDetailCompactMetaChip {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #26211c;
+  color: #f3ede4;
+}
 
-  html[data-theme="dark"][data-mobile-shell="true"]
-    .teamScoutDetailCompactTabActive {
-    border-color: rgba(142, 183, 223, 0.42);
-    background: #1f2730;
-    color: #d8ebff;
-  }
+html[data-theme="dark"][data-mobile-shell="true"]
+  .teamScoutDetailCompactTabActive {
+  border-color: rgba(142, 183, 223, 0.42);
+  background: #1f2730;
+  color: #d8ebff;
+}
 
-  html[data-theme="dark"][data-mobile-shell="true"]
-    .teamScoutDetailCompactInfoPopover {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: #211f1b;
-    color: #efe4d8;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.46);
-  }
+html[data-theme="dark"][data-mobile-shell="true"]
+  .teamScoutDetailCompactInfoPopover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #211f1b;
+  color: #efe4d8;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.46);
 }
 
 html[data-theme="dark"] .chronicleUpdatesRow,

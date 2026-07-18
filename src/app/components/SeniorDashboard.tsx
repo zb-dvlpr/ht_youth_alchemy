@@ -116,7 +116,7 @@ import TeamScoutDetailTable, {
   type TeamScoutLikelyTrainingInfo,
   type TeamScoutPlayerRow,
 } from "./TeamScoutDetailTable";
-import TeamScoutDetailCompactToolbar from "./TeamScoutDetailCompactToolbar";
+import TeamScoutDetailViewport from "./TeamScoutDetailViewport";
 import { loadTeamScoutDerivedData } from "@/lib/clubChronicle/teamScoutDetailData";
 import { buildTeamScoutPlayerRows } from "@/lib/clubChronicle/teamScoutDetailRows";
 import type { TeamScoutBasePlayer } from "@/lib/clubChronicle/teamScoutDetailRows";
@@ -24171,80 +24171,38 @@ const refreshDetailsForPlayers = async (
         body={
           opponentAnalysisModal ? (
             <div className={styles.seniorOpponentAnalysisModalBody}>
-              {opponentAnalysisActiveTab === "scoutTeam" ? (
-                <TeamScoutDetailCompactToolbar
-                  idPrefix="senior-opponent-scout"
-                  title={opponentAnalysisModal.title}
-                  messages={messages}
-                  likelyTraining={
-                    opponentScoutTeamState.status === "success"
-                      ? opponentScoutTeamState.data.likelyTraining
-                      : null
-                  }
-                  matchSampleSize={
-                    opponentScoutTeamState.status === "success"
-                      ? opponentScoutTeamState.data.matchCount
-                      : null
-                  }
-                  tabs={[
-                    {
-                      id: "matches",
-                      label: messages.seniorOpponentAnalysisTabMatches,
-                      active: false,
-                      onSelect: () => setOpponentAnalysisActiveTab("matches"),
-                    },
-                    {
-                      id: "scoutTeam",
-                      label: messages.seniorOpponentAnalysisTabScoutTeam,
-                      active: true,
-                      onSelect: () => {
-                        setOpponentAnalysisActiveTab("scoutTeam");
-                        void loadOpponentScoutTeam();
-                      },
-                    },
-                  ]}
-                  onClose={closeOpponentAnalysisModal}
-                />
-              ) : null}
-              <div
-                className={`${styles.detailsTabs} ${styles.seniorOpponentAnalysisStandardTabs}`}
-                role="tablist"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={opponentAnalysisActiveTab === "matches"}
-                  className={`${styles.detailsTabButton} ${
-                    opponentAnalysisActiveTab === "matches"
-                      ? styles.detailsTabActive
-                      : ""
-                  }`}
-                  onClick={() => setOpponentAnalysisActiveTab("matches")}
-                >
-                  {messages.seniorOpponentAnalysisTabMatches}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={opponentAnalysisActiveTab === "scoutTeam"}
-                  className={`${styles.detailsTabButton} ${
-                    opponentAnalysisActiveTab === "scoutTeam"
-                      ? styles.detailsTabActive
-                      : ""
-                  }`}
-                  onClick={() => {
-                    setOpponentAnalysisActiveTab("scoutTeam");
-                    void loadOpponentScoutTeam();
-                  }}
-                >
-                  {messages.seniorOpponentAnalysisTabScoutTeam}
-                </button>
-              </div>
               {opponentAnalysisModal.loading ? (
                 <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
               ) : opponentAnalysisModal.error ? (
                 <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
               ) : opponentAnalysisActiveTab === "matches" ? (
+                <>
+                <div
+                  className={`${styles.detailsTabs} ${styles.seniorOpponentAnalysisStandardTabs}`}
+                  role="tablist"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected
+                    className={`${styles.detailsTabButton} ${styles.detailsTabActive}`}
+                    onClick={() => setOpponentAnalysisActiveTab("matches")}
+                  >
+                    {messages.seniorOpponentAnalysisTabMatches}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={false}
+                    className={styles.detailsTabButton}
+                    onClick={() => {
+                      setOpponentAnalysisActiveTab("scoutTeam");
+                      void loadOpponentScoutTeam();
+                    }}
+                  >
+                    {messages.seniorOpponentAnalysisTabScoutTeam}
+                  </button>
+                </div>
                 <div className={styles.seniorOpponentAnalysisMatchesPanel}>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
@@ -24409,52 +24367,87 @@ const refreshDetailsForPlayers = async (
                   </div>
                 </div>
                 </div>
+                </>
               ) : (
-                <div className={styles.chronicleTsiWagesDetailModalLayout}>
-                  {opponentScoutTeamState.status === "loading" ? (
-                    <div className={styles.loadingRow}>
-                      <span className={styles.spinner} aria-hidden="true" />
-                      <span>{messages.seniorOpponentScoutTeamLoading}</span>
-                    </div>
-                  ) : null}
-                  {opponentScoutTeamState.status === "error" ? (
-                    <div className={styles.seniorOtherOrdersComboboxStatus}>
-                      <span>{opponentScoutTeamState.error}</span>
-                      <button
-                        type="button"
-                        className={styles.seniorOtherOrdersInlineButton}
-                        onClick={() => void loadOpponentScoutTeam(true)}
-                      >
-                        {messages.seniorOtherOrdersOpponentPlayersRetry}
-                      </button>
-                    </div>
-                  ) : null}
-                  {opponentScoutTeamState.status === "success" &&
-                  opponentScoutTeamState.data.rows.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.seniorOpponentScoutTeamEmpty}
-                    </p>
-                  ) : null}
-                  {opponentScoutTeamState.status === "success" &&
-                  opponentScoutTeamState.data.rows.length > 0 ? (
-                    <TeamScoutDetailTable
-                      mode="tsi"
-                      rows={opponentScoutTeamState.data.rows}
-                      messages={messages}
-                      displayCurrency={displayCurrency}
-                      likelyTraining={opponentScoutTeamState.data.likelyTraining}
-                      matchSampleSize={opponentScoutTeamState.data.matchCount}
-                      showEffectiveMainSkillEstimation={
-                        showOpponentScoutEffectiveMainSkillEstimation
-                      }
-                      onShowEffectiveMainSkillEstimationChange={
-                        setShowOpponentScoutEffectiveMainSkillEstimation
-                      }
-                      sortState={opponentScoutTeamSortState}
-                      onSortChange={handleOpponentScoutTeamSort}
-                    />
-                  ) : null}
-                </div>
+                <TeamScoutDetailViewport
+                  idPrefix="senior-opponent-scout"
+                  title={opponentAnalysisModal.title}
+                  messages={messages}
+                  likelyTraining={
+                    opponentScoutTeamState.status === "success"
+                      ? opponentScoutTeamState.data.likelyTraining
+                      : null
+                  }
+                  matchSampleSize={
+                    opponentScoutTeamState.status === "success"
+                      ? opponentScoutTeamState.data.matchCount
+                      : null
+                  }
+                  tabs={[
+                    {
+                      id: "matches",
+                      label: messages.seniorOpponentAnalysisTabMatches,
+                      active: false,
+                      onSelect: () => setOpponentAnalysisActiveTab("matches"),
+                    },
+                    {
+                      id: "scoutTeam",
+                      label: messages.seniorOpponentAnalysisTabScoutTeam,
+                      active: true,
+                      onSelect: () => {
+                        setOpponentAnalysisActiveTab("scoutTeam");
+                        void loadOpponentScoutTeam();
+                      },
+                    },
+                  ]}
+                  onClose={closeOpponentAnalysisModal}
+                >
+                  <div className={styles.chronicleTsiWagesDetailModalLayout}>
+                    {opponentScoutTeamState.status === "loading" ? (
+                      <div className={styles.loadingRow}>
+                        <span className={styles.spinner} aria-hidden="true" />
+                        <span>{messages.seniorOpponentScoutTeamLoading}</span>
+                      </div>
+                    ) : null}
+                    {opponentScoutTeamState.status === "error" ? (
+                      <div className={styles.seniorOtherOrdersComboboxStatus}>
+                        <span>{opponentScoutTeamState.error}</span>
+                        <button
+                          type="button"
+                          className={styles.seniorOtherOrdersInlineButton}
+                          onClick={() => void loadOpponentScoutTeam(true)}
+                        >
+                          {messages.seniorOtherOrdersOpponentPlayersRetry}
+                        </button>
+                      </div>
+                    ) : null}
+                    {opponentScoutTeamState.status === "success" &&
+                    opponentScoutTeamState.data.rows.length === 0 ? (
+                      <p className={styles.chronicleEmpty}>
+                        {messages.seniorOpponentScoutTeamEmpty}
+                      </p>
+                    ) : null}
+                    {opponentScoutTeamState.status === "success" &&
+                    opponentScoutTeamState.data.rows.length > 0 ? (
+                      <TeamScoutDetailTable
+                        mode="tsi"
+                        rows={opponentScoutTeamState.data.rows}
+                        messages={messages}
+                        displayCurrency={displayCurrency}
+                        likelyTraining={opponentScoutTeamState.data.likelyTraining}
+                        matchSampleSize={opponentScoutTeamState.data.matchCount}
+                        showEffectiveMainSkillEstimation={
+                          showOpponentScoutEffectiveMainSkillEstimation
+                        }
+                        onShowEffectiveMainSkillEstimationChange={
+                          setShowOpponentScoutEffectiveMainSkillEstimation
+                        }
+                        sortState={opponentScoutTeamSortState}
+                        onSortChange={handleOpponentScoutTeamSort}
+                      />
+                    ) : null}
+                  </div>
+                </TeamScoutDetailViewport>
               )}
             </div>
           ) : null

@@ -123,7 +123,7 @@ import TeamScoutDetailTable, {
   type TeamScoutDetailSortState,
   type TeamScoutLikelyTrainingInfo,
 } from "./TeamScoutDetailTable";
-import TeamScoutDetailCompactToolbar from "./TeamScoutDetailCompactToolbar";
+import TeamScoutDetailViewport from "./TeamScoutDetailViewport";
 import {
   resolveLeagueOriginFlagDisplay,
   type OriginFlagDisplay,
@@ -14844,6 +14844,46 @@ type Form7LineupSnapshot = {
           label: formatLikelyTrainingSummary(selectedWagesLikelyTrainingSnapshot),
         }
       : null;
+  const mobileTsiDetailActive =
+    mobileChronicleActive &&
+    mobileChronicleScreen === "detail" &&
+    mobileChronicleDetailKind === "tsi";
+  const mobileWagesDetailActive =
+    mobileChronicleActive &&
+    mobileChronicleScreen === "detail" &&
+    mobileChronicleDetailKind === "wages";
+  const mobileTeamScoutDetailActive =
+    mobileTsiDetailActive || mobileWagesDetailActive;
+  const tsiDetailViewerOpen = tsiDetailsOpen || mobileTsiDetailActive;
+  const wagesDetailViewerOpen = wagesDetailsOpen || mobileWagesDetailActive;
+  const closeTsiDetails = () => {
+    setTsiDetailsOpen(false);
+    if (mobileTsiDetailActive) {
+      updateMobileChronicleState(
+        {
+          panelId: "tsi",
+          screen: "panel",
+          detailKind: null,
+          detailTeamId: null,
+        },
+        "replace"
+      );
+    }
+  };
+  const closeWagesDetails = () => {
+    setWagesDetailsOpen(false);
+    if (mobileWagesDetailActive) {
+      updateMobileChronicleState(
+        {
+          panelId: "wages",
+          screen: "panel",
+          detailKind: null,
+          detailTeamId: null,
+        },
+        "replace"
+      );
+    }
+  };
   const selectedDetailModalMatchesDebugTeam =
     detailModalMatchesDebugKind === "tsi"
       ? selectedTsiTeam
@@ -14853,7 +14893,23 @@ type Form7LineupSnapshot = {
   const selectedDetailModalMatchesDebugMatches =
     selectedDetailModalMatchesDebugTeam?.detailModalAnalyzedMatches ?? [];
   useEffect(() => {
-    if (!tsiDetailsOpen || !selectedTsiTeam) return;
+    if (!mobileTsiDetailActive || typeof mobileChronicleDetailTeamId !== "number") {
+      return;
+    }
+    setSelectedTsiTeamId((current) =>
+      current === mobileChronicleDetailTeamId ? current : mobileChronicleDetailTeamId
+    );
+  }, [mobileChronicleDetailTeamId, mobileTsiDetailActive]);
+  useEffect(() => {
+    if (!mobileWagesDetailActive || typeof mobileChronicleDetailTeamId !== "number") {
+      return;
+    }
+    setSelectedWagesTeamId((current) =>
+      current === mobileChronicleDetailTeamId ? current : mobileChronicleDetailTeamId
+    );
+  }, [mobileChronicleDetailTeamId, mobileWagesDetailActive]);
+  useEffect(() => {
+    if (!tsiDetailViewerOpen || !selectedTsiTeam) return;
     if (
       !teamSnapshotNeedsOriginBackfill(selectedTsiTeam) &&
       !snapshotNeedsMotherClubBonusBackfill(selectedTsiTeam) &&
@@ -14868,10 +14924,10 @@ type Form7LineupSnapshot = {
     snapshotNeedsMotherClubBonusBackfill,
     teamSnapshotNeedsDetailModalDataBackfill,
     teamSnapshotNeedsOriginBackfill,
-    tsiDetailsOpen,
+    tsiDetailViewerOpen,
   ]);
   useEffect(() => {
-    if (!wagesDetailsOpen || !selectedWagesTeam) return;
+    if (!wagesDetailViewerOpen || !selectedWagesTeam) return;
     if (
       !teamSnapshotNeedsOriginBackfill(selectedWagesTeam) &&
       !wagesSnapshotNeedsForeignWageBackfill(selectedWagesTeam) &&
@@ -14888,7 +14944,7 @@ type Form7LineupSnapshot = {
     teamSnapshotNeedsDetailModalDataBackfill,
     teamSnapshotNeedsOriginBackfill,
     wagesSnapshotNeedsForeignWageBackfill,
-    wagesDetailsOpen,
+    wagesDetailViewerOpen,
   ]);
   const selectedLastLoginTeam = selectedLastLoginTeamId
     ? lastLoginRows.find((team) => team.teamId === selectedLastLoginTeamId) ?? null
@@ -18189,69 +18245,9 @@ type Form7LineupSnapshot = {
           </>
         ) : renderChronicleNoTeamsEmpty();
       case "tsi":
-        return selectedTsiTeam ? (
-          <>
-            <p className={styles.chroniclePressMeta}>
-              {messages.clubChronicleColumnTeam}:{" "}
-              {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
-            </p>
-            {tsiPlayerRows.length > 0 ? (
-              <TeamScoutDetailTable
-                mode="tsi"
-                rows={tsiPlayerRows}
-                messages={messages}
-                displayCurrency={displayCurrency}
-                likelyTraining={selectedTsiLikelyTrainingInfo}
-                matchSampleSize={selectedTsiTeam.detailModalMatchSampleSize}
-                showMobileLandscapeHint={showMobileChronicleLandscapeHint}
-                showEffectiveMainSkillEstimation={
-                  showChronicleEffectiveMainSkillEstimation
-                }
-                onShowEffectiveMainSkillEstimationChange={
-                  setShowChronicleEffectiveMainSkillEstimation
-                }
-                sortState={tsiDetailsSortState as TeamScoutDetailSortState}
-                onSortChange={(key) => handleTsiDetailsSort(key)}
-              />
-            ) : (
-              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-            )}
-          </>
-        ) : (
-          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-        );
+        return null;
       case "wages":
-        return selectedWagesTeam ? (
-          <>
-            <p className={styles.chroniclePressMeta}>
-              {messages.clubChronicleColumnTeam}:{" "}
-              {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
-            </p>
-            {wagesPlayerRows.length > 0 ? (
-              <TeamScoutDetailTable
-                mode="wages"
-                rows={wagesPlayerRows}
-                messages={messages}
-                displayCurrency={displayCurrency}
-                likelyTraining={selectedWagesLikelyTrainingInfo}
-                matchSampleSize={selectedWagesTeam.detailModalMatchSampleSize}
-                showMobileLandscapeHint={showMobileChronicleLandscapeHint}
-                showEffectiveMainSkillEstimation={
-                  showChronicleEffectiveMainSkillEstimation
-                }
-                onShowEffectiveMainSkillEstimationChange={
-                  setShowChronicleEffectiveMainSkillEstimation
-                }
-                sortState={wagesDetailsSortState as TeamScoutDetailSortState}
-                onSortChange={(key) => handleWagesDetailsSort(key)}
-              />
-            ) : (
-              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-            )}
-          </>
-        ) : (
-          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
-        );
+        return null;
       default:
         return <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>;
     }
@@ -18261,6 +18257,8 @@ type Form7LineupSnapshot = {
     <div
       className={`${styles.mobileChronicleContent} ${
         mobileChronicleScreen === "panel" ? styles.mobileChronicleContentPanelMode : ""
+      } ${
+        mobileTeamScoutDetailActive ? styles.mobileChronicleTeamScoutDetailMode : ""
       }`}
     >
       {mobileChronicleRefreshFeedbackVisible ? (
@@ -18425,6 +18423,7 @@ type Form7LineupSnapshot = {
           {renderMobileChronicleDetailContent()}
         </section>
       )}
+      {mobileTeamScoutDetailActive ? null : (
       <MobileChronicleMenu
         messages={messages}
         toggleLabel={messages.toolClubChronicle}
@@ -18482,6 +18481,7 @@ type Form7LineupSnapshot = {
           )
         }
       />
+      )}
     </div>
   );
 
@@ -21053,13 +21053,12 @@ type Form7LineupSnapshot = {
       />
 
       <Modal
-        open={tsiDetailsOpen}
+        open={tsiDetailViewerOpen}
         title={messages.clubChronicleTsiDetailsTitle}
         className={`${styles.chronicleTsiWagesDetailsModal} ${styles.teamScoutDetailCompactModal}`}
         overlayClassName={styles.teamScoutDetailCompactOverlay}
         body={
-          <>
-            <TeamScoutDetailCompactToolbar
+          <TeamScoutDetailViewport
               idPrefix="club-chronicle-tsi"
               title={messages.clubChronicleTsiDetailsTitle}
               secondaryLabel={selectedTsiTeam?.teamName ?? null}
@@ -21072,16 +21071,18 @@ type Form7LineupSnapshot = {
                   ? () => setDetailModalMatchesDebugKind("tsi")
                   : null
               }
-              onClose={() => setTsiDetailsOpen(false)}
-            />
-            {selectedTsiTeam ? (
-              <div className={styles.chronicleTsiWagesDetailModalLayout}>
-                <div className={styles.chronicleTsiWagesDetailModalMeta}>
+              onClose={closeTsiDetails}
+              standardMeta={
+                selectedTsiTeam ? (
                   <p className={styles.chroniclePressMeta}>
                     {messages.clubChronicleColumnTeam}:{" "}
                     {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
                   </p>
-                </div>
+                ) : null
+              }
+            >
+            {selectedTsiTeam ? (
+              <div className={styles.chronicleTsiWagesDetailModalLayout}>
                 {tsiPlayerRows.length > 0 ? (
                   <TeamScoutDetailTable
                     mode="tsi"
@@ -21117,29 +21118,28 @@ type Form7LineupSnapshot = {
             ) : (
               <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
             )}
-          </>
+          </TeamScoutDetailViewport>
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setTsiDetailsOpen(false)}
+            onClick={closeTsiDetails}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setTsiDetailsOpen(false)}
+        onClose={closeTsiDetails}
       />
 
       <Modal
-        open={wagesDetailsOpen}
+        open={wagesDetailViewerOpen}
         title={messages.clubChronicleWagesDetailsTitle}
         className={`${styles.chronicleTsiWagesDetailsModal} ${styles.teamScoutDetailCompactModal}`}
         overlayClassName={styles.teamScoutDetailCompactOverlay}
         body={
-          <>
-            <TeamScoutDetailCompactToolbar
+          <TeamScoutDetailViewport
               idPrefix="club-chronicle-wages"
               title={messages.clubChronicleWagesDetailsTitle}
               secondaryLabel={selectedWagesTeam?.teamName ?? null}
@@ -21155,16 +21155,21 @@ type Form7LineupSnapshot = {
               showForeignWageBonusNote={wagesPlayerRows.some(
                 (row) => row.wageIncludesForeignBonus === true
               )}
-              onClose={() => setWagesDetailsOpen(false)}
-            />
-            {selectedWagesTeam ? (
-              <div className={styles.chronicleTsiWagesDetailModalLayout}>
-                <div className={styles.chronicleTsiWagesDetailModalMeta}>
+              onClose={closeWagesDetails}
+              standardMeta={
+                selectedWagesTeam ? (
                   <p className={styles.chroniclePressMeta}>
                     {messages.clubChronicleColumnTeam}:{" "}
-                    {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
+                    {renderTeamNameLink(
+                      selectedWagesTeam.teamId,
+                      selectedWagesTeam.teamName
+                    )}
                   </p>
-                </div>
+                ) : null
+              }
+            >
+            {selectedWagesTeam ? (
+              <div className={styles.chronicleTsiWagesDetailModalLayout}>
                 {wagesPlayerRows.length > 0 ? (
                   <TeamScoutDetailTable
                     mode="wages"
@@ -21200,19 +21205,19 @@ type Form7LineupSnapshot = {
             ) : (
               <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
             )}
-          </>
+          </TeamScoutDetailViewport>
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setWagesDetailsOpen(false)}
+            onClick={closeWagesDetails}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setWagesDetailsOpen(false)}
+        onClose={closeWagesDetails}
       />
 
       <Modal

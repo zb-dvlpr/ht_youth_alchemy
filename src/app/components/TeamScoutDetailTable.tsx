@@ -732,7 +732,7 @@ export default function TeamScoutDetailTable({
           "--cc-template-desktop":
             "60px 164px 82px 102px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
           "--cc-template-mobile":
-            "44px 118px 64px 84px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
+            "44px 144px 72px 104px 126px 138px 148px 52px 56px 64px 76px 72px 64px",
           "--cc-freeze-second-left-desktop": "60px",
           "--cc-freeze-second-left-mobile": "44px",
         }
@@ -741,7 +741,7 @@ export default function TeamScoutDetailTable({
           "--cc-template-desktop":
             "60px 164px 82px 94px 168px 142px 150px 56px 68px 74px 66px 82px 78px",
           "--cc-template-mobile":
-            "44px 118px 64px 76px 134px 116px 122px 46px 56px 62px 54px 66px 62px",
+            "44px 144px 72px 86px 126px 138px 148px 52px 56px 64px 76px 72px 64px",
           "--cc-freeze-second-left-desktop": "60px",
           "--cc-freeze-second-left-mobile": "44px",
         };
@@ -761,32 +761,32 @@ export default function TeamScoutDetailTable({
           {messages.mobileChronicleLandscapeHint}
         </span>
       ) : null}
-      <div className={styles.chronicleTsiWagesDetailModalTableScroll}>
-        <ChronicleDetailHorizontalScroll
-          refreshKey={`team-scout:${mode}:${columns.length}:${sortedRows.length}`}
-        >
-          <ChronicleTable
-            columns={columns}
-            rows={sortedRows}
-            getRowKey={(row) => row.playerId}
-            getSnapshot={(row) => row}
-            freezeFirstColumnsCount={2}
-            className={styles.chronicleTsiWagesDetailTable}
-            getRowClassName={(row) =>
-              row.isLikelyTrainee ? styles.chronicleLikelyTraineeRow : undefined
-            }
-            formatValue={(value) => formatDefaultValue(value, messages)}
-            style={columnTemplate as CSSProperties}
-            sortKey={sortState.key}
-            sortDirection={sortState.direction}
-            onSort={(key) => onSortChange(key as TeamScoutDetailColumnKey)}
-            maskedTeamId={maskedTeamId}
-            maskText={maskText}
-            isMaskActive={isMaskActive}
-            onMaskedRowClick={onMaskedRowClick}
-          />
-        </ChronicleDetailHorizontalScroll>
-      </div>
+      <ChronicleDetailHorizontalScroll
+        refreshKey={`team-scout:${mode}:${columns.length}:${sortedRows.length}`}
+        fillHeight
+        viewportClassName={styles.chronicleTsiWagesDetailModalTableScroll}
+      >
+        <ChronicleTable
+          columns={columns}
+          rows={sortedRows}
+          getRowKey={(row) => row.playerId}
+          getSnapshot={(row) => row}
+          freezeFirstColumnsCount={2}
+          className={styles.chronicleTsiWagesDetailTable}
+          getRowClassName={(row) =>
+            row.isLikelyTrainee ? styles.chronicleLikelyTraineeRow : undefined
+          }
+          formatValue={(value) => formatDefaultValue(value, messages)}
+          style={columnTemplate as CSSProperties}
+          sortKey={sortState.key}
+          sortDirection={sortState.direction}
+          onSort={(key) => onSortChange(key as TeamScoutDetailColumnKey)}
+          maskedTeamId={maskedTeamId}
+          maskText={maskText}
+          isMaskActive={isMaskActive}
+          onMaskedRowClick={onMaskedRowClick}
+        />
+      </ChronicleDetailHorizontalScroll>
       <TeamScoutDetailInfo
         messages={messages}
         likelyTraining={likelyTraining}

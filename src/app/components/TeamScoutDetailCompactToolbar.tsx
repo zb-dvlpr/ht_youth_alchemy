@@ -44,6 +44,19 @@ export default function TeamScoutDetailCompactToolbar({
   const [infoOpen, setInfoOpen] = useState(false);
   const infoWrapRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  const inferredTrainingLabel = likelyTraining
+    ? messages.teamScoutInferredTrainingLabel.replace(
+        "{{training}}",
+        likelyTraining.label
+      )
+    : null;
+  const dataMatchesLabel =
+    typeof matchSampleSize === "number"
+      ? (matchSampleSize === 1
+          ? messages.teamScoutDataMatchLabel
+          : messages.teamScoutDataMatchesLabel
+        ).replace("{{count}}", String(matchSampleSize))
+      : null;
 
   const closeInfo = useCallback((restoreFocus: boolean) => {
     setInfoOpen(false);
@@ -105,15 +118,21 @@ export default function TeamScoutDetailCompactToolbar({
           </span>
         ) : null}
       </div>
-      <div className={styles.teamScoutDetailCompactMeta} aria-hidden="true">
-        {likelyTraining ? (
-          <span className={styles.teamScoutDetailCompactMetaChip}>
-            {likelyTraining.label}
+      <div className={styles.teamScoutDetailCompactMeta}>
+        {inferredTrainingLabel ? (
+          <span
+            className={styles.teamScoutDetailCompactMetaChip}
+            title={inferredTrainingLabel}
+          >
+            {inferredTrainingLabel}
           </span>
         ) : null}
-        {typeof matchSampleSize === "number" ? (
-          <span className={styles.teamScoutDetailCompactMetaChip}>
-            {String(matchSampleSize)}
+        {dataMatchesLabel ? (
+          <span
+            className={styles.teamScoutDetailCompactMetaChip}
+            title={dataMatchesLabel}
+          >
+            {dataMatchesLabel}
           </span>
         ) : null}
       </div>

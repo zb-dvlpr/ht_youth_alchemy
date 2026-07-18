@@ -51,6 +51,7 @@ Last updated: 2026-05-18
 - [x] Move Latest Updates to a separate vertical mobile screen grouped by team.
 - [ ] Adapt Chronicle tables, dense panels, filters, and modal content as part of finishing Club Chronicle.
   - [x] Reworked Latest Updates into a readable mobile comparison layout with per-attribute Previous/Current blocks.
+  - [x] Moved Club Chronicle TSI and wages player details onto the shared mobile Team Scout detail viewer.
 - [ ] Verify desktop Chronicle layout and interactions after mobile Chronicle changes.
 
 ## Phase 5: Polish and Verification

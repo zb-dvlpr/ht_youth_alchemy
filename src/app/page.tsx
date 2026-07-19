@@ -522,8 +522,7 @@ export default async function Home({
                   <div className={styles.desktopHeaderBrand}>
                     <div className={`${styles.brandRow} ${styles.desktopBrandRow}`}>
                       <span className={styles.brandTitle}>{messages.brandTitle}</span>
-                      <span className={styles.version}>v{pkg.version}</span>
-                      <div className={styles.headerStatusVideoCluster}>
+                      <div className={styles.desktopHeaderStatusVersionCluster}>
                         <div className={styles.desktopHeaderStatusPill}>
                           {premiumLicensingEnabled ? (
                             <PremiumPill messages={messages} />
@@ -531,14 +530,17 @@ export default async function Home({
                             <PremiumStatusPill messages={messages} />
                           )}
                         </div>
-                        <AppHeaderVideoLinks
-                          messages={messages}
-                          className={styles.desktopHeaderVideoLinks}
-                          linkClassName={styles.desktopHeaderVideoLink}
-                          iconClassName={styles.desktopHeaderVideoIcon}
-                          iconVariant="tight"
-                        />
+                        <span className={`${styles.version} ${styles.desktopHeaderVersion}`}>
+                          v{pkg.version}
+                        </span>
                       </div>
+                      <AppHeaderVideoLinks
+                        messages={messages}
+                        className={styles.desktopHeaderVideoLinks}
+                        linkClassName={styles.desktopHeaderVideoLink}
+                        iconClassName={styles.desktopHeaderVideoIcon}
+                        iconVariant="tight"
+                      />
                     </div>
                   </div>
                   <div className={styles.mobileLauncherHeader}>
@@ -568,6 +570,7 @@ export default async function Home({
                         locale={locale}
                         label={messages.languageLabel}
                         switchingLabel={messages.languageSwitching}
+                        showVisibleLabel={false}
                       />
                       <HelpToggleButton messages={messages} />
                       <ThemeToggle messages={messages} />

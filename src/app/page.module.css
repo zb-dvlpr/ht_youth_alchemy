@@ -246,13 +246,14 @@ html[data-mobile-shell="true"] .scaleContainer {
   align-self: center;
 }
 
-.headerStatusVideoCluster {
+.desktopHeaderStatusVersionCluster {
   display: inline-grid;
   grid-template-rows: auto auto;
   justify-items: center;
   align-self: flex-end;
   gap: 1px;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .desktopHeaderStatusPill {
@@ -265,6 +266,10 @@ html[data-mobile-shell="true"] .scaleContainer {
   align-items: flex-end;
   gap: 4px;
   align-self: flex-end;
+}
+
+.desktopHeaderVersion {
+  justify-self: center;
 }
 
 .appHeaderVideoLink {
@@ -307,18 +312,6 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.shellFrame[data-mobile-layout="false"] .topBarControls .langSwitcher {
-  position: relative;
-}
-
-.shellFrame[data-mobile-layout="false"] .topBarControls .langLabel {
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 2px);
-  white-space: nowrap;
-  line-height: 1;
 }
 
 .mobileLauncher {

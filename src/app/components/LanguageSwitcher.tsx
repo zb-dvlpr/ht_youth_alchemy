@@ -9,6 +9,7 @@ type LanguageSwitcherProps = {
   locale: Locale;
   label: string;
   switchingLabel: string;
+  showVisibleLabel?: boolean;
 };
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -27,6 +28,7 @@ export default function LanguageSwitcher({
   locale,
   label,
   switchingLabel,
+  showVisibleLabel = true,
 }: LanguageSwitcherProps) {
   const [value, setValue] = useState<Locale>(locale);
   const [isChanging, setIsChanging] = useState(false);
@@ -49,9 +51,10 @@ export default function LanguageSwitcher({
 
   return (
     <label className={styles.langSwitcher}>
-      <span className={styles.langLabel}>{label}</span>
+      {showVisibleLabel ? <span className={styles.langLabel}>{label}</span> : null}
       <select
         className={styles.langSelect}
+        aria-label={!showVisibleLabel ? label : undefined}
         value={value}
         onChange={handleChange}
         disabled={isChanging}

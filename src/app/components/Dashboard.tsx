@@ -8433,7 +8433,9 @@ export default function Dashboard({
         </div>
       ) : null}
       <div
-        className={showHelp ? styles.helpDisabledColumn : undefined}
+        className={`${styles.youthPlayersArea}${
+          showHelp ? ` ${styles.helpDisabledColumn}` : ""
+        }`}
         aria-hidden={showHelp ? "true" : undefined}
       >
         <YouthPlayerList
@@ -8516,7 +8518,7 @@ export default function Dashboard({
           messages={messages}
         />
       </div>
-      <div className={styles.columnStack}>
+      <div className={`${styles.columnStack} ${styles.youthDetailsArea}`}>
         {showHelp ? (
           <div
             className={styles.helpCard}
@@ -8655,7 +8657,7 @@ export default function Dashboard({
         )}
       </div>
       <div
-        className={`${styles.columnStack} ${
+        className={`${styles.columnStack} ${styles.youthLineupMatchesArea} ${
           showHelp ? styles.helpDisabledColumn : ""
         }`}
         aria-hidden={showHelp ? "true" : undefined}

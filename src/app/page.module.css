@@ -234,6 +234,10 @@ html[data-mobile-shell="true"] .scaleContainer {
   row-gap: 4px;
 }
 
+.shellFrame[data-mobile-layout="false"] .desktopBrandRow {
+  align-items: flex-end;
+}
+
 .appHeaderVideoLinks {
   display: inline-flex;
   align-items: center;
@@ -243,9 +247,17 @@ html[data-mobile-shell="true"] .scaleContainer {
 }
 
 .headerStatusVideoCluster {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  align-self: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+
+.desktopHeaderStatusPill {
   display: inline-flex;
-  align-items: flex-end;
-  gap: 6px;
+  justify-content: center;
   min-width: 0;
 }
 
@@ -295,6 +307,18 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.shellFrame[data-mobile-layout="false"] .topBarControls .langSwitcher {
+  position: relative;
+}
+
+.shellFrame[data-mobile-layout="false"] .topBarControls .langLabel {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 2px);
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .mobileLauncher {

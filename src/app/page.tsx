@@ -520,15 +520,17 @@ export default async function Home({
               globalHeader={
                 <header className={styles.topBar}>
                   <div className={styles.desktopHeaderBrand}>
-                    <div className={styles.brandRow}>
+                    <div className={`${styles.brandRow} ${styles.desktopBrandRow}`}>
                       <span className={styles.brandTitle}>{messages.brandTitle}</span>
                       <span className={styles.version}>v{pkg.version}</span>
                       <div className={styles.headerStatusVideoCluster}>
-                        {premiumLicensingEnabled ? (
-                          <PremiumPill messages={messages} />
-                        ) : (
-                          <PremiumStatusPill messages={messages} />
-                        )}
+                        <div className={styles.desktopHeaderStatusPill}>
+                          {premiumLicensingEnabled ? (
+                            <PremiumPill messages={messages} />
+                          ) : (
+                            <PremiumStatusPill messages={messages} />
+                          )}
+                        </div>
                         <AppHeaderVideoLinks
                           messages={messages}
                           className={styles.desktopHeaderVideoLinks}

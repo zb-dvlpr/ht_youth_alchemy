@@ -25282,7 +25282,9 @@ const refreshDetailsForPlayers = async (
       ) : null}
       {!mobileSeniorActive ? <div className={styles.dashboardGrid}>
         <div
-          className={`${styles.card}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
+          className={`${styles.card} ${styles.seniorPlayersArea}${
+            showHelp ? ` ${styles.helpDisabledColumn}` : ""
+          }`}
           aria-hidden={showHelp ? "true" : undefined}
         >
           <div className={styles.listHeader}>
@@ -25827,7 +25829,7 @@ const refreshDetailsForPlayers = async (
           )}
         </div>
 
-        <div className={styles.columnStack}>
+        <div className={`${styles.columnStack} ${styles.seniorDetailsArea}`}>
           {showHelp ? (
             <div className={styles.helpCard}>
               <h2 className={styles.helpTitle}>{messages.seniorHelpTitle}</h2>
@@ -25966,7 +25968,9 @@ const refreshDetailsForPlayers = async (
         </div>
 
         <div
-          className={`${styles.columnStack}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
+          className={`${styles.columnStack} ${styles.seniorLineupMatchesArea}${
+            showHelp ? ` ${styles.helpDisabledColumn}` : ""
+          }`}
           aria-hidden={showHelp ? "true" : undefined}
         >
           <div className={styles.seniorLineupFieldCompact}>

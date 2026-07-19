@@ -9,12 +9,23 @@
   overflow-y: auto;
 }
 
+html:not([data-mobile-shell="true"]) .main {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 html[data-mobile-shell="true"] .main {
   overflow-y: auto;
 }
 
 .scaleContainer {
   width: 100%;
+  min-height: 100%;
+}
+
+html:not([data-mobile-shell="true"]) .scaleContainer {
   min-height: 100%;
 }
 
@@ -1417,6 +1428,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   column-gap: 16px;
   row-gap: 12px;
   align-items: start;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .shellTopBar {
@@ -1425,6 +1438,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   position: sticky;
   top: 0;
   z-index: 2147483646;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .shellContextBar {
@@ -1442,6 +1457,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   border-radius: 12px;
   background: #f4efe6;
   box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .transferMarketContextBar {
@@ -1508,19 +1525,127 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   grid-row: 3;
   flex: 1;
   min-width: 0;
+  max-width: 100%;
 }
 
-@media (min-width: 901px) {
-  .shellWorkspace[data-active-tool="youth"] {
-    overflow-x: auto;
+html:not([data-mobile-shell="true"]) .shellWorkspace {
+  container-type: inline-size;
+  container-name: tool-workspace;
+}
+
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="youth"]
+  .dashboardGrid,
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="senior"]
+  .dashboardGrid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="youth"]
+  .dashboardGrid
+  > *,
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="senior"]
+  .dashboardGrid
+  > *,
+html:not([data-mobile-shell="true"]) .youthPlayersArea,
+html:not([data-mobile-shell="true"]) .youthDetailsArea,
+html:not([data-mobile-shell="true"]) .youthLineupMatchesArea,
+html:not([data-mobile-shell="true"]) .seniorPlayersArea,
+html:not([data-mobile-shell="true"]) .seniorDetailsArea,
+html:not([data-mobile-shell="true"]) .seniorLineupMatchesArea {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+html:not([data-mobile-shell="true"]) .youthPlayersArea {
+  grid-area: youth-players;
+}
+
+html:not([data-mobile-shell="true"]) .youthDetailsArea {
+  grid-area: youth-details;
+}
+
+html:not([data-mobile-shell="true"]) .youthLineupMatchesArea {
+  grid-area: youth-lineup-matches;
+}
+
+html:not([data-mobile-shell="true"]) .seniorPlayersArea {
+  grid-area: senior-players;
+}
+
+html:not([data-mobile-shell="true"]) .seniorDetailsArea {
+  grid-area: senior-details;
+}
+
+html:not([data-mobile-shell="true"]) .seniorLineupMatchesArea {
+  grid-area: senior-lineup-matches;
+}
+
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="youth"]
+  .dashboardGrid {
+  grid-template-areas:
+    "youth-players"
+    "youth-details"
+    "youth-lineup-matches";
+}
+
+html:not([data-mobile-shell="true"])
+  .shellWorkspace[data-active-tool="senior"]
+  .dashboardGrid {
+  grid-template-areas:
+    "senior-players"
+    "senior-details"
+    "senior-lineup-matches";
+}
+
+@container tool-workspace (min-width: 860px) {
+  html:not([data-mobile-shell="true"])
+    .shellWorkspace[data-active-tool="youth"]
+    .dashboardGrid {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr);
+    grid-template-areas:
+      "youth-players youth-details"
+      "youth-lineup-matches youth-lineup-matches";
   }
 
-  .shellWorkspace[data-active-tool="youth"] .dashboardGrid {
-    min-width: 1360px;
+  html:not([data-mobile-shell="true"])
+    .shellWorkspace[data-active-tool="senior"]
+    .dashboardGrid {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr);
+    grid-template-areas:
+      "senior-players senior-details"
+      "senior-lineup-matches senior-lineup-matches";
+  }
+}
+
+@container tool-workspace (min-width: 1280px) {
+  html:not([data-mobile-shell="true"])
+    .shellWorkspace[data-active-tool="youth"]
+    .dashboardGrid {
     grid-template-columns:
-      minmax(240px, 0.75fr)
-      minmax(560px, 1.5fr)
-      minmax(460px, 1.25fr);
+      minmax(220px, 0.75fr)
+      minmax(460px, 1.5fr)
+      minmax(390px, 1.25fr);
+    grid-template-areas: "youth-players youth-details youth-lineup-matches";
+  }
+
+  html:not([data-mobile-shell="true"])
+    .shellWorkspace[data-active-tool="senior"]
+    .dashboardGrid {
+    grid-template-columns:
+      minmax(220px, 0.75fr)
+      minmax(440px, 1.45fr)
+      minmax(380px, 1.25fr);
+    grid-template-areas: "senior-players senior-details senior-lineup-matches";
   }
 }
 
@@ -3362,10 +3487,13 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 }
 
 .matrixWrapper {
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   border: 1px solid #e6dccd;
-  max-width: 100%;
 }
 
 .ratingsMatrixControls {
@@ -4031,6 +4159,9 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
 
 .card {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 18px;
   background: #fff;
   border-radius: 16px;
@@ -4048,6 +4179,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   margin: 0;
   display: grid;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .listItem {
@@ -6108,9 +6241,12 @@ html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleTableHeader {
 
 .opponentFormationsTableWrap {
   width: 100%;
+  min-width: 0;
   max-width: 100%;
   max-height: min(60vh, 620px);
   overflow: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e0d6c6;
   border-radius: 12px;
   background: #f7f2ea;
@@ -6574,8 +6710,11 @@ html[data-mobile-shell="true"] .teamScoutDetailViewport .chronicleTableHeader {
 }
 
 @media (max-height: 720px) {
-  .main {
-    overflow: auto;
+  html:not([data-mobile-shell="true"]) .main {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
@@ -10145,6 +10284,9 @@ html[data-theme="dark"] .spinner {
   border: 1px solid #efe6d9;
   padding: 14px 20px 18px;
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .profileCardTopActions {
@@ -11508,7 +11650,10 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   display: grid;
   gap: 8px;
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .seniorPsicoTable {
@@ -12155,6 +12300,8 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   margin: 0;
   display: grid;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .matchesHeader {
@@ -14370,6 +14517,9 @@ html[data-mobile-shell="true"] .transferMarketListRowActions > button {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   overflow: visible;
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .fieldHeader {
@@ -15116,6 +15266,10 @@ html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupT
 .fieldPitch {
   position: relative;
   padding: 28px 18px 24px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 480px;
   display: grid;
   gap: 20px;
@@ -15443,6 +15597,9 @@ html[data-mobile-shell="true"] .mobileYouthContent .fieldTopLeftOverlay .lineupT
   grid-template-columns: repeat(7, minmax(0, 1fr));
   justify-items: center;
   padding: 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   --slot-width: min(88px, calc((100% - 72px) / 7));
   --slot-height: clamp(48px, 6.5vw, 66px);
 }

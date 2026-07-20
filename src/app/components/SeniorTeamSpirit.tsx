@@ -219,14 +219,22 @@ function normalizeStillInCup(value: unknown): boolean | null {
   return null;
 }
 
+function asObjectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
 function extractLeagueLevelUnitId(team: Record<string, unknown> | null | undefined) {
   if (!team) return null;
-  return (
+  const leagueLevelUnit = asObjectRecord(team.LeagueLevelUnit);
+  const league = asObjectRecord(team.League);
+  const leagueLevelUnitId =
     toNumber(team.LeagueLevelUnitID) ??
     toNumber(team.LeagueLevelUnitId) ??
-    toNumber((team.League as Record<string, unknown> | undefined)?.LeagueLevelUnitID) ??
-    toNumber((team.League as Record<string, unknown> | undefined)?.LeagueLevelUnitId)
-  );
+    toNumber(leagueLevelUnit?.LeagueLevelUnitID) ??
+    toNumber(leagueLevelUnit?.LeagueLevelUnitId) ??
+    toNumber(league?.LeagueLevelUnitID) ??
+    toNumber(league?.LeagueLevelUnitId);
+  return leagueLevelUnitId !== null && leagueLevelUnitId > 0 ? leagueLevelUnitId : null;
 }
 
 function resolveTeamDetailsContext(payload: unknown, teamId: number): SeniorTeamContext {

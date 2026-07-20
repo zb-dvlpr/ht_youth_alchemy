@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { fetchChppJson } from "@/lib/chpp/client";
-import { formatChppDateTime } from "@/lib/datetime";
-import { parseChppDate } from "@/lib/chpp/utils";
 import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
 import { parseCoachLeadership } from "@/lib/clubChronicle/coach";
 import {
@@ -28,6 +26,25 @@ import {
   writeSeniorTeamSpiritSettings,
   type SeniorTeamSpiritSettings,
 } from "@/lib/seniorTeamSpiritStorage";
+import {
+  buildMainCupPlaceholder,
+  deduplicateTeamSpiritMatches,
+  filterCurrentSeasonNonLeagueMatches,
+  formatHattrickMatchDate,
+  isActualMainCupMatch,
+  isFinishedMatch,
+  isInProgressMatch,
+  isTeamSpiritNonLeagueCandidate,
+  isUpcomingMatch,
+  matchKey,
+  normalizeLeagueFixtures,
+  normalizeTeamSpiritMatch,
+  refreshTeamSpiritStatuses,
+  sortTeamSpiritMatches,
+  toTeamSpiritNumber,
+  toTeamSpiritString,
+  type TeamSpiritMatch,
+} from "@/lib/seniorTeamSpiritTimeline";
 import type { Match, MatchesResponse } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 
@@ -38,12 +55,6 @@ type SeniorTeamSpiritProps = {
   currentSeason: number | null;
   defaultCoachLeadership: CoachLeadership | null;
   onRefresh?: () => boolean | Promise<boolean>;
-};
-
-type TeamSpiritMatch = Match & {
-  MatchID: number;
-  SourceSystem: string;
-  sortTime: number;
 };
 
 type MatchDetailState = {
@@ -88,28 +99,11 @@ function asArray<T>(value: T | T[] | null | undefined): T[] {
 }
 
 function toNumber(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "object") {
-    const text = (value as Record<string, unknown>)["#text"];
-    const parsed = Number(text);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+  return toTeamSpiritNumber(value);
 }
 
 function toStringValue(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "object") {
-    const text = (value as Record<string, unknown>)["#text"];
-    return typeof text === "string" || typeof text === "number" ? String(text) : "";
-  }
-  return String(value);
-}
-
-function parseMatchDate(value: unknown): Date | null {
-  const parsed = parseChppDate(toStringValue(value));
-  return parsed && Number.isFinite(parsed.getTime()) ? parsed : null;
+  return toTeamSpiritString(value);
 }
 
 function normalizeMatchesFromPayload(payload: unknown): Match[] {
@@ -124,66 +118,6 @@ function normalizeMatchesFromPayload(payload: unknown): Match[] {
     ...asArray(root?.Team?.MatchList?.Match),
     ...asArray(root?.MatchList?.Match),
   ];
-}
-
-function isTeamSpiritMatch(match: Match): boolean {
-  const matchType = toNumber(match.MatchType);
-  if (matchType === 1) return true;
-  if (matchType !== 3) return false;
-  return toNumber(match.CupLevel) === 1;
-}
-
-function matchKey(match: { SourceSystem?: string; MatchID: number | string }) {
-  const source = match.SourceSystem?.trim() || "Hattrick";
-  return `${source}:${match.MatchID}`;
-}
-
-function normalizeTimelineMatch(match: Match): TeamSpiritMatch | null {
-  const matchId = toNumber(match.MatchID);
-  const matchDate = parseMatchDate(match.MatchDate);
-  if (!matchId || !matchDate) return null;
-  return {
-    ...match,
-    MatchID: matchId,
-    SourceSystem: match.SourceSystem?.trim() || "Hattrick",
-    sortTime: matchDate.getTime(),
-  };
-}
-
-function normalizeMatchStatus(value: unknown): string {
-  return String(value ?? "").trim().toUpperCase();
-}
-
-function isInProgressMatch(match: TeamSpiritMatch) {
-  const status = normalizeMatchStatus(match.Status);
-  return (
-    status === "ONGOING" ||
-    status === "IN_PROGRESS" ||
-    status === "LIVE" ||
-    status === "PLAYING"
-  );
-}
-
-function isUpcomingMatch(match: TeamSpiritMatch) {
-  const status = normalizeMatchStatus(match.Status);
-  if (status === "UPCOMING") return true;
-  if (
-    status === "FINISHED" ||
-    status === "ONGOING" ||
-    status === "IN_PROGRESS" ||
-    status === "LIVE" ||
-    status === "PLAYING"
-  ) {
-    return false;
-  }
-  return match.sortTime >= Date.now();
-}
-
-function isFinishedMatch(match: TeamSpiritMatch) {
-  const status = normalizeMatchStatus(match.Status);
-  if (status === "FINISHED") return true;
-  if (isInProgressMatch(match) || isUpcomingMatch(match)) return false;
-  return match.sortTime < Date.now();
 }
 
 function fullElapsedDays(fromTime: number, toTime: number) {
@@ -250,6 +184,7 @@ function formatCalculatedSeasonStartMessage(
 function matchTypeLabel(messages: Messages, match: TeamSpiritMatch) {
   const matchType = toNumber(match.MatchType);
   if (matchType === 1) return messages.teamSpiritLeagueMatch;
+  if (matchType === 2) return messages.clubChronicleMatchTypeQualification;
   if (matchType === 3 && toNumber(match.CupLevel) === 1) {
     return messages.teamSpiritMainCupMatch;
   }
@@ -260,11 +195,60 @@ function matchStatusLabel(messages: Messages, match: TeamSpiritMatch) {
   if (isFinishedMatch(match)) return messages.matchStatusFinished;
   if (isUpcomingMatch(match)) return messages.matchStatusUpcoming;
   if (isInProgressMatch(match)) return messages.matchStatusOngoing;
-  return match.Status ?? messages.matchStatusUpcoming;
+  return messages.matchStatusUpcoming;
 }
 
 function rawFieldExists(source: Record<string, unknown> | null | undefined, field: string) {
   return Boolean(source && Object.prototype.hasOwnProperty.call(source, field));
+}
+
+type SeniorTeamContext = {
+  leagueLevelUnitId: number | null;
+  stillInMainCup: boolean | null;
+};
+
+function normalizeStillInCup(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  const normalized = toStringValue(value).trim().toLowerCase();
+  if (normalized === "true" || normalized === "1") return true;
+  if (normalized === "false" || normalized === "0") return false;
+  return null;
+}
+
+function extractLeagueLevelUnitId(team: Record<string, unknown> | null | undefined) {
+  if (!team) return null;
+  return (
+    toNumber(team.LeagueLevelUnitID) ??
+    toNumber(team.LeagueLevelUnitId) ??
+    toNumber((team.League as Record<string, unknown> | undefined)?.LeagueLevelUnitID) ??
+    toNumber((team.League as Record<string, unknown> | undefined)?.LeagueLevelUnitId)
+  );
+}
+
+function resolveTeamDetailsContext(payload: unknown, teamId: number): SeniorTeamContext {
+  const root = (payload as { data?: { HattrickData?: unknown } } | null)?.data
+    ?.HattrickData as
+    | {
+        Team?: Record<string, unknown>;
+        Teams?: { Team?: Record<string, unknown>[] | Record<string, unknown> };
+      }
+    | undefined;
+  const teams = [
+    ...asArray(root?.Team),
+    ...asArray(root?.Teams?.Team),
+  ].filter((team): team is Record<string, unknown> => Boolean(team));
+  const selectedTeam =
+    teams.find((team) => toNumber(team.TeamID) === teamId || toNumber(team.TeamId) === teamId) ??
+    (teams.length === 1 ? teams[0] : null);
+  const cup = selectedTeam?.Cup as Record<string, unknown> | undefined;
+  return {
+    leagueLevelUnitId: extractLeagueLevelUnitId(selectedTeam),
+    stillInMainCup: normalizeStillInCup(cup?.StillInCup),
+  };
 }
 
 function buildDefaultSettings(teamId: number, season: number): SeniorTeamSpiritSettings {
@@ -372,7 +356,14 @@ export default function SeniorTeamSpirit({
   defaultCoachLeadership,
   onRefresh,
 }: SeniorTeamSpiritProps) {
-  const [archiveMatches, setArchiveMatches] = useState<TeamSpiritMatch[]>([]);
+  const [teamContextStatus, setTeamContextStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [teamContextError, setTeamContextError] = useState<string | null>(null);
+  const [leagueLevelUnitId, setLeagueLevelUnitId] = useState<number | null>(null);
+  const [stillInMainCup, setStillInMainCup] = useState<boolean | null>(null);
+  const [leagueFixturesMatches, setLeagueFixturesMatches] = useState<TeamSpiritMatch[]>([]);
+  const [leagueFixturesStatus, setLeagueFixturesStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [leagueFixturesError, setLeagueFixturesError] = useState<string | null>(null);
+  const [archiveNonLeagueMatches, setArchiveNonLeagueMatches] = useState<TeamSpiritMatch[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<"idle" | "loading" | "error">("idle");
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [clubStatus, setClubStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
@@ -383,6 +374,7 @@ export default function SeniorTeamSpirit({
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [matchDetails, setMatchDetails] = useState<Record<string, MatchDetailState>>({});
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const matchDetailsRunIdRef = useRef(0);
   const inFlightMatchDetailKeysRef = useRef<Set<string>>(new Set());
   const currentMatchDetailsRef = useRef<Record<string, MatchDetailState>>({});
@@ -391,29 +383,86 @@ export default function SeniorTeamSpirit({
     currentMatchDetailsRef.current = matchDetails;
   }, [matchDetails]);
 
-  const upcomingSourceMatches = useMemo(
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const currentNonLeagueMatches = useMemo(
     () =>
       normalizeMatchesFromPayload(matchesResponse)
-        .filter(isTeamSpiritMatch)
-        .map(normalizeTimelineMatch)
+        .filter(isTeamSpiritNonLeagueCandidate)
+        .map((match) => normalizeTeamSpiritMatch(match, nowMs))
         .filter((match): match is TeamSpiritMatch => Boolean(match)),
-    [matchesResponse]
+    [matchesResponse, nowMs]
+  );
+
+  const leagueFixturesWithCurrentStatus = useMemo(
+    () => refreshTeamSpiritStatuses(leagueFixturesMatches, nowMs),
+    [leagueFixturesMatches, nowMs]
+  );
+
+  const archiveNonLeagueWithCurrentStatus = useMemo(
+    () => refreshTeamSpiritStatuses(archiveNonLeagueMatches, nowMs),
+    [archiveNonLeagueMatches, nowMs]
   );
 
   const timelineMatches = useMemo(() => {
-    const map = new Map<string, TeamSpiritMatch>();
-    for (const match of archiveMatches) map.set(matchKey(match), match);
-    for (const match of upcomingSourceMatches) {
-      const key = matchKey(match);
-      if (!isFinishedMatch(match) || !map.has(key)) map.set(key, match);
+    if (leagueFixturesStatus !== "success" || leagueFixturesWithCurrentStatus.length === 0) {
+      return [];
     }
-    return [...map.values()].sort((a, b) => a.sortTime - b.sortTime);
-  }, [archiveMatches, upcomingSourceMatches]);
+    const sortedLeague = sortTeamSpiritMatches(leagueFixturesWithCurrentStatus);
+    const firstLeagueTime = sortedLeague[0]?.sortTime ?? null;
+    const lastLeagueTime = sortedLeague[sortedLeague.length - 1]?.sortTime ?? null;
+    const archiveFiltered = filterCurrentSeasonNonLeagueMatches(
+      archiveNonLeagueWithCurrentStatus,
+      firstLeagueTime,
+      lastLeagueTime
+    );
+    const currentFiltered = filterCurrentSeasonNonLeagueMatches(
+      currentNonLeagueMatches,
+      firstLeagueTime,
+      lastLeagueTime
+    );
+    const realNonLeague = deduplicateTeamSpiritMatches([
+      ...archiveFiltered,
+      ...currentFiltered,
+    ]);
+    const realMatches = sortTeamSpiritMatches([
+      ...leagueFixturesWithCurrentStatus,
+      ...realNonLeague,
+    ]);
+    if (stillInMainCup !== true) return realMatches;
+    const actualCupMatches = realMatches.filter(
+      (match) => !match.isSyntheticPlaceholder && isActualMainCupMatch(match)
+    );
+    const sortedActualCupMatches = sortTeamSpiritMatches(actualCupMatches);
+    const latestActualCupMatch =
+      sortedActualCupMatches[sortedActualCupMatches.length - 1] ?? null;
+    const placeholder = buildMainCupPlaceholder({
+      teamId: teamId ?? 0,
+      latestActualCupMatch,
+      nowMs,
+    });
+    return sortTeamSpiritMatches(placeholder ? [...realMatches, placeholder] : realMatches);
+  }, [
+    archiveNonLeagueWithCurrentStatus,
+    currentNonLeagueMatches,
+    leagueFixturesStatus,
+    leagueFixturesWithCurrentStatus,
+    nowMs,
+    stillInMainCup,
+    teamId,
+  ]);
 
   const finishedMatches = useMemo(() => timelineMatches.filter(isFinishedMatch), [timelineMatches]);
   const completedMatchKeysSignature = useMemo(
     () => finishedMatches.map(matchKey).join("|"),
     [finishedMatches]
+  );
+  const timelineKeysSignature = useMemo(
+    () => timelineMatches.map(matchKey).join("|"),
+    [timelineMatches]
   );
   const finishedMatchesByKey = useMemo(() => {
     const map = new Map<string, TeamSpiritMatch>();
@@ -427,7 +476,14 @@ export default function SeniorTeamSpirit({
     inFlightMatchDetailKeysRef.current.clear();
     currentMatchDetailsRef.current = {};
     setMatchDetails({});
-    setArchiveMatches([]);
+    setArchiveNonLeagueMatches([]);
+    setLeagueFixturesMatches([]);
+    setLeagueLevelUnitId(null);
+    setStillInMainCup(null);
+    setTeamContextStatus("idle");
+    setTeamContextError(null);
+    setLeagueFixturesStatus("idle");
+    setLeagueFixturesError(null);
     setFetchedPsychologistLevel(null);
     setFetchedCoachLeadership(null);
     setClubWarning(null);
@@ -448,6 +504,132 @@ export default function SeniorTeamSpirit({
   }, [teamId, currentSeason, refreshNonce]);
 
   useEffect(() => {
+    if (
+      !settings ||
+      !settingsLoaded ||
+      leagueFixturesStatus !== "success" ||
+      archiveStatus === "loading" ||
+      teamContextStatus !== "success"
+    ) {
+      return;
+    }
+    const currentKeys = new Set(timelineKeysSignature.split("|").filter(Boolean));
+    const upcomingAttitudes = Object.fromEntries(
+      Object.entries(settings.upcomingAttitudes).filter(([key]) => currentKeys.has(key))
+    );
+    const teamSpiritBeforeMatchOverrides = Object.fromEntries(
+      Object.entries(settings.teamSpiritBeforeMatchOverrides).filter(([key]) =>
+        currentKeys.has(key)
+      )
+    );
+    if (
+      Object.keys(upcomingAttitudes).length === Object.keys(settings.upcomingAttitudes).length &&
+      Object.keys(teamSpiritBeforeMatchOverrides).length ===
+        Object.keys(settings.teamSpiritBeforeMatchOverrides).length
+    ) {
+      return;
+    }
+    const next = {
+      ...settings,
+      upcomingAttitudes,
+      teamSpiritBeforeMatchOverrides,
+    };
+    setSettings(next);
+    void writeSeniorTeamSpiritSettings(next);
+  }, [
+    archiveStatus,
+    leagueFixturesStatus,
+    settings,
+    settingsLoaded,
+    teamContextStatus,
+    timelineKeysSignature,
+  ]);
+
+  useEffect(() => {
+    if (!teamId || !currentSeason) return;
+    const controller = new AbortController();
+    setTeamContextStatus("loading");
+    setTeamContextError(null);
+    setLeagueLevelUnitId(null);
+    setStillInMainCup(null);
+    setLeagueFixturesMatches([]);
+    setLeagueFixturesStatus("idle");
+    setLeagueFixturesError(null);
+    fetchChppJson<unknown>(`/api/chpp/teamdetails?teamId=${teamId}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(({ response, payload }) => {
+        if (!response.ok) {
+          throw new Error(
+            (payload as { details?: string; error?: string } | null)?.details ??
+              (payload as { error?: string } | null)?.error ??
+              messages.teamSpiritLoadTeamDetailsFailed
+          );
+        }
+        const context = resolveTeamDetailsContext(payload, teamId);
+        if (!context.leagueLevelUnitId) {
+          throw new Error(messages.teamSpiritLoadTeamDetailsFailed);
+        }
+        setLeagueLevelUnitId(context.leagueLevelUnitId);
+        setStillInMainCup(context.stillInMainCup);
+        setTeamContextStatus("success");
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setLeagueLevelUnitId(null);
+        setStillInMainCup(null);
+        setTeamContextStatus("error");
+        setTeamContextError(
+          error instanceof Error ? error.message : messages.teamSpiritLoadTeamDetailsFailed
+        );
+      });
+    return () => controller.abort();
+  }, [teamId, currentSeason, refreshNonce, messages.teamSpiritLoadTeamDetailsFailed]);
+
+  useEffect(() => {
+    if (!teamId || !currentSeason || !leagueLevelUnitId) return;
+    const controller = new AbortController();
+    setLeagueFixturesStatus("loading");
+    setLeagueFixturesError(null);
+    setLeagueFixturesMatches([]);
+    fetchChppJson<unknown>(
+      `/api/chpp/leaguefixtures?leagueLevelUnitID=${leagueLevelUnitId}`,
+      { cache: "no-store", signal: controller.signal }
+    )
+      .then(({ response, payload }) => {
+        if (!response.ok) {
+          throw new Error(
+            (payload as { details?: string; error?: string } | null)?.details ??
+              (payload as { error?: string } | null)?.error ??
+              messages.teamSpiritLoadLeagueFixturesFailed
+          );
+        }
+        const matches = normalizeLeagueFixtures(payload, teamId, Date.now());
+        if (matches.length === 0) {
+          throw new Error(messages.teamSpiritLoadLeagueFixturesFailed);
+        }
+        setLeagueFixturesMatches(matches);
+        setLeagueFixturesStatus("success");
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setLeagueFixturesMatches([]);
+        setLeagueFixturesStatus("error");
+        setLeagueFixturesError(
+          error instanceof Error ? error.message : messages.teamSpiritLoadLeagueFixturesFailed
+        );
+      });
+    return () => controller.abort();
+  }, [
+    teamId,
+    currentSeason,
+    leagueLevelUnitId,
+    refreshNonce,
+    messages.teamSpiritLoadLeagueFixturesFailed,
+  ]);
+
+  useEffect(() => {
     if (!teamId || !currentSeason) return;
     const controller = new AbortController();
     setArchiveStatus("loading");
@@ -465,10 +647,10 @@ export default function SeniorTeamSpirit({
           );
         }
         const matches = normalizeMatchesFromPayload(payload)
-          .filter(isTeamSpiritMatch)
-          .map(normalizeTimelineMatch)
+          .filter(isTeamSpiritNonLeagueCandidate)
+          .map((match) => normalizeTeamSpiritMatch(match, Date.now()))
           .filter((match): match is TeamSpiritMatch => Boolean(match));
-        setArchiveMatches(matches);
+        setArchiveNonLeagueMatches(matches);
         setArchiveStatus("idle");
       })
       .catch((error) => {
@@ -571,6 +753,7 @@ export default function SeniorTeamSpirit({
       .map((key) => finishedMatchesByKey.get(key) ?? null)
       .filter((match): match is TeamSpiritMatch => {
         if (!match) return false;
+        if (match.isSyntheticPlaceholder || !match.MatchID) return false;
         const existing = currentMatchDetailsRef.current[matchKey(match)];
         return existing?.status !== "success" && existing?.status !== "error";
       });
@@ -914,7 +1097,8 @@ export default function SeniorTeamSpirit({
             inFlightMatchDetailKeysRef.current.clear();
             currentMatchDetailsRef.current = {};
             setMatchDetails({});
-            setArchiveMatches([]);
+            setArchiveNonLeagueMatches([]);
+            setLeagueFixturesMatches([]);
             setRefreshNonce((current) => current + 1);
             void onRefresh?.();
           }}
@@ -1067,11 +1251,30 @@ export default function SeniorTeamSpirit({
       {archiveStatus === "loading" ? (
         <p className={styles.muted}>{messages.teamSpiritLoadingArchive}</p>
       ) : null}
+      {teamContextStatus === "loading" ? (
+        <p className={styles.muted}>{messages.teamSpiritLoadingTeamDetails}</p>
+      ) : null}
+      {teamContextStatus === "error" ? (
+        <p className={styles.errorText}>
+          {teamContextError ?? messages.teamSpiritLoadTeamDetailsFailed}
+        </p>
+      ) : null}
+      {leagueFixturesStatus === "loading" ? (
+        <p className={styles.muted}>{messages.teamSpiritLoadingLeagueFixtures}</p>
+      ) : null}
+      {leagueFixturesStatus === "error" ? (
+        <p className={styles.errorText}>
+          {leagueFixturesError ?? messages.teamSpiritLoadLeagueFixturesFailed}
+        </p>
+      ) : null}
       {archiveStatus === "error" ? (
         <p className={styles.errorText}>{archiveError ?? messages.teamSpiritLoadArchiveFailed}</p>
       ) : null}
       {detailsLoading ? <p className={styles.muted}>{messages.teamSpiritLoadingDetails}</p> : null}
-      {timelineMatches.length === 0 && archiveStatus !== "loading" ? (
+      {timelineMatches.length === 0 &&
+      archiveStatus !== "loading" &&
+      leagueFixturesStatus !== "loading" &&
+      teamContextStatus !== "loading" ? (
         <p className={styles.muted}>{messages.teamSpiritNoMatches}</p>
       ) : (
         <ul className={styles.matchList}>
@@ -1084,23 +1287,35 @@ export default function SeniorTeamSpirit({
             const matchTitle = `${row.match.HomeTeam?.HomeTeamName ?? messages.homeLabel} vs ${
               row.match.AwayTeam?.AwayTeamName ?? messages.awayLabel
             }`;
+            const displayTitle = row.match.isSyntheticPlaceholder
+              ? messages.teamSpiritMainCupPlaceholder
+              : matchTitle;
             const unavailableValue =
               row.blockedReason === "matchInProgress"
                 ? messages.teamSpiritUnavailableMatchInProgress
                 : messages.teamSpiritCalculationUnavailable;
             return (
               <li key={key} className={styles.matchItem}>
-                <a
-                  className={styles.teamSpiritMatchTitleLink}
-                  href={hattrickMatchUrlWithSourceSystem(row.match.MatchID, row.match.SourceSystem)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {matchTitle}
-                </a>
+                {row.match.isSyntheticPlaceholder || !row.match.MatchID ? (
+                  <span className={styles.teamSpiritMatchTitleLink}>{displayTitle}</span>
+                ) : (
+                  <a
+                    className={styles.teamSpiritMatchTitleLink}
+                    href={hattrickMatchUrlWithSourceSystem(
+                      row.match.MatchID,
+                      row.match.SourceSystem
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {displayTitle}
+                  </a>
+                )}
                 <div className={styles.matchMeta}>
                   <span>{matchTypeLabel(messages, row.match)}</span>
-                  <span>{formatChppDateTime(row.match.MatchDate) ?? row.match.MatchDate}</span>
+                  <span>
+                    {formatHattrickMatchDate(row.match.MatchDate) ?? row.match.MatchDate}
+                  </span>
                   <span>{matchStatusLabel(messages, row.match)}</span>
                 </div>
                 <div className={styles.teamSpiritStats}>

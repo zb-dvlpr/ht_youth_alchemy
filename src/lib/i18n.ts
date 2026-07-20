@@ -1018,10 +1018,14 @@ export type Messages = {
   teamSpiritNoSportsPsychologistDetected: string;
   teamSpiritRefresh: string;
   teamSpiritLoadingArchive: string;
+  teamSpiritLoadingLeagueFixtures: string;
+  teamSpiritLoadingTeamDetails: string;
   teamSpiritLoadingDetails: string;
   teamSpiritLoadingClub: string;
   teamSpiritNoMatches: string;
   teamSpiritLoadArchiveFailed: string;
+  teamSpiritLoadLeagueFixturesFailed: string;
+  teamSpiritLoadTeamDetailsFailed: string;
   teamSpiritLoadClubFailed: string;
   teamSpiritLoadMatchDetailsFailed: string;
   teamSpiritSeasonUnknown: string;
@@ -1029,6 +1033,7 @@ export type Messages = {
   teamSpiritFetchedPsychologistLevel: string;
   teamSpiritLeagueMatch: string;
   teamSpiritMainCupMatch: string;
+  teamSpiritMainCupPlaceholder: string;
   teamSpiritAttitude: string;
   teamSpiritAttitudeUsed: string;
   teamSpiritAttitudeToBeUsed: string;

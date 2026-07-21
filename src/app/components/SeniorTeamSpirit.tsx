@@ -27,13 +27,16 @@ import {
   type SeniorTeamSpiritSettings,
 } from "@/lib/seniorTeamSpiritStorage";
 import {
-  buildMainCupPlaceholder,
+  HATTRICK_WEEK_MS,
+  buildDebugMainCupMatch,
+  buildMainCupPlaceholders,
   deduplicateTeamSpiritMatches,
   filterCurrentSeasonNonLeagueMatches,
   formatHattrickMatchDate,
   isActualMainCupMatch,
   isFinishedMatch,
   isInProgressMatch,
+  isQualificationMatch,
   isTeamSpiritNonLeagueCandidate,
   isUpcomingMatch,
   matchKey,
@@ -45,6 +48,11 @@ import {
   toTeamSpiritString,
   type TeamSpiritMatch,
 } from "@/lib/seniorTeamSpiritTimeline";
+import {
+  DEBUG_TEAM_SPIRIT_STILL_IN_CUP_EVENT,
+  DEBUG_TEAM_SPIRIT_STILL_IN_CUP_STORAGE_KEY,
+  readDebugTeamSpiritStillInCup,
+} from "@/lib/settings";
 import type { Match, MatchesResponse } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 
@@ -364,6 +372,7 @@ export default function SeniorTeamSpirit({
   defaultCoachLeadership,
   onRefresh,
 }: SeniorTeamSpiritProps) {
+  const isDev = process.env.NODE_ENV !== "production";
   const [teamContextStatus, setTeamContextStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
   const [teamContextError, setTeamContextError] = useState<string | null>(null);
   const [leagueLevelUnitId, setLeagueLevelUnitId] = useState<number | null>(null);
@@ -383,6 +392,12 @@ export default function SeniorTeamSpirit({
   const [matchDetails, setMatchDetails] = useState<Record<string, MatchDetailState>>({});
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [debugSimulateStillInMainCup, setDebugSimulateStillInMainCup] =
+    useState(() =>
+      process.env.NODE_ENV !== "production"
+        ? readDebugTeamSpiritStillInCup()
+        : false
+    );
   const matchDetailsRunIdRef = useRef(0);
   const inFlightMatchDetailKeysRef = useRef<Set<string>>(new Set());
   const currentMatchDetailsRef = useRef<Record<string, MatchDetailState>>({});
@@ -395,6 +410,30 @@ export default function SeniorTeamSpirit({
     const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!isDev || typeof window === "undefined") return;
+
+    const sync = () => {
+      setDebugSimulateStillInMainCup(readDebugTeamSpiritStillInCup());
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (
+        event.key === DEBUG_TEAM_SPIRIT_STILL_IN_CUP_STORAGE_KEY ||
+        event.key === null
+      ) {
+        sync();
+      }
+    };
+
+    sync();
+    window.addEventListener(DEBUG_TEAM_SPIRIT_STILL_IN_CUP_EVENT, sync);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(DEBUG_TEAM_SPIRIT_STILL_IN_CUP_EVENT, sync);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [isDev]);
 
   const currentNonLeagueMatches = useMemo(
     () =>
@@ -440,22 +479,50 @@ export default function SeniorTeamSpirit({
       ...leagueFixturesWithCurrentStatus,
       ...realNonLeague,
     ]);
-    if (stillInMainCup !== true) return realMatches;
+    const qualificationEndTime = realMatches
+      .filter((match) => !match.isSyntheticPlaceholder && isQualificationMatch(match))
+      .reduce((latest, match) => Math.max(latest, match.sortTime), 0);
+    const seasonEndTime =
+      lastLeagueTime === null
+        ? null
+        : Math.max(lastLeagueTime + HATTRICK_WEEK_MS, qualificationEndTime);
+    const effectiveStillInMainCup =
+      isDev && debugSimulateStillInMainCup ? true : stillInMainCup === true;
+    if (!effectiveStillInMainCup) return realMatches;
     const actualCupMatches = realMatches.filter(
       (match) => !match.isSyntheticPlaceholder && isActualMainCupMatch(match)
     );
     const sortedActualCupMatches = sortTeamSpiritMatches(actualCupMatches);
     const latestActualCupMatch =
       sortedActualCupMatches[sortedActualCupMatches.length - 1] ?? null;
-    const placeholder = buildMainCupPlaceholder({
+    const occupiedSortTimes = new Set(realMatches.map((match) => match.sortTime));
+    const debugDummy =
+      isDev && debugSimulateStillInMainCup
+        ? buildDebugMainCupMatch({
+            teamId: teamId ?? 0,
+            latestActualCupMatch,
+            nowMs,
+            seasonEndTime,
+            occupiedSortTimes,
+          })
+        : null;
+    if (debugDummy) occupiedSortTimes.add(debugDummy.sortTime);
+    const placeholders = buildMainCupPlaceholders({
       teamId: teamId ?? 0,
-      latestActualCupMatch,
-      nowMs,
+      anchorCupMatch: debugDummy ?? latestActualCupMatch,
+      seasonEndTime,
+      occupiedSortTimes,
     });
-    return sortTeamSpiritMatches(placeholder ? [...realMatches, placeholder] : realMatches);
+    return sortTeamSpiritMatches([
+      ...realMatches,
+      ...(debugDummy ? [debugDummy] : []),
+      ...placeholders,
+    ]);
   }, [
     archiveNonLeagueWithCurrentStatus,
     currentNonLeagueMatches,
+    debugSimulateStillInMainCup,
+    isDev,
     leagueFixturesStatus,
     leagueFixturesWithCurrentStatus,
     nowMs,
@@ -1295,9 +1362,12 @@ export default function SeniorTeamSpirit({
             const matchTitle = `${row.match.HomeTeam?.HomeTeamName ?? messages.homeLabel} vs ${
               row.match.AwayTeam?.AwayTeamName ?? messages.awayLabel
             }`;
-            const displayTitle = row.match.isSyntheticPlaceholder
-              ? messages.teamSpiritMainCupPlaceholder
-              : matchTitle;
+            const displayTitle =
+              row.match.syntheticKind === "debugMainCupMatch"
+                ? messages.teamSpiritDebugMainCupMatch
+                : row.match.syntheticKind === "mainCupPlaceholder"
+                  ? messages.teamSpiritMainCupPlaceholder
+                  : matchTitle;
             const unavailableValue =
               row.blockedReason === "matchInProgress"
                 ? messages.teamSpiritUnavailableMatchInProgress
@@ -1326,6 +1396,11 @@ export default function SeniorTeamSpirit({
                   </span>
                   <span>{matchStatusLabel(messages, row.match)}</span>
                 </div>
+                {row.match.syntheticKind === "mainCupPlaceholder" ? (
+                  <p className={styles.teamSpiritPlaceholderExplanation}>
+                    {messages.teamSpiritMainCupPlaceholderExplanation}
+                  </p>
+                ) : null}
                 <div className={styles.teamSpiritStats}>
                   <div className={styles.teamSpiritStatRow}>
                     <span>

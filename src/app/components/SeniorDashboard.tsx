@@ -24350,6 +24350,13 @@ const refreshDetailsForPlayers = async (
                           row,
                           messages
                         );
+                        const opponentMatchResult = resolveOpponentMatchResult(row);
+                        const resultClassName =
+                          opponentMatchResult?.outcome === "win"
+                            ? styles.opponentAnalysisResultWin
+                            : opponentMatchResult?.outcome === "loss"
+                              ? styles.opponentAnalysisResultLoss
+                              : "";
                         return (
                           <tr key={row.matchId}>
                             <td className={styles.opponentFormationsMatchIdCell}>
@@ -24366,7 +24373,9 @@ const refreshDetailsForPlayers = async (
                                 {row.againstMyTeam ? "*" : ""}
                               </a>
                             </td>
-                            <td className={styles.opponentAnalysisResultCell}>
+                            <td
+                              className={`${styles.opponentAnalysisResultCell} ${resultClassName}`}
+                            >
                               {formatOpponentMatchResult(row, messages)}
                             </td>
                             <td>

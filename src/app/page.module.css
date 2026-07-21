@@ -5837,6 +5837,23 @@ html:not([data-mobile-shell="true"])
   white-space: nowrap;
 }
 
+.opponentAnalysisResultWin {
+  color: #166534;
+  font-weight: 600;
+}
+
+.opponentAnalysisResultLoss {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.teamSpiritPlaceholderExplanation {
+  margin: 0;
+  color: #5b5147;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .teamScoutDetailCompactModal .teamScoutDetailViewport {
   height: auto;
 }
@@ -9116,6 +9133,18 @@ html[data-theme="dark"] .matchItem {
 html[data-theme="dark"] .matchMeta,
 html[data-theme="dark"] .vs,
 html[data-theme="dark"] .matchType {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .opponentAnalysisResultWin {
+  color: #86efac;
+}
+
+html[data-theme="dark"] .opponentAnalysisResultLoss {
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .teamSpiritPlaceholderExplanation {
   color: #b9b0a5;
 }
 

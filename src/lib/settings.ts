@@ -46,6 +46,10 @@ export const DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY =
   "ya_debug_supporter_tier_override_v1";
 export const DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT =
   "ya:debug-supporter-tier-override";
+export const DEBUG_TEAM_SPIRIT_STILL_IN_CUP_STORAGE_KEY =
+  "ya_debug_team_spirit_still_in_cup_v1";
+export const DEBUG_TEAM_SPIRIT_STILL_IN_CUP_EVENT =
+  "ya:debug-team-spirit-still-in-cup";
 export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
 export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
 
@@ -766,6 +770,36 @@ export function writeDebugSupporterTierOverride(
   window.dispatchEvent(
     new CustomEvent(DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT, {
       detail: { tier: normalizedTier },
+    })
+  );
+}
+
+export function readDebugTeamSpiritStillInCup(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      window.localStorage.getItem(
+        DEBUG_TEAM_SPIRIT_STILL_IN_CUP_STORAGE_KEY
+      ) === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function writeDebugTeamSpiritStillInCup(value: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      DEBUG_TEAM_SPIRIT_STILL_IN_CUP_STORAGE_KEY,
+      value ? "true" : "false"
+    );
+  } catch {
+    // ignore storage errors
+  }
+  window.dispatchEvent(
+    new CustomEvent(DEBUG_TEAM_SPIRIT_STILL_IN_CUP_EVENT, {
+      detail: { enabled: value },
     })
   );
 }

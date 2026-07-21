@@ -747,6 +747,9 @@ export const messagesIt: Messages = {
     settingsDebugSupporterTierGold: "Oro",
     settingsDebugSupporterTierPlatinum: "Platino",
     settingsDebugSupporterTierDiamond: "Diamante",
+    settingsDebugTeamSpiritStillInCupLabel: "Simula ancora in coppa principale",
+    settingsDebugTeamSpiritStillInCupHint:
+      "Mostra una partita di coppa attuale simulata seguita da segnaposto settimanali fino a fine stagione.",
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     settingsDebugStorageButton: "Archiviazione",
     settingsDebugStorageTitle: "Diagnostica archiviazione",
@@ -1303,6 +1306,9 @@ export const messagesIt: Messages = {
     teamSpiritLeagueMatch: "Partita di campionato",
     teamSpiritMainCupMatch: "Partita coppa principale",
     teamSpiritMainCupPlaceholder: "Partita coppa principale segnaposto",
+    teamSpiritMainCupPlaceholderExplanation:
+      "Questa partita di coppa ipotetica viene mostrata solo mentre la tua squadra e ancora nella coppa principale. Scomparira dopo l eliminazione.",
+    teamSpiritDebugMainCupMatch: "Partita attuale simulata di coppa principale",
     teamSpiritAttitude: "Atteggiamento",
     teamSpiritAttitudeUsed: "Atteggiamento usato",
     teamSpiritAttitudeToBeUsed: "Atteggiamento da usare",

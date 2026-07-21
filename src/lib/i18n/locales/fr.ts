@@ -745,6 +745,9 @@ export const messagesFr: Messages = {
     settingsDebugSupporterTierGold: "Or",
     settingsDebugSupporterTierPlatinum: "Platine",
     settingsDebugSupporterTierDiamond: "Diamant",
+    settingsDebugTeamSpiritStillInCupLabel: "Simuler encore en coupe principale",
+    settingsDebugTeamSpiritStillInCupHint:
+      "Affiche un match de coupe actuel simule puis des matchs de coupe fictifs hebdomadaires jusqu a la fin de saison.",
     settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
     settingsDebugStorageButton: "Stockage",
     settingsDebugStorageTitle: "Diagnostic du stockage",
@@ -1297,6 +1300,9 @@ export const messagesFr: Messages = {
     teamSpiritLeagueMatch: "Match de ligue",
     teamSpiritMainCupMatch: "Match de coupe principale",
     teamSpiritMainCupPlaceholder: "Match de coupe principale fictif",
+    teamSpiritMainCupPlaceholderExplanation:
+      "Ce match de coupe hypothetique est affiche uniquement tant que votre equipe est encore en coupe principale. Il disparaitra apres elimination.",
+    teamSpiritDebugMainCupMatch: "Match de coupe principale actuel simule",
     teamSpiritAttitude: "Attitude",
     teamSpiritAttitudeUsed: "Attitude utilisee",
     teamSpiritAttitudeToBeUsed: "Attitude a utiliser",

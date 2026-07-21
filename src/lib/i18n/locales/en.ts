@@ -714,6 +714,9 @@ export const messagesEn: Messages = {
     settingsDebugSupporterTierGold: "Gold",
     settingsDebugSupporterTierPlatinum: "Platinum",
     settingsDebugSupporterTierDiamond: "Diamond",
+    settingsDebugTeamSpiritStillInCupLabel: "Simulate still in main cup",
+    settingsDebugTeamSpiritStillInCupHint:
+      "Shows one simulated current cup match followed by weekly cup placeholders through the end of the season.",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     settingsDebugStorageButton: "Storage",
@@ -1249,6 +1252,9 @@ export const messagesEn: Messages = {
     teamSpiritLeagueMatch: "League match",
     teamSpiritMainCupMatch: "Main cup match",
     teamSpiritMainCupPlaceholder: "Placeholder main cup match",
+    teamSpiritMainCupPlaceholderExplanation:
+      "This hypothetical cup match is shown only while your team is still in the main cup. It will disappear after elimination.",
+    teamSpiritDebugMainCupMatch: "Simulated current main-cup match",
     teamSpiritAttitude: "Attitude",
     teamSpiritAttitudeUsed: "Attitude used",
     teamSpiritAttitudeToBeUsed: "Attitude to be used",

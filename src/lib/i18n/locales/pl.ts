@@ -838,6 +838,9 @@ export const messagesPl: Messages = {
   settingsDebugSupporterTierGold: "Gold",
   settingsDebugSupporterTierPlatinum: "Platinum",
   settingsDebugSupporterTierDiamond: "Diamond",
+  settingsDebugTeamSpiritStillInCupLabel: "Symuluj pozostanie w glownym pucharze",
+  settingsDebugTeamSpiritStillInCupHint:
+    "Pokazuje jeden symulowany aktualny mecz pucharowy, a potem cotygodniowe planowane mecze do konca sezonu.",
   seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
   seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
   seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",
@@ -955,6 +958,9 @@ export const messagesPl: Messages = {
   teamSpiritLeagueMatch: "Mecz ligowy",
   teamSpiritMainCupMatch: "Mecz glownego pucharu",
   teamSpiritMainCupPlaceholder: "Planowany mecz glownego pucharu",
+  teamSpiritMainCupPlaceholderExplanation:
+    "Ten hipotetyczny mecz pucharowy jest pokazywany tylko, gdy twoj zespol nadal gra w glownym pucharze. Zniknie po odpadnieciu.",
+  teamSpiritDebugMainCupMatch: "Symulowany aktualny mecz glownego pucharu",
   teamSpiritAttitude: "Nastawienie",
   teamSpiritAttitudeUsed: "Uzyte nastawienie",
   teamSpiritAttitudeToBeUsed: "Nastawienie do uzycia",

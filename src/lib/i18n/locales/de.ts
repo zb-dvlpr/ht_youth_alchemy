@@ -754,6 +754,9 @@ export const messagesDe: Messages = {
     settingsDebugSupporterTierGold: "Gold",
     settingsDebugSupporterTierPlatinum: "Platin",
     settingsDebugSupporterTierDiamond: "Diamant",
+    settingsDebugTeamSpiritStillInCupLabel: "Weiter im Hauptpokal simulieren",
+    settingsDebugTeamSpiritStillInCupHint:
+      "Zeigt ein simuliertes aktuelles Pokalspiel und danach woechentliche Pokal-Platzhalter bis zum Saisonende.",
     settingsDebugRandomNewMarkersOffLabel: "Zufaellige NEW-Marker ausblenden",
     clubChronicleLeaguePanelTitle: "Ligaleistung und Pokal",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",
@@ -1285,6 +1288,9 @@ export const messagesDe: Messages = {
     teamSpiritLeagueMatch: "Ligaspiel",
     teamSpiritMainCupMatch: "Hauptpokalspiel",
     teamSpiritMainCupPlaceholder: "Platzhalter fuer Hauptpokalspiel",
+    teamSpiritMainCupPlaceholderExplanation:
+      "Dieses hypothetische Pokalspiel wird nur angezeigt, solange dein Team noch im Hauptpokal ist. Es verschwindet nach dem Ausscheiden.",
+    teamSpiritDebugMainCupMatch: "Simuliertes aktuelles Hauptpokalspiel",
     teamSpiritAttitude: "Einstellung",
     teamSpiritAttitudeUsed: "Genutzte Einstellung",
     teamSpiritAttitudeToBeUsed: "Zu nutzende Einstellung",

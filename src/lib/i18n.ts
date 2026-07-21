@@ -578,6 +578,8 @@ export type Messages = {
   settingsDebugSupporterTierGold: string;
   settingsDebugSupporterTierPlatinum: string;
   settingsDebugSupporterTierDiamond: string;
+  settingsDebugTeamSpiritStillInCupLabel: string;
+  settingsDebugTeamSpiritStillInCupHint: string;
   settingsDebugRandomNewMarkersOffLabel: string;
   settingsDebugBuyCoffeePromptButton: string;
   settingsDebugStorageButton: string;
@@ -1039,6 +1041,8 @@ export type Messages = {
   teamSpiritLeagueMatch: string;
   teamSpiritMainCupMatch: string;
   teamSpiritMainCupPlaceholder: string;
+  teamSpiritMainCupPlaceholderExplanation: string;
+  teamSpiritDebugMainCupMatch: string;
   teamSpiritAttitude: string;
   teamSpiritAttitudeUsed: string;
   teamSpiritAttitudeToBeUsed: string;

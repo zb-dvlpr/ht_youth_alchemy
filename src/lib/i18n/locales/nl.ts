@@ -853,6 +853,9 @@ export const messagesNl: Messages = {
   settingsDebugSupporterTierGold: "Gold",
   settingsDebugSupporterTierPlatinum: "Platinum",
   settingsDebugSupporterTierDiamond: "Diamond",
+  settingsDebugTeamSpiritStillInCupLabel: "Simuleer nog in hoofdbeker",
+  settingsDebugTeamSpiritStillInCupHint:
+    "Toont een gesimuleerde actuele bekerwedstrijd gevolgd door wekelijkse voorlopige bekerwedstrijden tot het seizoenseinde.",
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",
@@ -970,6 +973,9 @@ export const messagesNl: Messages = {
   teamSpiritLeagueMatch: "Competitiewedstrijd",
   teamSpiritMainCupMatch: "Hoofdbekerwedstrijd",
   teamSpiritMainCupPlaceholder: "Voorlopige hoofdbekerwedstrijd",
+  teamSpiritMainCupPlaceholderExplanation:
+    "Deze hypothetische bekerwedstrijd wordt alleen getoond zolang je team nog in de hoofdbeker zit. Hij verdwijnt na uitschakeling.",
+  teamSpiritDebugMainCupMatch: "Gesimuleerde actuele hoofdbekerwedstrijd",
   teamSpiritAttitude: "Instelling",
   teamSpiritAttitudeUsed: "Gebruikte instelling",
   teamSpiritAttitudeToBeUsed: "Te gebruiken instelling",

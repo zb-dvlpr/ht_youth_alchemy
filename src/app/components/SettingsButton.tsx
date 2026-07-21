@@ -55,6 +55,8 @@ import {
   writeYouthNewMarkersDebugEnabled,
   readDebugSupporterTierOverride,
   writeDebugSupporterTierOverride,
+  readDebugTeamSpiritStillInCup,
+  writeDebugTeamSpiritStillInCup,
 } from "@/lib/settings";
 import type { HattrickSupporterTier } from "@/lib/supporterTier";
 import { copyTextToClipboard } from "@/lib/clipboard";
@@ -211,6 +213,8 @@ export default function SettingsButton({
     useState<ChppDebugOauthErrorMode>("off");
   const [debugSupporterTier, setDebugSupporterTier] =
     useState<HattrickSupporterTier>("none");
+  const [debugTeamSpiritStillInCup, setDebugTeamSpiritStillInCup] =
+    useState(false);
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
   const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
@@ -279,6 +283,7 @@ export default function SettingsButton({
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugSupporterTier(readDebugSupporterTierOverride());
+      setDebugTeamSpiritStillInCup(readDebugTeamSpiritStillInCup());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
@@ -740,6 +745,11 @@ export default function SettingsButton({
   const handleDebugSupporterTierChange = (tier: HattrickSupporterTier) => {
     setDebugSupporterTier(tier);
     writeDebugSupporterTierOverride(tier);
+  };
+
+  const handleDebugTeamSpiritStillInCupToggle = (enabled: boolean) => {
+    setDebugTeamSpiritStillInCup(enabled);
+    writeDebugTeamSpiritStillInCup(enabled);
   };
 
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
@@ -2207,6 +2217,26 @@ export default function SettingsButton({
                 </label>
                 <p className={styles.muted}>
                   {messages.settingsDebugSupporterOverrideHint}
+                </p>
+                <label className={styles.algorithmsToggle}>
+                  <span className={styles.algorithmsToggleText}>
+                    {messages.settingsDebugTeamSpiritStillInCupLabel}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className={styles.algorithmsToggleInput}
+                    checked={debugTeamSpiritStillInCup}
+                    onChange={(event) =>
+                      handleDebugTeamSpiritStillInCupToggle(event.target.checked)
+                    }
+                  />
+                  <span
+                    className={styles.algorithmsToggleSwitch}
+                    aria-hidden="true"
+                  />
+                </label>
+                <p className={styles.muted}>
+                  {messages.settingsDebugTeamSpiritStillInCupHint}
                 </p>
               </>
             ) : null}

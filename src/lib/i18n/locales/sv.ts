@@ -741,6 +741,9 @@ export const messagesSv: Messages = {
     settingsDebugSupporterTierGold: "Guld",
     settingsDebugSupporterTierPlatinum: "Platina",
     settingsDebugSupporterTierDiamond: "Diamant",
+    settingsDebugTeamSpiritStillInCupLabel: "Simulera kvar i huvudcupen",
+    settingsDebugTeamSpiritStillInCupHint:
+      "Visar en simulerad aktuell cupmatch foljd av veckovisa cupplatshallare till sasongens slut.",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
     settingsDebugStorageButton: "Lagring",
     settingsDebugStorageTitle: "Lagringsdiagnostik",
@@ -1289,6 +1292,9 @@ export const messagesSv: Messages = {
     teamSpiritLeagueMatch: "Ligamatch",
     teamSpiritMainCupMatch: "Huvudcupmatch",
     teamSpiritMainCupPlaceholder: "Platshallare for huvudcupmatch",
+    teamSpiritMainCupPlaceholderExplanation:
+      "Den har hypotetiska cupmatchen visas bara medan ditt lag fortfarande ar kvar i huvudcupen. Den forsvinner efter utslagning.",
+    teamSpiritDebugMainCupMatch: "Simulerad aktuell huvudcupmatch",
     teamSpiritAttitude: "Installning",
     teamSpiritAttitudeUsed: "Anvand installning",
     teamSpiritAttitudeToBeUsed: "Installning att anvanda",

@@ -1,6 +1,9 @@
 import type { Match } from "@/app/components/UpcomingMatches";
 
 export type TeamSpiritMatchStatus = "UPCOMING" | "ONGOING" | "FINISHED";
+export type TeamSpiritSyntheticKind =
+  | "mainCupPlaceholder"
+  | "debugMainCupMatch";
 
 export type TeamSpiritMatch = Omit<Match, "MatchID"> & {
   MatchID: number | null;
@@ -8,13 +11,15 @@ export type TeamSpiritMatch = Omit<Match, "MatchID"> & {
   sortTime: number;
   derivedStatus: TeamSpiritMatchStatus;
   isSyntheticPlaceholder: boolean;
+  syntheticKind?: TeamSpiritSyntheticKind;
   syntheticKey?: string;
 };
 
 export const TEAM_SPIRIT_MATCH_WINDOW_MS = (45 + 15 + 45 + 10) * 60 * 1000;
 
 const HATTRICK_TIME_ZONE = "Europe/Berlin";
-const HATTRICK_WEEK_MS = 7 * 86_400_000;
+export const HATTRICK_WEEK_MS = 7 * 86_400_000;
+const TEAM_SPIRIT_PLACEHOLDER_MAX_ITERATIONS = 20;
 
 function asArray<T>(value: T | T[] | null | undefined): T[] {
   if (!value) return [];
@@ -137,7 +142,8 @@ export function deriveTeamSpiritMatchStatus(
 }
 
 export function matchKey(match: TeamSpiritMatch) {
-  if (match.isSyntheticPlaceholder) return match.syntheticKey ?? `synthetic:${match.sortTime}`;
+  if (match.syntheticKey) return match.syntheticKey;
+  if (match.isSyntheticPlaceholder) return `synthetic:${match.sortTime}`;
   const source = match.SourceSystem?.trim() || "Hattrick";
   return `${source}:${match.MatchID}`;
 }
@@ -239,33 +245,107 @@ export function refreshTeamSpiritStatuses(matches: TeamSpiritMatch[], nowMs: num
   );
 }
 
-export function buildMainCupPlaceholder(input: {
+function buildSyntheticMainCupMatch(input: {
   teamId: number;
-  latestActualCupMatch: TeamSpiritMatch | null;
-  nowMs: number;
-}): TeamSpiritMatch | null {
-  const latest = input.latestActualCupMatch;
-  if (!latest) return null;
-  const placeholderTime = latest.sortTime + HATTRICK_WEEK_MS;
-  const syntheticKey = `team-spirit-main-cup-placeholder:${input.teamId}:${placeholderTime}`;
+  anchorCupMatch: TeamSpiritMatch | null;
+  sortTime: number;
+  syntheticKind: TeamSpiritSyntheticKind;
+  syntheticKey: string;
+}): TeamSpiritMatch {
+  const anchor = input.anchorCupMatch;
   return {
     MatchID: null,
-    MatchDate: formatHattrickMatchDateValue(placeholderTime),
+    MatchDate: formatHattrickMatchDateValue(input.sortTime),
     Status: "UPCOMING",
     MatchType: 3,
     CupLevel: 1,
     SourceSystem: "Hattrick",
     HomeTeam: {
-      HomeTeamName: latest.HomeTeam?.HomeTeamName,
-      HomeTeamID: latest.HomeTeam?.HomeTeamID,
+      HomeTeamName: anchor?.HomeTeam?.HomeTeamName,
+      HomeTeamID: anchor?.HomeTeam?.HomeTeamID,
     },
     AwayTeam: {
-      AwayTeamName: latest.AwayTeam?.AwayTeamName,
-      AwayTeamID: latest.AwayTeam?.AwayTeamID,
+      AwayTeamName: anchor?.AwayTeam?.AwayTeamName,
+      AwayTeamID: anchor?.AwayTeam?.AwayTeamID,
     },
-    sortTime: placeholderTime,
+    sortTime: input.sortTime,
     derivedStatus: "UPCOMING",
     isSyntheticPlaceholder: true,
-    syntheticKey,
+    syntheticKind: input.syntheticKind,
+    syntheticKey: input.syntheticKey,
   };
+}
+
+export function buildMainCupPlaceholders(input: {
+  teamId: number;
+  anchorCupMatch: TeamSpiritMatch | null;
+  seasonEndTime: number | null;
+  occupiedSortTimes?: Set<number>;
+}): TeamSpiritMatch[] {
+  const anchor = input.anchorCupMatch;
+  if (!anchor || input.seasonEndTime === null) return [];
+
+  const placeholders: TeamSpiritMatch[] = [];
+  let placeholderTime = anchor.sortTime + HATTRICK_WEEK_MS;
+  let iterationCount = 0;
+
+  while (
+    placeholderTime <= input.seasonEndTime &&
+    iterationCount < TEAM_SPIRIT_PLACEHOLDER_MAX_ITERATIONS
+  ) {
+    if (!input.occupiedSortTimes?.has(placeholderTime)) {
+      placeholders.push(
+        buildSyntheticMainCupMatch({
+          teamId: input.teamId,
+          anchorCupMatch: anchor,
+          sortTime: placeholderTime,
+          syntheticKind: "mainCupPlaceholder",
+          syntheticKey: `team-spirit-main-cup-placeholder:${input.teamId}:${placeholderTime}`,
+        })
+      );
+    }
+    placeholderTime += HATTRICK_WEEK_MS;
+    iterationCount += 1;
+  }
+
+  return placeholders;
+}
+
+export function buildDebugMainCupMatch(input: {
+  teamId: number;
+  latestActualCupMatch: TeamSpiritMatch | null;
+  nowMs: number;
+  seasonEndTime: number | null;
+  occupiedSortTimes?: Set<number>;
+}): TeamSpiritMatch | null {
+  if (input.seasonEndTime === null) return null;
+  let dummyTime = input.latestActualCupMatch
+    ? input.latestActualCupMatch.sortTime + HATTRICK_WEEK_MS
+    : input.nowMs + 86_400_000;
+  let iterationCount = 0;
+
+  while (
+    (dummyTime <= input.nowMs || input.occupiedSortTimes?.has(dummyTime)) &&
+    dummyTime <= input.seasonEndTime &&
+    iterationCount < TEAM_SPIRIT_PLACEHOLDER_MAX_ITERATIONS
+  ) {
+    dummyTime += HATTRICK_WEEK_MS;
+    iterationCount += 1;
+  }
+
+  if (
+    dummyTime <= input.nowMs ||
+    dummyTime > input.seasonEndTime ||
+    input.occupiedSortTimes?.has(dummyTime)
+  ) {
+    return null;
+  }
+
+  return buildSyntheticMainCupMatch({
+    teamId: input.teamId,
+    anchorCupMatch: input.latestActualCupMatch,
+    sortTime: dummyTime,
+    syntheticKind: "debugMainCupMatch",
+    syntheticKey: `team-spirit-debug-main-cup-match:${input.teamId}:${dummyTime}`,
+  });
 }

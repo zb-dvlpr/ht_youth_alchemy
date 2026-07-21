@@ -116,6 +116,7 @@ import {
   TRANSFER_MARKET_OPEN_PAST_SEARCHES_EVENT,
   TRANSFER_MARKET_OPEN_PROFILES_EVENT,
 } from "@/lib/transferMarket/events";
+import { useSupporterStatus } from "./SupporterStatusProvider";
 
 type AppShellProps = {
   messages: Messages;
@@ -267,6 +268,7 @@ export default function AppShell({
   primarySeniorTeamCountryId = null,
   mobileLauncherUtility,
 }: AppShellProps) {
+  const { hasGoldOrHigherSupporter } = useSupporterStatus();
   const [collapsed, setCollapsed] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [mobileLayoutActive, setMobileLayoutActive] = useState(false);
@@ -1974,16 +1976,27 @@ export default function AppShell({
               {messages.transferMarketPastSearchesButton}
             </button>
           </div>
-          <Tooltip content={messages.transferMarketProfilesTooltip}>
+          <Tooltip
+            content={
+              hasGoldOrHigherSupporter
+                ? messages.transferMarketProfilesTooltip
+                : messages.hattrickGoldSupporterActionRequiredTooltip
+            }
+          >
             <button
               type="button"
               className={styles.chronicleUpdatesButton}
+              disabled={!hasGoldOrHigherSupporter}
               onClick={() =>
                 window.dispatchEvent(
                   new CustomEvent(TRANSFER_MARKET_OPEN_PROFILES_EVENT)
                 )
               }
-              aria-label={messages.transferMarketProfilesAriaLabel}
+              aria-label={
+                hasGoldOrHigherSupporter
+                  ? messages.transferMarketProfilesAriaLabel
+                  : `${messages.transferMarketProfilesAriaLabel}. ${messages.hattrickGoldSupporterActionRequiredTooltip}`
+              }
             >
               ☰
             </button>

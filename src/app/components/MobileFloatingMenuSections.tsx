@@ -10,10 +10,16 @@ export function MobileMenuDivider() {
 export function MobileMenuAction({
   children,
   active = false,
+  disabled = false,
+  title,
+  ariaLabel,
   onClick,
 }: {
   children: ReactNode;
   active?: boolean;
+  disabled?: boolean;
+  title?: string;
+  ariaLabel?: string;
   onClick: () => void;
 }) {
   return (
@@ -22,7 +28,13 @@ export function MobileMenuAction({
       className={`${styles.mobileYouthMenuAction} ${
         active ? styles.mobileYouthMenuActionActive : ""
       }`}
-      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      aria-label={ariaLabel}
+      onClick={() => {
+        if (disabled) return;
+        onClick();
+      }}
     >
       {children}
     </button>

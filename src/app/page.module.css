@@ -800,6 +800,11 @@ html[data-mobile-shell="true"] .scaleContainer {
   cursor: pointer;
 }
 
+.mobileYouthMenuAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .mobileYouthMenuActionActive {
   background: rgba(191, 160, 112, 0.18);
   color: #2d241b;

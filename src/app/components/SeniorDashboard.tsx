@@ -2476,6 +2476,21 @@ const normalizeTransferSearchResults = (input: unknown): TransferSearchResult[] 
     .filter((entry): entry is TransferSearchResult => Boolean(entry));
 };
 
+function excludeTransferSearchPlayer(
+  results: TransferSearchResult[],
+  excludedPlayerId: number | null | undefined
+): TransferSearchResult[] {
+  if (
+    typeof excludedPlayerId !== "number" ||
+    !Number.isFinite(excludedPlayerId) ||
+    excludedPlayerId <= 0
+  ) {
+    return results;
+  }
+
+  return results.filter((result) => result.playerId !== excludedPlayerId);
+}
+
 const normalizeTransferSearchBidDrafts = (value: unknown): Record<number, TransferSearchBidDraft> => {
   if (!value || typeof value !== "object") return {};
   const next: Record<number, TransferSearchBidDraft> = {};
@@ -14282,12 +14297,17 @@ function buildSeniorAiManMarkingReadySignature(params: {
       allowAutoFallback?: boolean;
       sourcePlayer?: SeniorPlayer | null;
       sourceDetails?: SeniorPlayerDetails | null;
+      excludedPlayerId?: number | null;
     }
   ) => {
     const requestId = transferSearchRequestIdRef.current + 1;
     transferSearchRequestIdRef.current = requestId;
     const isCurrentSearch = () => transferSearchRequestIdRef.current === requestId;
     const normalizedFilters = normalizeTransferSearchFilters(filters);
+    const excludedPlayerId =
+      options?.excludedPlayerId ??
+      options?.sourcePlayer?.PlayerID ??
+      transferSearchSourcePlayerId;
     setTransferSearchFilters(normalizedFilters);
     setTransferSearchLoading(true);
     setTransferSearchError(null);
@@ -14327,9 +14347,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
     try {
       const exact = await execute(normalizedFilters);
       if (!isCurrentSearch()) return;
+      const usefulExactResults = excludeTransferSearchPlayer(
+        exact.results,
+        excludedPlayerId
+      );
       const fallbackSourcePlayer = options?.sourcePlayer ?? transferSearchSourcePlayer;
       const fallbackSourceDetails = options?.sourceDetails ?? transferSearchSourceDetails;
-      if (options?.allowAutoFallback && exact.results.length === 0 && fallbackSourcePlayer) {
+      if (options?.allowAutoFallback && usefulExactResults.length === 0 && fallbackSourcePlayer) {
         const fallbackFilters = buildFallbackTransferSearchFilters(
           fallbackSourcePlayer,
           fallbackSourceDetails
@@ -14337,16 +14361,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
         const normalizedFallback = normalizeTransferSearchFilters(fallbackFilters);
         const fallback = await execute(normalizedFallback);
         if (!isCurrentSearch()) return;
+        const usefulFallbackResults = excludeTransferSearchPlayer(
+          fallback.results,
+          excludedPlayerId
+        );
         setTransferSearchFilters(normalizedFallback);
-        setTransferSearchResults(fallback.results);
-        setTransferSearchItemCount(fallback.results.length);
+        setTransferSearchResults(usefulFallbackResults);
+        setTransferSearchItemCount(usefulFallbackResults.length);
         setTransferSearchUsedFallback(true);
         setTransferSearchExactEmpty(true);
-        await hydrateTransferSearchDetails(fallback.results);
+        await hydrateTransferSearchDetails(usefulFallbackResults);
       } else {
-        setTransferSearchResults(exact.results);
-        setTransferSearchItemCount(exact.results.length);
-        await hydrateTransferSearchDetails(exact.results);
+        setTransferSearchResults(usefulExactResults);
+        setTransferSearchItemCount(usefulExactResults.length);
+        await hydrateTransferSearchDetails(usefulExactResults);
       }
     } catch (error) {
       if (!isCurrentSearch()) return;
@@ -14395,6 +14423,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       allowAutoFallback: true,
       sourcePlayer: player,
       sourceDetails,
+      excludedPlayerId: player.PlayerID,
     });
     return true;
   };

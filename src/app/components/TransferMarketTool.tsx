@@ -274,9 +274,11 @@ export default function TransferMarketTool({
   }, [readPast]);
 
   const openSearchProfiles = useCallback(() => {
+    if (!hasGoldOrHigherSupporter) return false;
     setProfilesOpen(true);
     void readProfiles();
-  }, [readProfiles]);
+    return true;
+  }, [hasGoldOrHigherSupporter, readProfiles]);
 
   useEffect(() => {
     const openPast = () => {
@@ -292,6 +294,14 @@ export default function TransferMarketTool({
       window.removeEventListener(TRANSFER_MARKET_OPEN_PROFILES_EVENT, openProfilesHandler);
     };
   }, [openPastSearches, openSearchProfiles]);
+
+  useEffect(() => {
+    if (hasGoldOrHigherSupporter) return;
+    queueMicrotask(() => {
+      setProfilesOpen(false);
+      setProfiles([]);
+    });
+  }, [hasGoldOrHigherSupporter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -781,7 +791,19 @@ export default function TransferMarketTool({
                 {messages.transferMarketPastSearchesButton}
               </MobileMenuAction>
               <MobileMenuAction
+                disabled={!hasGoldOrHigherSupporter}
+                title={
+                  hasGoldOrHigherSupporter
+                    ? messages.transferMarketProfilesTooltip
+                    : messages.hattrickGoldSupporterActionRequiredTooltip
+                }
+                ariaLabel={
+                  hasGoldOrHigherSupporter
+                    ? messages.transferMarketProfilesAriaLabel
+                    : `${messages.transferMarketProfilesAriaLabel}. ${messages.hattrickGoldSupporterActionRequiredTooltip}`
+                }
                 onClick={() => {
+                  if (!hasGoldOrHigherSupporter) return;
                   closeMenu();
                   openSearchProfiles();
                 }}
@@ -868,7 +890,7 @@ export default function TransferMarketTool({
         onClose={() => setPastOpen(false)}
       />
       <Modal
-        open={profilesOpen}
+        open={profilesOpen && hasGoldOrHigherSupporter}
         title={messages.transferMarketProfilesTitle}
         className={styles.transferMarketListModal}
         body={

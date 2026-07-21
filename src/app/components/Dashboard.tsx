@@ -1177,7 +1177,7 @@ export default function Dashboard({
   >({});
   const [transferSearchBidPendingPlayerId, setTransferSearchBidPendingPlayerId] =
     useState<number | null>(null);
-  const { isSupporter } = useSupporterStatus();
+  const { isSupporter, hasGoldOrHigherSupporter } = useSupporterStatus();
   const { loading: permissionsLoading, hasPermission } = useChppPermissions();
   const canPlaceBid = !permissionsLoading && hasPermission("place_bid");
   const transferSearchRequestIdRef = useRef(0);
@@ -1648,6 +1648,7 @@ export default function Dashboard({
     scopeKey: transferMarketScopeKey,
     displayCurrency,
     htmsPotentialFilter: transferSearchHtmsPotentialFilter,
+    canSaveProfile: hasGoldOrHigherSupporter,
   });
   const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
     number | null
@@ -8046,9 +8047,9 @@ export default function Dashboard({
         onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
         onSaveAsProfile={openYouthTransferSearchSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
-        canSaveAsProfile={isSupporter}
+        canSaveAsProfile={hasGoldOrHigherSupporter}
         saveAsProfileUnavailableTooltip={
-          messages.hattrickSupporterActionRequiredTooltip
+          messages.hattrickGoldSupporterActionRequiredTooltip
         }
         resultCountLabel={transferSearchResultCountLabel}
         exactEmpty={transferSearchExactEmpty}

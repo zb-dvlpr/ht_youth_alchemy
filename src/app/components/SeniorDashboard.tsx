@@ -4351,7 +4351,7 @@ export default function SeniorDashboard({
   const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
-  const { isSupporter } = useSupporterStatus();
+  const { isSupporter, hasGoldOrHigherSupporter } = useSupporterStatus();
   const { loading: permissionsLoading, hasPermission } = useChppPermissions();
   const canPlaceBid = !permissionsLoading && hasPermission("place_bid");
   const canSetTraining = !permissionsLoading && hasPermission("set_training");
@@ -4682,6 +4682,7 @@ export default function SeniorDashboard({
       scopeKey: transferMarketScopeKey,
       displayCurrency,
       htmsPotentialFilter: transferSearchHtmsPotentialFilter,
+      canSaveProfile: hasGoldOrHigherSupporter,
     });
   const formatDisplayCurrencyFromSek = useCallback(
     (valueSek: number) => formatSekCurrency(valueSek, displayCurrency),
@@ -14268,7 +14269,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       sourceDetailsOverride?: SeniorPlayerDetails | null;
     }
   ) => {
-    if (!isSupporter) return false;
+    if (!hasGoldOrHigherSupporter) return false;
     trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return false;
@@ -20727,14 +20728,14 @@ const refreshDetailsForPlayers = async (
 
   const seniorTransferSearchBlockedByFemaleTeam =
     activeSeniorTeamOption?.teamGender === "female";
-  const seniorTransferSearchBlockedBySupporter = !isSupporter;
+  const seniorTransferSearchBlockedBySupporter = !hasGoldOrHigherSupporter;
   const seniorTransferSearchDisabled =
     seniorTransferSearchBlockedByFemaleTeam ||
     seniorTransferSearchBlockedBySupporter;
   const seniorTransferSearchTooltip = seniorTransferSearchBlockedByFemaleTeam
     ? messages.seniorTransferSearchFemaleTeamTooltip
     : seniorTransferSearchBlockedBySupporter
-      ? messages.hattrickSupporterActionRequiredTooltip
+      ? messages.hattrickGoldSupporterActionRequiredTooltip
       : null;
 
   const seniorDetailsHeaderActions =
@@ -22077,9 +22078,9 @@ const refreshDetailsForPlayers = async (
         onHtmsPotentialFilterChange={setTransferSearchHtmsPotentialFilter}
         onSaveAsProfile={openTransferSearchSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
-        canSaveAsProfile={isSupporter}
+        canSaveAsProfile={hasGoldOrHigherSupporter}
         saveAsProfileUnavailableTooltip={
-          messages.hattrickSupporterActionRequiredTooltip
+          messages.hattrickGoldSupporterActionRequiredTooltip
         }
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}

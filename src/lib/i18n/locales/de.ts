@@ -746,9 +746,14 @@ export const messagesDe: Messages = {
     settingsDebugTitle: "Debug-Einstellungen",
     settingsDebugDisableScalingLabel: "Dummy-Updates anzeigen",
     settingsDebugRandomNewMarkersLabel: "Zufaellige NEW-Marker anzeigen",
-    settingsDebugSupporterOverrideLabel: "Als Hattrick Supporter behandeln",
+    settingsDebugSupporterOverrideLabel: "Simulierte Hattrick-Supporter-Stufe",
     settingsDebugSupporterOverrideHint:
-      "Nur Entwicklung. Erzwingt Supporter-UI-Pfade ein oder aus, ohne den echten CHPP-Kontostatus zu ändern.",
+      "Nur Entwicklung. Waehle die Supporter-Stufe, die die App simulieren soll.",
+    settingsDebugSupporterTierNone: "Keine",
+    settingsDebugSupporterTierSilver: "Silber",
+    settingsDebugSupporterTierGold: "Gold",
+    settingsDebugSupporterTierPlatinum: "Platin",
+    settingsDebugSupporterTierDiamond: "Diamant",
     settingsDebugRandomNewMarkersOffLabel: "Zufaellige NEW-Marker ausblenden",
     clubChronicleLeaguePanelTitle: "Ligaleistung und Pokal",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",
@@ -2174,6 +2179,8 @@ export const messagesDe: Messages = {
       "Diese Aktion ist nur fuer Hattrick-Supporter verfuegbar.",
     hattrickSupporterActionRequiredTooltip:
       "Diese Aktion ist nur fuer Hattrick-Supporter verfuegbar.",
+    hattrickGoldSupporterActionRequiredTooltip:
+      "Erfordert Hattrick Supporter Gold, Platin oder Diamant.",
     seniorTransferSearchBidMissingAmount: "Bitte zuerst einen Gebotsbetrag eingeben.",
     seniorTransferSearchBidPlaced: "Gebot fuer {{player}} abgegeben.",
     seniorTransferSearchBidFailed: "Gebot fehlgeschlagen: {{details}}",

@@ -161,7 +161,7 @@ export default function TransferMarketTool({
 }: TransferMarketToolProps) {
   const { addNotification } = useNotifications();
   const { countryOptions, resolveForCountry } = useDisplayCurrency();
-  const { isSupporter } = useSupporterStatus();
+  const { isSupporter, hasGoldOrHigherSupporter } = useSupporterStatus();
   const { loading: permissionsLoading, hasPermission } = useChppPermissions();
   const canPlaceBid = !permissionsLoading && hasPermission("place_bid");
   const canQuickBid = isSupporter && canPlaceBid;
@@ -264,6 +264,7 @@ export default function TransferMarketTool({
     scopeKey,
     displayCurrency,
     htmsPotentialFilter,
+    canSaveProfile: hasGoldOrHigherSupporter,
     onSaved: readProfiles,
   });
 
@@ -833,9 +834,9 @@ export default function TransferMarketTool({
         onHtmsPotentialFilterChange={setHtmsPotentialFilter}
         onSaveAsProfile={openSaveProfile}
         saveAsProfileLabel={messages.transferMarketSaveAsProfileButton}
-        canSaveAsProfile={isSupporter}
+        canSaveAsProfile={hasGoldOrHigherSupporter}
         saveAsProfileUnavailableTooltip={
-          messages.hattrickSupporterActionRequiredTooltip
+          messages.hattrickGoldSupporterActionRequiredTooltip
         }
         renderResultCard={renderResultCard}
         getTableWageData={getTransferSearchTableWageData}

@@ -1,3 +1,8 @@
+import {
+  normalizeHattrickSupporterTier,
+  type HattrickSupporterTier,
+} from "./supporterTier";
+
 export const ALGORITHM_SETTINGS_STORAGE_KEY = "ya_allow_training_until_maxed_out_v1";
 export const ALGORITHM_SETTINGS_EVENT = "ya:algorithm-settings";
 export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
@@ -35,9 +40,12 @@ export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
 export const DEFAULT_DEBUG_DISABLE_SCALING = false;
 export const YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY =
   "ya_youth_new_markers_debug_v1";
-export const DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY =
+export const DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY_LEGACY =
   "ya_debug_supporter_override_v1";
-export const DEBUG_SUPPORTER_OVERRIDE_EVENT = "ya:debug-supporter-override";
+export const DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY =
+  "ya_debug_supporter_tier_override_v1";
+export const DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT =
+  "ya:debug-supporter-tier-override";
 export const DISPLAY_CURRENCY_SETTINGS_STORAGE_KEY = "ya_display_currency_v1";
 export const DISPLAY_CURRENCY_SETTINGS_EVENT = "ya:display-currency-settings";
 
@@ -709,27 +717,55 @@ export function writeYouthNewMarkersDebugEnabled(value: boolean) {
   }
 }
 
-export function readDebugSupporterOverride(): boolean {
-  if (typeof window === "undefined") return false;
+export function readDebugSupporterTierOverride(): HattrickSupporterTier {
+  if (typeof window === "undefined") return "none";
   try {
-    return (
-      window.localStorage.getItem(DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY) ===
-      "true"
+    const stored = window.localStorage.getItem(
+      DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY
     );
+    if (stored !== null) {
+      const normalizedTier = normalizeHattrickSupporterTier(stored);
+      if (normalizedTier) return normalizedTier;
+      window.localStorage.setItem(
+        DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY,
+        "none"
+      );
+      return "none";
+    }
+
+    const legacyStored = window.localStorage.getItem(
+      DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY_LEGACY
+    );
+    const migratedTier: HattrickSupporterTier =
+      legacyStored === "true" ? "gold" : "none";
+    window.localStorage.setItem(
+      DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY,
+      migratedTier
+    );
+    window.localStorage.removeItem(DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY_LEGACY);
+    return migratedTier;
   } catch {
-    return false;
+    return "none";
   }
 }
 
-export function writeDebugSupporterOverride(value: boolean): void {
+export function writeDebugSupporterTierOverride(
+  tier: HattrickSupporterTier
+): void {
   if (typeof window === "undefined") return;
+  const normalizedTier = normalizeHattrickSupporterTier(tier) ?? "none";
   try {
     window.localStorage.setItem(
-      DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY,
-      value ? "true" : "false"
+      DEBUG_SUPPORTER_TIER_OVERRIDE_STORAGE_KEY,
+      normalizedTier
     );
+    window.localStorage.removeItem(DEBUG_SUPPORTER_OVERRIDE_STORAGE_KEY_LEGACY);
   } catch {
     // ignore storage errors
   }
-  window.dispatchEvent(new CustomEvent(DEBUG_SUPPORTER_OVERRIDE_EVENT));
+  window.dispatchEvent(
+    new CustomEvent(DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT, {
+      detail: { tier: normalizedTier },
+    })
+  );
 }

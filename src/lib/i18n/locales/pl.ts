@@ -828,9 +828,16 @@ export const messagesPl: Messages = {
     "Ta akcja jest dostepna tylko dla Supporterow Hattrick.",
   hattrickSupporterActionRequiredTooltip:
     "Ta akcja jest dostepna tylko dla Supporterow Hattrick.",
-  settingsDebugSupporterOverrideLabel: "Traktuj jako Hattrick Supporter",
+  hattrickGoldSupporterActionRequiredTooltip:
+    "Wymaga Hattrick Supporter Gold, Platinum lub Diamond.",
+  settingsDebugSupporterOverrideLabel: "Symulowany poziom Hattrick Supporter",
   settingsDebugSupporterOverrideHint:
-    "Tylko development. Wymusza sciezki UI dla Supporterow bez zmiany prawdziwego statusu konta CHPP.",
+    "Tylko development. Wybierz poziom Supporter, ktory aplikacja ma symulowac.",
+  settingsDebugSupporterTierNone: "Brak",
+  settingsDebugSupporterTierSilver: "Silver",
+  settingsDebugSupporterTierGold: "Gold",
+  settingsDebugSupporterTierPlatinum: "Platinum",
+  settingsDebugSupporterTierDiamond: "Diamond",
   seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
   seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
   seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",

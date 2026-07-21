@@ -733,9 +733,14 @@ export const messagesSv: Messages = {
     settingsDebugTitle: "Debug-inställningar",
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
-    settingsDebugSupporterOverrideLabel: "Behandla som Hattrick Supporter",
+    settingsDebugSupporterOverrideLabel: "Simulerad Hattrick Supporter-niva",
     settingsDebugSupporterOverrideHint:
-      "Endast utveckling. Tvingar supporter-UI på eller av utan att ändra riktig CHPP-kontostatus.",
+      "Endast utveckling. Valj Supporter-nivan som appen ska simulera.",
+    settingsDebugSupporterTierNone: "Ingen",
+    settingsDebugSupporterTierSilver: "Silver",
+    settingsDebugSupporterTierGold: "Guld",
+    settingsDebugSupporterTierPlatinum: "Platina",
+    settingsDebugSupporterTierDiamond: "Diamant",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
     settingsDebugStorageButton: "Lagring",
     settingsDebugStorageTitle: "Lagringsdiagnostik",
@@ -2180,6 +2185,8 @@ export const messagesSv: Messages = {
       "Den har atgarden ar bara tillganglig for Hattrick Supporters.",
     hattrickSupporterActionRequiredTooltip:
       "Den har atgarden ar bara tillganglig for Hattrick Supporters.",
+    hattrickGoldSupporterActionRequiredTooltip:
+      "Kraever Hattrick Supporter Guld, Platina eller Diamant.",
     seniorTransferSearchBidMissingAmount: "Ange ett budbelopp forst.",
     seniorTransferSearchBidPlaced: "Bud lagt pa {{player}}.",
     seniorTransferSearchBidFailed: "Bud misslyckades: {{details}}",

@@ -231,6 +231,21 @@ function asObjectRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }
 
+function resolveStillInMainCup(cup: Record<string, unknown> | null): boolean | null {
+  if (!cup) return null;
+
+  const stillInAnyCup = normalizeStillInCup(cup.StillInCup);
+  if (stillInAnyCup === null) return null;
+  if (!stillInAnyCup) return false;
+
+  const cupLevel = toNumber(cup.CupLevel);
+  if (cupLevel === null || !Number.isFinite(cupLevel) || !Number.isInteger(cupLevel)) {
+    return null;
+  }
+
+  return cupLevel === 1;
+}
+
 function extractLeagueLevelUnitId(team: Record<string, unknown> | null | undefined) {
   if (!team) return null;
   const leagueLevelUnit = asObjectRecord(team.LeagueLevelUnit);
@@ -260,10 +275,10 @@ function resolveTeamDetailsContext(payload: unknown, teamId: number): SeniorTeam
   const selectedTeam =
     teams.find((team) => toNumber(team.TeamID) === teamId || toNumber(team.TeamId) === teamId) ??
     (teams.length === 1 ? teams[0] : null);
-  const cup = selectedTeam?.Cup as Record<string, unknown> | undefined;
+  const cup = asObjectRecord(selectedTeam?.Cup);
   return {
     leagueLevelUnitId: extractLeagueLevelUnitId(selectedTeam),
-    stillInMainCup: normalizeStillInCup(cup?.StillInCup),
+    stillInMainCup: resolveStillInMainCup(cup),
   };
 }
 

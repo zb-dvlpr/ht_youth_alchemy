@@ -1438,6 +1438,11 @@ export const messagesNl: Messages = {
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",
   analyzeOpponentMatchColumn: "Wedstrijd",
+  analyzeOpponentResultColumn: "Resultaat",
+  analyzeOpponentResultWin: "Winst",
+  analyzeOpponentResultLoss: "Verlies",
+  analyzeOpponentResultDraw: "Gelijkspel",
+  analyzeOpponentResultTemplate: "{{score}} ({{outcome}})",
   analyzeOpponentMatchTeamsTemplate: "{{homeTeam}} vs. {{awayTeam}}",
   analyzeOpponentMatchDisplayTemplate:
     "{{homeTeam}} vs. {{awayTeam}} ({{venue}})",

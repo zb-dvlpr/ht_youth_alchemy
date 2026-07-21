@@ -1968,6 +1968,11 @@ export const messagesSv: Messages = {
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
     analyzeOpponentMatchId: "Match-ID",
     analyzeOpponentMatchColumn: "Match",
+    analyzeOpponentResultColumn: "Resultat",
+    analyzeOpponentResultWin: "Vinst",
+    analyzeOpponentResultLoss: "Forlust",
+    analyzeOpponentResultDraw: "Oavgjort",
+    analyzeOpponentResultTemplate: "{{score}} ({{outcome}})",
     analyzeOpponentMatchTeamsTemplate: "{{homeTeam}} vs. {{awayTeam}}",
     analyzeOpponentMatchDisplayTemplate:
       "{{homeTeam}} vs. {{awayTeam}} ({{venue}})",

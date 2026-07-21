@@ -164,7 +164,10 @@ import {
   resolveOpponentTeam,
 } from "@/lib/matches/visibility";
 import { buildTransferMarketScopeKey } from "@/lib/transferMarketStorage";
-import { seniorPlayerNumberValue } from "@/lib/seniorShirtNumber";
+import {
+  normalizeSeniorShirtNumber,
+  seniorPlayerNumberValue,
+} from "@/lib/seniorShirtNumber";
 import { formatSeniorPlayerName } from "@/lib/seniorPlayerName";
 import {
   buildSeniorManMarkingPairDecision,
@@ -945,8 +948,10 @@ type OpponentFormationRow = {
   againstMyTeam: boolean;
   homeTeamId: number | null;
   homeTeamName: string | null;
+  homeGoals: number | null;
   awayTeamId: number | null;
   awayTeamName: string | null;
+  awayGoals: number | null;
   opponentVenuePerspective: OpponentMatchVenuePerspective;
   tacticType: number | null;
   tacticSkill: number | null;
@@ -975,6 +980,19 @@ type OpponentMatchTeamMetadata = {
   teamName: string | null;
 };
 
+type OpponentMatchGoals = {
+  homeGoals: number | null;
+  awayGoals: number | null;
+};
+
+type OpponentMatchOutcome = "win" | "loss" | "draw";
+
+type OpponentMatchResult = {
+  opponentGoals: number;
+  otherGoals: number;
+  outcome: OpponentMatchOutcome;
+};
+
 const resolveOpponentVenuePerspective = (
   opponentTeamId: number,
   homeTeamId: number | null,
@@ -995,6 +1013,85 @@ const readOpponentMatchTeamMetadata = (
     teamId: parseNumber(team?.[idKey] ?? team?.TeamID),
     teamName: parseTrimmedString(team?.[nameKey] ?? team?.TeamName),
   };
+};
+
+const normalizeMatchGoals = (value: unknown): number | null => {
+  const parsed = parseNumber(value);
+  return parsed !== null && Number.isInteger(parsed) && parsed >= 0
+    ? parsed
+    : null;
+};
+
+const readOpponentMatchGoals = (
+  match: Record<string, unknown> | null | undefined
+): OpponentMatchGoals => {
+  const result =
+    match?.Result && typeof match.Result === "object"
+      ? (match.Result as Record<string, unknown>)
+      : null;
+  const homeTeam =
+    match?.HomeTeam && typeof match.HomeTeam === "object"
+      ? (match.HomeTeam as Record<string, unknown>)
+      : null;
+  const awayTeam =
+    match?.AwayTeam && typeof match.AwayTeam === "object"
+      ? (match.AwayTeam as Record<string, unknown>)
+      : null;
+
+  return {
+    homeGoals:
+      normalizeMatchGoals(match?.HomeGoals) ??
+      normalizeMatchGoals(result?.HomeGoals) ??
+      normalizeMatchGoals(homeTeam?.HomeGoals) ??
+      normalizeMatchGoals(homeTeam?.Goals),
+    awayGoals:
+      normalizeMatchGoals(match?.AwayGoals) ??
+      normalizeMatchGoals(result?.AwayGoals) ??
+      normalizeMatchGoals(awayTeam?.AwayGoals) ??
+      normalizeMatchGoals(awayTeam?.Goals),
+  };
+};
+
+const resolveOpponentMatchResult = (
+  row: OpponentFormationRow
+): OpponentMatchResult | null => {
+  if (row.homeGoals === null || row.awayGoals === null) return null;
+  if (
+    row.opponentVenuePerspective !== "home" &&
+    row.opponentVenuePerspective !== "away"
+  ) {
+    return null;
+  }
+
+  const opponentGoals =
+    row.opponentVenuePerspective === "home" ? row.homeGoals : row.awayGoals;
+  const otherGoals =
+    row.opponentVenuePerspective === "home" ? row.awayGoals : row.homeGoals;
+  const outcome: OpponentMatchOutcome =
+    opponentGoals > otherGoals
+      ? "win"
+      : opponentGoals < otherGoals
+        ? "loss"
+        : "draw";
+
+  return { opponentGoals, otherGoals, outcome };
+};
+
+const formatOpponentMatchResult = (
+  row: OpponentFormationRow,
+  messages: Messages
+) => {
+  const result = resolveOpponentMatchResult(row);
+  if (!result) return messages.unknownShort;
+  const outcomeLabel =
+    result.outcome === "win"
+      ? messages.analyzeOpponentResultWin
+      : result.outcome === "loss"
+        ? messages.analyzeOpponentResultLoss
+        : messages.analyzeOpponentResultDraw;
+  return messages.analyzeOpponentResultTemplate
+    .replace("{{score}}", `${result.opponentGoals}–${result.otherGoals}`)
+    .replace("{{outcome}}", outcomeLabel);
 };
 
 const resolveOpponentMatchTeamName = ({
@@ -1351,6 +1448,11 @@ type FormationTacticsDistribution = {
 };
 
 type OpponentAnalysisTab = "matches" | "scoutTeam";
+
+const createDefaultOpponentScoutTeamSort = (): TeamScoutDetailSortState => ({
+  key: "playingPosition",
+  direction: "asc",
+});
 
 type OpponentScoutTeamData = {
   teamId: number;
@@ -4551,10 +4653,7 @@ export default function SeniorDashboard({
       error: null,
     });
   const [opponentScoutTeamSortState, setOpponentScoutTeamSortState] =
-    useState<TeamScoutDetailSortState>({
-      key: "playingPosition",
-      direction: "asc",
-    });
+    useState<TeamScoutDetailSortState>(createDefaultOpponentScoutTeamSort);
   const [
     showOpponentScoutEffectiveMainSkillEstimation,
     setShowOpponentScoutEffectiveMainSkillEstimation,
@@ -16921,6 +17020,7 @@ const refreshDetailsForPlayers = async (
           match.AwayTeam as Record<string, unknown> | null | undefined,
           "away"
         );
+        const goals = readOpponentMatchGoals(match);
         return {
           matchId: candidateMatchId,
           matchType: candidateMatchType,
@@ -16938,6 +17038,7 @@ const refreshDetailsForPlayers = async (
             ownTeamId: teamIdValue,
             ownTeamName,
           }),
+          homeGoals: goals.homeGoals,
           awayTeamId: awayTeam.teamId,
           awayTeamName: resolveOpponentMatchTeamName({
             teamId: awayTeam.teamId,
@@ -16947,6 +17048,7 @@ const refreshDetailsForPlayers = async (
             ownTeamId: teamIdValue,
             ownTeamName,
           }),
+          awayGoals: goals.awayGoals,
         };
       })
       .filter(
@@ -16959,8 +17061,10 @@ const refreshDetailsForPlayers = async (
           sourceSystem: string;
           homeTeamId: number | null;
           homeTeamName: string | null;
+          homeGoals: number | null;
           awayTeamId: number | null;
           awayTeamName: string | null;
+          awayGoals: number | null;
         } => Boolean(entry)
       )
       .sort(
@@ -16979,6 +17083,9 @@ const refreshDetailsForPlayers = async (
               data?: {
                 HattrickData?: {
                   Match?: {
+                    HomeGoals?: unknown;
+                    AwayGoals?: unknown;
+                    Result?: Record<string, unknown>;
                     HomeTeam?: Record<string, unknown>;
                     AwayTeam?: Record<string, unknown>;
                   };
@@ -17036,6 +17143,7 @@ const refreshDetailsForPlayers = async (
         const match = detailsPayload?.data?.HattrickData?.Match;
         const home = match?.HomeTeam;
         const away = match?.AwayTeam;
+        const detailGoals = readOpponentMatchGoals(match);
         const detailHomeTeam = readOpponentMatchTeamMetadata(home, "home");
         const detailAwayTeam = readOpponentMatchTeamMetadata(away, "away");
         const homeId = detailHomeTeam.teamId ?? entry.homeTeamId;
@@ -17104,8 +17212,10 @@ const refreshDetailsForPlayers = async (
           againstMyTeam,
           homeTeamId: homeId,
           homeTeamName,
+          homeGoals: detailGoals.homeGoals ?? entry.homeGoals,
           awayTeamId: awayId,
           awayTeamName,
+          awayGoals: detailGoals.awayGoals ?? entry.awayGoals,
           opponentVenuePerspective,
           formation: isOpponentHome
             ? typeof home?.Formation === "string"
@@ -18310,7 +18420,7 @@ const refreshDetailsForPlayers = async (
         data: null,
         error: null,
       });
-      setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+      setOpponentScoutTeamSortState(createDefaultOpponentScoutTeamSort());
       setShowOpponentScoutEffectiveMainSkillEstimation(false);
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
@@ -18502,7 +18612,9 @@ const refreshDetailsForPlayers = async (
               playerId,
               playerName,
               originFlagDisplay: originInfo?.flagDisplay ?? null,
-              playerNumber: parseNumber(playerNode.PlayerNumber),
+              playerNumber: normalizeSeniorShirtNumber(
+                parseNumber(playerNode.PlayerNumber)
+              ),
               age: details?.Age ?? parseNumber(playerNode.Age),
               ageDays: details?.AgeDays ?? parseNumber(playerNode.AgeDays),
               injuryLevel: details?.InjuryLevel ?? parseNumber(playerNode.InjuryLevel),
@@ -18580,6 +18692,12 @@ const refreshDetailsForPlayers = async (
     ]
   );
 
+  const openOpponentScoutTeamTab = useCallback(() => {
+    setOpponentScoutTeamSortState(createDefaultOpponentScoutTeamSort());
+    setOpponentAnalysisActiveTab("scoutTeam");
+    void loadOpponentScoutTeam();
+  }, [loadOpponentScoutTeam]);
+
   const closeOpponentAnalysisModal = useCallback(() => {
     opponentScoutTeamRequestIdRef.current += 1;
     setOpponentAnalysisModal(null);
@@ -18590,7 +18708,7 @@ const refreshDetailsForPlayers = async (
       data: null,
       error: null,
     });
-    setOpponentScoutTeamSortState({ key: "playerNumber", direction: "asc" });
+    setOpponentScoutTeamSortState(createDefaultOpponentScoutTeamSort());
     setShowOpponentScoutEffectiveMainSkillEstimation(false);
   }, []);
 
@@ -24204,10 +24322,7 @@ const refreshDetailsForPlayers = async (
                         ? styles.detailsTabActive
                         : ""
                     }`}
-                    onClick={() => {
-                      setOpponentAnalysisActiveTab("scoutTeam");
-                      void loadOpponentScoutTeam();
-                    }}
+                    onClick={openOpponentScoutTeamTab}
                   >
                     {messages.seniorOpponentAnalysisTabScoutTeam}
                   </button>
@@ -24219,6 +24334,7 @@ const refreshDetailsForPlayers = async (
                     <thead>
                       <tr>
                         <th>{messages.analyzeOpponentMatchColumn}</th>
+                        <th>{messages.analyzeOpponentResultColumn}</th>
                         <th>{messages.clubChronicleTransferHistoryDateColumn}</th>
                         <th>{messages.analyzeOpponentMatchType}</th>
                         <th>{messages.analyzeOpponentFormationColumn}</th>
@@ -24249,6 +24365,9 @@ const refreshDetailsForPlayers = async (
                                 {matchDisplayLabel}
                                 {row.againstMyTeam ? "*" : ""}
                               </a>
+                            </td>
+                            <td className={styles.opponentAnalysisResultCell}>
+                              {formatOpponentMatchResult(row, messages)}
                             </td>
                             <td>
                               {(() => {

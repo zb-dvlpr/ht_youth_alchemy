@@ -1979,6 +1979,11 @@ export const messagesEs: Messages = {
     analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
     analyzeOpponentMatchId: "ID del partido",
     analyzeOpponentMatchColumn: "Partido",
+    analyzeOpponentResultColumn: "Resultado",
+    analyzeOpponentResultWin: "Victoria",
+    analyzeOpponentResultLoss: "Derrota",
+    analyzeOpponentResultDraw: "Empate",
+    analyzeOpponentResultTemplate: "{{score}} ({{outcome}})",
     analyzeOpponentMatchTeamsTemplate: "{{homeTeam}} vs. {{awayTeam}}",
     analyzeOpponentMatchDisplayTemplate:
       "{{homeTeam}} vs. {{awayTeam}} ({{venue}})",

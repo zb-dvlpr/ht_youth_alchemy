@@ -93,6 +93,7 @@ import {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import SeniorMatchesPanel from "./SeniorMatchesPanel";
 import Tooltip from "./Tooltip";
+import YouTubeLink from "./youtube/YouTubeLink";
 import TransferSearchModal, {
   calculateTransferSearchSkillTradingScore,
   resolveTransferSearchMinimumBidSek,
@@ -109,6 +110,7 @@ import {
   sekToDisplayAmount,
   type DisplayCurrency,
 } from "@/lib/currency";
+import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import { useDisplayCurrency } from "./DisplayCurrencyProvider";
 import TransferSearchResultCard from "./TransferSearchResultCard";
 import TeamScoutDetailTable, {
@@ -18727,6 +18729,45 @@ const refreshDetailsForPlayers = async (
     void loadOpponentScoutTeam();
   }, [loadOpponentScoutTeam]);
 
+  const renderOpponentAnalysisTab = ({
+    tab,
+    label,
+    videoUrl,
+    onSelect,
+  }: {
+    tab: OpponentAnalysisTab;
+    label: string;
+    videoUrl: string;
+    onSelect: () => void;
+  }) => {
+    const active = opponentAnalysisActiveTab === tab;
+
+    return (
+      <span key={tab} className={styles.detailsTabCompound}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={active}
+          className={`${styles.detailsTabButton} ${
+            active ? styles.detailsTabActive : ""
+          } ${styles.detailsTabButtonWithVideo}`}
+          onClick={onSelect}
+        >
+          {label}
+        </button>
+        <span className={styles.detailsTabVideoSlot}>
+          <YouTubeLink
+            url={videoUrl}
+            label={`${messages.youtubeWatchRelatedVideo}: ${label}`}
+            iconOnly
+            className={styles.detailsTabVideoLink}
+            iconClassName={styles.detailsTabVideoIcon}
+          />
+        </span>
+      </span>
+    );
+  };
+
   const closeOpponentAnalysisModal = useCallback(() => {
     opponentScoutTeamRequestIdRef.current += 1;
     setOpponentAnalysisModal(null);
@@ -24329,32 +24370,18 @@ const refreshDetailsForPlayers = async (
                   className={`${styles.detailsTabs} ${styles.seniorOpponentAnalysisStandardTabs}`}
                   role="tablist"
                 >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={opponentAnalysisActiveTab === "matches"}
-                    className={`${styles.detailsTabButton} ${
-                      opponentAnalysisActiveTab === "matches"
-                        ? styles.detailsTabActive
-                        : ""
-                    }`}
-                    onClick={() => setOpponentAnalysisActiveTab("matches")}
-                  >
-                    {messages.seniorOpponentAnalysisTabMatches}
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={opponentAnalysisActiveTab === "scoutTeam"}
-                    className={`${styles.detailsTabButton} ${
-                      opponentAnalysisActiveTab === "scoutTeam"
-                        ? styles.detailsTabActive
-                        : ""
-                    }`}
-                    onClick={openOpponentScoutTeamTab}
-                  >
-                    {messages.seniorOpponentAnalysisTabScoutTeam}
-                  </button>
+                  {renderOpponentAnalysisTab({
+                    tab: "matches",
+                    label: messages.seniorOpponentAnalysisTabMatches,
+                    videoUrl: YOUTUBE_HELP_URLS.seniorAnalyzeOpponentMatches,
+                    onSelect: () => setOpponentAnalysisActiveTab("matches"),
+                  })}
+                  {renderOpponentAnalysisTab({
+                    tab: "scoutTeam",
+                    label: messages.seniorOpponentAnalysisTabScoutTeam,
+                    videoUrl: YOUTUBE_HELP_URLS.seniorAnalyzeOpponentScoutTeam,
+                    onSelect: openOpponentScoutTeamTab,
+                  })}
                 </div>
                 {opponentAnalysisActiveTab === "matches" ? (
                 <div className={styles.seniorOpponentAnalysisMatchesPanel}>

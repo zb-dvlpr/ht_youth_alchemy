@@ -5,6 +5,7 @@ import { useMemo, type CSSProperties } from "react";
 import styles from "../page.module.css";
 import type { Messages } from "@/lib/i18n";
 import { formatSekCurrency, type DisplayCurrency } from "@/lib/currency";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 import {
   estimateChronicleMainSkillFromWage,
   PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
@@ -464,7 +465,14 @@ function buildColumns({
         mode === "wages"
           ? messages.clubChronicleWagesPlayerIndexColumn
           : messages.clubChronicleTsiPlayerIndexColumn,
-      getValue: (snapshot) => snapshot?.playerNumber ?? null,
+      getValue: (snapshot) =>
+        normalizeSeniorShirtNumber(snapshot?.playerNumber) ?? null,
+      getSortValue: (snapshot) =>
+        normalizeSeniorShirtNumber(snapshot?.playerNumber) ?? null,
+      renderCell: (snapshot) => {
+        const playerNumber = normalizeSeniorShirtNumber(snapshot?.playerNumber);
+        return playerNumber === null ? "" : String(playerNumber);
+      },
     },
     {
       key: "player",

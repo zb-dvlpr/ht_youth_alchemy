@@ -1,4 +1,5 @@
 import { matchRoleIdToPositionKey, type PositionKey } from "@/lib/positions";
+import { normalizeSeniorShirtNumber } from "@/lib/seniorShirtNumber";
 import type {
   TeamScoutDerivedData,
   TeamScoutLikelyTrainingKey,
@@ -74,7 +75,7 @@ export const buildTeamScoutPlayerRows = ({
   likelyTrainingKey: TeamScoutLikelyTrainingKey | null | undefined;
   wagesPlayersById?: Map<number, TeamScoutBasePlayer>;
 }): TeamScoutPlayerRow[] =>
-  players.map((player, index) => {
+  players.map((player) => {
     const wagesPlayer = wagesPlayersById?.get(player.playerId) ?? null;
     const playingPositions =
       derivedData.playingPositionByPlayerId[player.playerId] ?? [];
@@ -83,7 +84,7 @@ export const buildTeamScoutPlayerRows = ({
       playerId: player.playerId,
       playerName: player.playerName,
       originFlagDisplay: player.originFlagDisplay ?? null,
-      playerNumber: player.playerNumber ?? index + 1,
+      playerNumber: normalizeSeniorShirtNumber(player.playerNumber),
       age: player.age ?? null,
       ageDays: player.ageDays ?? null,
       injuryLevel: player.injuryLevel ?? null,
@@ -111,4 +112,3 @@ export const buildTeamScoutPlayerRows = ({
       ),
     };
   });
-

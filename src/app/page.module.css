@@ -5833,6 +5833,10 @@ html:not([data-mobile-shell="true"])
   overscroll-behavior: contain;
 }
 
+.opponentAnalysisResultCell {
+  white-space: nowrap;
+}
+
 .teamScoutDetailCompactModal .teamScoutDetailViewport {
   height: auto;
 }

@@ -15848,10 +15848,9 @@ type Form7LineupSnapshot = {
     };
     return buildTeamScoutPlayerRows({
       teamId: selectedWagesTeam?.teamId ?? 0,
-      players: (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
+      players: (selectedWagesTeam?.snapshot?.players ?? []).map((row) => ({
         ...row,
         tsi: null,
-        playerNumber: index + 1,
       })),
       derivedData,
       likelyTrainingKey: selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey,

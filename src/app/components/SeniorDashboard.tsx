@@ -24176,7 +24176,7 @@ const refreshDetailsForPlayers = async (
                 <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
               ) : opponentAnalysisModal.error ? (
                 <p className={styles.errorDetails}>{opponentAnalysisModal.error}</p>
-              ) : opponentAnalysisActiveTab === "matches" ? (
+              ) : (
                 <>
                 <div
                   className={`${styles.detailsTabs} ${styles.seniorOpponentAnalysisStandardTabs}`}
@@ -24185,8 +24185,12 @@ const refreshDetailsForPlayers = async (
                   <button
                     type="button"
                     role="tab"
-                    aria-selected
-                    className={`${styles.detailsTabButton} ${styles.detailsTabActive}`}
+                    aria-selected={opponentAnalysisActiveTab === "matches"}
+                    className={`${styles.detailsTabButton} ${
+                      opponentAnalysisActiveTab === "matches"
+                        ? styles.detailsTabActive
+                        : ""
+                    }`}
                     onClick={() => setOpponentAnalysisActiveTab("matches")}
                   >
                     {messages.seniorOpponentAnalysisTabMatches}
@@ -24194,8 +24198,12 @@ const refreshDetailsForPlayers = async (
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={false}
-                    className={styles.detailsTabButton}
+                    aria-selected={opponentAnalysisActiveTab === "scoutTeam"}
+                    className={`${styles.detailsTabButton} ${
+                      opponentAnalysisActiveTab === "scoutTeam"
+                        ? styles.detailsTabActive
+                        : ""
+                    }`}
                     onClick={() => {
                       setOpponentAnalysisActiveTab("scoutTeam");
                       void loadOpponentScoutTeam();
@@ -24204,6 +24212,7 @@ const refreshDetailsForPlayers = async (
                     {messages.seniorOpponentAnalysisTabScoutTeam}
                   </button>
                 </div>
+                {opponentAnalysisActiveTab === "matches" ? (
                 <div className={styles.seniorOpponentAnalysisMatchesPanel}>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
@@ -24368,8 +24377,7 @@ const refreshDetailsForPlayers = async (
                   </div>
                 </div>
                 </div>
-                </>
-              ) : (
+                ) : (
                 <TeamScoutDetailViewport
                   idPrefix="senior-opponent-scout"
                   title={opponentAnalysisModal.title}
@@ -24384,23 +24392,6 @@ const refreshDetailsForPlayers = async (
                       ? opponentScoutTeamState.data.matchCount
                       : null
                   }
-                  tabs={[
-                    {
-                      id: "matches",
-                      label: messages.seniorOpponentAnalysisTabMatches,
-                      active: false,
-                      onSelect: () => setOpponentAnalysisActiveTab("matches"),
-                    },
-                    {
-                      id: "scoutTeam",
-                      label: messages.seniorOpponentAnalysisTabScoutTeam,
-                      active: true,
-                      onSelect: () => {
-                        setOpponentAnalysisActiveTab("scoutTeam");
-                        void loadOpponentScoutTeam();
-                      },
-                    },
-                  ]}
                   onClose={closeOpponentAnalysisModal}
                 >
                   <div className={styles.chronicleTsiWagesDetailModalLayout}>
@@ -24449,6 +24440,8 @@ const refreshDetailsForPlayers = async (
                     ) : null}
                   </div>
                 </TeamScoutDetailViewport>
+                )}
+                </>
               )}
             </div>
           ) : null

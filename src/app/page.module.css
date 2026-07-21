@@ -5833,6 +5833,10 @@ html:not([data-mobile-shell="true"])
   overscroll-behavior: contain;
 }
 
+.teamScoutDetailCompactModal .teamScoutDetailViewport {
+  height: auto;
+}
+
 html[data-mobile-shell="true"] .teamScoutDetailCompactOverlay {
   padding:
     max(4px, env(safe-area-inset-top))

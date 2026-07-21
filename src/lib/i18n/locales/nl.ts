@@ -843,9 +843,16 @@ export const messagesNl: Messages = {
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
   hattrickSupporterActionRequiredTooltip:
     "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
-  settingsDebugSupporterOverrideLabel: "Behandelen als Hattrick Supporter",
+  hattrickGoldSupporterActionRequiredTooltip:
+    "Vereist Hattrick Supporter Gold, Platinum of Diamond.",
+  settingsDebugSupporterOverrideLabel: "Gesimuleerd Hattrick Supporter-niveau",
   settingsDebugSupporterOverrideHint:
-    "Alleen ontwikkeling. Forceert Supporter-UI-paden aan of uit zonder de echte CHPP-accountstatus te wijzigen.",
+    "Alleen ontwikkeling. Kies het Supporter-niveau dat de app moet simuleren.",
+  settingsDebugSupporterTierNone: "Geen",
+  settingsDebugSupporterTierSilver: "Silver",
+  settingsDebugSupporterTierGold: "Gold",
+  settingsDebugSupporterTierPlatinum: "Platinum",
+  settingsDebugSupporterTierDiamond: "Diamond",
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",

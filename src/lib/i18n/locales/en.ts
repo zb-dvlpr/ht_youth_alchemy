@@ -706,9 +706,14 @@ export const messagesEn: Messages = {
     settingsDebugTitle: "Debug settings",
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
-    settingsDebugSupporterOverrideLabel: "Treat as Hattrick Supporter",
+    settingsDebugSupporterOverrideLabel: "Simulated Hattrick Supporter tier",
     settingsDebugSupporterOverrideHint:
-      "Development only. Forces supporter-only UI paths on or off without changing the real CHPP account status.",
+      "Development only. Choose the Supporter tier that the app should simulate.",
+    settingsDebugSupporterTierNone: "None",
+    settingsDebugSupporterTierSilver: "Silver",
+    settingsDebugSupporterTierGold: "Gold",
+    settingsDebugSupporterTierPlatinum: "Platinum",
+    settingsDebugSupporterTierDiamond: "Diamond",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     settingsDebugStorageButton: "Storage",
@@ -2178,6 +2183,8 @@ export const messagesEn: Messages = {
       "This action is only available to Hattrick Supporters.",
     hattrickSupporterActionRequiredTooltip:
       "This action is only available to Hattrick Supporters.",
+    hattrickGoldSupporterActionRequiredTooltip:
+      "Requires Hattrick Supporter Gold, Platinum, or Diamond.",
     seniorTransferSearchBidMissingAmount: "Enter a bid amount first.",
     seniorTransferSearchBidPlaced: "Bid placed for {{player}}.",
     seniorTransferSearchBidFailed: "Bid failed: {{details}}",

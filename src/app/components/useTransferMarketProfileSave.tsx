@@ -22,6 +22,7 @@ type UseTransferMarketProfileSaveArgs = {
   scopeKey: string;
   displayCurrency: DisplayCurrency;
   htmsPotentialFilter: TransferSearchHtmsPotentialFilter;
+  canSaveProfile: boolean;
   onSaved?: () => void;
 };
 
@@ -30,6 +31,7 @@ export function useTransferMarketProfileSave({
   scopeKey,
   displayCurrency,
   htmsPotentialFilter,
+  canSaveProfile,
   onSaved,
 }: UseTransferMarketProfileSaveArgs) {
   const { addNotification } = useNotifications();
@@ -48,16 +50,24 @@ export function useTransferMarketProfileSave({
     setPendingProfileCriteria(null);
   }, []);
 
-  const openSaveProfile = useCallback((committedFilters: TransferSearchFilters) => {
-    setPendingProfileCriteria(committedFilters);
-    setProfileName("");
-    setProfileError(null);
-    setOverwriteName(null);
-    setSaveModalOpen(true);
-  }, []);
+  const openSaveProfile = useCallback(
+    (committedFilters: TransferSearchFilters) => {
+      if (!canSaveProfile) return;
+      setPendingProfileCriteria(committedFilters);
+      setProfileName("");
+      setProfileError(null);
+      setOverwriteName(null);
+      setSaveModalOpen(true);
+    },
+    [canSaveProfile]
+  );
 
   const saveProfile = useCallback(
     async (overwrite = false) => {
+      if (!canSaveProfile) {
+        closeSaveProfileModal();
+        return;
+      }
       const trimmed = profileName.trim();
       if (!trimmed) {
         setProfileError(messages.transferMarketProfileNameRequired);
@@ -90,6 +100,7 @@ export function useTransferMarketProfileSave({
     },
     [
       addNotification,
+      canSaveProfile,
       closeSaveProfileModal,
       displayCurrency,
       htmsPotentialFilter,
@@ -106,7 +117,7 @@ export function useTransferMarketProfileSave({
 
   const saveProfileModal = (
     <Modal
-      open={saveModalOpen}
+      open={saveModalOpen && canSaveProfile}
       title={
         overwriteName
           ? messages.transferMarketOverwriteProfileTitle

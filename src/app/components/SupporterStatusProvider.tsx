@@ -12,34 +12,27 @@ import {
 
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 import {
-  DEBUG_SUPPORTER_OVERRIDE_EVENT,
-  readDebugSupporterOverride,
+  DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT,
+  readDebugSupporterTierOverride,
 } from "@/lib/settings";
+import {
+  hasGoldOrHigherSupporterTier,
+  isAnyHattrickSupporter,
+  normalizeHattrickSupporterTier,
+  type HattrickSupporterTier,
+} from "@/lib/supporterTier";
 
 export type SupporterStatus = "unknown" | "loading" | "supporter" | "nonSupporter";
 
 type SupporterStatusContextValue = {
   status: SupporterStatus;
+  tier: HattrickSupporterTier | null;
   isSupporter: boolean;
+  hasGoldOrHigherSupporter: boolean;
 };
 
 const SupporterStatusContext =
   createContext<SupporterStatusContextValue | null>(null);
-
-const isSupporterTierValue = (value: unknown) => {
-  if (typeof value === "number") return Number.isFinite(value) && value > 0;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    return Boolean(
-      normalized &&
-        normalized !== "0" &&
-        normalized !== "none" &&
-        normalized !== "false" &&
-        normalized !== "no"
-    );
-  }
-  return false;
-};
 
 type SupporterStatusProviderProps = {
   isConnected: boolean;
@@ -51,7 +44,9 @@ export function SupporterStatusProvider({
   children,
 }: SupporterStatusProviderProps) {
   const [status, setStatus] = useState<SupporterStatus>("unknown");
-  const [debugSupporterOverride, setDebugSupporterOverride] = useState(false);
+  const [tier, setTier] = useState<HattrickSupporterTier | null>(null);
+  const [debugSupporterTier, setDebugSupporterTier] =
+    useState<HattrickSupporterTier>("none");
   const fetchedRef = useRef(false);
   const isDev = process.env.NODE_ENV !== "production";
 
@@ -66,27 +61,47 @@ export function SupporterStatusProvider({
 
     const fetchSupporterStatus = async () => {
       try {
+        await Promise.resolve();
+        if (cancelled) return;
+        setStatus("loading");
+        setTier(null);
         const { response, payload } = await fetchChppJson<{
           data?: {
             HattrickData?: {
-              UserSupporterTier?: unknown;
+              User?: {
+                SupporterTier?: unknown;
+              };
             };
           };
           error?: string;
-        }>("/api/chpp/training?actionType=view", { cache: "no-store" });
+        }>("/api/chpp/teamdetails", { cache: "no-store" });
         if (cancelled) return;
         if (!response.ok || payload?.error) {
           setStatus("unknown");
+          setTier(null);
           return;
         }
+        const user = payload?.data?.HattrickData?.User;
+        if (!user || typeof user !== "object") {
+          setStatus("unknown");
+          setTier(null);
+          return;
+        }
+        const normalizedTier = normalizeHattrickSupporterTier(user.SupporterTier);
+        if (!normalizedTier) {
+          setStatus("unknown");
+          setTier(null);
+          return;
+        }
+        setTier(normalizedTier);
         setStatus(
-          isSupporterTierValue(payload?.data?.HattrickData?.UserSupporterTier)
-            ? "supporter"
-            : "nonSupporter"
+          isAnyHattrickSupporter(normalizedTier) ? "supporter" : "nonSupporter"
         );
       } catch (error) {
-        if (!cancelled && !(error instanceof ChppAuthRequiredError)) {
+        if (!cancelled) {
           setStatus("unknown");
+          setTier(null);
+          if (error instanceof ChppAuthRequiredError) return;
         }
       }
     };
@@ -99,35 +114,44 @@ export function SupporterStatusProvider({
 
   useEffect(() => {
     if (!isDev || typeof window === "undefined") return;
-    const syncDebugSupporterOverride = () => {
-      setDebugSupporterOverride(readDebugSupporterOverride());
+    const syncDebugSupporterTierOverride = () => {
+      setDebugSupporterTier(readDebugSupporterTierOverride());
     };
-    syncDebugSupporterOverride();
+    syncDebugSupporterTierOverride();
     window.addEventListener(
-      DEBUG_SUPPORTER_OVERRIDE_EVENT,
-      syncDebugSupporterOverride
+      DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT,
+      syncDebugSupporterTierOverride
     );
     return () => {
       window.removeEventListener(
-        DEBUG_SUPPORTER_OVERRIDE_EVENT,
-        syncDebugSupporterOverride
+        DEBUG_SUPPORTER_TIER_OVERRIDE_EVENT,
+        syncDebugSupporterTierOverride
       );
     };
   }, [isDev]);
 
-  const effectiveStatus = !isConnected
+  const effectiveTier = !isConnected ? null : isDev ? debugSupporterTier : tier;
+  const effectiveStatus: SupporterStatus =
+    !isConnected || !effectiveTier
+      ? "unknown"
+      : isAnyHattrickSupporter(effectiveTier)
+        ? "supporter"
+        : "nonSupporter";
+  const visibleStatus: SupporterStatus = !isConnected
     ? "unknown"
     : isDev
-      ? debugSupporterOverride
-        ? "supporter"
-        : "nonSupporter"
+      ? effectiveStatus
       : status;
   const value = useMemo(
     () => ({
-      status: effectiveStatus,
-      isSupporter: effectiveStatus === "supporter",
+      status: visibleStatus,
+      tier: effectiveTier,
+      isSupporter: effectiveTier ? isAnyHattrickSupporter(effectiveTier) : false,
+      hasGoldOrHigherSupporter: effectiveTier
+        ? hasGoldOrHigherSupporterTier(effectiveTier)
+        : false,
     }),
-    [effectiveStatus]
+    [effectiveTier, visibleStatus]
   );
 
   return (

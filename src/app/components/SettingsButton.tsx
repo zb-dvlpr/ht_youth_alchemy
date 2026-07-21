@@ -53,9 +53,10 @@ import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
-  readDebugSupporterOverride,
-  writeDebugSupporterOverride,
+  readDebugSupporterTierOverride,
+  writeDebugSupporterTierOverride,
 } from "@/lib/settings";
+import type { HattrickSupporterTier } from "@/lib/supporterTier";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { hattrickStaffMessagesUrl } from "@/lib/hattrick/urls";
 import {
@@ -208,7 +209,8 @@ export default function SettingsButton({
     useState<LayoutPreference>("auto");
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
     useState<ChppDebugOauthErrorMode>("off");
-  const [debugSupporterOverride, setDebugSupporterOverride] = useState(false);
+  const [debugSupporterTier, setDebugSupporterTier] =
+    useState<HattrickSupporterTier>("none");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
   const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
@@ -276,7 +278,7 @@ export default function SettingsButton({
     setLayoutPreference(readLayoutPreference());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
-      setDebugSupporterOverride(readDebugSupporterOverride());
+      setDebugSupporterTier(readDebugSupporterTierOverride());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
@@ -735,9 +737,9 @@ export default function SettingsButton({
     }
   };
 
-  const handleDebugSupporterOverrideToggle = (enabled: boolean) => {
-    setDebugSupporterOverride(enabled);
-    writeDebugSupporterOverride(enabled);
+  const handleDebugSupporterTierChange = (tier: HattrickSupporterTier) => {
+    setDebugSupporterTier(tier);
+    writeDebugSupporterTierOverride(tier);
   };
 
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
@@ -2173,22 +2175,35 @@ export default function SettingsButton({
             <p className={styles.muted}>{messages.devOauthErrorSimHint}</p>
             {isDev ? (
               <>
-                <label className={styles.algorithmsToggle}>
-                  <span className={styles.algorithmsToggleText}>
+                <label className={styles.settingsField}>
+                  <span className={styles.settingsFieldLabel}>
                     {messages.settingsDebugSupporterOverrideLabel}
                   </span>
-                  <input
-                    type="checkbox"
-                    className={styles.algorithmsToggleInput}
-                    checked={debugSupporterOverride}
+                  <select
+                    className={styles.settingsFieldInput}
+                    value={debugSupporterTier}
                     onChange={(event) =>
-                      handleDebugSupporterOverrideToggle(event.target.checked)
+                      handleDebugSupporterTierChange(
+                        event.target.value as HattrickSupporterTier
+                      )
                     }
-                  />
-                  <span
-                    className={styles.algorithmsToggleSwitch}
-                    aria-hidden="true"
-                  />
+                  >
+                    <option value="none">
+                      {messages.settingsDebugSupporterTierNone}
+                    </option>
+                    <option value="silver">
+                      {messages.settingsDebugSupporterTierSilver}
+                    </option>
+                    <option value="gold">
+                      {messages.settingsDebugSupporterTierGold}
+                    </option>
+                    <option value="platinum">
+                      {messages.settingsDebugSupporterTierPlatinum}
+                    </option>
+                    <option value="diamond">
+                      {messages.settingsDebugSupporterTierDiamond}
+                    </option>
+                  </select>
                 </label>
                 <p className={styles.muted}>
                   {messages.settingsDebugSupporterOverrideHint}

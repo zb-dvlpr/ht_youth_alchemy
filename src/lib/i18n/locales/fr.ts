@@ -737,9 +737,14 @@ export const messagesFr: Messages = {
     settingsDebugTitle: "Paramètres debug",
     settingsDebugDisableScalingLabel: "Afficher des dernières mises à jour fictives",
     settingsDebugRandomNewMarkersLabel: "Afficher des marqueurs NEW aléatoires",
-    settingsDebugSupporterOverrideLabel: "Traiter comme Supporter Hattrick",
+    settingsDebugSupporterOverrideLabel: "Niveau Supporter Hattrick simule",
     settingsDebugSupporterOverrideHint:
-      "Développement uniquement. Force les parcours UI réservés aux Supporters sans modifier le vrai statut du compte CHPP.",
+      "Developpement uniquement. Choisissez le niveau Supporter que l app doit simuler.",
+    settingsDebugSupporterTierNone: "Aucun",
+    settingsDebugSupporterTierSilver: "Argent",
+    settingsDebugSupporterTierGold: "Or",
+    settingsDebugSupporterTierPlatinum: "Platine",
+    settingsDebugSupporterTierDiamond: "Diamant",
     settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
     settingsDebugStorageButton: "Stockage",
     settingsDebugStorageTitle: "Diagnostic du stockage",
@@ -2188,6 +2193,8 @@ export const messagesFr: Messages = {
       "Cette action est reservee aux Supporters Hattrick.",
     hattrickSupporterActionRequiredTooltip:
       "Cette action est reservee aux Supporters Hattrick.",
+    hattrickGoldSupporterActionRequiredTooltip:
+      "Necessite Hattrick Supporter Or, Platine ou Diamant.",
     seniorTransferSearchBidMissingAmount: "Saisissez d abord un montant.",
     seniorTransferSearchBidPlaced: "Enchere placee pour {{player}}.",
     seniorTransferSearchBidFailed: "Echec de l enchere : {{details}}",

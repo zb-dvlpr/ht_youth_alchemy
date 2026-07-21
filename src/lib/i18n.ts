@@ -573,6 +573,11 @@ export type Messages = {
   settingsDebugRandomNewMarkersLabel: string;
   settingsDebugSupporterOverrideLabel: string;
   settingsDebugSupporterOverrideHint: string;
+  settingsDebugSupporterTierNone: string;
+  settingsDebugSupporterTierSilver: string;
+  settingsDebugSupporterTierGold: string;
+  settingsDebugSupporterTierPlatinum: string;
+  settingsDebugSupporterTierDiamond: string;
   settingsDebugRandomNewMarkersOffLabel: string;
   settingsDebugBuyCoffeePromptButton: string;
   settingsDebugStorageButton: string;
@@ -1762,6 +1767,7 @@ export type Messages = {
   seniorTransferSearchPlaceMaxBidButton: string;
   seniorTransferSearchSupporterOnlyTooltip: string;
   hattrickSupporterActionRequiredTooltip: string;
+  hattrickGoldSupporterActionRequiredTooltip: string;
   seniorTransferSearchBidMissingAmount: string;
   seniorTransferSearchBidPlaced: string;
   seniorTransferSearchBidFailed: string;

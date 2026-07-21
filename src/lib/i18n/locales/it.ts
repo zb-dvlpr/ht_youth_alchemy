@@ -739,9 +739,14 @@ export const messagesIt: Messages = {
     settingsDebugTitle: "Impostazioni debug",
     settingsDebugDisableScalingLabel: "Mostra aggiornamenti fittizi",
     settingsDebugRandomNewMarkersLabel: "Mostra marker NEW casuali",
-    settingsDebugSupporterOverrideLabel: "Tratta come Hattrick Supporter",
+    settingsDebugSupporterOverrideLabel: "Livello Hattrick Supporter simulato",
     settingsDebugSupporterOverrideHint:
-      "Solo sviluppo. Forza i percorsi UI per Supporter senza modificare lo stato reale dell account CHPP.",
+      "Solo sviluppo. Scegli il livello Supporter che l app deve simulare.",
+    settingsDebugSupporterTierNone: "Nessuno",
+    settingsDebugSupporterTierSilver: "Argento",
+    settingsDebugSupporterTierGold: "Oro",
+    settingsDebugSupporterTierPlatinum: "Platino",
+    settingsDebugSupporterTierDiamond: "Diamante",
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     settingsDebugStorageButton: "Archiviazione",
     settingsDebugStorageTitle: "Diagnostica archiviazione",
@@ -2195,6 +2200,8 @@ export const messagesIt: Messages = {
       "Questa azione e disponibile solo per i Supporter di Hattrick.",
     hattrickSupporterActionRequiredTooltip:
       "Questa azione e disponibile solo per i Supporter di Hattrick.",
+    hattrickGoldSupporterActionRequiredTooltip:
+      "Richiede Hattrick Supporter Oro, Platino o Diamante.",
     seniorTransferSearchBidMissingAmount: "Inserisci prima un importo.",
     seniorTransferSearchBidPlaced: "Offerta inserita per {{player}}.",
     seniorTransferSearchBidFailed: "Offerta fallita: {{details}}",

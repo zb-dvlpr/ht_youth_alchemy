@@ -4340,6 +4340,22 @@ html:not([data-mobile-shell="true"])
   transform: translateY(-1px);
 }
 
+.transferMarketProfilesButton {
+  border: 1px solid transparent;
+}
+
+.transferMarketProfilesButton:disabled,
+.transferMarketProfilesButton:disabled:hover,
+.transferMarketProfilesButton:disabled:active {
+  background: #e9e1d5;
+  border-color: #cfc3b4;
+  color: #8a806f;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 .chronicleTabsBar {
   position: sticky;
   top: 134px;
@@ -7971,6 +7987,17 @@ html[data-theme="dark"] .chronicleUpdatesButton {
 
 html[data-theme="dark"] .chronicleUpdatesButton:hover {
   background: #4a8e61;
+}
+
+html[data-theme="dark"] .transferMarketProfilesButton:disabled,
+html[data-theme="dark"] .transferMarketProfilesButton:disabled:hover,
+html[data-theme="dark"] .transferMarketProfilesButton:disabled:active {
+  background: #3a332b;
+  border-color: #5b5044;
+  color: #9f9284;
+  box-shadow: none;
+  opacity: 0.6;
+  transform: none;
 }
 
 html[data-theme="dark"] .chronicleRefreshStatusText {

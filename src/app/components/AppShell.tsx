@@ -1985,7 +1985,7 @@ export default function AppShell({
           >
             <button
               type="button"
-              className={styles.chronicleUpdatesButton}
+              className={`${styles.chronicleUpdatesButton} ${styles.transferMarketProfilesButton}`}
               disabled={!hasGoldOrHigherSupporter}
               onClick={() =>
                 window.dispatchEvent(

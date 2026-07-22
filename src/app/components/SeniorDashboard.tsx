@@ -140,6 +140,18 @@ import {
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
 import {
+  buildSeniorEditableOrdersFromPayload,
+  SENIOR_ORDER_DEFAULT_BEHAVIOUR,
+  SENIOR_ORDER_DEFAULT_CONDITION,
+  SENIOR_ORDER_DEFAULT_MINUTE,
+  SENIOR_ORDER_DEFAULT_POSITION,
+  serializeSeniorEditableOrdersToPayload,
+  type SeniorEditableOrdersState,
+  type SeniorEditablePlayerOrder,
+  type SeniorManMarkingOrderOrigin,
+  type SeniorMatchOrderSubstitution,
+} from "@/lib/seniorMatchOrders";
+import {
   calculateHtmsMetrics,
   calculatePsicoTsiMetrics,
   type SeniorPlayerMetricInput,
@@ -629,10 +641,6 @@ const LEAGUE_QUALI_MATCH_TYPES = new Set<number>([1, 2]);
 const CUP_MATCH_TYPES = new Set<number>([3]);
 const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
-const SENIOR_ORDER_DEFAULT_MINUTE = -1;
-const SENIOR_ORDER_DEFAULT_CONDITION = -1;
-const SENIOR_ORDER_DEFAULT_POSITION = -1;
-const SENIOR_ORDER_DEFAULT_BEHAVIOUR = -1;
 const SENIOR_PLAYER_ORDER_BASE_LIMIT = 5;
 const SENIOR_PLAYER_ORDER_MAX_LIMIT = 10;
 const SENIOR_BENCH_SUBSTITUTION_LIMIT = 3;
@@ -1282,8 +1290,6 @@ type GeneratedManMarkingRunResult = {
   target: OpponentTargetPlayer | null;
 };
 
-type SeniorManMarkingOrderOrigin = "generated" | "loaded" | "manual";
-
 type SeniorManMarkingGeneratedReport = {
   matchId: number;
   signature: string;
@@ -1346,32 +1352,6 @@ type SeniorOtherOrdersSummary = {
   penaltyTakers: SeniorOtherOrdersSummaryPlayer[];
   captain: SeniorOtherOrdersSummaryPlayer | null;
   setPiecesTaker: SeniorOtherOrdersSummaryPlayer | null;
-};
-
-type SeniorEditablePlayerOrder = {
-  id: string;
-  orderType: 1 | 3 | 4;
-  minute: number;
-  standing: number;
-  card: number;
-  subjectPlayerId: number | null;
-  objectPlayerId: number | null;
-  newPositionId: number;
-  newPositionBehaviour: number;
-};
-
-type SeniorEditableOrdersState = {
-  matchId: number | null;
-  source: "generated" | "loaded" | "manual" | "mixed";
-  manMarkingOrigin: SeniorManMarkingOrderOrigin;
-  manMarkingTouched: boolean;
-  matchAttitude: number | null;
-  coachModifier: number | null;
-  playerOrders: SeniorEditablePlayerOrder[];
-  manMarkingOrder: SeniorEditablePlayerOrder | null;
-  penaltyTakerIds: number[];
-  captainPlayerId: number | null;
-  setPiecesPlayerId: number | null;
 };
 
 type SeniorManMarkingTargetEligibility =
@@ -1479,17 +1459,6 @@ type OpponentFormationAverages = {
   ratingRightAtt: number | null;
   ratingMidAtt: number | null;
   ratingLeftAtt: number | null;
-};
-
-type MatchOrderSubstitution = {
-  playerin: number;
-  playerout: number;
-  orderType: number;
-  min: number;
-  pos: number;
-  beh: number;
-  card: number;
-  standing: number;
 };
 
 type ExtraTimeSubmitDisclaimerSubstitution = {
@@ -3657,7 +3626,7 @@ const buildLineupPayload = (
     kickerIds?: number[];
     captainId?: number | null;
     setPiecesId?: number | null;
-    substitutions?: MatchOrderSubstitution[];
+    substitutions?: SeniorMatchOrderSubstitution[];
   }
 ) => {
   const toId = (value: number | null | undefined) => value ?? 0;
@@ -3691,158 +3660,6 @@ const buildLineupPayload = (
       manMarkingPlayerId: 0,
     },
     substitutions: options?.substitutions ?? [],
-  };
-};
-
-const normalizeSeniorEditableOrderType = (
-  value: number
-): SeniorEditablePlayerOrder["orderType"] => {
-  if (value === 3 || value === 4) return value;
-  return 1;
-};
-
-const seniorEditableOrderId = (
-  matchId: number | null,
-  order: MatchOrderSubstitution,
-  index: number
-) =>
-  [
-    "order",
-    matchId ?? "draft",
-    index,
-    order.orderType,
-    order.min,
-    order.playerout,
-    order.playerin,
-    order.pos,
-    order.beh,
-  ].join("-");
-
-const buildSeniorEditableOrderFromSubstitution = (
-  matchId: number | null,
-  order: MatchOrderSubstitution,
-  index: number
-): SeniorEditablePlayerOrder => ({
-  id: seniorEditableOrderId(matchId, order, index),
-  orderType: normalizeSeniorEditableOrderType(order.orderType),
-  minute: Number.isFinite(order.min) ? order.min : SENIOR_ORDER_DEFAULT_MINUTE,
-  standing: Number.isFinite(order.standing)
-    ? order.standing
-    : SENIOR_ORDER_DEFAULT_CONDITION,
-  card: Number.isFinite(order.card) ? order.card : SENIOR_ORDER_DEFAULT_CONDITION,
-  subjectPlayerId:
-    Number.isFinite(order.playerout) && order.playerout > 0 ? order.playerout : null,
-  objectPlayerId:
-    Number.isFinite(order.playerin) && order.playerin > 0 ? order.playerin : null,
-  newPositionId: Number.isFinite(order.pos) ? order.pos : SENIOR_ORDER_DEFAULT_POSITION,
-  newPositionBehaviour: Number.isFinite(order.beh)
-    ? order.beh
-    : SENIOR_ORDER_DEFAULT_BEHAVIOUR,
-});
-
-const buildSeniorEditableOrdersFromPayload = (
-  matchId: number | null,
-  payload: MatchOrdersLineupPayload,
-  source: SeniorManMarkingOrderOrigin,
-  options: {
-    manMarkingOrigin?: SeniorManMarkingOrderOrigin;
-    manMarkingTouched?: boolean;
-  } = {}
-): SeniorEditableOrdersState => {
-  const editableOrders = (payload.substitutions ?? []).map((order, index) =>
-    buildSeniorEditableOrderFromSubstitution(matchId, order, index)
-  );
-  const loadedManMarkingOrder =
-    editableOrders.find((order) => order.orderType === 4) ??
-    (payload.settings.manMarkerPlayerId > 0 || payload.settings.manMarkingPlayerId > 0
-      ? {
-          id: `man-marking-${matchId ?? "draft"}`,
-          orderType: 4,
-          minute: SENIOR_ORDER_DEFAULT_MINUTE,
-          standing: SENIOR_ORDER_DEFAULT_CONDITION,
-          card: SENIOR_ORDER_DEFAULT_CONDITION,
-          subjectPlayerId:
-            payload.settings.manMarkerPlayerId > 0
-              ? payload.settings.manMarkerPlayerId
-              : null,
-          objectPlayerId:
-            payload.settings.manMarkingPlayerId > 0
-              ? payload.settings.manMarkingPlayerId
-              : null,
-          newPositionId: SENIOR_ORDER_DEFAULT_POSITION,
-          newPositionBehaviour: SENIOR_ORDER_DEFAULT_BEHAVIOUR,
-        }
-      : null);
-  return {
-    matchId,
-    source,
-    manMarkingOrigin: options.manMarkingOrigin ?? source,
-    manMarkingTouched: options.manMarkingTouched ?? false,
-    matchAttitude:
-      typeof payload.settings?.speechLevel === "number" ? payload.settings.speechLevel : null,
-    coachModifier:
-      typeof payload.settings?.coachModifier === "number"
-        ? payload.settings.coachModifier
-        : null,
-    playerOrders: editableOrders.filter((order) => order.orderType !== 4),
-    manMarkingOrder: loadedManMarkingOrder,
-    penaltyTakerIds: (payload.kickers ?? [])
-      .map((kicker) => Number(kicker.id) || 0)
-      .slice(0, 11),
-    captainPlayerId: payload.captain > 0 ? payload.captain : null,
-    setPiecesPlayerId: payload.setPieces > 0 ? payload.setPieces : null,
-  };
-};
-
-const serializeSeniorEditableOrdersToPayload = (
-  payload: MatchOrdersLineupPayload,
-  orders: SeniorEditableOrdersState,
-  options: {
-    includeMatchAttitude: boolean;
-    includeCoachModifier: boolean;
-  }
-): MatchOrdersLineupPayload => {
-  const serializeEditableOrder = (order: SeniorEditablePlayerOrder) => ({
-    playerin: Number(order.objectPlayerId ?? 0) || 0,
-    playerout: Number(order.subjectPlayerId ?? 0) || 0,
-    orderType: order.orderType,
-    min: Number.isFinite(order.minute) ? order.minute : SENIOR_ORDER_DEFAULT_MINUTE,
-    pos: Number.isFinite(order.newPositionId)
-      ? order.newPositionId
-      : SENIOR_ORDER_DEFAULT_POSITION,
-    beh: Number.isFinite(order.newPositionBehaviour)
-      ? order.newPositionBehaviour
-      : SENIOR_ORDER_DEFAULT_BEHAVIOUR,
-    card: Number.isFinite(order.card) ? order.card : SENIOR_ORDER_DEFAULT_CONDITION,
-    standing: Number.isFinite(order.standing)
-      ? order.standing
-      : SENIOR_ORDER_DEFAULT_CONDITION,
-  });
-  return {
-    ...payload,
-    kickers: Array.from({ length: 11 }, (_, index) => ({
-      id: Number(orders.penaltyTakerIds[index] ?? 0) || 0,
-      behaviour: 0,
-    })),
-    captain: Number(orders.captainPlayerId ?? 0) || 0,
-    setPieces: Number(orders.setPiecesPlayerId ?? 0) || 0,
-    settings: {
-      ...payload.settings,
-      speechLevel: options.includeMatchAttitude
-        ? Number(orders.matchAttitude ?? 0) || 0
-        : payload.settings.speechLevel,
-      coachModifier: options.includeCoachModifier
-        ? Number(orders.coachModifier ?? 0) || 0
-        : payload.settings.coachModifier,
-      manMarkerPlayerId: Number(orders.manMarkingOrder?.subjectPlayerId ?? 0) || 0,
-      manMarkingPlayerId: Number(orders.manMarkingOrder?.objectPlayerId ?? 0) || 0,
-    },
-    substitutions: [
-      ...orders.playerOrders.map(serializeEditableOrder),
-      ...(orders.manMarkingOrder
-        ? [serializeEditableOrder(orders.manMarkingOrder)]
-        : []),
-    ],
   };
 };
 
@@ -3986,7 +3803,7 @@ const trainingWeightBySlot = (trainingType: number | null) => {
 
 const calculateTrainingMinutesForScenario = (
   assignments: LineupAssignments,
-  substitutions: MatchOrderSubstitution[],
+  substitutions: SeniorMatchOrderSubstitution[],
   traineeIds: number[],
   trainingType: number | null,
   totalMinutes: number
@@ -7544,7 +7361,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       seniorAiPreparedSubmissionMode !== "ignoreTraining" &&
       seniorAiPreparedSubmissionMode !== "fixedFormation"
     ) {
-      return [] as MatchOrderSubstitution[];
+      return [] as SeniorMatchOrderSubstitution[];
     }
 
     const protectedTrainingAwareFieldTraineeIds =
@@ -7657,10 +7474,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
           beh: -1,
           card: -1,
           standing: -1,
-        } satisfies MatchOrderSubstitution;
+        } satisfies SeniorMatchOrderSubstitution;
       })
       .filter(
-        (entry): entry is MatchOrderSubstitution =>
+        (entry): entry is SeniorMatchOrderSubstitution =>
           Boolean(entry) &&
           !protectedTrainingAwareFieldTraineeIds.has(entry.playerin) &&
           !protectedTrainingAwareFieldTraineeIds.has(entry.playerout)
@@ -9253,7 +9070,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         }
         return playerOutId;
       };
-      const substitutions: MatchOrderSubstitution[] = [];
+      const substitutions: SeniorMatchOrderSubstitution[] = [];
       if (typeof benchKeeperId === "number" && benchKeeperId > 0) {
         const keeperId = assignments.KP;
         if (typeof keeperId !== "number" || keeperId <= 0) {

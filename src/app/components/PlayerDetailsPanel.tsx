@@ -19,6 +19,7 @@ import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlaye
 import SeniorTransferListedIndicator, {
   type SeniorTransferListing,
 } from "./SeniorTransferListedIndicator";
+import { useSeniorTrainingInference } from "./seniorTrainingInference/useSeniorTrainingInference";
 import OriginFlag from "./OriginFlag";
 import type { OriginFlagDisplay } from "@/lib/originFlag";
 import {
@@ -76,6 +77,7 @@ export type YouthPlayerDetails = {
   Salary?: number;
   IsAbroad?: boolean;
   OwningTeam?: {
+    TeamID?: number;
     LeagueID?: number;
   };
   PersonalityStatement?: string;
@@ -781,6 +783,26 @@ export default function PlayerDetailsPanel({
         : null,
     [detailsData, playerKind]
   );
+  const seniorTrainingInferenceInputs = useMemo(
+    () =>
+      playerKind === "senior" && seniorMetricInput && detailsData
+        ? [
+            {
+              playerId: detailsData.YouthPlayerID,
+              currentTeamId: detailsData.OwningTeam?.TeamID ?? null,
+              currentLeagueId: detailsData.OwningTeam?.LeagueID ?? null,
+              metricInput: seniorMetricInput,
+            },
+          ]
+        : [],
+    [detailsData, playerKind, seniorMetricInput]
+  );
+  const { statesByPlayerId: seniorTrainingInferenceByPlayerId } =
+    useSeniorTrainingInference(seniorTrainingInferenceInputs);
+  const selectedSeniorTrainingInference =
+    playerKind === "senior" && detailsData
+      ? seniorTrainingInferenceByPlayerId[detailsData.YouthPlayerID]
+      : undefined;
   const seniorIsAbroad = useMemo(
     () =>
       playerKind === "senior" && detailsData
@@ -1725,6 +1747,7 @@ export default function PlayerDetailsPanel({
               onBlockedInteraction={onSeniorSimulationBlockedInteraction}
               onEditingToggleInteraction={onSeniorSimulationEditingToggleInteraction}
               onSimulationStateChange={onSeniorSimulationStateChange}
+              trainingInference={selectedSeniorTrainingInference}
               barGradient={seniorBarGradient}
             />
           </>

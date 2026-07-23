@@ -219,6 +219,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_9_1_0: string;
   changelog_9_0_0: string;
   changelog_8_3_0: string;
   changelog_8_2_0: string;
@@ -1808,6 +1809,7 @@ export type Messages = {
   transferSearchTableSkillTradingScoreColumn: string;
   transferSearchTablePsicoTsiColumn: string;
   transferSearchTablePsicoWageColumn: string;
+  seniorTrainingInferenceTableLabel: string;
   transferSearchTableWageColumn: string;
   transferSearchTableDeadlineColumn: string;
   transferSearchTableBidColumn: string;
@@ -1951,6 +1953,22 @@ export type Messages = {
   seniorPsicoTsiWageUnavailableWarning: string;
   seniorPsicoTsiLowSublevelsWarning: string;
   seniorPsicoTsiHighSublevelsWarning: string;
+  seniorTrainingInferenceGroupLabel: string;
+  seniorTrainingInferenceValueLabel: string;
+  seniorTrainingInferenceTooltip: string;
+  seniorTrainingInferenceZeroMinutesTooltip: string;
+  seniorTrainingInferencePossiblyInflated: string;
+  seniorTrainingInferencePossiblyInflatedTooltip: string;
+  seniorTrainingInferenceCalculating: string;
+  seniorTrainingInferenceProgress: string;
+  seniorTrainingInferenceNotApplicable: string;
+  seniorTrainingInferenceNotApplicableTooltip: string;
+  seniorTrainingInferenceUnavailable: string;
+  seniorTrainingInferenceUnavailableWage: string;
+  seniorTrainingInferenceUnavailableHistory: string;
+  seniorTrainingInferenceUnavailableTimeline: string;
+  seniorTrainingInferenceWeeksLabel: string;
+  seniorTrainingInferenceTableTooltip: string;
   hiddenSpecialtyTooltip: string;
   hiddenSpecialtyTooltipLinkHint: string;
   skillsLabel: string;

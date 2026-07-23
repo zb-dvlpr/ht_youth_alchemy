@@ -5,6 +5,7 @@ import type { KeyboardEvent, PointerEvent } from "react";
 
 import type { Messages } from "@/lib/i18n";
 import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
+import type { SeniorTrainingInferenceState } from "@/lib/seniorTrainingInference/types";
 import { YOUTUBE_HELP_URLS } from "@/lib/youtubeHelpVideos";
 import styles from "../page.module.css";
 import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
@@ -136,6 +137,7 @@ type SeniorFoxtrickSimulatorProps = {
     dirty: boolean;
     metricInput: SeniorPlayerMetricInput;
   }) => void;
+  trainingInference?: SeniorTrainingInferenceState;
   barGradient: (
     value: number | null,
     minSkillLevel: number,
@@ -221,6 +223,7 @@ export default function SeniorFoxtrickSimulator({
   onBlockedInteraction,
   onEditingToggleInteraction,
   onSimulationStateChange,
+  trainingInference,
   barGradient,
 }: SeniorFoxtrickSimulatorProps) {
   const displayCurrencyRate =
@@ -708,7 +711,11 @@ export default function SeniorFoxtrickSimulator({
 
       <div className={styles.sectionDivider} />
 
-      <SeniorFoxtrickMetrics input={metricInput} messages={messages} />
+      <SeniorFoxtrickMetrics
+        input={metricInput}
+        messages={messages}
+        trainingInference={trainingInference}
+      />
     </>
   );
 }

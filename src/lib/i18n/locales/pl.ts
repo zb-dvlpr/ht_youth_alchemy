@@ -537,6 +537,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+    changelog_9_1_0:
+      "Wdrożono obliczenia inferowanej umiejętności dla seniorów i wyników wyszukiwania transferów",
     changelog_9_0_0:
       "Dodano możliwość instalowania Hattrick Alchemy jako samodzielnej aplikacji.",
     changelog_8_3_0: "Dodano samouczki w aplikacji.",
@@ -869,6 +871,7 @@ export const messagesPl: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Wynik skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Inferowana górna granica",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -1736,6 +1739,31 @@ export const messagesPl: Messages = {
     "Ten zawodnik niedawno awansowal w umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo niski podpoziom.",
   seniorPsicoTsiHighSublevelsWarning:
     "Ten zawodnik jest blisko awansu umiejetnosci albo jego umiejetnosci poboczne i/lub forma maja bardzo wysoki podpoziom.",
+  seniorTrainingInferenceGroupLabel: "Górna granica umiejętności z uwzględnieniem treningu",
+  seniorTrainingInferenceValueLabel: "Inferowana wartość umiejętności",
+  seniorTrainingInferenceTooltip:
+    "To inferencja umiejętności jako górna granica. Zakładając, że zawodnik był trenowany w {{skill}} zawsze, gdy był uprawniony, zgromadził równowartość {{weeks}} tygodni treningu na pozycjach treningowych {{skill}} od ostatnich urodzin. Wartości łączą szacunki oparte na pensji z dnia urodzin z historią pozycji, przy trenerze poziomu 7, 10 poziomach asystentów, intensywności 100% i udziale kondycji 10%. Rzeczywista umiejętność zawodnika może być niższa, ponieważ historyczne wybory treningowe jego zespołu są nieznane.",
+  seniorTrainingInferenceZeroMinutesTooltip:
+    "To inferencja umiejętności jako górna granica. Od ostatnich urodzin zawodnika nie znaleziono kwalifikujących minut treningu {{skill}}, więc inferowane wartości są równe odpowiednim szacunkom z pensji z dnia urodzin. Rzeczywista umiejętność nadal może być niższa, ponieważ historyczne wybory treningowe jego zespołu są nieznane.",
+  seniorTrainingInferencePossiblyInflated: "(możliwie zawyżone)",
+  seniorTrainingInferencePossiblyInflatedTooltip:
+    "Ta prognoza oparta na TSI przekracza górną granicę z uwzględnieniem treningu wspieraną przez szacunek z pensji i obserwowaną kwalifikującą historię pozycji przy podanych założeniach. Różnica może wskazywać, że prognoza TSI jest zawyżona.",
+  seniorTrainingInferenceCalculating: "Obliczanie...",
+  seniorTrainingInferenceProgress:
+    "Obliczanie górnych granic z uwzględnieniem treningu: {{completed}} z {{total}}",
+  seniorTrainingInferenceNotApplicable: "Nie dotyczy",
+  seniorTrainingInferenceNotApplicableTooltip:
+    "Górna granica z uwzględnieniem treningu wymaga, aby dokładnie jedna piłkarska umiejętność była wyraźnie wyższa od wszystkich pozostałych.",
+  seniorTrainingInferenceUnavailable: "Niedostępne",
+  seniorTrainingInferenceUnavailableWage:
+    "Prognoza Psico oparta na pensji jest niedostępna dla tego zawodnika.",
+  seniorTrainingInferenceUnavailableHistory:
+    "Nie udało się pobrać pełnej historii meczów seniorów lub zespołów tego zawodnika.",
+  seniorTrainingInferenceUnavailableTimeline:
+    "Nie udało się w pełni odtworzyć osi pozycji zawodnika.",
+  seniorTrainingInferenceWeeksLabel: "{{weeks}} tygodni",
+  seniorTrainingInferenceTableTooltip:
+    "Inferencja umiejętności jako górna granica z uwzględnieniem treningu, oparta na średniej prognozie z pensji i kwalifikującej historii pozycji zawodnika od ostatnich urodzin.",
   hiddenSpecialtyTooltip: "Ukryta specjalność wykryta z wydarzeń meczowych",
   hiddenSpecialtyTooltipLinkHint: "Kliknij, aby otworzyć mecz, w którym ją odkryto",
   skillsLabel: "Umiejętności",

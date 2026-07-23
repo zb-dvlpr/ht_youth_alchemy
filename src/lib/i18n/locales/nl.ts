@@ -552,6 +552,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+    changelog_9_1_0:
+      "Afgeleide vaardigheidsberekeningen toegevoegd voor seniorspelers en transferzoekresultaten",
     changelog_9_0_0:
       "De mogelijkheid toegevoegd om Hattrick Alchemy als zelfstandige app te installeren.",
     changelog_8_3_0: "In-app-tutorials toegevoegd.",
@@ -884,6 +886,7 @@ export const messagesNl: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Skill-trading score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Afgeleide bovengrens",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -1751,6 +1754,31 @@ export const messagesNl: Messages = {
     "Deze speler is onlangs in skill gestegen of zijn secundaire skills en/of vorm hebben een zeer laag subniveau.",
   seniorPsicoTsiHighSublevelsWarning:
     "Deze speler zit dicht bij een skill-up of zijn secundaire skills en/of vorm hebben een zeer hoog subniveau.",
+  seniorTrainingInferenceGroupLabel: "Trainingsbewuste vaardigheidsbovengrens",
+  seniorTrainingInferenceValueLabel: "Afgeleide vaardigheidswaarde",
+  seniorTrainingInferenceTooltip:
+    "Dit is een vaardigheidsinferentie als bovengrens. Aangenomen dat de speler in {{skill}} werd getraind wanneer hij in aanmerking kwam, verzamelde hij sinds zijn laatste verjaardag het equivalent van {{weeks}} trainingsweken op {{skill}}-trainingsposities. De waarden combineren zijn loon-gebaseerde vaardigheidsschattingen op die verjaardag met deze positiegeschiedenis, met coach niveau 7, 10 assistentniveaus, 100% trainingsintensiteit en 10% conditieaandeel. De echte vaardigheid van de speler kan lager zijn omdat de historische trainingskeuzes van zijn team onbekend zijn.",
+  seniorTrainingInferenceZeroMinutesTooltip:
+    "Dit is een vaardigheidsinferentie als bovengrens. Er zijn sinds de laatste verjaardag van de speler geen geldige {{skill}}-trainingsminuten gevonden, dus de afgeleide waarden zijn gelijk aan de bijbehorende loon-gebaseerde verjaardagsschattingen. De echte vaardigheid kan nog steeds lager zijn omdat de historische trainingskeuzes van zijn team onbekend zijn.",
+  seniorTrainingInferencePossiblyInflated: "(mogelijk opgeblazen)",
+  seniorTrainingInferencePossiblyInflatedTooltip:
+    "Deze TSI-gebaseerde voorspelling ligt boven de trainingsbewuste bovengrens die wordt ondersteund door de loon-gebaseerde schatting en de geobserveerde geldige positiegeschiedenis onder de genoemde aannames. Het verschil kan erop wijzen dat de TSI-gebaseerde voorspelling opgeblazen is.",
+  seniorTrainingInferenceCalculating: "Berekenen...",
+  seniorTrainingInferenceProgress:
+    "Trainingsbewuste bovengrenzen berekenen: {{completed}} van {{total}}",
+  seniorTrainingInferenceNotApplicable: "Niet van toepassing",
+  seniorTrainingInferenceNotApplicableTooltip:
+    "Een trainingsbewuste bovengrens vereist dat precies één voetbalvaardigheid duidelijk hoger is dan alle andere.",
+  seniorTrainingInferenceUnavailable: "Niet beschikbaar",
+  seniorTrainingInferenceUnavailableWage:
+    "De loon-gebaseerde Psico-voorspelling is niet beschikbaar voor deze speler.",
+  seniorTrainingInferenceUnavailableHistory:
+    "De volledige seniorenwedstrijd- of teamgeschiedenis kon niet worden opgehaald voor deze speler.",
+  seniorTrainingInferenceUnavailableTimeline:
+    "De positietijdlijn van de speler kon niet volledig worden gereconstrueerd.",
+  seniorTrainingInferenceWeeksLabel: "{{weeks}} weken",
+  seniorTrainingInferenceTableTooltip:
+    "Trainingsbewuste vaardigheidsinferentie als bovengrens, gebaseerd op de gemiddelde loonvoorspelling en de geldige positiegeschiedenis van de speler sinds zijn laatste verjaardag.",
   hiddenSpecialtyTooltip: "Verborgen specialiteit ontdekt via wedstrijdgebeurtenissen",
   hiddenSpecialtyTooltipLinkHint: "Klik om de wedstrijd te openen waarin dit ontdekt werd",
   skillsLabel: "Vaardigheden",

@@ -21,10 +21,15 @@
   "include": [
     "check-senior-match-orders.ts",
     "check-team-spirit-simulation.ts",
+    "check-senior-training-inference.ts",
     "../src/lib/seniorMatchOrders.ts",
     "../src/lib/teamSpirit.ts",
     "../src/lib/teamSpiritSimulation.ts",
     "../src/lib/seniorTeamSpiritStorage.ts",
-    "../src/lib/seniorTeamSpiritTimeline.ts"
+    "../src/lib/seniorTeamSpiritTimeline.ts",
+    "../src/lib/seniorPlayerMetrics.ts",
+    "../src/lib/foxtrickPsico.js",
+    "../src/lib/positions.ts",
+    "../src/lib/seniorTrainingInference/**/*.ts"
   ]
 }

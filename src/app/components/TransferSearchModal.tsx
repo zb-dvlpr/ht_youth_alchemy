@@ -6,6 +6,12 @@ import {
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
 import {
+  hasUniqueHighestFootballSkill,
+  resolveUniqueHighestFootballSkill,
+} from "@/lib/seniorTrainingInference/mainSkill";
+import { parsePsicoSkillValue } from "@/lib/seniorTrainingInference/psico";
+import type { SeniorTrainingInferenceState } from "@/lib/seniorTrainingInference/types";
+import {
   memo,
   Fragment,
   startTransition,
@@ -200,6 +206,12 @@ export type TransferSearchTableRowData = {
   skillTradingScore: number | null;
   avgPsicoTsi: number | null;
   avgPsicoWage: number | null;
+  inferredSkillUpperAverage: number | null;
+  inferredSkillStatus:
+    | "loading"
+    | "available"
+    | "not-applicable"
+    | "unavailable";
   wageDisplay: string;
   wageValueSek?: number | null;
   wageIncludesForeignBonus?: boolean;
@@ -266,6 +278,8 @@ export type TransferSearchModalProps = {
   getSortMetricInput?: (result: TransferSearchResult) => SeniorPlayerMetricInput;
   getTableRowData?: (result: TransferSearchResult) => TransferSearchTableRowData;
   getTableWageData?: (result: TransferSearchResult) => TransferSearchTableWageData;
+  trainingInferenceByPlayerId?: Record<number, SeniorTrainingInferenceState>;
+  trainingInferenceProgress?: { completed: number; total: number } | null;
   getNativeLeagueId?: (result: TransferSearchResult) => number | null | undefined;
   canQuickBid?: boolean;
   quickBidUnavailableTooltip?: ReactNode;
@@ -339,6 +353,7 @@ type TransferSearchTableColumnKey =
   | "skillTrade"
   | "ptsi"
   | "pwage"
+  | "inferred"
   | "wage"
   | "deadline"
   | "bid";
@@ -419,10 +434,7 @@ const buildTransferSearchMetricInput = (
   setPieces: result.setPiecesSkill,
 });
 
-const parsePsicoMetricValue = (value: string) => {
-  const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
+const parsePsicoMetricValue = (value: string) => parsePsicoSkillValue(value);
 
 const calculateAverage = (values: Array<number | null>) => {
   const numeric = values.filter(
@@ -453,40 +465,12 @@ const calculatePsicoWageAverage = (metricInput: SeniorPlayerMetricInput) => {
   ]);
 };
 
-const getFootballSkillValues = (metricInput: SeniorPlayerMetricInput) =>
-  [
-    metricInput.keeper,
-    metricInput.defending,
-    metricInput.playmaking,
-    metricInput.winger,
-    metricInput.passing,
-    metricInput.scoring,
-    metricInput.setPieces,
-  ].filter(
-    (value): value is number =>
-      typeof value === "number" && Number.isFinite(value)
-  );
-
 const getMainFootballSkillValue = (metricInput: SeniorPlayerMetricInput) => {
-  const values = getFootballSkillValues(metricInput);
-
-  return values.length > 0 ? Math.max(...values) : null;
-};
-
-const hasUniqueHighestFootballSkill = (metricInput: SeniorPlayerMetricInput) => {
-  const values = getFootballSkillValues(metricInput);
-  if (values.length === 0) return false;
-
-  const highest = Math.max(...values);
-  let highestCount = 0;
-
-  for (const value of values) {
-    if (value !== highest) continue;
-    highestCount += 1;
-    if (highestCount > 1) return false;
+  const resolution = resolveUniqueHighestFootballSkill(metricInput);
+  if (resolution.status === "unique" || resolution.status === "tie") {
+    return resolution.level;
   }
-
-  return highestCount === 1;
+  return null;
 };
 
 export const calculateTransferSearchSkillTradingScore = (
@@ -1558,6 +1542,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
   getSortMetricInput,
   getTableRowData,
   getTableWageData,
+  trainingInferenceByPlayerId = {},
+  trainingInferenceProgress = null,
   getNativeLeagueId,
   canQuickBid,
   quickBidUnavailableTooltip,
@@ -2007,6 +1993,19 @@ const TransferSearchModal = memo(function TransferSearchModal({
             : result.askingPriceSek;
         const fallbackDeadline = parseChppDate(result.deadline ?? undefined);
         const tableWageData = getTableWageData?.(result);
+        const inferenceState = trainingInferenceByPlayerId[result.playerId];
+        const inferredSkillUpperAverage =
+          inferenceState?.status === "available"
+            ? inferenceState.inferredAverage
+            : null;
+        const inferredSkillStatus =
+          inferenceState?.status === "available"
+            ? "available"
+            : inferenceState?.status === "loading"
+              ? "loading"
+              : inferenceState?.status === "not-applicable"
+                ? "not-applicable"
+                : "unavailable";
         return {
           result,
           data:
@@ -2068,6 +2067,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
               skillTradingScore: calculateTransferSearchSkillTradingScore(fallbackMetricInput),
               avgPsicoTsi: getTransferSearchSortValue(fallbackMetricInput, "psicoTsiAvg"),
               avgPsicoWage: getTransferSearchSortValue(fallbackMetricInput, "psicoWageAvg"),
+              inferredSkillUpperAverage,
+              inferredSkillStatus,
               wageDisplay:
                 tableWageData?.wageDisplay ??
                 (typeof result.salarySek === "number"
@@ -2084,7 +2085,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
             },
         };
       }),
-    [displayCurrency, getSortMetricInput, getTableRowData, getTableWageData, messages, sortedResults]
+    [displayCurrency, getSortMetricInput, getTableRowData, getTableWageData, messages, sortedResults, trainingInferenceByPlayerId]
   );
   const renderedSkillSlotCount = filters
     ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
@@ -2281,6 +2282,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
     { key: "skillTrade", label: messages.transferSearchTableSkillTradingScoreColumn, higherBetter: true },
     { key: "ptsi", label: messages.transferSearchTablePsicoTsiColumn, higherBetter: true },
     { key: "pwage", label: messages.transferSearchTablePsicoWageColumn, higherBetter: true },
+    { key: "inferred", label: messages.seniorTrainingInferenceTableLabel, higherBetter: true },
     { key: "wage", label: tableWageLabel, higherBetter: false },
     { key: "deadline", label: messages.transferSearchTableDeadlineColumn, higherBetter: null },
     { key: "bid", label: tableBidLabel, higherBetter: false },
@@ -2313,6 +2315,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
       skillTrade: collect((row) => row.skillTradingScore),
       ptsi: collect((row) => row.avgPsicoTsi),
       pwage: collect((row) => row.avgPsicoWage),
+      inferred: collect((row) => row.inferredSkillUpperAverage),
       wage: collect((row) => row.wageValueSek),
       bid: collect((row) => row.minBidSek),
     };
@@ -2366,6 +2369,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
           return (right.avgPsicoTsi ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoTsi ?? Number.NEGATIVE_INFINITY);
         case "pwage":
           return (right.avgPsicoWage ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoWage ?? Number.NEGATIVE_INFINITY);
+        case "inferred":
+          return (right.inferredSkillUpperAverage ?? Number.NEGATIVE_INFINITY) - (left.inferredSkillUpperAverage ?? Number.NEGATIVE_INFINITY);
         case "wage":
           return (left.wageValueSek ?? Number.POSITIVE_INFINITY) - (right.wageValueSek ?? Number.POSITIVE_INFINITY);
         case "deadline":
@@ -2382,6 +2387,35 @@ const TransferSearchModal = memo(function TransferSearchModal({
       return left.result.playerId - right.result.playerId;
     });
   }, [tableRows, tableSortColumn, tableSortDirection]);
+
+  const renderInferenceTableCell = useCallback(
+    (data: TransferSearchTableRowData) => {
+      if (data.inferredSkillStatus === "loading") {
+        return (
+          <span className={styles.seniorTrainingInferenceLoading}>
+            <span className={styles.inlineSpinner} aria-hidden="true" />
+            <span>{messages.seniorTrainingInferenceCalculating}</span>
+          </span>
+        );
+      }
+      if (data.inferredSkillStatus === "not-applicable") {
+        return (
+          <Tooltip content={messages.seniorTrainingInferenceNotApplicableTooltip}>
+            <span>{messages.seniorTrainingInferenceNotApplicable}</span>
+          </Tooltip>
+        );
+      }
+      if (data.inferredSkillStatus === "unavailable") {
+        return (
+          <Tooltip content={messages.seniorTrainingInferenceTableTooltip}>
+            <span>{messages.seniorTrainingInferenceUnavailable}</span>
+          </Tooltip>
+        );
+      }
+      return formatTransferSearchTableMetric(data.inferredSkillUpperAverage, 2) ?? "—";
+    },
+    [messages]
+  );
 
   const renderTablePill = useCallback(
     (
@@ -2842,6 +2876,16 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     {displayedResultCountLabel ? (
                       <span className={styles.profileUpdated}>{displayedResultCountLabel}</span>
                     ) : null}
+                    {trainingInferenceProgress ? (
+                      <span className={styles.profileUpdated}>
+                        {messages.seniorTrainingInferenceProgress
+                          .replace(
+                            "{{completed}}",
+                            String(trainingInferenceProgress.completed)
+                          )
+                          .replace("{{total}}", String(trainingInferenceProgress.total))}
+                      </span>
+                    ) : null}
                   </div>
                   <div className={styles.transferSearchResultsHeaderControls}>
                     <button
@@ -3048,6 +3092,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.skillTradingScore, 2) ?? "—", { numericValue: data.skillTradingScore, stats: tableColumnStats.skillTrade, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoTsi, 2) ?? "—", { numericValue: data.avgPsicoTsi, stats: tableColumnStats.ptsi, higherBetter: true })}</td>
                               <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoWage, 2) ?? "—", { numericValue: data.avgPsicoWage, stats: tableColumnStats.pwage, higherBetter: true })}</td>
+                              <td>{renderTablePill(renderInferenceTableCell(data), { numericValue: data.inferredSkillUpperAverage, stats: tableColumnStats.inferred, higherBetter: true })}</td>
                               <td>
                                 {renderTablePill(
                                   `${data.wageDisplay}${data.wageIncludesForeignBonus ? "*" : ""}`,

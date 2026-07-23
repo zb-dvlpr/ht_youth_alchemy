@@ -7,10 +7,10 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Multi-team youth and senior support for managers with multiple clubs/academies
 - Youth player list, player details, ratings/skills matrices, and lineup optimization
 - Youth transfer value estimates from revealed maximum potential
-- Senior player list, player details with simulated HTMS/PsicoTSI metrics, ratings/skills matrices, and lineup workflow
+- Senior player list, player details with simulated HTMS/PsicoTSI metrics and training-aware upper-bound skill inference, ratings/skills matrices, and lineup workflow
 - Senior Team Spirit calculator for current-season league and main-cup planning
 - Senior staff-data persistence for Tactical Assistant availability in lineup workflows
-- Transfer Market searches with past searches, saved profiles, HTMS potential filtering, and compact price distributions
+- Transfer Market searches with past searches, saved profiles, HTMS potential filtering, training-aware upper-bound skill inference, and compact price distributions
 - Senior AI lineup support for role-based man marking suggestions and match-order submission
 - NEW markers in youth matrices for latest detected player/skill/rating changes
 - Hidden youth specialty detection from past match events

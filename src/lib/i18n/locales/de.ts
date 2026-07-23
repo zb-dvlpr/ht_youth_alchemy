@@ -266,6 +266,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_9_1_0:
+      "Inferenzberechnungen für Seniorenfähigkeiten und Transfer-Suchergebnisse implementiert",
     changelog_9_0_0:
       "Die Möglichkeit hinzugefügt, Hattrick Alchemy als eigenständige App zu installieren.",
     changelog_8_3_0: "In-App-Tutorials hinzugefügt.",
@@ -2230,6 +2232,7 @@ export const messagesDe: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Skill-Trading-Score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Inferenz-Obergrenze",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -2394,6 +2397,31 @@ export const messagesDe: Messages = {
       "Dieser Spieler hatte kurzlich einen Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr niedrige Sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
       "Dieser Spieler steht kurz vor einem Skill-up oder seine Nebenfahigkeiten und/oder Form haben sehr hohe Sublevel.",
+    seniorTrainingInferenceGroupLabel: "Trainingsbewusste Fähigkeits-Obergrenze",
+    seniorTrainingInferenceValueLabel: "Inferierter Fähigkeitswert",
+    seniorTrainingInferenceTooltip:
+      "Dies ist eine Fähigkeitsinferenz als Obergrenze. Unter der Annahme, dass der Spieler bei jeder Gelegenheit in {{skill}} trainiert wurde, sammelte er seit seinem letzten Geburtstag das Äquivalent von {{weeks}} Trainingswochen auf {{skill}}-Trainingspositionen. Die Werte kombinieren seine gehaltsbasierten Fähigkeitsschätzungen an diesem Geburtstag mit dieser Positionshistorie, mit Trainerstufe 7, 10 Co-Trainer-Stufen, 100% Trainingsintensität und 10% Konditionsanteil. Die tatsächliche Fähigkeit des Spielers kann niedriger sein, weil die historischen Trainingsentscheidungen seines Teams unbekannt sind.",
+    seniorTrainingInferenceZeroMinutesTooltip:
+      "Dies ist eine Fähigkeitsinferenz als Obergrenze. Seit dem letzten Geburtstag des Spielers wurden keine geeigneten {{skill}}-Trainingsminuten gefunden, daher entsprechen die inferierten Werte den jeweiligen gehaltsbasierten Geburtstagsschätzungen. Die tatsächliche Fähigkeit kann dennoch niedriger sein, weil die historischen Trainingsentscheidungen seines Teams unbekannt sind.",
+    seniorTrainingInferencePossiblyInflated: "(möglicherweise überhöht)",
+    seniorTrainingInferencePossiblyInflatedTooltip:
+      "Diese TSI-basierte Prognose liegt über der trainingsbewussten Obergrenze, die durch die gehaltsbasierte Schätzung und die beobachtete geeignete Positionshistorie unter den genannten Annahmen gestützt wird. Der Unterschied kann darauf hinweisen, dass die TSI-basierte Prognose überhöht ist.",
+    seniorTrainingInferenceCalculating: "Berechnung...",
+    seniorTrainingInferenceProgress:
+      "Trainingsbewusste Obergrenzen werden berechnet: {{completed}} von {{total}}",
+    seniorTrainingInferenceNotApplicable: "Nicht anwendbar",
+    seniorTrainingInferenceNotApplicableTooltip:
+      "Eine trainingsbewusste Obergrenze erfordert, dass genau eine Fußballfähigkeit eindeutig höher ist als alle anderen.",
+    seniorTrainingInferenceUnavailable: "Nicht verfügbar",
+    seniorTrainingInferenceUnavailableWage:
+      "Die gehaltsbasierte Psico-Prognose ist für diesen Spieler nicht verfügbar.",
+    seniorTrainingInferenceUnavailableHistory:
+      "Die vollständige Senioren-Spiel- oder Teamhistorie konnte für diesen Spieler nicht abgerufen werden.",
+    seniorTrainingInferenceUnavailableTimeline:
+      "Die Positionszeitleiste des Spielers konnte nicht vollständig rekonstruiert werden.",
+    seniorTrainingInferenceWeeksLabel: "{{weeks}} Wochen",
+    seniorTrainingInferenceTableTooltip:
+      "Trainingsbewusste Fähigkeitsinferenz als Obergrenze auf Basis der durchschnittlichen gehaltsbasierten Prognose und der geeigneten Positionshistorie des Spielers seit seinem letzten Geburtstag.",
     hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     hiddenSpecialtyTooltipLinkHint:
       "Klicken, um das Match zu öffnen, in dem sie entdeckt wurde",

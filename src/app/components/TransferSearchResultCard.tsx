@@ -13,6 +13,7 @@ import {
 import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlayerModel";
 import type { Messages } from "@/lib/i18n";
 import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
+import type { SeniorTrainingInferenceState } from "@/lib/seniorTrainingInference/types";
 import OriginFlag from "./OriginFlag";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
@@ -100,6 +101,7 @@ type TransferSearchResultCardProps = {
   messages: Messages;
   displayCurrency: DisplayCurrency;
   selectedSeniorLeagueId?: number | null;
+  trainingInference?: SeniorTrainingInferenceState;
   bidDraft: TransferSearchBidDraft;
   pending: boolean;
   canBid: boolean;
@@ -341,6 +343,40 @@ export const resolveTransferSearchSalaryForSelectedTeam = (
     : baseSalary;
 };
 
+export const buildTransferSearchResultMetricInput = (
+  result: TransferSearchResult,
+  resultDetails: TransferSearchResultCardDetails | null | undefined
+): SeniorPlayerMetricInput => {
+  const specialtyValue = resultDetails?.Specialty ?? result.specialty;
+  const resolvedForm = resultDetails?.Form ?? result.form;
+  const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+  const resolvedSalary =
+    typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+  const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+  return {
+    ageYears:
+      typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+    ageDays:
+      typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+    tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+    salarySek: resolvedSalary,
+    isAbroad: resolvedIsAbroad ?? undefined,
+    specialty: specialtyValue ?? null,
+    form: resolvedForm,
+    stamina: resolvedStamina,
+    keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
+    defending:
+      parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
+    playmaking:
+      parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
+    winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
+    passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
+    scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
+    setPieces:
+      parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
+  };
+};
+
 export const isForeignForSelectedLeague = (
   nativeLeagueId: number | null | undefined,
   selectedLeagueId: number | null | undefined
@@ -402,6 +438,7 @@ export default function TransferSearchResultCard({
   messages,
   displayCurrency,
   selectedSeniorLeagueId = null,
+  trainingInference,
   bidDraft,
   pending,
   canBid,
@@ -520,8 +557,6 @@ export default function TransferSearchResultCard({
     specialtyValue !== null && specialtyValue !== undefined
       ? resolveSpecialtyName(messages, specialtyValue)
       : null;
-  const resolvedForm = resultDetails?.Form ?? result.form;
-  const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
   const resolvedSalary =
     typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
   const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
@@ -534,28 +569,7 @@ export default function TransferSearchResultCard({
     resolvedIsAbroad,
     foreignForSelectedTeam
   );
-  const seniorMetricInput: SeniorPlayerMetricInput = {
-    ageYears:
-      typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
-    ageDays:
-      typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
-    tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
-    salarySek: resolvedSalary,
-    isAbroad: resolvedIsAbroad ?? undefined,
-    specialty: specialtyValue ?? null,
-    form: resolvedForm,
-    stamina: resolvedStamina,
-    keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
-    defending:
-      parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
-    playmaking:
-      parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
-    winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
-    passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
-    scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
-    setPieces:
-      parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
-  };
+  const seniorMetricInput = buildTransferSearchResultMetricInput(result, resultDetails);
   const predictedBaseWageSek =
     process.env.NODE_ENV !== "production"
       ? predictSeniorEncounteredPlayerWage({
@@ -741,6 +755,7 @@ export default function TransferSearchResultCard({
         input={seniorMetricInput}
         messages={messages}
         displayCurrency={displayCurrency}
+        trainingInference={trainingInference}
         barGradient={seniorBarGradient}
       />
 

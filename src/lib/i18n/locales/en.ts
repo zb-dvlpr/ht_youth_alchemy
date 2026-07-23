@@ -262,6 +262,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_9_1_0:
+      "Implemented inferred skill calculations for senior players and transfer search results",
     changelog_9_0_0:
       "Added the ability to install Hattrick Alchemy as a standalone app.",
     changelog_8_3_0: "Added in-app tutorials.",
@@ -2234,6 +2236,7 @@ export const messagesEn: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Skill-trading score",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Inferred upper bound",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -2396,6 +2399,31 @@ export const messagesEn: Messages = {
       "This player has recently skilled up or his secondary skills and/or form have a very low sublevel.",
     seniorPsicoTsiHighSublevelsWarning:
       "This player is close to skill up or his secondary skills and/or form have a very high sublevel.",
+    seniorTrainingInferenceGroupLabel: "Training-aware skill upper bound",
+    seniorTrainingInferenceValueLabel: "Inferred skill value",
+    seniorTrainingInferenceTooltip:
+      "This is an upper-bound skill inference. Assuming that the player was trained in {{skill}} whenever eligible, they accumulated the equivalent of {{weeks}} training weeks in {{skill}}-training positions since their last birthday. The values combine their wage-based skill estimates at that birthday with this positional history, using a level 7 coach, 10 assistant levels, 100% training intensity and a 10% stamina share. The player's actual skill may be lower because their team's historical training selections are unknown.",
+    seniorTrainingInferenceZeroMinutesTooltip:
+      "This is an upper-bound skill inference. No eligible {{skill}}-training minutes were identified since the player's last birthday, so the inferred values equal the corresponding wage-based birthday estimates. The player's actual skill may still be lower because their team's historical training selections are unknown.",
+    seniorTrainingInferencePossiblyInflated: "(possibly inflated)",
+    seniorTrainingInferencePossiblyInflatedTooltip:
+      "This TSI-based prediction exceeds the training-aware upper bound supported by the player's wage-based estimate and observed eligible positional history under the stated assumptions. The difference may indicate that the TSI-based prediction is inflated.",
+    seniorTrainingInferenceCalculating: "Calculating...",
+    seniorTrainingInferenceProgress:
+      "Calculating training-aware upper bounds: {{completed}} of {{total}}",
+    seniorTrainingInferenceNotApplicable: "Not applicable",
+    seniorTrainingInferenceNotApplicableTooltip:
+      "A training-aware upper bound requires one football skill to be uniquely higher than all others.",
+    seniorTrainingInferenceUnavailable: "Unavailable",
+    seniorTrainingInferenceUnavailableWage:
+      "The wage-based Psico prediction is unavailable for this player.",
+    seniorTrainingInferenceUnavailableHistory:
+      "Complete senior match or team history could not be retrieved for this player.",
+    seniorTrainingInferenceUnavailableTimeline:
+      "The player's positional timeline could not be reconstructed completely.",
+    seniorTrainingInferenceWeeksLabel: "{{weeks}} weeks",
+    seniorTrainingInferenceTableTooltip:
+      "Training-aware upper-bound skill inference based on the average wage-based prediction and the player's eligible positional history since their last birthday.",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",

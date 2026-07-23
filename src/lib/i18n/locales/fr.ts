@@ -266,6 +266,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_9_1_0:
+      "Calculs d’inférence de compétence implémentés pour les joueurs seniors et les résultats de recherche de transfert",
     changelog_9_0_0:
       "Ajout de la possibilité d’installer Hattrick Alchemy en tant qu’application autonome.",
     changelog_8_3_0: "Ajout de tutoriels intégrés à l’application.",
@@ -2244,6 +2246,7 @@ export const messagesFr: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Score skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Limite supérieure inférée",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -2408,6 +2411,31 @@ export const messagesFr: Messages = {
       "Ce joueur vient de faire un skill-up ou ses competences secondaires et/ou sa forme ont un sous-niveau tres bas.",
     seniorPsicoTsiHighSublevelsWarning:
       "Ce joueur est proche d'un skill-up ou ses competences secondaires et/ou sa forme ont un sous-niveau tres haut.",
+    seniorTrainingInferenceGroupLabel: "Limite supérieure de compétence avec entraînement",
+    seniorTrainingInferenceValueLabel: "Valeur de compétence inférée",
+    seniorTrainingInferenceTooltip:
+      "Ceci est une inférence de compétence comme limite supérieure. En supposant que le joueur a été entraîné en {{skill}} chaque fois qu’il était éligible, il a accumulé l’équivalent de {{weeks}} semaines d’entraînement sur des positions d’entraînement {{skill}} depuis son dernier anniversaire. Les valeurs combinent ses estimations de compétence basées sur le salaire à cet anniversaire avec cet historique de positions, avec un entraîneur niveau 7, 10 niveaux d’adjoints, 100% d’intensité et 10% d’endurance. La compétence réelle du joueur peut être plus basse car les choix d’entraînement historiques de son équipe sont inconnus.",
+    seniorTrainingInferenceZeroMinutesTooltip:
+      "Ceci est une inférence de compétence comme limite supérieure. Aucune minute éligible d’entraînement {{skill}} n’a été trouvée depuis le dernier anniversaire du joueur; les valeurs inférées sont donc égales aux estimations salariales correspondantes à cet anniversaire. La compétence réelle peut tout de même être plus basse car les choix d’entraînement historiques de son équipe sont inconnus.",
+    seniorTrainingInferencePossiblyInflated: "(peut-être gonflé)",
+    seniorTrainingInferencePossiblyInflatedTooltip:
+      "Cette prédiction basée sur le TSI dépasse la limite supérieure avec entraînement soutenue par l’estimation salariale du joueur et son historique de positions éligibles selon les hypothèses indiquées. L’écart peut indiquer que la prédiction basée sur le TSI est gonflée.",
+    seniorTrainingInferenceCalculating: "Calcul...",
+    seniorTrainingInferenceProgress:
+      "Calcul des limites supérieures avec entraînement : {{completed}} sur {{total}}",
+    seniorTrainingInferenceNotApplicable: "Non applicable",
+    seniorTrainingInferenceNotApplicableTooltip:
+      "Une limite supérieure avec entraînement exige qu’une seule compétence de football soit clairement supérieure à toutes les autres.",
+    seniorTrainingInferenceUnavailable: "Indisponible",
+    seniorTrainingInferenceUnavailableWage:
+      "La prédiction Psico basée sur le salaire est indisponible pour ce joueur.",
+    seniorTrainingInferenceUnavailableHistory:
+      "L’historique complet des matchs seniors ou des équipes n’a pas pu être récupéré pour ce joueur.",
+    seniorTrainingInferenceUnavailableTimeline:
+      "La chronologie positionnelle du joueur n’a pas pu être entièrement reconstruite.",
+    seniorTrainingInferenceWeeksLabel: "{{weeks}} semaines",
+    seniorTrainingInferenceTableTooltip:
+      "Inférence de compétence comme limite supérieure avec entraînement, basée sur la prédiction salariale moyenne et l’historique des positions éligibles du joueur depuis son dernier anniversaire.",
     hiddenSpecialtyTooltip: "Specialite cachee detectee via evenements de match",
     hiddenSpecialtyTooltipLinkHint:
       "Cliquer pour ouvrir le match ou elle a ete decouverte",

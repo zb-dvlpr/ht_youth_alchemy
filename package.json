@@ -1,10 +1,10 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "9.0.21",
+  "version": "9.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "tsc --project scripts/tsconfig.assertions.json && mkdir -p /tmp/htya-assertion-tests/node_modules/@ && ln -sfn /tmp/htya-assertion-tests/src/lib /tmp/htya-assertion-tests/node_modules/@/lib && node /tmp/htya-assertion-tests/scripts/check-senior-match-orders.js && node /tmp/htya-assertion-tests/scripts/check-team-spirit-simulation.js",
+    "test": "tsc --project scripts/tsconfig.assertions.json && mkdir -p /tmp/htya-assertion-tests/node_modules/@ && ln -sfn /tmp/htya-assertion-tests/src/lib /tmp/htya-assertion-tests/node_modules/@/lib && node /tmp/htya-assertion-tests/scripts/check-senior-match-orders.js && node /tmp/htya-assertion-tests/scripts/check-team-spirit-simulation.js && node /tmp/htya-assertion-tests/scripts/check-senior-training-inference.js",
     "build": "npm run lint && npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && npm run check:audit && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",

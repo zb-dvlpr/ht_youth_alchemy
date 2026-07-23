@@ -266,6 +266,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_9_1_0:
+      "Implementados cálculos de habilidade inferida para jogadores seniores e resultados de pesquisa de transferências",
     changelog_9_0_0:
       "Adicionada a possibilidade de instalar o Hattrick Alchemy como uma aplicação autónoma.",
     changelog_8_3_0: "Adicionados tutoriais na aplicação.",
@@ -2249,6 +2251,7 @@ export const messagesPt: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Pontuação de skill-trading",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Limite superior inferido",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -2413,6 +2416,31 @@ export const messagesPt: Messages = {
       "Este jogador subiu habilidade recentemente ou as suas secundarias e/ou forma tem um subnivel muito baixo.",
     seniorPsicoTsiHighSublevelsWarning:
       "Este jogador esta perto de subir habilidade ou as suas secundarias e/ou forma tem um subnivel muito alto.",
+    seniorTrainingInferenceGroupLabel: "Limite superior de habilidade com treino",
+    seniorTrainingInferenceValueLabel: "Valor de habilidade inferido",
+    seniorTrainingInferenceTooltip:
+      "Isto é uma inferência de habilidade como limite superior. Assumindo que o jogador foi treinado em {{skill}} sempre que elegível, acumulou o equivalente a {{weeks}} semanas de treino em posições de treino de {{skill}} desde o último aniversário. Os valores combinam as estimativas baseadas no salário nesse aniversário com este histórico posicional, usando treinador nível 7, 10 níveis de assistentes, 100% de intensidade e 10% de resistência. A habilidade real do jogador pode ser inferior porque as escolhas históricas de treino da equipa são desconhecidas.",
+    seniorTrainingInferenceZeroMinutesTooltip:
+      "Isto é uma inferência de habilidade como limite superior. Não foram identificados minutos elegíveis de treino de {{skill}} desde o último aniversário do jogador, por isso os valores inferidos igualam as estimativas salariais correspondentes desse aniversário. A habilidade real ainda pode ser inferior porque as escolhas históricas de treino da equipa são desconhecidas.",
+    seniorTrainingInferencePossiblyInflated: "(possivelmente inflacionado)",
+    seniorTrainingInferencePossiblyInflatedTooltip:
+      "Esta previsão baseada no TSI excede o limite superior com treino suportado pela estimativa salarial do jogador e pelo histórico posicional elegível observado sob as hipóteses indicadas. A diferença pode indicar que a previsão baseada no TSI está inflacionada.",
+    seniorTrainingInferenceCalculating: "A calcular...",
+    seniorTrainingInferenceProgress:
+      "A calcular limites superiores com treino: {{completed}} de {{total}}",
+    seniorTrainingInferenceNotApplicable: "Não aplicável",
+    seniorTrainingInferenceNotApplicableTooltip:
+      "Um limite superior com treino requer que uma única habilidade de futebol seja claramente superior a todas as outras.",
+    seniorTrainingInferenceUnavailable: "Indisponível",
+    seniorTrainingInferenceUnavailableWage:
+      "A previsão Psico baseada no salário não está disponível para este jogador.",
+    seniorTrainingInferenceUnavailableHistory:
+      "Não foi possível obter o histórico completo de partidas seniores ou equipas deste jogador.",
+    seniorTrainingInferenceUnavailableTimeline:
+      "Não foi possível reconstruir completamente a linha do tempo posicional do jogador.",
+    seniorTrainingInferenceWeeksLabel: "{{weeks}} semanas",
+    seniorTrainingInferenceTableTooltip:
+      "Inferência de habilidade como limite superior com treino, baseada na previsão salarial média e no histórico posicional elegível do jogador desde o último aniversário.",
     hiddenSpecialtyTooltip: "Especialidade oculta descoberta por eventos da partida",
     hiddenSpecialtyTooltipLinkHint:
       "Clique para abrir a partida em que foi descoberta",

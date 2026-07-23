@@ -4500,6 +4500,8 @@ export default function Dashboard({
               Number.parseFloat(psico.wageLow),
             ].reduce((sum, value) => sum + value, 0) / 3
           : null,
+        inferredSkillUpperAverage: null,
+        inferredSkillStatus: "unavailable",
         wageDisplay:
           typeof adjustedSalary === "number"
             ? formatDisplayCurrencyFromSek(adjustedSalary)

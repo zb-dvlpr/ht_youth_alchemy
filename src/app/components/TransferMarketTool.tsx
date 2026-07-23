@@ -41,6 +41,7 @@ import {
 } from "./MobileFloatingMenuSections";
 import { useTransferMarketActionBarSlot } from "./TransferMarketActionBarSlot";
 import TransferSearchResultCard, {
+  buildTransferSearchResultMetricInput,
   isForeignForSelectedLeague,
   normalizeTransferSearchResultCardDetails,
   resolveTransferSearchSalaryForSelectedTeam,
@@ -68,6 +69,7 @@ import {
   type TransferSearchSortKey,
   type TransferSearchTableWageData,
 } from "./TransferSearchModal";
+import { useSeniorTrainingInference } from "./seniorTrainingInference/useSeniorTrainingInference";
 
 type SeniorTeamOption = {
   teamId: number;
@@ -438,41 +440,6 @@ export default function TransferMarketTool({
         setResults(nextResults);
         setItemCount(nextResults.length);
         setExactEmpty(nextResults.length === 0);
-        const detailEntries = await mapWithConcurrency(
-          nextResults,
-          4,
-          async (result) => {
-            try {
-              const { response, payload } = await fetchChppJson<{
-                data?: { HattrickData?: { Player?: unknown } };
-                error?: string;
-                details?: string;
-              }>(
-                `/api/chpp/playerdetails?playerId=${result.playerId}&includeMatchInfo=true`,
-                { cache: "no-store" }
-              );
-              if (!response.ok || payload?.error) return null;
-              const details = normalizeTransferSearchResultCardDetails(
-                payload?.data?.HattrickData?.Player,
-                result.playerId
-              );
-              return details ? ([result.playerId, details] as const) : null;
-            } catch {
-              return null;
-            }
-          }
-        );
-        if (requestIdRef.current !== requestId) return;
-        setResultDetailsById(
-          Object.fromEntries(
-            detailEntries.filter(
-              (
-                entry
-              ): entry is readonly [number, TransferSearchResultCardDetails] =>
-                entry !== null
-            )
-          )
-        );
         setBidDrafts(() => {
           const next: Record<number, TransferSearchBidDraft> = {};
           nextResults.forEach((result) => {
@@ -485,6 +452,31 @@ export default function TransferMarketTool({
             };
           });
           return next;
+        });
+        setLoading(false);
+        void mapWithConcurrency(nextResults, 4, async (result) => {
+          try {
+            const { response, payload } = await fetchChppJson<{
+              data?: { HattrickData?: { Player?: unknown } };
+              error?: string;
+              details?: string;
+            }>(
+              `/api/chpp/playerdetails?playerId=${result.playerId}&includeMatchInfo=true`,
+              { cache: "no-store" }
+            );
+            if (!response.ok || payload?.error) return;
+            const details = normalizeTransferSearchResultCardDetails(
+              payload?.data?.HattrickData?.Player,
+              result.playerId
+            );
+            if (!details || requestIdRef.current !== requestId) return;
+            setResultDetailsById((current) => ({
+              ...current,
+              [result.playerId]: details,
+            }));
+          } catch {
+            // Playerdetails enrichment is best-effort and must not block results.
+          }
         });
         try {
           await addTransferMarketPastSearch({
@@ -629,6 +621,25 @@ export default function TransferMarketTool({
           String(results.length)
         );
 
+  const trainingInferenceInputs = useMemo(
+    () =>
+      results.map((result) => {
+        const resultDetails = resultDetailsById[result.playerId] ?? null;
+        return {
+          playerId: result.playerId,
+          currentTeamId: result.sellerTeamId,
+          currentLeagueId:
+            resultDetails?.NativeLeagueID ?? selectedTeam?.leagueId ?? null,
+          metricInput: buildTransferSearchResultMetricInput(result, resultDetails),
+        };
+      }),
+    [results, resultDetailsById, selectedTeam?.leagueId]
+  );
+  const {
+    statesByPlayerId: trainingInferenceByPlayerId,
+    progress: trainingInferenceProgress,
+  } = useSeniorTrainingInference(trainingInferenceInputs);
+
   const renderResultCard = (
     result: TransferSearchResult,
     countryMeta: TransferSearchResolvedCountryMeta | null
@@ -640,6 +651,7 @@ export default function TransferMarketTool({
       messages={messages}
       displayCurrency={displayCurrency}
       selectedSeniorLeagueId={selectedTeam?.leagueId ?? null}
+      trainingInference={trainingInferenceByPlayerId[result.playerId]}
       bidDraft={
         bidDrafts[result.playerId] ?? { bidDisplay: "", maxBidDisplay: "" }
       }
@@ -862,6 +874,8 @@ export default function TransferMarketTool({
         }
         renderResultCard={renderResultCard}
         getTableWageData={getTransferSearchTableWageData}
+        trainingInferenceByPlayerId={trainingInferenceByPlayerId}
+        trainingInferenceProgress={trainingInferenceProgress}
         onClose={() => undefined}
       />
       <Modal

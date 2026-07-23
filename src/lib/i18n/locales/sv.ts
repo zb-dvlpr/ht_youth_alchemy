@@ -265,6 +265,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_9_1_0:
+      "Implementerade beräkningar av härledd färdighet för seniorspelare och transfersökresultat",
     changelog_9_0_0:
       "Möjligheten att installera Hattrick Alchemy som en fristående app har lagts till.",
     changelog_8_3_0: "Instruktionsguider i appen har lagts till.",
@@ -2236,6 +2238,7 @@ export const messagesSv: Messages = {
     transferSearchTableSkillTradingScoreColumn: "Skill-trading-poäng",
     transferSearchTablePsicoTsiColumn: "Psico TSI",
     transferSearchTablePsicoWageColumn: "Psico wage",
+    seniorTrainingInferenceTableLabel: "Härledd övre gräns",
     transferSearchTableWageColumn: "Wage",
     transferSearchTableDeadlineColumn: "Left",
     transferSearchTableBidColumn: "Bid",
@@ -2400,6 +2403,31 @@ export const messagesSv: Messages = {
       "Spelaren har nyligen hojt sin skill eller har mycket laga subnivaer i sekundara skills och/eller form.",
     seniorPsicoTsiHighSublevelsWarning:
       "Spelaren ar nara att hoja sin skill eller har mycket hoga subnivaer i sekundara skills och/eller form.",
+    seniorTrainingInferenceGroupLabel: "Träningsmedveten övre färdighetsgräns",
+    seniorTrainingInferenceValueLabel: "Härlett färdighetsvärde",
+    seniorTrainingInferenceTooltip:
+      "Detta är en färdighetsinferens som övre gräns. Om spelaren tränades i {{skill}} varje gång han var berättigad samlade han motsvarande {{weeks}} träningsveckor på {{skill}}-träningspositioner sedan sin senaste födelsedag. Värdena kombinerar lönebaserade färdighetsskattningar vid födelsedagen med positionshistoriken, med tränare nivå 7, 10 assisterande tränarnivåer, 100% träningsintensitet och 10% konditionsandel. Spelarens verkliga färdighet kan vara lägre eftersom lagets historiska träningsval är okända.",
+    seniorTrainingInferenceZeroMinutesTooltip:
+      "Detta är en färdighetsinferens som övre gräns. Inga berättigade {{skill}}-träningsminuter hittades sedan spelarens senaste födelsedag, så de härledda värdena motsvarar de lönebaserade födelsedagsskattningarna. Den verkliga färdigheten kan ändå vara lägre eftersom lagets historiska träningsval är okända.",
+    seniorTrainingInferencePossiblyInflated: "(möjligen uppblåst)",
+    seniorTrainingInferencePossiblyInflatedTooltip:
+      "Denna TSI-baserade prognos överstiger den träningsmedvetna övre gränsen som stöds av spelarens lönebaserade skattning och observerade berättigade positionshistorik under angivna antaganden. Skillnaden kan tyda på att den TSI-baserade prognosen är uppblåst.",
+    seniorTrainingInferenceCalculating: "Beräknar...",
+    seniorTrainingInferenceProgress:
+      "Beräknar träningsmedvetna övre gränser: {{completed}} av {{total}}",
+    seniorTrainingInferenceNotApplicable: "Ej tillämpligt",
+    seniorTrainingInferenceNotApplicableTooltip:
+      "En träningsmedveten övre gräns kräver att exakt en fotbollsfärdighet är tydligt högre än alla andra.",
+    seniorTrainingInferenceUnavailable: "Ej tillgängligt",
+    seniorTrainingInferenceUnavailableWage:
+      "Den lönebaserade Psico-prognosen är inte tillgänglig för den här spelaren.",
+    seniorTrainingInferenceUnavailableHistory:
+      "Fullständig senior match- eller laghistorik kunde inte hämtas för den här spelaren.",
+    seniorTrainingInferenceUnavailableTimeline:
+      "Spelarens positionstidslinje kunde inte rekonstrueras fullständigt.",
+    seniorTrainingInferenceWeeksLabel: "{{weeks}} veckor",
+    seniorTrainingInferenceTableTooltip:
+      "Träningsmedveten färdighetsinferens som övre gräns baserad på den genomsnittliga löneprognosen och spelarens berättigade positionshistorik sedan senaste födelsedagen.",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     hiddenSpecialtyTooltipLinkHint:
       "Klicka for att oppna matchen dar den upptacktes",

@@ -20362,6 +20362,8 @@ const refreshDetailsForPlayers = async (
               Number.parseFloat(psico.wageLow),
             ].reduce((sum, value) => sum + value, 0) / 3
           : null,
+        inferredSkillUpperAverage: null,
+        inferredSkillStatus: "unavailable",
         wageDisplay:
           adjustedSalary === null || adjustedSalary === undefined
             ? messages.unknownShort

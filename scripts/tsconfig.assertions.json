@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "baseUrl": "..",
+    "rootDir": "..",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "outDir": "/tmp/htya-assertion-tests",
+    "noEmit": false,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "check-senior-match-orders.ts",
+    "check-team-spirit-simulation.ts",
+    "../src/lib/seniorMatchOrders.ts",
+    "../src/lib/teamSpirit.ts",
+    "../src/lib/teamSpiritSimulation.ts",
+    "../src/lib/seniorTeamSpiritStorage.ts",
+    "../src/lib/seniorTeamSpiritTimeline.ts"
+  ]
+}

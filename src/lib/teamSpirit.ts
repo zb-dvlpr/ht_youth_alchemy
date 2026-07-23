@@ -126,6 +126,19 @@ export function driftTeamSpiritOneDay(
   coachLeadership: CoachLeadership,
   sportsPsychologistLevel: number
 ): number {
+  return driftTeamSpiritDuration(
+    currentTeamSpirit,
+    1,
+    coachLeadership,
+    sportsPsychologistLevel
+  );
+}
+
+function resolveTeamSpiritDrift(
+  currentTeamSpirit: number,
+  coachLeadership: CoachLeadership,
+  sportsPsychologistLevel: number
+) {
   const normalizedPsychologistLevel = normalizeTeamSpiritPsychologistLevel(
     sportsPsychologistLevel
   );
@@ -134,15 +147,30 @@ export function driftTeamSpiritOneDay(
   const psychoEffect = normalizedPsychologistLevel * 0.0075;
   if (ts > target) {
     const leadershipRate = LEADERSHIP_DAILY[coachLeadership];
-    const rate = Math.max(0.01, leadershipRate - psychoEffect);
-    return clampTeamSpirit(ts + (target - ts) * rate);
+    return { ts, target, dailyRate: Math.max(0.01, leadershipRate - psychoEffect) };
   }
   if (ts < target) {
     const leadershipRate = LEADERSHIP_RECOVERY_DAILY[coachLeadership];
-    const rate = leadershipRate + psychoEffect;
-    return clampTeamSpirit(ts + (target - ts) * rate);
+    return { ts, target, dailyRate: leadershipRate + psychoEffect };
   }
-  return ts;
+  return { ts, target, dailyRate: 0 };
+}
+
+export function driftTeamSpiritDuration(
+  currentTeamSpirit: number,
+  durationDays: number,
+  coachLeadership: CoachLeadership,
+  sportsPsychologistLevel: number
+): number {
+  const duration = Math.max(0, durationDays);
+  const { ts, target, dailyRate } = resolveTeamSpiritDrift(
+    currentTeamSpirit,
+    coachLeadership,
+    sportsPsychologistLevel
+  );
+  if (duration === 0 || dailyRate === 0) return ts;
+  const effectiveRate = 1 - Math.pow(1 - dailyRate, duration);
+  return clampTeamSpirit(ts + (target - ts) * effectiveRate);
 }
 
 export function driftTeamSpiritDays(

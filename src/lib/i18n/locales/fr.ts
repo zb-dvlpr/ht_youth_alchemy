@@ -1271,6 +1271,12 @@ export const messagesFr: Messages = {
       "Meme si votre equipe n a pas de psychologue sportif, vous pouvez en simuler un pour voir son effet sur l esprit d equipe.",
     teamSpiritSportsPsychologistInfoAria: "A propos de la simulation du psychologue sportif",
     teamSpiritSportsPsychologistLevelDetected: "Detecte : {{level}}",
+    teamSpiritCoachSimulationStatus:
+      "Le leadership du coach a ete modifie par l'utilisateur en {{leadership}} le {{dateTime}}.",
+    teamSpiritPsychologistSimulationLevelStatus:
+      "Le niveau du psychologue sportif a ete modifie par l'utilisateur en {{level}} le {{dateTime}}.",
+    teamSpiritPsychologistSimulationDisabledStatus:
+      "Le psychologue sportif a ete desactive par l'utilisateur le {{dateTime}}.",
     teamSpiritNoSportsPsychologistDetected: "Aucun psychologue sportif detecte.",
     teamSpiritRefresh: "Actualiser l esprit d equipe",
     teamSpiritLoadingArchive: "Chargement des matchs d esprit d equipe de la saison...",

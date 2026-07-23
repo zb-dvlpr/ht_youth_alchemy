@@ -1273,6 +1273,12 @@ export const messagesEs: Messages = {
       "Aunque tu equipo no tenga psicologo deportivo, puedes simular uno para ver su efecto en el espiritu de equipo.",
     teamSpiritSportsPsychologistInfoAria: "Acerca de la simulacion del psicologo deportivo",
     teamSpiritSportsPsychologistLevelDetected: "Detectado: {{level}}",
+    teamSpiritCoachSimulationStatus:
+      "El liderazgo del entrenador fue cambiado por el usuario a {{leadership}} el {{dateTime}}.",
+    teamSpiritPsychologistSimulationLevelStatus:
+      "El nivel del psicologo deportivo fue cambiado por el usuario a {{level}} el {{dateTime}}.",
+    teamSpiritPsychologistSimulationDisabledStatus:
+      "El psicologo deportivo fue desactivado por el usuario el {{dateTime}}.",
     teamSpiritNoSportsPsychologistDetected: "No se detecto psicologo deportivo.",
     teamSpiritRefresh: "Actualizar espiritu de equipo",
     teamSpiritLoadingArchive: "Cargando partidos de espiritu de equipo de la temporada...",

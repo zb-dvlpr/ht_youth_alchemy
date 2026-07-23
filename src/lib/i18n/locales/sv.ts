@@ -1263,6 +1263,12 @@ export const messagesSv: Messages = {
       "Aven om ditt lag inte har en idrottspsykolog kan du simulera en for att se dess effekt pa lagandan.",
     teamSpiritSportsPsychologistInfoAria: "Om simulering av idrottspsykolog",
     teamSpiritSportsPsychologistLevelDetected: "Upptackt: {{level}}",
+    teamSpiritCoachSimulationStatus:
+      "Tranarens ledarskap andrades av anvandaren till {{leadership}} den {{dateTime}}.",
+    teamSpiritPsychologistSimulationLevelStatus:
+      "Idrottspsykologens niva andrades av anvandaren till {{level}} den {{dateTime}}.",
+    teamSpiritPsychologistSimulationDisabledStatus:
+      "Idrottspsykologen inaktiverades av anvandaren den {{dateTime}}.",
     teamSpiritNoSportsPsychologistDetected: "Ingen idrottspsykolog upptackt.",
     teamSpiritRefresh: "Uppdatera laganda",
     teamSpiritLoadingArchive: "Laddar lagandamatcher for aktuell sasong...",

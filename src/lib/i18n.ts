@@ -1014,6 +1014,9 @@ export type Messages = {
   teamSpiritSportsPsychologistTooltip: string;
   teamSpiritSportsPsychologistInfoAria: string;
   teamSpiritSportsPsychologistLevelDetected: string;
+  teamSpiritCoachSimulationStatus: string;
+  teamSpiritPsychologistSimulationLevelStatus: string;
+  teamSpiritPsychologistSimulationDisabledStatus: string;
   teamSpiritNoSportsPsychologistDetected: string;
   teamSpiritRefresh: string;
   teamSpiritLoadingArchive: string;

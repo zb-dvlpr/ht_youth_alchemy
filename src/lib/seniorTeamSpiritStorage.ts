@@ -1,12 +1,14 @@
 import { TEAM_SPIRIT_LABELS, type CoachLeadership, type TeamSpiritAttitude } from "@/lib/teamSpirit";
 
 export type SeniorTeamSpiritSettings = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   teamId: number;
   season: number;
   coachLeadershipOverride: CoachLeadership | null;
+  coachLeadershipOverrideEffectiveFrom: number | null;
   sportsPsychologistEnabledOverride: boolean | null;
   sportsPsychologistLevelOverride: number | null;
+  sportsPsychologistOverrideEffectiveFrom: number | null;
   upcomingAttitudes: Record<string, TeamSpiritAttitude>;
   teamSpiritBeforeMatchOverrides: Record<string, number>;
   updatedAt: number;
@@ -30,6 +32,12 @@ function buildSettingsKey(teamId: number, season: number) {
 }
 
 function sanitizePositiveInteger(value: unknown): number | null {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.floor(parsed);
+}
+
+export function sanitizeTimestamp(value: unknown): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
   return Math.floor(parsed);
@@ -85,33 +93,58 @@ function sanitizeTeamSpiritOverrides(value: unknown): Record<string, number> {
   );
 }
 
-function sanitizeSettings(value: unknown): SeniorTeamSpiritSettings | null {
+export function sanitizeSeniorTeamSpiritSettings(
+  value: unknown,
+  migrationTimestamp = Date.now()
+): SeniorTeamSpiritSettings | null {
   if (!value || typeof value !== "object") return null;
-  const input = value as Partial<SeniorTeamSpiritSettings>;
+  const input = value as Partial<SeniorTeamSpiritSettings> & {
+    schemaVersion?: unknown;
+    coachLeadershipOverrideEffectiveFrom?: unknown;
+    sportsPsychologistOverrideEffectiveFrom?: unknown;
+  };
   const teamId = sanitizePositiveInteger(input.teamId);
   const season = sanitizePositiveInteger(input.season);
   if (teamId === null || season === null) return null;
+  const schemaVersion = Number(input.schemaVersion);
+  const updatedAt = sanitizeTimestamp(input.updatedAt) ?? migrationTimestamp;
+  const coachLeadershipOverride = isCoachLeadership(input.coachLeadershipOverride)
+    ? input.coachLeadershipOverride
+    : null;
+  const sportsPsychologistEnabledOverride =
+    typeof input.sportsPsychologistEnabledOverride === "boolean"
+      ? input.sportsPsychologistEnabledOverride
+      : null;
+  const sportsPsychologistLevelOverride = sanitizeLevel(input.sportsPsychologistLevelOverride);
+  const coachLeadershipOverrideEffectiveFrom =
+    coachLeadershipOverride === null
+      ? null
+      : sanitizeTimestamp(input.coachLeadershipOverrideEffectiveFrom) ??
+        (schemaVersion === 2 ? updatedAt : null);
+  const sportsPsychologistOverrideEffectiveFrom =
+    sportsPsychologistEnabledOverride === null && sportsPsychologistLevelOverride === null
+      ? null
+      : sanitizeTimestamp(input.sportsPsychologistOverrideEffectiveFrom) ??
+        (schemaVersion === 2 ? updatedAt : null);
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     teamId,
     season,
-    coachLeadershipOverride: isCoachLeadership(input.coachLeadershipOverride)
-      ? input.coachLeadershipOverride
-      : null,
-    sportsPsychologistEnabledOverride:
-      typeof input.sportsPsychologistEnabledOverride === "boolean"
-        ? input.sportsPsychologistEnabledOverride
-        : null,
-    sportsPsychologistLevelOverride: sanitizeLevel(input.sportsPsychologistLevelOverride),
+    coachLeadershipOverride,
+    coachLeadershipOverrideEffectiveFrom,
+    sportsPsychologistEnabledOverride,
+    sportsPsychologistLevelOverride,
+    sportsPsychologistOverrideEffectiveFrom,
     upcomingAttitudes: sanitizeAttitudes(input.upcomingAttitudes),
     teamSpiritBeforeMatchOverrides: sanitizeTeamSpiritOverrides(
       input.teamSpiritBeforeMatchOverrides
     ),
-    updatedAt:
-      typeof input.updatedAt === "number" && Number.isFinite(input.updatedAt)
-        ? input.updatedAt
-        : Date.now(),
+    updatedAt,
   };
+}
+
+function sanitizeSettings(value: unknown): SeniorTeamSpiritSettings | null {
+  return sanitizeSeniorTeamSpiritSettings(value);
 }
 
 function openDb(): Promise<IDBDatabase | null> {
@@ -176,7 +209,21 @@ export async function readSeniorTeamSpiritSettings(
   const record = await runStore<unknown>("readonly", (store) =>
     store.get(buildSettingsKey(teamId, season))
   );
-  return sanitizeSettings(record);
+  const migrationTimestamp = Date.now();
+  const sanitized = sanitizeSeniorTeamSpiritSettings(record, migrationTimestamp);
+  const recordVersion =
+    record && typeof record === "object"
+      ? Number((record as Record<string, unknown>).schemaVersion)
+      : null;
+  if (sanitized && recordVersion !== 3) {
+    await runStore<IDBValidKey>("readwrite", (store) =>
+      store.put({
+        ...sanitized,
+        id: buildSettingsKey(sanitized.teamId, sanitized.season),
+      })
+    );
+  }
+  return sanitized;
 }
 
 export async function writeSeniorTeamSpiritSettings(
@@ -263,19 +310,73 @@ function migrateLegacySettings(
   season: number
 ): SeniorTeamSpiritSettings {
   const input = legacy && typeof legacy === "object" ? legacy as Record<string, unknown> : {};
+  const migratedAt = Date.now();
+  const sportsPsychologistEnabledOverride =
+    typeof input.sportsPsychologistEnabled === "boolean"
+      ? input.sportsPsychologistEnabled
+      : null;
+  const sportsPsychologistLevelOverride = sanitizeLevel(input.sportsPsychologistLevel);
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     teamId,
     season,
     coachLeadershipOverride: null,
-    sportsPsychologistEnabledOverride:
-      typeof input.sportsPsychologistEnabled === "boolean"
-        ? input.sportsPsychologistEnabled
+    coachLeadershipOverrideEffectiveFrom: null,
+    sportsPsychologistEnabledOverride,
+    sportsPsychologistLevelOverride,
+    sportsPsychologistOverrideEffectiveFrom:
+      sportsPsychologistEnabledOverride !== null || sportsPsychologistLevelOverride !== null
+        ? migratedAt
         : null,
-    sportsPsychologistLevelOverride: sanitizeLevel(input.sportsPsychologistLevel),
     upcomingAttitudes: sanitizeAttitudes(input.attitudes),
     teamSpiritBeforeMatchOverrides: {},
-    updatedAt: Date.now(),
+    updatedAt: migratedAt,
+  };
+}
+
+export function resetCoachSimulation(
+  settings: SeniorTeamSpiritSettings
+): SeniorTeamSpiritSettings {
+  return {
+    ...settings,
+    coachLeadershipOverride: null,
+    coachLeadershipOverrideEffectiveFrom: null,
+  };
+}
+
+export function resetPsychologistSimulation(
+  settings: SeniorTeamSpiritSettings
+): SeniorTeamSpiritSettings {
+  return {
+    ...settings,
+    sportsPsychologistEnabledOverride: null,
+    sportsPsychologistLevelOverride: null,
+    sportsPsychologistOverrideEffectiveFrom: null,
+  };
+}
+
+export function normalizePsychologistSimulationState(input: {
+  detectedSportsPsychologistLevel: number;
+  enabled: boolean;
+  level: number;
+  effectiveFrom: number;
+}): Pick<
+  SeniorTeamSpiritSettings,
+  | "sportsPsychologistEnabledOverride"
+  | "sportsPsychologistLevelOverride"
+  | "sportsPsychologistOverrideEffectiveFrom"
+> {
+  const detectedLevel = Math.max(0, Math.floor(input.detectedSportsPsychologistLevel));
+  const detectedEnabled = detectedLevel > 0;
+  const enabledOverride = input.enabled === detectedEnabled ? null : input.enabled;
+  const normalizedLevel = Math.max(1, Math.min(MAX_SPORTS_PSYCHOLOGIST_LEVEL, Math.floor(input.level)));
+  const levelOverride =
+    input.enabled && normalizedLevel !== detectedLevel ? normalizedLevel : null;
+  const hasOverride = enabledOverride !== null || levelOverride !== null;
+  return {
+    sportsPsychologistEnabledOverride: enabledOverride,
+    sportsPsychologistLevelOverride: levelOverride,
+    sportsPsychologistOverrideEffectiveFrom: hasOverride ? input.effectiveFrom : null,
   };
 }
 

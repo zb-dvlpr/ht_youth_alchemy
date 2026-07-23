@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "tsc --ignoreConfig scripts/check-senior-match-orders.ts src/lib/seniorMatchOrders.ts --outDir /tmp/htya-senior-match-orders-test --module commonjs --target es2022 --moduleResolution node --skipLibCheck --esModuleInterop --types node --ignoreDeprecations 6.0 && node /tmp/htya-senior-match-orders-test/scripts/check-senior-match-orders.js",
+    "test": "tsc --project scripts/tsconfig.assertions.json && mkdir -p /tmp/htya-assertion-tests/node_modules/@ && ln -sfn /tmp/htya-assertion-tests/src/lib /tmp/htya-assertion-tests/node_modules/@/lib && node /tmp/htya-assertion-tests/scripts/check-senior-match-orders.js && node /tmp/htya-assertion-tests/scripts/check-team-spirit-simulation.js",
     "build": "npm run lint && npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && npm run check:audit && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",

@@ -1222,6 +1222,12 @@ export const messagesEn: Messages = {
       "Even if your team does not have a sports psychologist, you can simulate one to see its effect on team spirit.",
     teamSpiritSportsPsychologistInfoAria: "About sports psychologist simulation",
     teamSpiritSportsPsychologistLevelDetected: "Detected: {{level}}",
+    teamSpiritCoachSimulationStatus:
+      "Coach leadership was changed by the user to {{leadership}} on {{dateTime}}.",
+    teamSpiritPsychologistSimulationLevelStatus:
+      "Sports psychologist level was changed by the user to {{level}} on {{dateTime}}.",
+    teamSpiritPsychologistSimulationDisabledStatus:
+      "The sports psychologist was disabled by the user on {{dateTime}}.",
     teamSpiritNoSportsPsychologistDetected: "No sports psychologist detected.",
     teamSpiritRefresh: "Refresh Team spirit data",
     teamSpiritLoadingArchive: "Loading current-season team spirit matches...",

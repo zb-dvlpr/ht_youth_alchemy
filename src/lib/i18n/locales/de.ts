@@ -1259,6 +1259,12 @@ export const messagesDe: Messages = {
       "Auch wenn dein Team keinen Sportpsychologen hat, kannst du einen simulieren, um den Effekt auf die Teamstimmung zu sehen.",
     teamSpiritSportsPsychologistInfoAria: "Info zur Sportpsychologen-Simulation",
     teamSpiritSportsPsychologistLevelDetected: "Erkannt: {{level}}",
+    teamSpiritCoachSimulationStatus:
+      "Die Trainer-Fuehrung wurde vom Benutzer auf {{leadership}} geaendert am {{dateTime}}.",
+    teamSpiritPsychologistSimulationLevelStatus:
+      "Die Sportpsychologenstufe wurde vom Benutzer auf {{level}} geaendert am {{dateTime}}.",
+    teamSpiritPsychologistSimulationDisabledStatus:
+      "Der Sportpsychologe wurde vom Benutzer deaktiviert am {{dateTime}}.",
     teamSpiritNoSportsPsychologistDetected: "Kein Sportpsychologe erkannt.",
     teamSpiritRefresh: "Teamstimmung aktualisieren",
     teamSpiritLoadingArchive: "Teamstimmungsspiele der aktuellen Saison werden geladen...",

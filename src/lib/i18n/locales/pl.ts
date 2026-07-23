@@ -925,6 +925,12 @@ export const messagesPl: Messages = {
     "Nawet jesli twoj zespol nie ma psychologa sportowego, mozesz go zasymulowac, aby zobaczyc wplyw na team spirit.",
   teamSpiritSportsPsychologistInfoAria: "O symulacji psychologa sportowego",
   teamSpiritSportsPsychologistLevelDetected: "Wykryte: {{level}}",
+  teamSpiritCoachSimulationStatus:
+    "Przywodztwo trenera zostalo zmienione przez uzytkownika na {{leadership}} dnia {{dateTime}}.",
+  teamSpiritPsychologistSimulationLevelStatus:
+    "Poziom psychologa sportowego zostal zmieniony przez uzytkownika na {{level}} dnia {{dateTime}}.",
+  teamSpiritPsychologistSimulationDisabledStatus:
+    "Psycholog sportowy zostal wylaczony przez uzytkownika dnia {{dateTime}}.",
   teamSpiritNoSportsPsychologistDetected: "Nie wykryto psychologa sportowego.",
   teamSpiritRefresh: "Odswiez team spirit",
   teamSpiritLoadingArchive: "Wczytywanie meczow team spirit z obecnego sezonu...",

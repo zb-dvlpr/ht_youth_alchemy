@@ -1,11 +1,27 @@
-import type { Match } from "@/app/components/UpcomingMatches";
+type MatchTeam = {
+  HomeTeamName?: string;
+  AwayTeamName?: string;
+  HomeTeamID?: number;
+  AwayTeamID?: number;
+};
+
+export type TeamSpiritTimelineMatchInput = {
+  MatchID: number;
+  MatchDate?: string;
+  Status?: string;
+  MatchType?: number | string;
+  CupLevel?: number | string;
+  SourceSystem?: string;
+  HomeTeam?: MatchTeam;
+  AwayTeam?: MatchTeam;
+};
 
 export type TeamSpiritMatchStatus = "UPCOMING" | "ONGOING" | "FINISHED";
 export type TeamSpiritSyntheticKind =
   | "mainCupPlaceholder"
   | "debugMainCupMatch";
 
-export type TeamSpiritMatch = Omit<Match, "MatchID"> & {
+export type TeamSpiritMatch = Omit<TeamSpiritTimelineMatchInput, "MatchID"> & {
   MatchID: number | null;
   SourceSystem: string;
   sortTime: number;
@@ -161,7 +177,7 @@ export function isFinishedMatch(match: TeamSpiritMatch) {
 }
 
 export function normalizeTeamSpiritMatch(
-  match: Match,
+  match: TeamSpiritTimelineMatchInput,
   nowMs: number
 ): TeamSpiritMatch | null {
   const matchId = toTeamSpiritNumber(match.MatchID);
@@ -178,21 +194,23 @@ export function normalizeTeamSpiritMatch(
   };
 }
 
-export function isActualMainCupMatch(match: Match | TeamSpiritMatch) {
+export function isActualMainCupMatch(match: TeamSpiritTimelineMatchInput | TeamSpiritMatch) {
   return toTeamSpiritNumber(match.MatchType) === 3 && toTeamSpiritNumber(match.CupLevel) === 1;
 }
 
-export function isQualificationMatch(match: Match | TeamSpiritMatch) {
+export function isQualificationMatch(match: TeamSpiritTimelineMatchInput | TeamSpiritMatch) {
   return toTeamSpiritNumber(match.MatchType) === 2;
 }
 
-export function isTeamSpiritNonLeagueCandidate(match: Match) {
+export function isTeamSpiritNonLeagueCandidate(match: TeamSpiritTimelineMatchInput) {
   return isActualMainCupMatch(match) || isQualificationMatch(match);
 }
 
 export function normalizeLeagueFixtures(payload: unknown, teamId: number, nowMs: number) {
   const root = (payload as { data?: { HattrickData?: unknown } } | null)?.data
-    ?.HattrickData as { Match?: Match[] | Match } | undefined;
+    ?.HattrickData as
+    | { Match?: TeamSpiritTimelineMatchInput[] | TeamSpiritTimelineMatchInput }
+    | undefined;
   return asArray(root?.Match)
     .filter((match) => {
       const homeId = toTeamSpiritNumber(match.HomeTeam?.HomeTeamID);

@@ -940,6 +940,12 @@ export const messagesNl: Messages = {
     "Ook als je team geen sportpsycholoog heeft, kun je er een simuleren om het effect op teamgeest te zien.",
   teamSpiritSportsPsychologistInfoAria: "Over simulatie van sportpsycholoog",
   teamSpiritSportsPsychologistLevelDetected: "Gedetecteerd: {{level}}",
+  teamSpiritCoachSimulationStatus:
+    "Coachleiderschap is door de gebruiker gewijzigd naar {{leadership}} op {{dateTime}}.",
+  teamSpiritPsychologistSimulationLevelStatus:
+    "Niveau sportpsycholoog is door de gebruiker gewijzigd naar {{level}} op {{dateTime}}.",
+  teamSpiritPsychologistSimulationDisabledStatus:
+    "De sportpsycholoog is door de gebruiker uitgeschakeld op {{dateTime}}.",
   teamSpiritNoSportsPsychologistDetected: "Geen sportpsycholoog gedetecteerd.",
   teamSpiritRefresh: "Teamgeest verversen",
   teamSpiritLoadingArchive: "Teamgeestwedstrijden van huidig seizoen laden...",

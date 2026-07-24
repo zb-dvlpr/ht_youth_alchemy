@@ -363,14 +363,6 @@ export type Messages = {
   settingsSeniorPredictedRatingsTitle: string;
   settingsSeniorPredictedRatingsExperimentalLabel: string;
   settingsSeniorPredictedRatingsToggleLabel: string;
-  settingsSeniorPredictedRatingsDescription: string;
-  settingsSeniorPredictedRatingsReportLabel: string;
-  settingsSeniorPredictedRatingsReportText: string;
-  settingsSeniorPredictedRatingsCopyReportButton: string;
-  settingsSeniorPredictedRatingsReportButton: string;
-  settingsSeniorPredictedRatingsReportCopied: string;
-  settingsSeniorPredictedRatingsReportCopyFailed: string;
-  settingsSeniorPredictedRatingsReportAriaLabel: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;

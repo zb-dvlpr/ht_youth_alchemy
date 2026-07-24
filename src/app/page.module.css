@@ -2358,42 +2358,6 @@ html:not([data-mobile-shell="true"])
   cursor: pointer;
 }
 
-.settingsCardDescription {
-  margin: 0;
-  color: #5d5246;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.settingsReportField {
-  display: grid;
-  gap: 8px;
-}
-
-.settingsReportTextarea {
-  width: 100%;
-  min-height: 180px;
-  resize: vertical;
-  border-radius: 10px;
-  border: 1px solid #d8cbb6;
-  padding: 10px 12px;
-  background: #f8f3ea;
-  color: #3f362c;
-  font: inherit;
-  font-size: 12px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.settingsReportActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .storageDiagnosticsSection {
   display: grid;
   gap: 6px;
@@ -7809,21 +7773,11 @@ html[data-theme="dark"] .settingsCardBadge {
   color: #f0c28e;
 }
 
-html[data-theme="dark"] .settingsCardDescription {
-  color: #c9bfb2;
-}
-
 html[data-theme="dark"] .settingsCardToggle {
   color: #f3ede4;
 }
 
 html[data-theme="dark"] .settingsFieldInput {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: #2a241d;
-  color: #f3ede4;
-}
-
-html[data-theme="dark"] .settingsReportTextarea {
   border-color: rgba(255, 255, 255, 0.12);
   background: #2a241d;
   color: #f3ede4;

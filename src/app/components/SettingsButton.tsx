@@ -59,8 +59,6 @@ import {
   writeDebugTeamSpiritStillInCup,
 } from "@/lib/settings";
 import type { HattrickSupporterTier } from "@/lib/supporterTier";
-import { copyTextToClipboard } from "@/lib/clipboard";
-import { hattrickStaffMessagesUrl } from "@/lib/hattrick/urls";
 import {
   applyImportedChronicleWatchlists,
   buildChronicleWatchlistsImportUrl,
@@ -628,26 +626,6 @@ export default function SettingsButton({
     }
   };
 
-  const handleCopySeniorPredictedRatingsReport = async () => {
-    try {
-      const copied = await copyTextToClipboard(
-        messages.settingsSeniorPredictedRatingsReportText
-      );
-      addNotification(
-        copied
-          ? messages.settingsSeniorPredictedRatingsReportCopied
-          : messages.settingsSeniorPredictedRatingsReportCopyFailed
-      );
-    } catch {
-      addNotification(messages.settingsSeniorPredictedRatingsReportCopyFailed);
-    }
-  };
-
-  const handleOpenSeniorPredictedRatingsReport = () => {
-    if (typeof window === "undefined") return;
-    window.open(hattrickStaffMessagesUrl(), "_blank", "noopener,noreferrer");
-  };
-
   const handleChronicleStalenessChange = (value: number) => {
     const nextValue = Math.min(7, Math.max(1, Math.round(value)));
     setChronicleStalenessDays(nextValue);
@@ -1186,38 +1164,6 @@ export default function SettingsButton({
                   aria-hidden="true"
                 />
               </label>
-              <p className={styles.settingsCardDescription}>
-                {messages.settingsSeniorPredictedRatingsDescription}
-              </p>
-              <label className={styles.settingsReportField}>
-                <span className={styles.settingsFieldLabel}>
-                  {messages.settingsSeniorPredictedRatingsReportLabel}
-                </span>
-                <textarea
-                  readOnly
-                  aria-label={
-                    messages.settingsSeniorPredictedRatingsReportAriaLabel
-                  }
-                  value={messages.settingsSeniorPredictedRatingsReportText}
-                  className={styles.settingsReportTextarea}
-                />
-              </label>
-              <div className={styles.settingsReportActions}>
-                <button
-                  type="button"
-                  className={styles.confirmCancel}
-                  onClick={() => void handleCopySeniorPredictedRatingsReport()}
-                >
-                  {messages.settingsSeniorPredictedRatingsCopyReportButton}
-                </button>
-                <button
-                  type="button"
-                  className={styles.confirmSubmit}
-                  onClick={handleOpenSeniorPredictedRatingsReport}
-                >
-                  {messages.settingsSeniorPredictedRatingsReportButton}
-                </button>
-              </div>
             </section>
           </div>
         }
